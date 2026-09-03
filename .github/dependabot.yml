@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # Frontend (React/TS via Vite) — dependência npm.
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "security"
+      - "dependencies"
+
+  # As próprias GitHub Actions usadas em .github/workflows/ também são dependência
+  # de terceiro (supply chain) — mantidas atualizadas pelo mesmo mecanismo.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "security"
+      - "dependencies"
+
+  # NOTA (DevSecOps, 2026-09-02): Supabase Edge Functions (Deno) ainda não existem
+  # no repositório (SDD.md Seção 2.1). Dependabot não tem suporte nativo a deno.lock
+  # — quando supabase/functions/ existir, a checagem de dependência Deno continua
+  # coberta pelo job OSV-Scanner em .github/workflows/security-scan.yml (que lê
+  # deno.lock), não por este arquivo. Revisar se o Dependabot adicionar suporte
+  # nativo a Deno no futuro.

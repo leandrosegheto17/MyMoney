@@ -1,7 +1,7 @@
 # ADR-001: Reaproveitar o Supabase do projeto legado como camada de persistência, em vez de provisionar banco novo
 
 - **Data**: 2026-09-02
-- **Status**: Accepted (decisão do Software Architect — revisão pendente no Gate 2 do CTO: `architecture-decision-review` + `risk-and-compliance-check`, dado o vendor lock-in e o reaproveitamento de infraestrutura compartilhada)
+- **Status**: Superseded by ADR-012 (a premissa central — "o projeto reaproveitado contém dado de outro produto não relacionado, a isolar" — não se sustentou: `SPK-001` e confirmação direta do stakeholder revelaram que o schema `public` é uma implementação anterior deste mesmo produto, não de terceiro. Ver `BLOCKERS.md`, Bloqueio 003, `CTO-REVIEW.md` "Gate 2 (Reaberto por Bloqueio 003)", e `012-adotar-public-existente-como-base-reaproveitando-implementacao-anterior.md`)
 - **Deciders**: software-architect
 - **Tags**: architecture, database, vendor, compliance, migration
 

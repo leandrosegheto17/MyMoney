@@ -45,6 +45,15 @@ mapeada).
 | UX-FL-04 | FL-04 — Captura Automatizada com Confirmação Humana Obrigatória (voz/foto) | S-CAP-01 (escolher método) → S-CAP-02 (voz) ou S-CAP-04 (foto) → processamento → **S-CAP-03/S-CAP-05 (rascunho de confirmação, RNF-01)** → confirma → toast + flag de origem → S-DASH-01 / S-CARD-03 se aplicável | RF-F3-01, RF-F3-02, RNF-01, RNF-08 | Fase 3 |
 | UX-FL-05 | FL-05 — Importação de Extrato / Open Finance | S-CAP-06 (upload OFX/CSV) ou S-CAP-08/09 (conexão Open Finance) → S-CAP-07 (lista de candidatos, duplicatas sinalizadas) → confirma seleção → toast "N lançamentos importados" → S-TXN-01 | RF-F3-03, RF-F3-04, RNF-01 (extensão AMB-06b) | Fase 3 |
 
+> **Nota de reabertura (2026-09-03, `BLOCKERS.md` Bloqueio 008)**: a publicação
+> original deste documento (2026-09-02) pulava de "S-AUTH-01" direto para
+> "S-AUTH-03" — lacuna de numeração, não uma omissão deliberada. O 2º fator por
+> e-mail (`/auth-email-mfa`, Edge Function reaproveitada por `BE-M-09`/Bloqueio
+> 005) só foi confirmado como parte real de RF-MVP-08 quando `API-CONTRACT.yaml`
+> publicou seu contrato em v0.6.0 (2026-09-03) — posterior à publicação original
+> deste `UX-SPEC.md`. "S-AUTH-02" está formalizada nesta atualização (Seção 2.2),
+> preenchendo o gap. Nenhuma outra tela é afetada por esta reabertura.
+
 ### 1.2 Fluxos de CRUD estrutural (mapeados pelo UX/UI, sem diagrama próprio no BA por serem simples, mas com tela obrigatória)
 
 | Fluxo UX | Descrição | Telas | Requisitos | Fase |
@@ -53,7 +62,7 @@ mapeada).
 | UX-FL-07 | Cadastro/gestão de formas de pagamento | S-PAY-01 → S-PAY-02 (customizada) | RF-MVP-02 | MVP |
 | UX-FL-08 | Cadastro/gestão de categorias/subcategorias | S-CAT-01 → S-CAT-02 (novo/editar) → S-CAT-03 (bloqueio de exclusão com sugestão de reclassificação) | RF-MVP-03, RN-09 | MVP |
 | UX-FL-09 | Definição de orçamento por categoria | S-BUD-01 → S-BUD-02 (definir teto) → alerta inline (80%/100%+) | RF-MVP-07, RN-04 | MVP |
-| UX-FL-10 | Login e desbloqueio seguro | S-AUTH-01 (login) → S-AUTH-04 (setup PIN, 1ª vez) → S-AUTH-03 (desbloqueio, toda sessão) → S-AUTH-05 (bloqueio temporário) → S-SET-01 (logout explícito) | RF-MVP-08 | MVP |
+| UX-FL-10 | Login e desbloqueio seguro | S-AUTH-01 (login) → **S-AUTH-02 (verificação por e-mail, 2º fator — nova, ver nota abaixo)** → S-AUTH-04 (setup PIN, 1ª vez) → S-AUTH-03 (desbloqueio local, toda abertura/retomada do app) → S-AUTH-05 (bloqueio temporário) → S-SET-01 (logout explícito) | RF-MVP-08 | MVP |
 | UX-FL-11 | Onboarding de primeiro acesso | S-ONB-01 (boas-vindas + 1ª conta) → S-ONB-02 (revisão da taxonomia padrão) → S-DASH-01 | RF-MVP-01, RF-MVP-03, RN-09 | MVP |
 | UX-FL-12 | Cadastro de cartão + compra parcelada | S-CARD-01 → S-CARD-02 (novo cartão) → S-INST-01 (nova compra parcelada) → S-INST-02 (progresso de parcelas) | RF-F2-01, RF-F2-04 | Fase 2 |
 | UX-FL-13 | Recorrência: criação e encerramento | S-REC-01 → S-REC-02 (novo template) / S-REC-04 (encerrar, preserva histórico RN-07) | RF-F2-02, RN-07 | Fase 2 |
@@ -106,6 +115,7 @@ destrutivo pré-focado por padrão) — nunca uma única ação "confirmar" impl
 | Tela | Layout |
 |---|---|
 | **S-AUTH-01** Login | Campo e-mail, campo senha (ou botão "Enviar link mágico"), botão "Entrar", link "Esqueci minha senha". Sem navegação lateral — tela isolada, pré-sessão. |
+| **S-AUTH-02** Verificação por e-mail (2º fator) **[NOVA — formalizada nesta atualização, ver Nota de reabertura Seção 1.1]** | Tela cheia, sem navegação, mesma família visual de S-AUTH-01/04 (card centralizado, isolado). Disparada automaticamente pelo `AuthGate` assim que a sessão de e-mail/senha é emitida (JWT AAL1, sem o claim `app_email_mfa_verified` — `ADR-013`), antes de qualquer tela de PIN/dashboard. Ao entrar na tela, um código de 6 dígitos é enviado automaticamente ao e-mail da conta, sem exigir ação extra do usuário para o 1º envio. Título "Confirme seu e-mail" + texto explicativo citando o e-mail da conta; campo único de código (`Input`, `inputMode="numeric"`, `maxLength=6`, `autoComplete="one-time-code"`); botão primário "Verificar" (habilitado só com os 6 dígitos preenchidos); link "Reenviar código" com cooldown de 60s (rate limit real do contrato, Seção 7.1); link secundário "Voltar ao login" (encerra a sessão parcial, retorna a S-AUTH-01). **Reaparece a cada novo login que emita uma sessão nova** (JWT reemitido) — não se repete a cada abertura/retomada do app dentro da mesma sessão já verificada; esse segundo caso é coberto só por S-AUTH-03 (desbloqueio local, 100% offline, sem 2º fator). Nenhum componente novo de design system é introduzido — reaproveita integralmente `Input`/`Button`/`Alert` já especificados (Seção 3.2), no mesmo espírito visual de link-texto já usado em "Esqueci minha senha" (S-AUTH-01) e "Usar PIN em vez disso" (S-AUTH-03). |
 | **S-AUTH-04** Setup de PIN (1ª vez) | Explicação curta ("Configure um PIN para desbloquear o app rapidamente"), teclado numérico grande (ver componente `PinPad`, Seção 3), confirmação do PIN digitado 2x, oferta de "Usar biometria" (WebAuthn) se disponível na plataforma, com opção "Pular por agora" **não disponível** — RF-MVP-08 AC1 exige autenticação antes de exibir dado financeiro, então este passo é obrigatório no primeiro acesso. |
 | **S-AUTH-03** Desbloqueio (toda abertura/retomada do app) | Tela cheia, sem navegação, logo do app + prompt biométrico nativo do SO disparado automaticamente ao abrir + fallback visível "Usar PIN" sempre presente como link, mesmo com biometria disponível. Desbloqueio 100% local/offline, sem estado adicional de "sem conexão" — confirmado pelo Software Architect via ADR-010 (Conflito 1, Seção 7.2, Resolvido). |
 | **S-AUTH-05** Bloqueio temporário | Mesma tela do S-AUTH-03, PIN pad desabilitado, mensagem "Muitas tentativas. Tente novamente em 04:32" com contagem regressiva ao vivo (baseline SDD: 5 tentativas / 5 min). |
@@ -120,6 +130,26 @@ S-AUTH-03 (wireframe)
 │   [ Prompt biométrico nativo]│
 │                               │
 │      Usar PIN em vez disso   │  <- link, sempre visível
+└─────────────────────────────┘
+```
+
+```
+S-AUTH-02 (wireframe)
+┌─────────────────────────────┐
+│  Confirme seu e-mail         │
+│  Enviamos um código de 6     │
+│  dígitos para voce@email.com │
+│                               │
+│  [ Alert info/erro, conforme │
+│    estado — ver Seção 4.2 ]  │
+│                               │
+│  Código de 6 dígitos          │
+│  [ _ _ _ _ _ _ ]              │
+│                               │
+│      [ Verificar ]            │
+│                               │
+│   Reenviar código em 47s      │  <- ou "Reenviar código" (link ativo)
+│      Voltar ao login          │  <- link, sempre visível
 └─────────────────────────────┘
 ```
 
@@ -397,6 +427,19 @@ S-BUD-02/S-FIX-02).
 | `ConfirmationDialog` | Instância do Padrão B (Seção 2.1) |
 | `DatePicker` | Seleção de data única |
 
+**Nota (S-AUTH-02, adicionada em 2026-09-03)**: a tela de verificação por e-mail
+(Seção 2.2) não introduz nenhum componente novo — reaproveita integralmente
+`Input`, `Button` e `Alert`/`Banner` já listados acima. O único elemento de
+interação sem precedente explícito no documento original é o **padrão
+"link de reenvio com cooldown"** (link de texto que fica desabilitado por N
+segundos após acionado, com contagem regressiva visível e anúncio de
+acessibilidade só no início/fim do cooldown — Seção 5): é documentado aqui como
+um **padrão de interação reutilizável** construído sobre o link-texto já usado em
+"Esqueci minha senha" (S-AUTH-01) e "Usar PIN em vez disso" (S-AUTH-03), não como
+componente novo de design system — não exige criação de biblioteca separada, mas
+qualquer tela futura com a mesma necessidade (ex. reenvio de link mágico) deve
+seguir esta mesma referência em vez de reinventar o comportamento.
+
 ### 3.3 Componentes — Específicos de domínio financeiro (atenção extra de estimativa)
 
 Estes componentes carregam lógica de negócio ou interação não-trivial — o Tech Lead
@@ -454,6 +497,7 @@ divergente têm nota própria na tabela da Seção 4.2.
 | **S-DASH-01** | Nenhuma conta cadastrada → CTA para S-ACC-02; contas existem mas sem lançamento no mês → gráfico substituído por `EmptyState` "Nenhum lançamento este mês ainda" mantendo números-resumo em zero visível (não escondidos) | `Skeleton` nos 3 blocos (saldo, resumo, gráfico) | `Banner` "Não foi possível atualizar os dados" + últimos valores conhecidos permanecem visíveis com timestamp "atualizado há 4 min" | Dados atualizados, indicador "sincronizado agora"; atualização por ação própria é imediata (não espera Realtime, SDD Seção 2.5) |
 | **S-TXN-01** | `EmptyState` "Nenhum lançamento neste período" + CTA "+ Novo lançamento" | `Skeleton` de linhas agrupadas por dia | `Banner` + filtros permanecem aplicados para retry | Lista atualizada, novo/editado lançamento aparece imediatamente na posição cronológica correta |
 | **S-BUD-01** | `EmptyState` "Nenhum orçamento definido este mês" + CTA | `Skeleton` de barras | `Banner` de recarregamento | Barras com 3 sub-estados (normal/alerta 80%/estouro >100%) — ver Seção 2.2 |
+| **S-AUTH-02** (verificação por e-mail) | Não aplicável — a tela sempre tem conteúdo (código já solicitado ou prestes a ser, nunca uma tela "sem nada") | Dois momentos distintos, não intercambiáveis: **(1) envio automático ao entrar na tela** — enquanto o código ainda não foi confirmadamente enviado, o texto exibido é "Enviando código..." (nunca "Enviamos...", que é tempo passado e só correto após sucesso), com `Input`/botões desabilitados; **(2) verificação do código digitado** — botão "Verificar" com `loading`/spinner, campos desabilitados durante o request | Cinco casos distintos, cada um com mensagem própria (não um erro genérico único): **(a)** falha ao enviar e-mail (502) → `Banner` "Não foi possível enviar o código. Tente novamente." + link "Reenviar código" liberado imediatamente, sem cooldown (o envio anterior falhou, não deve punir o usuário); **(b)** código incorreto (400) → erro inline no campo "Código incorreto. Tente novamente."; **(c)** código expirado (400, TTL 10min) → mensagem própria "Este código expirou. Solicite um novo." + campo limpo automaticamente; **(d)** rate limit de envio (429 em `request`) → `Banner` "Muitos pedidos de código. Aguarde antes de tentar de novo." mantendo o cooldown visível; **(e)** tentativas de verificação esgotadas (429 em `verify`) → mensagem própria "Você esgotou as tentativas para este código. Solicite um novo para continuar." + campo de código e botão "Verificar" desabilitados até um novo código ser solicitado com sucesso (evita o usuário insistir contra um 429 já sabido) | Código verificado → navega automaticamente para S-AUTH-04 (1ª vez, sem PIN configurado) ou direto ao Dashboard/S-AUTH-03 (PIN já configurado), sem tela de confirmação intermediária — mesmo padrão de S-AUTH-03 |
 | **S-AUTH-03** (desbloqueio) | Não aplicável | Spinner curto durante verificação da sessão JWT | PIN incorreto → mensagem + contador de tentativas restantes; biometria falha → fallback automático para PIN, sem travar o usuário | Navega direto ao Dashboard, sem tela intermediária |
 | **S-AUTH-05** (bloqueio) | Não aplicável | Não aplicável | Estado permanente até o cronômetro zerar — é o próprio "erro" da tela | Ao zerar o cronômetro, retorna automaticamente a S-AUTH-03 pronta para nova tentativa |
 | **S-CAP-02** (gravando voz) | Não aplicável | "Ouvindo..." com transcrição interina ao vivo | Sem áudio detectado / permissão de microfone negada → mensagem clara + botões "Tentar novamente" e "Usar foto/manual em vez disso" (nunca um beco sem saída) | Transcrição concluída → processa e navega a S-CAP-03 |
@@ -480,7 +524,8 @@ produto.
 | **Alvos de toque (mobile)** | Mínimo 44×44px para todo elemento tocável, incluindo dígitos do `PinPad`, itens de `CandidateList` e ícones de ação em listas. |
 | **Alternativa a gráficos** | `DonutChart`, `BarChart` e `LineChart` sempre acompanhados de um resumo textual equivalente (ex. `aria-label`/tabela oculta acessível via toggle "Ver como tabela") — usuário de leitor de tela não depende de interpretar o SVG do gráfico. |
 | **Componentes de captura automatizada** | `VoiceRecorderUI`: estado "Ouvindo..." e a transcrição interina são anunciados via `aria-live`, não apenas exibidos visualmente; botão de mic tem `aria-label` explícito ("Iniciar gravação de lançamento por voz"). `ReceiptCameraCapture`: instruções da moldura-guia disponíveis como texto, não só como sobreposição visual. Ambos os fluxos sempre oferecem alternativa não-verbal/não-visual (lançamento manual) — captura automatizada nunca é o único caminho para registrar um lançamento. |
-| **Sem limite de tempo em confirmação (WCAG 2.2.1)** | `DraftReviewBanner` (S-CAP-03/05) e `CandidateList` (S-CAP-07) nunca expiram, nunca auto-confirmam e nunca navegam sozinhos para fora da tela — isso não é só uma escolha de acessibilidade, é a mesma garantia que RNF-01 exige por requisito de produto; as duas exigências reforçam uma à outra. |
+| **Verificação por e-mail (S-AUTH-02)** | Erros de código (incorreto/expirado/tentativas esgotadas) usam `aria-live="polite"` + `aria-describedby`/`aria-invalid` no campo, mesma convenção de "Rótulos e associação de formulário" acima — nunca `aria-live="assertive"`, para não interromper agressivamente o usuário. O cooldown de reenvio (60s) **não** anuncia a cada segundo (evita spam de leitor de tela a cada tick visual do contador): a região `aria-live` associada é atualizada só duas vezes por ciclo — uma vez ao entrar em cooldown ("Reenvio disponível em 60 segundos") e uma vez quando termina ("Você já pode reenviar o código") — o texto visível do link pode seguir atualizando a cada segundo para o usuário vidente, mas isso é puramente visual, desacoplado da região anunciada. |
+| **Sem limite de tempo em confirmação (WCAG 2.2.1)** | `DraftReviewBanner` (S-CAP-03/05) e `CandidateList` (S-CAP-07) nunca expiram, nunca auto-confirmam e nunca navegam sozinhos para fora da tela — isso não é só uma escolha de acessibilidade, é a mesma garantia que RNF-01 exige por requisito de produto; as duas exigências reforçam uma à outra. Exceção distinta e deliberada em **S-AUTH-02**: o código de verificação expira em 10 minutos (TTL de segurança do próprio contrato de API, não uma escolha de UX) — enquadra-se na exceção "Essencial" do WCAG 2.2.1 (limite de tempo exigido por um evento de segurança do mundo real, não uma UI arbitrária), mitigado por "Reenviar código" estar sempre disponível a cada 60s, então o usuário nunca fica preso sem saída caso perca a janela de 10 minutos. |
 | **Movimento reduzido** | Toda animação (mic pulsante, transições de `Modal`/`Toast`) respeita `prefers-reduced-motion: reduce`, substituída por transição instantânea ou estática equivalente. |
 | **Gesto único não é a única via** | Nenhuma ação crítica depende exclusivamente de gesto (ex.: swipe-to-delete em lista sempre tem um botão de ação equivalente acessível via toque simples/teclado). |
 | **Texto alternativo de imagem** | Miniatura de recibo (S-CAP-05) tem `alt` descritivo genérico ("Foto do recibo enviada para leitura") — o conteúdo relevante está nos campos extraídos, não na leitura da imagem em si. |
@@ -524,6 +569,7 @@ visual que justifique "não aplicável".
 | S-CAP-05 (rascunho de foto) | Miniatura do recibo como faixa recolhível acima do formulário | Duas colunas lado a lado: foto à esquerda, formulário à direita, para comparação direta |
 | S-CARD-03 (fatura) | Abas roláveis horizontalmente | Abas fixas, todas visíveis sem rolagem |
 | `PinPad` | Ocupa a largura confortável de toque do polegar | Mesmo teclado, mas aceita digitação via teclado físico como via primária |
+| S-AUTH-02 (verificação por e-mail) | Card centralizado ocupa a largura confortável da tela, sem navegação inferior (tela pré-sessão verificada, mesmo tratamento de S-AUTH-01/03/04); campo de código com `inputMode="numeric"` aciona o teclado numérico nativo do SO | Mesmo card centralizado, largura fixa menor que a viewport (não ocupa a largura toda), consistente com S-AUTH-01/04 |
 | Captura de foto/voz | Câmera/microfone nativos do dispositivo via API do navegador | Mesma API do navegador; câmera pode não existir — upload de arquivo é a via primária nesse caso, não um "extra" |
 
 ### 6.4 Instalação como PWA
@@ -552,6 +598,9 @@ visual que justifique "não aplicável".
 | Conflito de sincronização offline resolvido por last-write-wins simples, aceito como dívida técnica (SDD Seção 6.2) | Nenhuma UI de resolução de conflito foi projetada (não há decisão a apresentar ao usuário); mitigação de UX aplicada é o indicador "sincronizado agora" com timestamp, para que o usuário perceba quando uma tela pode não refletir a edição mais recente feita em outro dispositivo |
 | RF-F3-04 (Open Finance) depende de confirmação de aceite de pessoa física pelo Pluggy antes de ir a produção (CTO-REVIEW Gate 2) | S-CAP-08/09 especificadas, mas marcadas como "provisoriamente especificadas, liberação real pendente" na Seção 2.2 — não é um conflito de UX, é uma dependência externa já rastreada pelo CTO |
 | Retenção/descarte de dado ainda não definido na arquitetura (achado do CTO-REVIEW Gate 2, item de risco/compliance) | Nenhuma tela de "excluir todos os meus dados"/retenção foi desenhada neste documento, porque não há requisito funcional correspondente no `PRD-TECNICO.md` nem decisão de arquitetura para basear a tela; fica registrado aqui como pendência a considerar quando o Software Architect/DevSecOps formalizar a política, antes da Fase 3 entrar em desenvolvimento (conforme já recomendado pelo CTO ao Tech Lead) |
+| Segundo fator por e-mail (`/auth-email-mfa`, `BE-M-09`/`ADR-013`) reaproveitado de implementação anterior, contrato publicado em `API-CONTRACT.yaml` v0.6.0 — sem tela correspondente na publicação original deste documento (`BLOCKERS.md` Bloqueio 008) | S-AUTH-02 formalizada nesta atualização (Seção 2.2), preenchendo a lacuna de numeração (S-AUTH-01 → S-AUTH-02 → S-AUTH-03/04) |
+| Rate limit de envio de código: máx. 5 envios/30min, cooldown de 60s entre envios (`API-CONTRACT.yaml` `/auth-email-mfa`) | Link "Reenviar código" de S-AUTH-02 desabilitado durante o cooldown de 60s, com contagem regressiva visual; erro 429 de rate limit de envio tratado com mensagem própria, distinta de erro de rede (Seção 4.2) |
+| Máx. 5 tentativas de verificação por código, TTL do código 10min (`API-CONTRACT.yaml` `/auth-email-mfa`) | S-AUTH-02 trata o 429 de tentativas esgotadas com mensagem e desabilitação específicas, forçando um novo pedido de código antes de nova tentativa (Seção 4.2); código expirado (400) tratado com mensagem própria, distinta de "código incorreto" |
 
 ### 7.2 Conflitos sinalizados ao Software Architect
 
@@ -628,6 +677,16 @@ S-AUTH-03/04/05 — nenhuma mudança de layout, estado ou componente foi necess�
 a remoção da marcação de pendência. Seções 1–6 e Seção 7 completas e liberadas para
 estimativa do Tech Lead sem ressalva em nenhuma tela.
 
+**Reabertura pontual (2026-09-03, `BLOCKERS.md` Bloqueio 008)**: adição de
+"S-AUTH-02 — Verificação por e-mail" (Seções 1.1, 2.2, 4.2, 5, 6.3, 7.1), tela
+que faltava desde a publicação original por causa de um gap de numeração não
+percebido até `API-CONTRACT.yaml` v0.6.0 confirmar o contrato real de
+`/auth-email-mfa`. O checklist acima permanece válido item a item — nenhuma das
+7 seções ficou vazia em nenhum momento, e a nova tela chega já com os 4 estados,
+acessibilidade e comportamento responsivo especificados (não é uma exceção ao
+checklist, é uma tela nova que o entra cumprindo os mesmos critérios desde já).
+Ver "Log de Alterações Pós-Publicação" abaixo.
+
 ---
 
 ## Log de Alterações Pós-Publicação
@@ -638,4 +697,4 @@ nesta primeira publicação — nenhuma estimativa foi feita ainda sobre este do
 
 | Data | Seção/Componente alterado | O que mudou | Motivo | Tech Lead precisa reestimar? |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| 2026-09-03 | Seções 1.1 (UX-FL-10), 2.2 (nova tela **S-AUTH-02**), 3 (nota de padrão de interação, sem componente novo), 4.2, 5, 6.3, 7.1 | Tela "S-AUTH-02 — Verificação por e-mail (2º fator)" formalizada, com fluxo (envio automático, campo de código, reenvio com cooldown de 60s, 5 casos de erro distintos), 4 estados, acessibilidade (incl. exceção WCAG 2.2.1 documentada) e comportamento responsivo | `BLOCKERS.md` Bloqueio 008 (Frontend) — `API-CONTRACT.yaml` v0.6.0 confirmou `/auth-email-mfa` como parte real de RF-MVP-08, sem tela correspondente na publicação original (gap de numeração S-AUTH-01→S-AUTH-03) | **Sim, como estimativa nova** (não reestimativa — esta tela nunca havia sido estimada, o gap de numeração significa que o Tech Lead nunca a viu). Não invalida nenhuma estimativa já feita para S-AUTH-01/03/04/05, que permanecem como estavam. |

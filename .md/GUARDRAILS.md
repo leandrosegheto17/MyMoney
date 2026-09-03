@@ -1,12 +1,28 @@
 # GUARDRAILS.md
 
-**Status**: **Aprovado** pelo CTO via `guardrails-governance` no Gate 3
-(`PIPELINE-CONVENTIONS.md` §5) — 2026-09-02. **As 18 regras abaixo (G-01 a G-18) estão
-em vigor e são vinculantes** para todo código produzido a partir desta data. Ver
-`CTO-REVIEW.md`, Gate 3, subseção `guardrails-governance`, para o parecer completo
-regra a regra.
-**Data da proposta**: 2026-09-02. **Data da aprovação**: 2026-09-02.
-**Proposto por**: tech-lead. **Aprovado por**: cto.
+**Status**: **Aprovado, com 1 regra nova em proposta.** G-01 a G-18 foram aprovados
+pelo CTO via `guardrails-governance` no Gate 3 (`PIPELINE-CONVENTIONS.md` §5) —
+2026-09-02, **com G-01 e G-02 reabertos, reescritos e reaprovados em 2026-09-02**
+(mesma data), em consequência do fechamento do Bloqueio 003 (`ADR-012`/`ADR-013`,
+supersede `ADR-001` — ver `CTO-REVIEW.md`, "Gate 2 (Reaberto por Bloqueio 003)" e
+"Fechamento do Gate 2 Reaberto"). **G-01 a G-18 estão todos Aprovados e em vigor,
+sem ressalva de rótulo pendente** (rótulo de G-01/G-02 corrigido em 2026-09-03 —
+`SECURITY-REVIEW.md` `SEC-DEBT-004` — para refletir a aprovação real, já
+confirmada em `CTO-REVIEW.md` linha 986/1072). G-03/G-04 tiveram correção pontual
+de referência de schema/coluna (`mymoney`→`public`, `owner_id`→`user_id`), sem
+alterar o que a regra exige. **G-19 (Seção 8, Autorização de Referência Cruzada
+entre Tabelas Ownable) é proposta nova, submetida ao CTO em 2026-09-03,
+aguardando aprovação** — origem em `SECURITY-REVIEW.md` `SEC-DEBT-002`,
+`BLOCKERS.md` Bloqueio 010, `CTO-REVIEW.md` "Revisão de Segurança do Lote MVP".
+Ver `CTO-REVIEW.md`, Gate 3 original, subseção `guardrails-governance`, para o
+parecer completo regra a regra da aprovação inicial (G-01 a G-18), e a nova seção
+"Gate 3 (Reaberto por Bloqueio 003)" para o parecer da reescrita de G-01/G-02.
+**Data da proposta inicial**: 2026-09-02. **Data da aprovação inicial**: 2026-09-02.
+**Data da proposta de reabertura (G-01/G-02)**: 2026-09-02. **Data da aprovação da
+reabertura (G-01/G-02)**: 2026-09-02. **Data da proposta de G-19**: 2026-09-03.
+**Data da aprovação de G-19**: pendente.
+**Proposto por**: tech-lead. **Aprovado por**: cto (aprovação inicial e aprovação da
+reabertura de G-01/G-02; G-19 pendente de veredito).
 
 Regras inegociáveis do projeto MyMoney. Toda regra abaixo atende aos 4 critérios de
 `guardrails-drafting`: é inegociável (não uma preferência de estilo), tem origem
@@ -18,30 +34,67 @@ tarefa isolada). Convenção de estilo/preferência de implementação vive em
 
 ## 1. Dados e Migração
 
-**G-01** — Nenhuma migration é escrita ou aplicada no schema `mymoney` antes do spike
-de inspeção do schema Supabase legado (`SPK-001` em `TASK.md`) estar concluído e
-documentado.
-- **Origem**: `CTO-REVIEW.md` Gate 2, subseção "ADR-001" ("Aprovado com ressalva
-  bloqueante... aqui formalizo isso como condição de aceite, não sugestão: nenhuma
-  migration em `mymoney` antes desse spike ser concluído e documentado"); `ADR-001`,
-  seção "Premissa a Validar".
+**Nota desta subseção (reabertura Bloqueio 003)**: G-01 e G-02 mudam de mérito —
+a redação anterior ("nenhuma migration em `mymoney`", "nenhum `ALTER`/`DROP` fora de
+`mymoney`") contradiz diretamente `ADR-012` (não há mais schema `mymoney`; `public` é
+o schema de fato). O espírito de ambas as regras — nenhuma mudança de schema sem
+condição prévia satisfeita; nenhuma alteração destrutiva sem revisão explícita do
+CTO — **sobrevive integralmente**; só o escopo textual muda. G-03/G-04 têm correção
+pontual da mesma natureza (schema/coluna), sem mudança de mérito.
 
-**G-02** — Nenhum `ALTER`/`DROP` é executado em tabela fora do schema `mymoney` (isto
-é, em qualquer tabela do projeto Supabase legado) sem revisão explícita do CTO.
-- **Origem**: `CTO-REVIEW.md` Gate 2, seção "Recomendação" (lista de guardrails
-  recomendados ao Tech Lead, item 2); `SDD.md` Seção 6.1 (risco "Perda de dados
-  durante a migração de reaproveitamento").
+**G-01 [APROVADO — CTO, "Gate 3 (Reaberto por Bloqueio 003)", 2026-09-02, ver
+`CTO-REVIEW.md` linha 986]** — Nenhuma
+funcionalidade nova depende de um objeto reaproveitado de `public` (tabela/função/
+trigger/policy) antes de esse objeto estar auditado conforme a tabela de auditoria do
+`ADR-012` (`BE-M-00` em `TASK.md`) — equivalência campo a campo para tabelas
+estruturais simples; confirmação de semântica/contrato e/ou teste de regressão para
+objetos com lógica de negócio embutida. Nenhuma migration é escrita ou aplicada sobre
+`public` antes de a auditoria geral de `BE-M-00` estar concluída e documentada.
+- **Origem**: `CTO-REVIEW.md`, "Gate 2 (Reaberto por Bloqueio 003)", condição de aceite
+  nº 2 do CTO ("reaproveitamento não é aceitação cega... cada função/trigger/policy já
+  existente deve ser auditado... antes de ser aceito como definitivo"); "Fechamento do
+  Gate 2 Reaberto", verificação da condição nº 2 ("Satisfeita... nenhum objeto foi
+  tratado como corretude comprovada só por já funcionar hoje"); `ADR-012`, tabela de
+  auditoria; supersede a redação anterior de G-01 (`CTO-REVIEW.md` Gate 2, subseção
+  "ADR-001"; `ADR-001`, seção "Premissa a Validar" — `ADR-001` permanece imutável como
+  registro histórico, `Status: Superseded by ADR-012`).
 
-**G-03** — Toda migration no schema `mymoney` é aditiva por padrão (`CREATE`); toda
-migration tem rollback/down migration correspondente.
-- **Origem**: `ADR-001`, Decision Outcome ("toda migration é aditiva por padrão...
-  até que o schema real seja inspecionado") e "Positive Consequences" ("migrations
-  aditivas tornam o processo reversível e auditável — down migration por arquivo").
+**G-02 [APROVADO — CTO, "Gate 3 (Reaberto por Bloqueio 003)", 2026-09-02, ver
+`CTO-REVIEW.md` linha 986]** — Nenhum `ALTER`/`DROP`
+destrutivo (remoção/redefinição de coluna, `DROP TABLE`, `TRUNCATE`) é executado em
+objeto de `public` que tenha dado real (o `profile` já cadastrado, as 12 `categories`
+já seedadas, ou qualquer dado gerado a partir deste ciclo de implementação) sem revisão
+explícita do CTO — sem exceção, mesmo em ambiente de desenvolvimento, dado que não há
+staging separado confirmado (é o único ambiente existente hoje). Migration aditiva
+(`CREATE`, `ALTER ... ADD COLUMN`/`ADD CONSTRAINT` não destrutivo) não exige essa
+revisão.
+- **Origem**: `CTO-REVIEW.md`, "Gate 2 (Reaberto por Bloqueio 003)", condição de aceite
+  nº 1 do CTO ("Preservação de Dado Real... nenhuma migration sobre `public` pode ser
+  destrutiva sobre esses dados... qualquer `ALTER`/`DROP` sobre objeto de `public` que
+  tenha dado real exige revisão explícita do CTO antes de aplicar — sem exceção, mesmo
+  em ambiente de desenvolvimento"); `ADR-012`, seção "Preservação de Dado Real
+  (condição não-negociável)"; `SDD.md` Seção 6.1 (risco "Perda de dados em migration
+  sobre dado real já existente", severidade "Alta, permanente"); supersede a redação
+  anterior de G-02 (`CTO-REVIEW.md` Gate 2, seção "Recomendação", item 2).
 
-**G-04** — Toda tabela do schema `mymoney` tem RLS (Row Level Security) habilitada,
-com policy padrão `auth.uid() = owner_id` para `SELECT`/`INSERT`/`UPDATE`/`DELETE`.
-Nenhuma tabela nova entra em produção sem RLS habilitada.
-- **Origem**: `SDD.md` Seção 7, "Autorização".
+**G-03** — Toda migration sobre `public` é aditiva por padrão (`CREATE`); toda
+migration tem rollback/down migration correspondente. *(Correção pontual de referência
+de schema — `mymoney` → `public` — consequência direta de `ADR-012`; o mérito da regra
+não muda.)*
+- **Origem**: `ADR-012`, Decision Outcome ("Nenhum objeto existente é movido, renomeado
+  ou reescrito por este ADR; toda entidade ainda ausente é criada dentro de `public`,
+  por migration aditiva") e "Preservação de Dado Real"; historicamente também
+  `ADR-001` (superseded), Decision Outcome original.
+
+**G-04** — Toda tabela de `public` associada a este produto tem RLS (Row Level
+Security) habilitada, com policy padrão `auth.uid() = user_id` para `SELECT`/
+`INSERT`/`UPDATE`/`DELETE` — este é o padrão real já implementado nas 7 tabelas
+existentes, adotado como convenção do projeto. Nenhuma tabela nova entra em produção
+sem RLS habilitada. *(Correção pontual de referência de schema/coluna — `mymoney`→
+`public`, `owner_id`→`user_id` — consequência direta de `ADR-012`; o mérito da regra
+não muda.)*
+- **Origem**: `SDD.md` Seção 7, "Autorização"; `ADR-012`, tabela de auditoria (linha
+  "RLS policies").
 
 **G-05** — RN-08 (conta com lançamento vinculado não é `DELETE` físico, só
 inativação) e RN-07 (sem cascade delete entre `RecurringTemplate`/
@@ -159,6 +212,39 @@ Backend/Frontend durante a implementação.
 acesso apenas via signed URL de curta duração, nunca URL pública.
 - **Origem**: `SDD.md` Seção 7, "Criptografia".
 
+## 8. Autorização de Referência Cruzada entre Tabelas Ownable
+
+**G-19 [PROPOSTA — aguardando aprovação do CTO]** — Toda tabela "ownable" (tabela com
+coluna `user_id` própria, sujeita a RLS por `auth.uid() = user_id`) que tiver uma
+coluna de chave estrangeira apontando para outra tabela "ownable" deve validar, já
+nas suas policies de `INSERT`/`UPDATE`, que a linha referenciada por essa FK pertence
+ao mesmo `user_id` da linha sendo gravada (ou é um registro de sistema/compartilhado
+por design, quando essa exceção for explicitamente válida — ex.: categoria do sistema
+com `user_id IS NULL`) — nunca só `auth.uid() = user_id` da própria linha, ignorando
+a proveniência da FK referenciada. Esta validação de ownership de FK é parte da
+definição da tabela desde a sua criação (migration inicial), não uma auditoria
+posterior a ser adicionada depois. Adicionalmente, todo trigger que bloqueia `DELETE`
+por existência de vínculo em outra tabela (mesmo padrão de RN-08/RN-09) deve rodar
+`SECURITY DEFINER` com `search_path` fixo, para que a checagem de vínculo enxergue
+toda linha relevante independentemente de qual usuário está executando o `DELETE` —
+nunca depender da RLS de quem executa a ação para uma checagem que precisa ser
+cross-usuário por natureza.
+- **Origem**: `SECURITY-REVIEW.md` Seção 1.2 (`SEC-DEBT-002`) — achado técnico
+  original do DevSecOps, incluindo a correção sugerida (`EXISTS (...)` de ownership
+  nas policies; `SECURITY DEFINER` nos triggers de bloqueio de `DELETE`);
+  `BLOCKERS.md` Bloqueio 010 (achado escalado, veredito do CTO); `CTO-REVIEW.md`,
+  "Revisão de Segurança do Lote MVP", item 2 ("avaliar e propor à minha aprovação...
+  uma regra estrutural nova em `GUARDRAILS.md` — não uma exceção pontual — exigindo
+  que toda tabela nova com FK para outra tabela 'ownable' inclua validação de
+  ownership da FK referenciada... desde a criação"); `TASK.md` `BE-M-13` (correção
+  retroativa em `budget`/`transactions`, tarefa de execução distinta desta regra, que
+  é preventiva para toda tabela nova de Fase 2/Fase 3 daqui em diante).
+- **Verificação objetiva**: para toda tabela nova com FK para outra tabela "ownable",
+  a migration que a cria inclui a cláusula `EXISTS (...)` de ownership na policy de
+  `INSERT`/`UPDATE` correspondente, e todo trigger de bloqueio de `DELETE` associado
+  é `SECURITY DEFINER` — checável por leitura direta da migration/policy/trigger,
+  mesmo padrão de verificabilidade já usado em G-04/G-05.
+
 ---
 
 ## Log de Alterações
@@ -170,3 +256,4 @@ Preenchida pelo CTO no momento da aprovação (`guardrails-governance`,
 |---|---|---|---|---|---|
 | 2026-09-02 | tech-lead | cto | Aprovação inicial do documento completo (G-01 a G-18) | Gate 3 (`guardrails-governance`, `CTO-REVIEW.md`): as 18 regras atendem aos 4 critérios de `guardrails-drafting` (inegociável, origem rastreável, verificável objetivamente, abrangência de projeto); as 4 regras recomendadas por mim no Gate 2 (SPK-001 antes de migration, ALTER/DROP fora de `mymoney` só com minha revisão, confirmação humana como guardrail de código, retenção/descarte antes da Fase 3) estão presentes sem diluição — G-01, G-02, G-06, G-13 respectivamente | Vigente — sujeita a nova aprovação minha em caso de proposta de exceção ou mudança estrutural futura |
 | 2026-09-02 | tech-lead | cto | Nota específica sobre G-13 (Retenção e Descarte de Dado) | G-13 já nasce marcada "[Condição satisfeita]" — o bloqueio que ela documentava (`Bloqueio 002`) foi resolvido via `ADR-011` antes mesmo deste Gate 3. Aprovo a regra como registro de rastreabilidade permanente, não como bloqueio ativo — não deve ser removida do documento, pois documenta a origem da política de retenção que `BE-F3-08`/`BE-F3-09`/`BE-F3-10` implementam | Vigente como registro histórico; sem efeito de bloqueio |
+| 2026-09-02 | tech-lead | cto | Aprovação da reescrita de G-01 e G-02 (reabertura por Bloqueio 003 — `ADR-012`/`ADR-013`, supersede `ADR-001`) | `guardrails-governance` pontual (`CTO-REVIEW.md`, "Gate 3 (Reaberto por Bloqueio 003)"): as duas regras reescritas atendem aos 4 critérios de `guardrails-drafting` (inegociável, origem rastreável, verificável objetivamente, abrangência de projeto) — origem em `ADR-012` (tabela de auditoria, "Preservação de Dado Real") e nas condições de aceite nº 1 e nº 2 que eu mesmo fixei no parecer "Gate 2 (Reaberto por Bloqueio 003)"; nenhuma diluição do espírito das regras originais (nenhuma migration sem auditoria prévia satisfeita; nenhuma alteração destrutiva sem minha revisão explícita) — só o escopo textual mudou de `mymoney` para `public`, coerente com `ADR-012`. Aprovado junto com `capacity-and-timeline-validation` pontual sobre a reestimativa de `TASK.md` (+1,25 dia histórico) no mesmo parecer — libera o fechamento do Bloqueio 003 (`BLOCKERS.md`) e a retomada de `BE-M-00` pelo Backend | Vigente — sujeita a nova aprovação minha em caso de proposta de exceção ou mudança estrutural futura |

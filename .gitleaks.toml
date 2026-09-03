@@ -1,0 +1,23 @@
+title = "MyMoney gitleaks config"
+
+# Estende o ruleset padrão do gitleaks (regras de detecção de segredo por padrão/
+# entropia para os principais provedores — AWS, GCP, Stripe, Supabase, JWT, chave
+# privada genérica etc.). Não removemos nenhuma regra padrão; só reduzimos ruído de
+# falso positivo confirmado manualmente (DevSecOps, varredura contínua 2026-09-02).
+[extend]
+useDefault = true
+
+[allowlist]
+  description = "Falsos positivos confirmados manualmente — documentação de referência de skill (não é código da aplicação MyMoney) e artefatos gerados/instalados"
+  paths = [
+    # Docs de referência de skills de terceiro empacotadas com o framework de agentes
+    # (Cloudflare, Figma) — contêm placeholders de exemplo ("YOUR_API_TOKEN", chave de
+    # arquivo Figma de exemplo), não segredo real. Confirmado por leitura manual do
+    # conteúdo em 2026-09-02.
+    '''\.claude/skills/models/.*''',
+    # Dependências instaladas — nunca commitadas (ver .gitignore), mas podem existir
+    # no working directory durante o scan em CI (após `npm ci`, antes do build).
+    '''node_modules/''',
+    '''(^|/)dist/''',
+    '''(^|/)build/''',
+  ]

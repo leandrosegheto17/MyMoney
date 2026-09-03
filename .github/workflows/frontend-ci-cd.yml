@@ -1,0 +1,220 @@
+name: Frontend CI/CD
+
+# Pipeline provisionado pelo DevOps (cicd-pipeline-configuration) em paralelo à
+# implementação, conforme SDD.md Seção 3 (hospedagem CDN estático, Vercel) e
+# EXECUTION-FLOW.md ("DevOps prepara desde o início, deploya só no fim").
+#
+# Estágios: lint -> teste automatizado -> build -> deploy staging (automático,
+# sem pausa) -> promoção a produção (manual, workflow_dispatch, SEMPRE com
+# pausa/aprovação — nunca automático). Detalhe completo em .md/DEPLOY.md.
+#
+# Pré-requisito de bootstrap: até a tarefa FE-M-00 (TASK.md) escrever
+# frontend/package.json, os jobs de lint/teste/build/deploy ficam
+# intencionalmente pulados (job `bootstrap-check`) — não é soft-fail de um
+# estágio real, é o pipeline reconhecendo que o app ainda não existe.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci-cd.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci-cd.yml"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Ação manual a executar"
+        required: true
+        type: choice
+        options:
+          - promote-production
+          - rollback-production
+        default: promote-production
+      deployment_url:
+        description: >
+          URL da deployment de staging já validada a promover para produção
+          (obrigatório para promote-production; ignorado em
+          rollback-production, que sempre volta para a deployment de produção
+          anterior).
+        required: false
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bootstrap-check:
+    name: Verifica se o app frontend já foi criado (FE-M-00)
+    runs-on: ubuntu-latest
+    outputs:
+      scaffolded: ${{ steps.check.outputs.scaffolded }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f "frontend/package.json" ]; then
+            echo "scaffolded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "scaffolded=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::frontend/package.json ainda não existe (FE-M-00 pendente em TASK.md). Pipeline provisionado e pronto, aguardando o scaffold do Frontend para rodar de fato."
+          fi
+
+  build-and-test:
+    name: Lint, testes automatizados e build
+    needs: bootstrap-check
+    if: needs.bootstrap-check.outputs.scaffolded == 'true' && github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Testes automatizados
+        # --passWithNoTests: roda o estágio mesmo com poucos/nenhum teste
+        # ainda (fase inicial do projeto), sem mascarar falha real — assim que
+        # existir um teste que falhe, o estágio falha normalmente. Justificado
+        # explicitamente aqui, não é soft-fail silencioso (cicd-pipeline-
+        # configuration, "MUST NOT DO").
+        run: npm test -- --passWithNoTests
+
+      - name: Build de produção (verificação)
+        run: npm run build
+
+  deploy-staging:
+    name: Deploy automático — staging (sem pausa)
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.deployment_url }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull das configurações do ambiente (preview/staging)
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build via Vercel
+        run: vercel build --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy (staging, não-produção)
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "deployment_url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deploy de staging: $url"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Aliasar domínio de staging
+        run: |
+          vercel alias set "${{ steps.deploy.outputs.deployment_url }}" "$STAGING_ALIAS" --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          # Nome de domínio de staging (ex.: mymoney-staging.vercel.app) —
+          # definido como repository variable (Settings > Secrets and
+          # variables > Actions > Variables), não secret (não é sensível).
+          STAGING_ALIAS: ${{ vars.STAGING_ALIAS }}
+
+  promote-production:
+    name: Promoção manual — produção (pausa obrigatória)
+    needs: bootstrap-check
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.action == 'promote-production' &&
+      needs.bootstrap-check.outputs.scaffolded == 'true'
+    runs-on: ubuntu-latest
+    # A proteção real de "pausa obrigatória sempre" vem da configuração do
+    # Environment "production" no GitHub (Settings > Environments >
+    # production > Required reviewers) — passo manual de configuração,
+    # documentado em .md/DEPLOY.md, não expressável em YAML. Este job só deve
+    # ser disparado depois de QA-REPORT.md e SECURITY-REVIEW.md aprovarem o
+    # MESMO build (dupla aprovação) — checagem de processo, não automatizada
+    # aqui.
+    environment:
+      name: production
+      url: ${{ steps.promote.outputs.deployment_url }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validar input obrigatório
+        run: |
+          if [ -z "${{ github.event.inputs.deployment_url }}" ]; then
+            echo "::error::deployment_url é obrigatório para promote-production — informe a URL da deployment de staging já validada."
+            exit 1
+          fi
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Promover deployment já validada em staging para produção
+        id: promote
+        run: |
+          vercel promote "${{ github.event.inputs.deployment_url }}" --token="$VERCEL_TOKEN" --yes
+          echo "deployment_url=${{ github.event.inputs.deployment_url }}" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  rollback-production:
+    name: Rollback manual — produção
+    needs: bootstrap-check
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.action == 'rollback-production' &&
+      needs.bootstrap-check.outputs.scaffolded == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Rollback para a deployment de produção anterior
+        # No plano free (Hobby) do Vercel, `vercel rollback` sem argumento
+        # volta para a deployment de produção imediatamente anterior — é o
+        # limite do tier gratuito (suficiente para usuário único, sem
+        # histórico de múltiplos rollbacks encadeados).
+        run: vercel rollback --token="$VERCEL_TOKEN" --yes
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

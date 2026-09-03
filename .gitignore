@@ -1,0 +1,28 @@
+# Dependências
+node_modules/
+
+# Build output (Frontend PWA — Vite)
+frontend/dist/
+frontend/.vite/
+
+# Vercel (CLI local state — nunca commitar, contém tokens de projeto)
+.vercel/
+frontend/.vercel/
+
+# Variáveis de ambiente com valor real — só .env.example (placeholders) é versionado
+.env
+.env.local
+.env.*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Supabase CLI — estado local de link (project-ref, pooler-url etc. não são
+# segredo crítico, mas não devem ser versionados; supabase/migrations e
+# supabase/functions permanecem versionados normalmente)
+supabase/.temp/
+
+# Logs e artefatos de editor/SO
+*.log
+.DS_Store
+Thumbs.db

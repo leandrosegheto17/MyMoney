@@ -52,6 +52,10 @@ componentes), os dois em paralelo, e traduz em tarefas de implementação concre
 - Sinalizar ao Software Architect quando a decomposição em tarefas revelar uma
   lacuna ou inconsistência estrutural no SDD.md — evita Backend/Frontend/Mobile
   implementarem em cima de arquitetura incompleta.
+- Durante a execução (`EXECUTION-FLOW.md`): aprovar cada lote como concluído,
+  conforme o critério objetivo abaixo, antes de ele ser considerado pronto para
+  deploy — registrando a linha correspondente na Seção 7 (Log de Lotes Fechados) do
+  `TASK.md`.
 
 ## Skills
 
@@ -107,7 +111,7 @@ Uma skill de apoio, de uso **opcional**:
 
 | Artefato | Formato | Onde salva | Consumidores |
 |---|---|---|---|
-| `TASK.md` | Estrutura fixa de 6 seções (ver abaixo) | `.md/TASK.md` | backend, frontend, mobile, qa, cto |
+| `TASK.md` | Estrutura fixa de 7 seções (ver abaixo) | `.md/TASK.md` | backend, frontend, mobile, qa, cto |
 | `GUARDRAILS.md` (rascunho inicial, antes da aprovação do CTO) | Regras inegociáveis do projeto, conforme PIPELINE-CONVENTIONS.md §5 | `.md/GUARDRAILS.md` | cto (aprova); depois de aprovado, todos os agentes |
 
 Estrutura obrigatória do `TASK.md` — Backend, Frontend, Mobile e QA dependem desta
@@ -116,10 +120,51 @@ estrutura para saber exatamente o que fazer e em que ordem:
 1. Diretrizes de Implementação (padrões, convenções, bibliotecas obrigatórias/
    proibidas, derivadas dos ADRs e do SDD.md)
 2. Spikes Técnicos Identificados
-3. Lista de Tarefas (dono/time responsável, critério de aceite, estimativa)
-4. Dependências e Ordem de Execução (o que bloqueia o quê, o que roda em paralelo)
+3. Lista de Tarefas (dono/time responsável, critério de aceite, estimativa, **e o
+   Lote a que pertence** — ver "Agrupamento em Lote" abaixo)
+4. Dependências e Ordem de Execução (o que bloqueia o quê, o que roda em paralelo),
+   **com uma subseção por Lote** agrupando a tabela de dependências daquele lote,
+   além do caminho crítico por fase já existente
 5. Riscos de Prazo Sinalizados (insumo para o Gate 3 do CTO)
 6. Lacunas Sinalizadas ao Software Architect
+7. Log de Lotes Fechados (preenchido durante a execução, não no rascunho inicial —
+   ver "Agrupamento em Lote" abaixo)
+
+### Agrupamento em Lote
+
+Um **lote** é um conjunto coerente de tarefas que forma uma funcionalidade/módulo com
+sentido próprio (ex.: "cadastro de paciente", "cartão de crédito e fatura") — nem
+tarefa isolada, nem o backlog inteiro. É a unidade de trabalho que a fase de execução
+usa para ritmar QA e DevSecOps (ver `EXECUTION-FLOW.md`).
+
+- **Origem do agrupamento**: deriva dos *bounded contexts*/componentes que o Software
+  Architect já particiona na Seção 2 do `SDD.md` (ex.: "Ledger", "Orçamento", "Cartão &
+  Fatura") — não é um critério novo que o Tech Lead inventa; é a mesma fronteira de
+  domínio que a arquitetura já desenhou, agora aplicada ao agrupamento de tarefas.
+  Quando o `SDD.md` não particiona claramente (projeto pequeno, um único componente),
+  o Tech Lead define o lote pelo critério mais próximo disponível (ex.: por tela/fluxo
+  principal do `UX-SPEC.md`) e documenta o racional na Seção 6.
+- **Um lote não cruza fase** (MVP/Fase 2/Fase 3 etc., quando o projeto tiver
+  faseamento) — cada lote pertence a exatamente uma fase, mesmo que o mesmo bounded
+  context reapareça em fases diferentes (nesse caso, é mais de um lote, um por fase).
+- **Um lote agrupa todas as trilhas que ele toca** — se a funcionalidade tem tarefa de
+  Backend e Frontend (e/ou Mobile), todas pertencem ao mesmo lote; um lote 100%
+  Backend (ex.: um job interno sem tela) é válido.
+- Toda tarefa pertence a exatamente um lote — nenhuma tarefa "solta" fora de
+  agrupamento, mesmo tarefas de infraestrutura interna (agrupe pelo componente mais
+  próximo do `SDD.md`).
+- A **Seção 7 (Log de Lotes Fechados)** é preenchida pelo Tech Lead durante a
+  execução, não no rascunho inicial — uma linha por lote fechado, quando ele aprova o
+  lote conforme o critério objetivo definido em `EXECUTION-FLOW.md`. Formato mínimo:
+
+  ```markdown
+  | Lote | Tarefas incluídas | Data de fechamento | Veredito QA | Veredito DevSecOps | Débitos registrados | Deploy |
+  |---|---|---|---|---|---|---|
+  ```
+
+  Esta linha é o resumo compacto que a fase de execução usa como contexto ao avançar
+  para o próximo lote — não repete o histórico de revisões/fix-loops daquele lote, só
+  o que foi entregue, aprovado e qualquer débito.
 
 ## Critérios de Pronto
 
@@ -134,17 +179,49 @@ binário que define quando o **rascunho** está pronto para ser submetido ao Gat
       está marcada como spike, sem estimativa forçada
 - [ ] Toda dependência entre tarefas está mapeada, com o que pode rodar em paralelo
       explícito
+- [ ] Toda tarefa está associada a exatamente um lote, coerente com os bounded
+      contexts do SDD.md (ou o critério mais próximo documentado, se o SDD.md não
+      particionar claramente) — nenhum lote cruza fase
 - [ ] Toda diretriz de implementação relevante está traduzida em regra prática, não
       só uma citação do ADR sem tradução
 - [ ] Toda lacuna estrutural encontrada no SDD.md está sinalizada na Seção 6, nunca
       decidida em silêncio; toda lacuna de detalhe tem a decisão documentada
-- [ ] Nenhuma das 6 seções está vazia ou com placeholder
+- [ ] Nenhuma das 7 seções está vazia ou com placeholder (Seção 7 começa vazia no
+      rascunho — só é preenchida durante a execução — e isso não conta como
+      placeholder)
 - [ ] Rascunho do `GUARDRAILS.md` produzido (`guardrails-drafting`) e submetido ao
       CTO antes ou junto do envio do TASK.md ao Gate 3
 
 **O TASK.md só é considerado final depois que o CTO aprovar (Aprovado ou Aprovado
 com ressalvas) no Gate 3.** Reprovação pontual reabre só a(s) tarefa(s)/risco(s)
 apontado(s), não o documento inteiro.
+
+### Critério de Aprovação de Lote (execução, pós-Gate 3)
+
+Diferente do checklist acima (que qualifica o rascunho do TASK.md para o Gate 3),
+este é o checklist binário que o Tech Lead aplica **durante a execução**
+(`EXECUTION-FLOW.md`), a cada lote, antes de considerá-lo pronto para deploy. Não
+reabre validação funcional (isso é do QA) nem auditoria de segurança (isso é do
+DevSecOps) — verifica só o que é escopo próprio deste agente: a decomposição em si
+continua íntegra depois de implementada.
+
+- [ ] Toda tarefa do lote está `Concluída` no `TASK.md`
+- [ ] `QA-REPORT.md` mostra Aprovado ou Aprovado com ressalvas para toda tarefa do
+      lote — nenhuma `Reprovada` em aberto
+- [ ] `SECURITY-REVIEW.md` mostra Aprovado ou Aprovado com débito registrado para o
+      lote — nenhum achado crítico bloqueando
+- [ ] Nenhum `BLOCKERS.md` aberto afetando alguma tarefa do lote
+- [ ] Nenhuma diretriz de implementação (Seção 1 do TASK.md) foi violada sem exceção
+      registrada
+- [ ] Esforço real do lote reconciliado com a estimativa original (registrado na
+      linha do lote, Seção 7 — divergência não bloqueia a aprovação, é aprendizado
+      para o próximo lote)
+
+Aprovado (com ou sem ressalvas dos itens acima documentadas): registra a linha do
+lote na Seção 7 (Log de Lotes Fechados) e libera o DevOps para o deploy daquele
+lote. Reprovado: não registra a linha, devolve o item pendente ao dono
+correspondente (QA, DevSecOps, ou a própria trilha, conforme o que falhou) — nunca
+decide sozinho resolver a pendência de outro agente.
 
 ## Bloqueios e Escalonamento
 

@@ -1,0 +1,150 @@
+name: Security Scan (DevSecOps — static-security-analysis)
+
+# Varredura contínua de segurança do MyMoney, conforme .claude/skills/static-security-analysis.
+# Roda em paralelo à implementação, sem esperar nenhum build completo:
+#   - secret-scan: gitleaks sobre histórico completo e sobre o diff do PR/push.
+#   - dependency-audit: npm audit (frontend) + OSV-Scanner (todo lockfile do repo,
+#     cobre npm e, quando existir, deno.lock das Supabase Edge Functions).
+#   - sast: semgrep sobre o código React/TypeScript (e Deno, mesma linguagem base).
+#
+# Achado de segredo exposto é sempre severidade alta/crítica (guardrail da skill) e
+# por isso o job secret-scan falha o workflow (bloqueio) em qualquer achado real.
+# npm audit falha só em CVE alta/crítica; achado médio/baixo fica registrado no log/
+# artefato como débito de segurança a consolidar em SECURITY-REVIEW.md, não bloqueia
+# sozinho. Semgrep falha só em achados ERROR (alta confiança); WARNING/INFO viram
+# débito revisado manualmente pelo DevSecOps.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Segunda-feira 06:00 UTC — recheca CVE novo em dependência já existente, mesmo
+    # sem commit novo (base de vulnerabilidade conhecida muda independente do código).
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  security-events: write # upload de SARIF para a aba Security (semgrep)
+
+jobs:
+  secret-scan:
+    name: Secret Scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GITLEAKS_ENABLE_SUMMARY: true
+        # Sem license key: gitleaks-action funciona em modo detect completo para
+        # repositório público/privado sem recurso de organização paga — se o projeto
+        # migrar para GitHub Enterprise/Org com necessidade de recursos avançados da
+        # action, revisar https://github.com/gitleaks/gitleaks-action#free-for-public-repositories
+        # Qualquer segredo encontrado faz este job falhar (exit != 0) — bloqueio automático,
+        # coerente com "todo segredo hardcoded é severidade alta/crítica" (finding-severity-classification).
+
+  dependency-audit:
+    name: Dependency Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- npm audit (frontend/) ---
+      # Guardado por hashFiles: só roda quando o lockfile existir, sem quebrar o
+      # workflow antes de Frontend publicar package-lock.json.
+      - name: Setup Node.js
+        if: hashFiles('frontend/package-lock.json') != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: npm audit (frontend) — falha em CVE alta/crítica
+        if: hashFiles('frontend/package-lock.json') != ''
+        working-directory: frontend
+        run: |
+          npm ci --ignore-scripts
+          echo "## npm audit — frontend/" >> "$GITHUB_STEP_SUMMARY"
+          npm audit --omit=dev --audit-level=high --json > npm-audit-report.json || AUDIT_FAILED=1
+          npm audit --omit=dev --audit-level=high >> "$GITHUB_STEP_SUMMARY" || true
+          if [ "${AUDIT_FAILED:-0}" = "1" ]; then
+            echo "Achado de severidade alta/crítica em dependência — bloqueia deploy (finding-severity-classification)."
+            exit 1
+          fi
+
+      - name: Upload relatório npm audit
+        if: always() && hashFiles('frontend/package-lock.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: frontend/npm-audit-report.json
+          retention-days: 30
+
+      # --- OSV-Scanner (cobre npm e, quando existir, deno.lock das Edge Functions
+      # em supabase/functions/**) — checagem de vulnerabilidade conhecida (OSV/CVE)
+      # em qualquer ecossistema de dependência do repositório, não só npm. ---
+      - name: OSV-Scanner (todo o repositório)
+        uses: google/osv-scanner-action@v2
+        with:
+          scan-args: |-
+            --recursive
+            --skip-git
+            .
+        continue-on-error: true # relatório informativo nesta fase inicial; severidade
+        # alta/crítica real vira achado formal no SECURITY-REVIEW.md quando a auditoria
+        # completa rodar pós-aprovação do QA — evita bloquear CI antes de haver
+        # dependência de aplicação real para avaliar.
+
+  sast:
+    name: SAST (semgrep — React/TypeScript/Deno)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Semgrep — relatório completo (SARIF, todos os níveis)
+        run: |
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/owasp-top-ten \
+            --config=p/typescript \
+            --config=p/react \
+            --config=p/secrets \
+            --sarif --output=semgrep.sarif \
+            --exclude='node_modules' --exclude='dist' --exclude='.claude/skills/**' \
+            .
+        continue-on-error: true
+
+      - name: Upload SARIF para aba Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+
+      - name: Semgrep — gate de bloqueio (só achados ERROR, alta confiança)
+        run: |
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/owasp-top-ten \
+            --config=p/typescript \
+            --config=p/react \
+            --config=p/secrets \
+            --severity=ERROR --error \
+            --exclude='node_modules' --exclude='dist' --exclude='.claude/skills/**' \
+            .
+        # Achado ERROR falha o job (bloqueio); WARNING/INFO ficam só no SARIF acima,
+        # revisados manualmente pelo DevSecOps como débito registrado com prazo.

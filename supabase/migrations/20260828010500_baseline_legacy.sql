@@ -1,0 +1,15 @@
+-- Baseline placeholder — CORRIGIDO (BLOCKERS.md Bloqueio 011 / SECURITY-REVIEW.md
+-- Seção 1.3). Migration já aplicada no projeto remoto linkado (xrcxbzrglndetrrhavhc)
+-- antes desta pipeline começar (implementacao anterior do stakeholder, ver
+-- ADR-012) — este arquivo NUNCA é reexecutado contra esse projeto.
+--
+-- No-op intencional: o dump schema-only real do estado completo do produto foi
+-- consolidado em UM único arquivo, na posição cronológica mais antiga das 13
+-- migrations `*_baseline_legacy` — supabase/migrations/20260827170841_baseline_legacy.sql
+-- (ver o comentário desse arquivo para o racional completo). Não há como
+-- reconstruir, a esta altura, qual fração do schema pertencia especificamente a
+-- CADA um dos 13 timestamps originais (o conteúdo real nunca foi versionado
+-- neste repositório) — duplicar o dump completo 13 vezes não agregaria
+-- fidelidade histórica nenhuma, só risco de divergência entre cópias. Este
+-- arquivo permanece como marcador de posição no histórico de migrations
+-- (preserva a numeração/timestamp original), sem DDL.

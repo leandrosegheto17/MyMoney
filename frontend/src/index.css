@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/*
+ * Tokens visuais — UX-SPEC.md Seção 3.1.
+ * A escala de espaçamento (4/8/12/16/24/32/48) e a escala tipográfica
+ * (xs12/sm14/base16/lg18/xl20/2xl24/3xl30) já correspondem exatamente à escala
+ * padrão do Tailwind v4 (`p-1..p-12`, `text-xs..text-3xl`) — não precisam de
+ * override. Cores, radius e elevação são específicos do produto e definidos abaixo.
+ */
+@theme {
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-income: #16a34a;
+  --color-expense: #dc2626;
+  --color-warning: #d97706;
+  --color-danger: #b91c1c;
+
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+
+  --color-surface: #ffffff;
+  --color-surface-alt: var(--color-neutral-50);
+
+  /* radius — UX-SPEC 3.1: sm 4 / md 8 / lg 16 / full (pill) */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+
+  /* elevation — nunca mais de 2 níveis simultâneos na mesma tela (UX-SPEC 3.1) */
+  --shadow-elevation-sm: 0 1px 2px 0 rgb(17 24 39 / 0.06), 0 1px 3px 0 rgb(17 24 39 / 0.08);
+  --shadow-elevation-md: 0 4px 6px -1px rgb(17 24 39 / 0.1), 0 8px 16px -4px rgb(17 24 39 / 0.12);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-surface-alt);
+  color: var(--color-neutral-900);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Indicador de foco visível — WCAG 2.1 AA / UX-SPEC Seção 5 ("Foco visível e
+   gerenciamento de foco"). Aplicado globalmente em vez de depender de cada
+   componente reimplementar o próprio anel de foco. */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Movimento reduzido — UX-SPEC Seção 5 ("Movimento reduzido"): toda animação
+   respeita `prefers-reduced-motion: reduce`. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

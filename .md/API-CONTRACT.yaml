@@ -1,0 +1,782 @@
+openapi: 3.0.3
+info:
+  title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
+  version: "0.7.0"
+  description: |
+    Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
+    estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
+    Toda mudança em um endpoint já publicado é feita como nova versão visível nesta
+    changelog, nunca silenciosamente.
+
+    **Arquitetura**: não há servidor de aplicação dedicado (DIR-07/G-14). A grande
+    maioria dos endpoints abaixo é a API REST **auto-gerada pelo PostgREST** do
+    Supabase a partir do schema `public` (`ADR-012`) — CRUD simples é modelado
+    inteiramente via tabela + RLS + trigger (nunca reimplementado em Edge Function).
+    RPCs (`/rest/v1/rpc/<nome>`) expõem funções SQL para lógica de agregação
+    (dashboard) ou de segurança que não deve ficar só no client. Edge Functions
+    (`/functions/v1/<nome>`) só existem para lógica que exige cripto/verificação
+    fora do alcance do SQL puro (ex.: verificação de assertion WebAuthn).
+
+    **Autenticação**: todo endpoint abaixo (exceto os do próprio Supabase Auth)
+    exige header `Authorization: Bearer <JWT de sessão>` — RLS aplicada por
+    `auth.uid()`. As 4 tabelas com gate adicional de MFA
+    (`accounts`, `categories`, `payment_methods`, `transactions`) também exigem
+    que o JWT carregue o claim `app_email_mfa_verified = "true"`
+    (`custom_access_token_hook`, ver ADR-013) — sem isso, toda operação nessas 4
+    tabelas retorna 403 (RLS nega a linha), mesmo com JWT válido.
+
+    **Convenção de erro (PostgREST)**: violação de `CHECK`/regra de negócio
+    embutida em trigger é sinalizada com `errcode` Postgres classe `23` (integrity
+    constraint violation), que o PostgREST mapeia para **HTTP 409 Conflict**, corpo
+    `{ "code": "<sqlstate>", "message": "<detalhe>" }`. Campo obrigatório ausente
+    retorna **HTTP 400**. RLS negando acesso (linha de outro usuário, ou MFA não
+    verificado) retorna **HTTP 403** (ou 404, dependendo do método — PostgREST não
+    distingue "não existe" de "não autorizado" por padrão, propositalmente, para
+    não vazar existência de dado de outro usuário).
+  contact:
+    name: Backend (MyMoney pipeline)
+servers:
+  - url: https://xrcxbzrglndetrrhavhc.supabase.co/rest/v1
+    description: PostgREST (tabelas + RPCs)
+  - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+    description: Edge Functions
+  - url: https://xrcxbzrglndetrrhavhc.supabase.co/auth/v1
+    description: Supabase Auth (GoTrue) — e-mail/senha, magic link
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        code: { type: string, example: "23001" }
+        message: { type: string }
+        details: { type: string, nullable: true }
+        hint: { type: string, nullable: true }
+
+    Account:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        name: { type: string }
+        type: { type: string, enum: [checking, savings, wallet, investment] }
+        currency: { type: string, example: "BRL" }
+        initial_balance_cents: { type: integer, format: int64 }
+        current_balance_cents: { type: integer, format: int64, readOnly: true }
+        color: { type: string, nullable: true }
+        icon: { type: string, nullable: true }
+        is_active: { type: boolean, default: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [name, type, currency, initial_balance_cents]
+
+    PaymentMethod:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        account_id: { type: string, format: uuid, nullable: true }
+        credit_card_id: { type: string, format: uuid, nullable: true }
+        type: { type: string, enum: [pix, debit_card, credit_card, boleto, cash] }
+        name: { type: string }
+        is_active: { type: boolean, default: true }
+        is_system_default:
+          type: boolean
+          readOnly: true
+          description: >-
+            true para as 4 formas padrão (Pix/Débito/Boleto/Dinheiro) semeadas
+            automaticamente na 1ª conta do usuário (BE-M-02) — não editável/excluível
+            (PATCH/DELETE retornam 403 via RLS). "Crédito" não é semeado no MVP,
+            só passa a existir junto de um CreditCard real (Fase 2, BE-F2-01).
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [type, name]
+
+    Category:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, nullable: true, readOnly: true, description: "null = categoria padrão do sistema, visível a todos os usuários" }
+        parent_category_id: { type: string, format: uuid, nullable: true }
+        name: { type: string }
+        icon: { type: string, nullable: true }
+        color: { type: string, nullable: true }
+        kind: { type: string, enum: [income, expense] }
+        is_system_default: { type: boolean, readOnly: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [name, kind]
+
+    Budget:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        category_id: { type: string, format: uuid }
+        month: { type: string, format: date, description: "sempre o 1º dia do mês de competência, ex. 2026-09-01" }
+        limit_cents: { type: integer, format: int64 }
+        alert_threshold_pct: { type: integer, default: 80, minimum: 1, maximum: 100 }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [category_id, month, limit_cents]
+
+    Transaction:
+      type: object
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        account_id: { type: string, format: uuid }
+        destination_account_id: { type: string, format: uuid, nullable: true, description: "obrigatório e diferente de account_id quando kind=transfer" }
+        payment_method_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
+        category_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
+        kind: { type: string, enum: [income, expense, transfer] }
+        amount_cents: { type: integer, format: int64, minimum: 1 }
+        description: { type: string, nullable: true }
+        transaction_date: { type: string, format: date }
+        status:
+          type: string
+          enum: [pending, cleared, reconciled]
+          readOnly: true
+          description: >-
+            Definido automaticamente pelo trigger `transactions_before_insert_set_status`:
+            'pending' se transaction_date > hoje (America/Sao_Paulo), 'cleared' caso
+            contrário. Transições pending→cleared automáticas rodam a cada 15min via
+            pg_cron (`fn_clear_due_transactions`). O saldo da conta já reflete o
+            lançamento imediatamente na criação, independente do status (achado de
+            auditoria, AUDITORIA-BE-M-00.md Seção 4).
+        source:
+          type: string
+          enum: [manual, audio, ocr, import, openfinance]
+          default: manual
+          description: "MVP só usa 'manual'; demais valores reservados para Fase 3."
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [account_id, kind, amount_cents, transaction_date]
+
+paths:
+  /accounts:
+    get:
+      summary: Listar contas do usuário autenticado (RF-MVP-01)
+      tags: [Contas]
+      parameters:
+        - in: query
+          name: is_active
+          schema: { type: string, example: "eq.true" }
+          description: "Filtro PostgREST, ex. ?is_active=eq.true para listar só contas ativas"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Account" } }
+    post:
+      summary: Criar conta (RF-MVP-01 AC1) — dispara seed das 4 formas de pagamento padrão se for a 1ª conta ativa (BE-M-02)
+      tags: [Contas]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Account" }
+      responses:
+        "201":
+          description: Criada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Account" }
+        "400":
+          description: "Campo obrigatório ausente (RF-MVP-01 AC2)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /accounts?id=eq.{id}:
+    patch:
+      summary: Editar conta — nome/saldo inicial recalcula saldo consolidado (RF-MVP-01 AC3)
+      tags: [Contas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Account" } } }
+      responses:
+        "200": { description: OK }
+    delete:
+      summary: Excluir conta (RF-MVP-01 AC4, RN-08)
+      tags: [Contas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: "Excluída (sem lançamento vinculado)" }
+        "409":
+          description: >-
+            Conta possui lançamentos vinculados — exclusão bloqueada por trigger
+            `accounts_before_delete_block_linked` (RN-08). Front deve oferecer
+            inativação (`PATCH .../accounts?id=eq.{id}` com `is_active: false`)
+            como alternativa, conforme UX-SPEC. **BE-M-13**: o trigger agora é
+            `SECURITY DEFINER` — o bloqueio vale mesmo se o lançamento vinculado
+            pertencer a outro usuário (não deveria acontecer, dado o `EXISTS` de
+            ownership de FK em `transactions_insert_own`, mas o trigger não
+            depende disso para funcionar corretamente).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /payment_methods:
+    get:
+      summary: Listar formas de pagamento do usuário (RF-MVP-02)
+      tags: [Formas de Pagamento]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PaymentMethod" } } } }
+    post:
+      summary: Cadastrar forma de pagamento customizada (RF-MVP-02 AC3)
+      tags: [Formas de Pagamento]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/PaymentMethod" } } }
+      responses:
+        "201": { description: Criada }
+
+  /payment_methods?id=eq.{id}:
+    patch:
+      summary: Editar forma de pagamento customizada
+      tags: [Formas de Pagamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: OK }
+        "403":
+          description: "is_system_default = true — formas padrão não são editáveis (RF-MVP-02 AC1)"
+    delete:
+      summary: Excluir forma de pagamento customizada
+      tags: [Formas de Pagamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: OK }
+        "403": { description: "is_system_default = true — formas padrão não são excluíveis" }
+
+  /categories:
+    get:
+      summary: Listar categorias/subcategorias (padrão do sistema + do usuário) (RF-MVP-03)
+      tags: [Categorias]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Category" } } } }
+    post:
+      summary: Criar categoria/subcategoria (RF-MVP-03 AC1/AC2)
+      tags: [Categorias]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Category" } } }
+      responses:
+        "201": { description: Criada }
+        "409":
+          description: "Hierarquia inválida (auto-referência, mais de 1 nível, pai de outro usuário) — trigger validate_category_hierarchy"
+
+  /categories?id=eq.{id}:
+    patch:
+      summary: Editar categoria/subcategoria (RF-MVP-03 AC2)
+      tags: [Categorias]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Excluir categoria (RF-MVP-03 AC3, RN-09)
+      tags: [Categorias]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: "Excluída (sem lançamento/orçamento vinculado)" }
+        "409":
+          description: >-
+            Categoria possui lançamentos ou orçamentos vinculados — exclusão
+            bloqueada por trigger `categories_before_delete_block_linked` (RN-09).
+            Front deve buscar `GET /transactions?category_id=eq.{id}` para exibir a
+            lista de lançamentos afetados, conforme RF-MVP-03 AC3. **BE-M-13**: o
+            trigger agora é `SECURITY DEFINER` — categoria de sistema ou
+            categoria com vínculo de OUTRO usuário (cenário do achado original do
+            DevSecOps, `BLOCKERS.md` Bloqueio 010) também bloqueia corretamente,
+            não só vínculo do próprio dono da categoria.
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /budget:
+    get:
+      summary: Listar orçamentos por categoria/mês (RF-MVP-07)
+      tags: [Orçamento]
+      parameters:
+        - in: query
+          name: month
+          schema: { type: string, example: "eq.2026-09-01" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Budget" } } } }
+    post:
+      summary: Definir teto de orçamento para categoria/mês (RF-MVP-07 AC1)
+      tags: [Orçamento]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Budget" } } }
+      responses:
+        "201": { description: Criado }
+        "403":
+          description: >-
+            **Novo — BE-M-13.** `category_id` não pertence ao usuário autenticado
+            (nem é categoria de sistema, `user_id IS NULL`) — rejeitado pela
+            policy `budget_insert_own` (`EXISTS` de ownership de FK, Bloqueio
+            010/SEC-DEBT-002). PostgREST mapeia violação de RLS `WITH CHECK`
+            (`42501`) para 403.
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { description: "Já existe orçamento para essa categoria/mês (unique constraint) — usar PATCH em vez de POST" }
+
+  /budget?id=eq.{id}:
+    patch:
+      summary: Editar teto/limiar de alerta de um orçamento
+      tags: [Orçamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: OK }
+        "403":
+          description: >-
+            **Novo — BE-M-13.** Tentativa de redirecionar `category_id` para uma
+            categoria de outro usuário — rejeitado pela policy `budget_update_own`
+            (mesma correção de ownership de FK do POST).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    delete:
+      summary: Remover orçamento
+      tags: [Orçamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /transactions:
+    get:
+      summary: Listar lançamentos, mês corrente por padrão (RF-MVP-04 AC5)
+      tags: [Lançamentos]
+      parameters:
+        - in: query
+          name: transaction_date
+          schema: { type: string, example: "gte.2026-09-01" }
+          description: "Front filtra por período/conta/forma/categoria via query params PostgREST (ex. ?account_id=eq.<uuid>)"
+        - in: query
+          name: order
+          schema: { type: string, example: "transaction_date.desc" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Transaction" } } } }
+    post:
+      summary: Criar lançamento manual (RF-MVP-04 AC1) — atualiza o saldo da conta imediatamente
+      tags: [Lançamentos]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Transaction" }
+      responses:
+        "201":
+          description: "Criado — accounts.current_balance_cents já reflete o efeito (trigger transactions_maintain_account_balance / apply_transaction_effect, testado em BE-M-00)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Transaction" } } }
+        "400":
+          description: "Campo obrigatório ausente — nada é persistido parcialmente (RF-MVP-04 AC2)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "403":
+          description: >-
+            **Novo — BE-M-13.** `account_id`, `category_id`, `payment_method_id`
+            ou `destination_account_id` referencia uma entidade que não pertence
+            ao usuário autenticado (categoria de sistema, `user_id IS NULL`,
+            continua permitida) — rejeitado pela policy `transactions_insert_own`
+            (`EXISTS` de ownership de FK por coluna, Bloqueio 010/SEC-DEBT-002).
+            PostgREST mapeia violação de RLS `WITH CHECK` (`42501`) para 403.
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409":
+          description: >-
+            Conta inativa (transactions_block_inactive_account) ou violação de
+            CHECK (ex. kind=transfer sem destination_account_id válido, amount_cents <= 0)
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /transactions?id=eq.{id}:
+    patch:
+      summary: Editar lançamento (RF-MVP-04 AC3) — recalcula saldo (reverte efeito antigo, aplica o novo)
+      tags: [Lançamentos]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Transaction" } } }
+      responses:
+        "200": { description: OK }
+        "403":
+          description: >-
+            **Novo — BE-M-13.** Tentativa de redirecionar qualquer uma das 4 FKs
+            (`account_id`/`category_id`/`payment_method_id`/`destination_account_id`)
+            para uma entidade de outro usuário — rejeitado pela policy
+            `transactions_update_own` (mesma correção de ownership de FK do POST).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+    delete:
+      summary: Excluir lançamento (RF-MVP-04 AC4) — reverte efeito no saldo da conta
+      tags: [Lançamentos]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /rpc/get_month_provision:
+    post:
+      summary: "Saldo consolidado do mês (RF-MVP-05 AC1, RF-MVP-06 AC1)"
+      tags: [Dashboard]
+      description: >-
+        RPC pré-existente (implementação anterior, ADR-012), auditada em
+        `AUDITORIA-BE-M-00.md` Seção 5. **Achado de contrato confirmado
+        empiricamente**: `current_total_balance_cents` já reflete o efeito de
+        lançamentos futuros ("pending") no momento em que são criados (o trigger
+        de saldo não olha `status`) — é este o campo correto para RF-MVP-05 AC1
+        ("saldo total consolidado"). `provisioned_balance_cents` **soma
+        `pending_income`/subtrai `pending_expense` do mês por cima de
+        `current_total_balance_cents`, que já os inclui — resultado
+        double-counted, não confiável hoje**. Nenhuma tarefa MVP exige esse campo
+        (RF-MVP-05/06 não pedem "saldo projetado"); Frontend não deve consumir
+        `provisioned_balance_cents` até uma correção formal (fora do escopo do
+        MVP — mudar a função exige revisão do CTO, DIR-03/BE-M-07).
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: {} } } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_total_balance_cents: { type: integer, format: int64, description: "Usar este campo para RF-MVP-05 AC1 — soma de accounts.current_balance_cents de contas ativas." }
+                  pending_income_cents: { type: integer, format: int64 }
+                  pending_expense_cents: { type: integer, format: int64 }
+                  provisioned_balance_cents: { type: integer, format: int64, deprecated: true, description: "NÃO USAR no MVP — double-counting confirmado, ver descrição do endpoint." }
+
+  /rpc/get_monthly_category_summary:
+    post:
+      summary: "Distribuição de entradas/saídas por categoria no mês (RF-MVP-06 AC1/AC2)"
+      tags: [Dashboard]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_month: { type: string, format: date, nullable: true, description: "default: mês corrente" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    category_id: { type: string, format: uuid }
+                    category_name: { type: string }
+                    kind: { type: string, enum: [income, expense] }
+                    total_cents: { type: integer, format: int64 }
+
+  /rpc/get_month_transaction_count:
+    post:
+      summary: "Quantidade de lançamentos do mês (RF-MVP-06 AC3)"
+      tags: [Dashboard]
+      description: >-
+        **Nova — BE-M-07**, migration `20260902100200_be_m07_month_transaction_count.sql`.
+        Nenhuma RPC pré-existente cobria esta contagem (achado de auditoria).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_month: { type: string, format: date, nullable: true, description: "default: mês corrente" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: integer } } }
+
+  /rpc/get_budget_status:
+    post:
+      summary: "% gasto vs. teto por orçamento do mês, com sinal de alerta (RF-MVP-07 AC2-4, RN-04)"
+      tags: [Orçamento]
+      description: >-
+        **Nova — BE-M-08**, migration `20260902100300_be_m08_budget_status.sql`.
+        `alert_level`: `none` (abaixo do limiar), `warning` (>= `alert_threshold_pct`,
+        padrão 80%), `exceeded` (> 100% do teto — severidade maior, RF-MVP-07 AC4).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_month: { type: string, format: date, nullable: true, description: "default: mês corrente" }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    budget_id: { type: string, format: uuid }
+                    category_id: { type: string, format: uuid }
+                    category_name: { type: string }
+                    month: { type: string, format: date }
+                    limit_cents: { type: integer, format: int64 }
+                    spent_cents: { type: integer, format: int64 }
+                    alert_threshold_pct: { type: integer }
+                    pct_spent: { type: number, format: double }
+                    alert_level: { type: string, enum: [none, warning, exceeded] }
+
+  /backup-export:
+    post:
+      summary: "Export lógico diário de backup — endpoint interno/operacional, NUNCA consumido por Frontend/Mobile (BE-M-10, ADR-009, DIR-31/32)"
+      tags: [Confiabilidade/Backup]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      security: []
+      description: >-
+        **Nova — BE-M-10**, `supabase/functions/backup-export/`, migration
+        `20260903090000_be_m10_backup_export.sql`. Dispara **exclusivamente** por
+        `pg_cron` via `pg_net` (`public.trigger_backup_export()`, diário às 03:00
+        UTC — DIR-31; `public.check_backup_health()`, a cada 6h — DIR-32), nunca
+        por client autenticado. Por isso **não usa `verify_jwt`** (deployada com
+        `--no-verify-jwt`) — autenticação é por segredo compartilhado no header
+        `X-Cron-Secret` (fail-closed: nega se o segredo não estiver configurado
+        no ambiente da função, mesmo com header ausente). Verificado antes de
+        implementar (Bloqueio 005): não existe Edge Function/secret de backup
+        pré-existente da implementação anterior a reaproveitar aqui.
+
+        Faz o dump lógico das tabelas de produto (`BACKUP_TABLES` em
+        `supabase/functions/backup-export/lib.ts`: profiles, accounts,
+        categories, payment_methods, transactions, budget, webauthn_credentials,
+        email_mfa_challenges, allowed_signup_emails — exclui `webauthn_challenges`,
+        efêmera, e `backup_export_log`, metadado do próprio job), criptografa
+        (AES-256-GCM) e envia a um bucket S3-compatível fora do Supabase
+        (vendor-agnóstico: AWS S3/Backblaze B2/Cloudflare R2/MinIO, mesmo
+        espírito de DIR-22). Rotação: mantém só os últimos 30 snapshots diários
+        (ADR-011). Toda execução (sucesso ou falha) é logada em
+        `public.backup_export_log` (DIR-32).
+
+        **Achado/pendência não-bloqueante (ver `BLOCKERS.md` Bloqueio 006)**: as
+        credenciais reais do bucket externo (`BACKUP_S3_ENDPOINT`/`BUCKET`/
+        `ACCESS_KEY_ID`/`SECRET_ACCESS_KEY`) não existem nesta sessão — só o
+        Backend consegue provisionar segredo interno (`BACKUP_CRON_SECRET`/
+        `BACKUP_ENCRYPTION_KEY`, já configurados). Provisionar uma conta/bucket
+        real depende do stakeholder (mesmo padrão do Bloqueio 004 do DevOps para
+        credenciais Vercel). **Confirmado por smoke test real** (`curl` direto +
+        disparo via `pg_net`, 2026-09-03): segredo errado → 401; segredo correto
+        sem storage configurado → 500 controlado, logado em
+        `backup_export_log`, e-mail de alerta enviado (best-effort, via secrets
+        `RESEND_API_KEY`/`EMAIL_FROM` já existentes) — nunca falha
+        silenciosamente.
+      parameters:
+        - in: query
+          name: mode
+          schema: { type: string, enum: [healthcheck] }
+          required: false
+          description: "Omitido = executa o export completo. `healthcheck` = só verifica staleness (>26h) e alerta, sem exportar."
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: "Export concluído com sucesso, ou healthcheck executado (independente de `stale`)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  object_key: { type: string, nullable: true }
+                  size_bytes: { type: integer, nullable: true }
+                  stale: { type: boolean, nullable: true, description: "só no modo healthcheck" }
+                  last_success_at: { type: string, format: date-time, nullable: true, description: "só no modo healthcheck" }
+        "401":
+          description: "X-Cron-Secret ausente, incorreto, ou não configurado no ambiente da função (fail-closed)."
+        "500":
+          description: "Falha no export (ex.: storage externo não configurado) — sempre logada em backup_export_log e reportada por e-mail de alerta."
+
+  /auth-email-mfa:
+    post:
+      summary: "Segundo fator de login por e-mail, em 2 passos (RF-MVP-08, camada adicional de segurança — BE-M-09)"
+      tags: [Autenticação]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Contrato real publicado — BE-M-09** (`AUDITORIA-BE-M-00.md` Seção
+        14.1), substituindo qualquer contrato hipotético baseado no código
+        novo do Backend descartado em `BLOCKERS.md` Bloqueio 005. Edge
+        Function pré-existente adotada como está (`ADR-012`/`DIR-33`), não
+        recriada. Exige `Authorization: Bearer <JWT de sessão>` (AAL1, emitido
+        por `signInWithPassword` — não é o JWT final com
+        `app_email_mfa_verified=true`, que só existe depois deste fluxo
+        concluir). Rate limit: máx. 5 envios / 30min, cooldown de 60s entre
+        envios, máx. 5 tentativas de verificação por código (código de 6
+        dígitos, TTL 10min, hash SHA-256 comparado em tempo constante — nunca
+        logado em claro).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [request, verify] }
+                code:
+                  type: string
+                  pattern: "^\\d{6}$"
+                  description: "Obrigatório só quando action=verify."
+      responses:
+        "200":
+          description: "action=request: código gerado e enviado. action=verify: código validado."
+          content:
+            application/json:
+              schema: { type: object, properties: { success: { type: boolean, enum: [true] } } }
+        "400": { description: "action=verify: código ausente/mal formatado, inválido, expirado ou incorreto." }
+        "401": { description: "JWT ausente/inválido." }
+        "429": { description: "action=request: rate limit (5/30min) ou cooldown (60s) ativo. action=verify: 5 tentativas esgotadas — solicitar novo código." }
+        "502": { description: "action=request: falha ao enviar o e-mail (provedor Resend indisponível/timeout)." }
+        "500": { description: "Erro interno." }
+
+  /webauthn-register:
+    post:
+      summary: "Registro de credencial WebAuthn para desbloqueio local (RF-MVP-08 AC1, lado servidor — BE-M-09)"
+      tags: [Autenticação]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Contrato real publicado — BE-M-09** (`AUDITORIA-BE-M-00.md` Seção
+        14.2). Edge Function pré-existente adotada (`ADR-012`/`DIR-33`), com
+        **mitigação de replay de challenge aplicada nesta tarefa**
+        (`BLOCKERS.md` Bloqueio 006, veredito do CTO "mitigar agora"):
+        `public.webauthn_challenges` registra consumo único do challenge —
+        reenvio da mesma dupla challenge+assertion dentro da janela de 90s é
+        rejeitado com `409 challenge_replayed`, provado por teste automatizado
+        end-to-end (`supabase/tests/be_m09_webauthn_replay.test.ts`). Exige
+        `Authorization: Bearer <JWT de sessão>` (usuário já logado por
+        e-mail+senha — WebAuthn aqui é desbloqueio local complementar, não
+        segundo fator independente, `ADR-013`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [generate-options, verify] }
+                attestationResponse:
+                  type: object
+                  description: "Obrigatório quando action=verify — RegistrationResponseJSON retornado por navigator.credentials.create() no client."
+                deviceLabel: { type: string, maxLength: 255, description: "Opcional, só em action=verify." }
+      responses:
+        "200":
+          description: "action=generate-options: opções para navigator.credentials.create(). action=verify: credencial registrada."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options: { type: object, description: "PublicKeyCredentialCreationOptionsJSON — presente só em generate-options." }
+                  success: { type: boolean, enum: [true], description: "Presente só em verify." }
+                  credentialId: { type: string, description: "Presente só em verify." }
+        "400": { description: "Corpo inválido, ou attestationResponse rejeitado na verificação da assinatura." }
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "409":
+          description: >-
+            action=verify: `already_registered` (credential_id já existe) OU
+            `challenge_replayed` (mitigação Bloqueio 006 — challenge já
+            consumido, expirado, ou nunca emitido para este usuário/cerimônia;
+            corpo `{error:"challenge_replayed", message:"..."}`).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { description: "Erro interno (inclui falha ao persistir/consumir o challenge)." }
+        "503": { description: "Auth indisponível ao validar a sessão." }
+        "504": { description: "Timeout em chamada a Auth/Postgres." }
+
+  /webauthn-authenticate:
+    post:
+      summary: "Autenticação (desbloqueio local complementar) com credencial WebAuthn já registrada (RF-MVP-08 AC1 — BE-M-09)"
+      tags: [Autenticação]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Contrato real publicado — BE-M-09** (`AUDITORIA-BE-M-00.md` Seção
+        14.3). Mesma mitigação de replay de challenge de `/webauthn-register`
+        (Bloqueio 006), aplicada simetricamente e provada pelo mesmo teste
+        end-to-end. Em sucesso, só atualiza `sign_count`/`last_used_at` — não
+        emite sessão nova nem altera claim de JWT (`app_email_mfa_verified`
+        vem exclusivamente de `/auth-email-mfa` + `custom_access_token_hook`,
+        nunca deste endpoint).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [generate-options, verify] }
+                assertionResponse:
+                  type: object
+                  description: "Obrigatório quando action=verify — AuthenticationResponseJSON retornado por navigator.credentials.get() no client."
+      responses:
+        "200":
+          description: "action=generate-options: opções para navigator.credentials.get(). action=verify: autenticação confirmada."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  options: { type: object, description: "PublicKeyCredentialRequestOptionsJSON — presente só em generate-options." }
+                  success: { type: boolean, enum: [true], description: "Presente só em verify." }
+        "400": { description: "Corpo inválido, ou assertionResponse rejeitado na verificação da assinatura." }
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "404":
+          description: "action=generate-options: usuário sem credencial WebAuthn registrada (no_credentials). action=verify: credencial não reconhecida ou de outro usuário (credential_not_found)."
+        "409":
+          description: >-
+            action=verify: `challenge_replayed` (mitigação Bloqueio 006 —
+            challenge já consumido, expirado, ou nunca emitido; corpo
+            `{error:"challenge_replayed", message:"..."}`).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "500": { description: "Erro interno." }
+        "503": { description: "Auth indisponível ao validar a sessão." }
+        "504": { description: "Timeout em chamada a Auth/Postgres." }
+
+x-changelog:
+  - version: "0.1.0"
+    date: "2026-09-02"
+    change: "Publicação inicial — Accounts, PaymentMethods, Categories (BE-M-01/BE-M-02)."
+  - version: "0.2.0"
+    date: "2026-09-02"
+    change: "Adiciona Budget (BE-M-01) e Transactions (BE-M-06, contrato adiantado — desbloqueia FE-M-03) — schemas e paths completos, incluindo os códigos de erro 409 de RN-08/RN-09 e o comportamento de status/saldo documentado em AUDITORIA-BE-M-00.md."
+  - version: "0.3.0"
+    date: "2026-09-02"
+    change: "Adiciona as 3 RPCs de dashboard (BE-M-07): get_month_provision (com achado de double-counting em provisioned_balance_cents, deprecated para o MVP), get_monthly_category_summary, e a nova get_month_transaction_count (RF-MVP-06 AC3, não existia antes)."
+  - version: "0.4.0"
+    date: "2026-09-02"
+    change: "Adiciona get_budget_status (BE-M-08, RF-MVP-07 AC2-4/RN-04)."
+  - version: "0.5.0"
+    date: "2026-09-03"
+    change: "Adiciona /backup-export (BE-M-10, ADR-009/DIR-31/32) — endpoint interno/operacional, disparado só por pg_cron via pg_net, nunca por Frontend/Mobile. Ver BLOCKERS.md Bloqueio 006 (credenciais reais de storage externo pendentes)."
+  - version: "0.6.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /auth-email-mfa, /webauthn-register, /webauthn-authenticate
+      (BE-M-09, RF-MVP-08) — contrato REAL das 3 Edge Functions pré-existentes
+      adotadas por BLOCKERS.md Bloqueio 005 (auditoria formal em
+      AUDITORIA-BE-M-00.md Seção 14), substituindo qualquer contrato
+      hipotético baseado no código novo do Backend descartado. Inclui a
+      mitigação de replay de challenge (Bloqueio 006, veredito do CTO
+      "mitigar agora") em /webauthn-register e /webauthn-authenticate — novo
+      erro 409 challenge_replayed, provado por teste automatizado end-to-end.
+  - version: "0.7.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona novo erro 403 em POST/PATCH /budget e POST/PATCH /transactions
+      (BE-M-13, BLOCKERS.md Bloqueio 010, SECURITY-REVIEW.md SEC-DEBT-002) —
+      `category_id`/`account_id`/`payment_method_id`/`destination_account_id`
+      referenciando entidade de outro usuário agora é rejeitado pela policy
+      (EXISTS de ownership de FK), não só pela ausência de UI para isso. Nota
+      adicional nos 409 já existentes de DELETE /accounts e DELETE /categories
+      (RN-08/RN-09): os triggers de bloqueio agora são SECURITY DEFINER, cobrindo
+      vínculo cross-tenant corretamente. Nenhuma mudança de schema de request/
+      response, só de comportamento de rejeição — não é breaking change para
+      quem já trata 4xx genericamente.
