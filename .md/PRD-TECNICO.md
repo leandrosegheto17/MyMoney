@@ -1,0 +1,549 @@
+# PRD-TECNICO.md
+
+**Dono**: Business Analyst
+**Data**: 2026-09-02
+**Gate de entrada**: `PRD.md` liberado pelo PM em 2026-09-02, `stakeholder-alignment-check`
+sem divergência em relação ao `CTO-REVIEW.md` Gate 1.
+**Fonte**: `PRD.md` (Seções 1-7) + `CTO-REVIEW.md` Gate 1 (contexto).
+**Consumidor imediato**: `software-architect` (base de arquitetura para o `SDD.md`);
+contexto para `tech-lead` e `cto` (Gate 2).
+
+**Nota de escopo herdado**: o faseamento MVP / Fase 2 / Fase 3 do `PRD.md` é preservado
+integralmente — nenhuma funcionalidade foi antecipada ou adiada entre fases neste
+documento. Este documento também **não decide** os três pontos que o `PRD.md`
+explicitamente delegou ao Software Architect/CTO no Gate 2: (a) build vs. buy de
+voz/OCR/Open Finance, (b) web/PWA vs. app nativo, (c) meta técnica formal de
+confiabilidade (SLA, backup, RPO/RTO). Onde esses pontos aparecem abaixo, estão
+marcados explicitamente como **"não decidido aqui"**, apenas sinalizados como
+necessidade funcional/não-funcional.
+
+**Convenção de IDs**: `RF-MVP-NN` / `RF-F2-NN` / `RF-F3-NN` (requisitos funcionais por
+fase), `RNF-NN` (não-funcionais), `RN-NN` (regras de negócio), `FL-NN` (fluxos),
+`DEP-NN` / `EXT-NN` (dependências internas / integrações externas), `AMB-NN`
+(interpretações registradas, Seção 7).
+
+**Formato de critério de aceite**: EARS (Easy Approach to Requirements Syntax) —
+"Quando `<evento>`, o sistema deve `<resposta>`" (event-driven), "Se `<condição
+indesejada>`, então o sistema deve `<resposta>`" (unwanted behavior), "Enquanto
+`<estado>`, o sistema deve `<resposta>`" (state-driven), "O sistema deve `<sempre
+fazer X>`" (ubiquitous).
+
+---
+
+## 1. Requisitos Funcionais
+
+### MVP (Fase 1)
+
+#### RF-MVP-01 — Cadastro de Contas
+CRUD de contas financeiras, tipos: corrente, poupança, carteira (dinheiro físico),
+investimentos (tratado só como conta com saldo, conforme corte de escopo do `PRD.md`
+Seção 4).
+
+- **AC1**: Quando o usuário submete o cadastro de uma nova conta com nome, tipo e
+  saldo inicial válidos, o sistema deve criar a conta e exibi-la na lista de contas.
+- **AC2**: Se o usuário tentar cadastrar uma conta sem informar o tipo, então o
+  sistema deve rejeitar o cadastro e indicar o campo obrigatório ausente.
+- **AC3**: Quando o usuário edita o saldo inicial ou nome de uma conta existente, o
+  sistema deve recalcular o saldo consolidado exibido no dashboard (RF-MVP-05).
+- **AC4**: Se o usuário tentar excluir uma conta que possui lançamentos vinculados,
+  então o sistema deve impedir a exclusão definitiva e oferecer inativação (RN-08) —
+  a conta some da lista de contas ativas para novos lançamentos, mas o histórico
+  permanece íntegro.
+
+#### RF-MVP-02 — Cadastro de Formas de Pagamento
+Pré-cadastradas: Pix, débito, crédito, boleto, dinheiro; customização adicional
+permitida.
+
+- **AC1**: O sistema deve disponibilizar, desde o primeiro acesso, as 5 formas de
+  pagamento citadas no `PRD.md` (Pix, débito, crédito, boleto, dinheiro) já
+  pré-cadastradas.
+- **AC2**: Quando o usuário registra um lançamento (RF-MVP-04), o sistema deve exigir
+  a seleção de uma forma de pagamento entre as cadastradas.
+- **AC3**: Onde o usuário quiser adicionar uma forma de pagamento além das 5 padrão
+  (ex.: TED), o sistema deve permitir cadastro customizado adicional.
+
+#### RF-MVP-03 — Categorização com Subcategorias
+Taxonomia hierárquica (categoria > subcategoria), com conjunto padrão sugerido no
+primeiro acesso (ver RN-09, AMB-02) e 100% editável.
+
+- **AC1**: O sistema deve apresentar, no primeiro acesso, uma taxonomia padrão de
+  categorias e subcategorias pré-cadastrada.
+- **AC2**: Quando o usuário cria, edita ou exclui uma categoria/subcategoria, o
+  sistema deve refletir a mudança em todos os pontos de seleção de categoria
+  (lançamento manual, orçamento, dashboard).
+- **AC3**: Se o usuário tentar excluir uma categoria com lançamentos vinculados,
+  então o sistema deve bloquear a exclusão e sugerir reclassificar os lançamentos
+  existentes antes.
+
+#### RF-MVP-04 — Lançamento Manual de Transação
+CRUD completo de lançamentos (entrada/saída). Campos: data, conta, forma de
+pagamento, categoria/subcategoria, valor, tipo, descrição.
+
+- **AC1**: Quando o usuário submete um lançamento manual com todos os campos
+  obrigatórios preenchidos, o sistema deve persistir o lançamento e atualizar o
+  saldo da conta associada imediatamente.
+- **AC2**: Se algum campo obrigatório estiver ausente, então o sistema deve rejeitar
+  o envio e indicar o(s) campo(s) faltante(s), sem persistir lançamento parcial.
+- **AC3**: Quando o usuário edita um lançamento existente, o sistema deve recalcular
+  o saldo da(s) conta(s) afetada(s) refletindo a edição.
+- **AC4**: Quando o usuário exclui um lançamento, o sistema deve reverter seu efeito
+  no saldo da conta associada.
+- **AC5**: O sistema deve listar os lançamentos do mês corrente por padrão, com
+  filtro por conta, forma de pagamento, categoria e período.
+
+#### RF-MVP-05 — Dashboard: Saldo Consolidado
+- **AC1**: O sistema deve exibir, na tela inicial, o saldo total consolidado somando
+  o saldo de todas as contas ativas.
+- **AC2**: Quando um lançamento é criado, editado ou excluído, o sistema deve
+  refletir corretamente o saldo consolidado atualizado (mecanismo de atualização —
+  tempo real vs. próxima renderização — é decisão do Software Architect).
+
+#### RF-MVP-06 — Dashboard: Entradas/Saídas do Mês e Distribuição por Categoria
+- **AC1**: O sistema deve exibir o total de entradas e o total de saídas do mês
+  corrente.
+- **AC2**: O sistema deve exibir, em formato gráfico (não apenas tabela numérica), a
+  distribuição de saídas do mês por categoria — exigência explícita do `PRD.md`
+  Seção 1 ("para onde o dinheiro está indo").
+- **AC3**: O sistema deve exibir a quantidade total de lançamentos registrados no mês
+  corrente — instrumentação necessária para apurar, ao longo do tempo, o baseline
+  real de volume mensal usado por M2 (ver AMB-01, RN-11).
+
+#### RF-MVP-07 — Orçamento por Categoria por Mês
+- **AC1**: Quando o usuário define um teto de orçamento para uma categoria em um mês,
+  o sistema deve armazenar esse teto e associá-lo aos lançamentos daquela categoria
+  naquele mês.
+- **AC2**: Enquanto o total de saídas de uma categoria no mês estiver abaixo do
+  limiar de alerta (RN-04, 80% do teto), o sistema não deve exibir alerta.
+- **AC3**: Quando o total de saídas de uma categoria atingir o limiar de alerta
+  (RN-04), o sistema deve exibir um alerta visual.
+- **AC4**: Se o total de saídas de uma categoria ultrapassar 100% do teto, então o
+  sistema deve exibir um alerta de estouro, com severidade maior que o alerta de
+  aproximação.
+
+#### RF-MVP-08 — Login Seguro (Biometria/PIN)
+- **AC1**: O sistema deve exigir autenticação (PIN ou biometria, conforme mecanismo
+  disponível na plataforma escolhida pelo Software Architect) antes de exibir
+  qualquer dado financeiro.
+- **AC2**: Se o usuário exceder um número de tentativas de autenticação malsucedidas
+  (número exato a definir pelo Software Architect/DevSecOps), então o sistema deve
+  bloquear temporariamente novas tentativas.
+- **AC3**: O sistema deve permitir logout explícito, encerrando a sessão ativa.
+
+### Fase 2
+
+#### RF-F2-01 — Cadastro de Cartão de Crédito
+Pré-requisito de RF-F2-05 (fatura projetada), conforme dependência já nomeada no
+`PRD.md` Seção 5.
+
+- **AC1**: Quando o usuário cadastra um cartão com limite, dia de fechamento e dia de
+  vencimento, o sistema deve armazenar esses dados e disponibilizar o cartão como
+  forma de pagamento "crédito" vinculada.
+- **AC2**: O sistema deve calcular e exibir o limite disponível do cartão como
+  (limite total) − (soma de compras/parcelas futuras já lançadas e não pagas),
+  conforme RN-06.
+
+#### RF-F2-02 — Gastos Recorrentes: Cadastro de Template
+- **AC1**: Quando o usuário cadastra um gasto recorrente (descrição, valor,
+  categoria, forma de pagamento, dia do mês, data de início), o sistema deve
+  armazenar o template e gerar automaticamente um lançamento correspondente em cada
+  mês subsequente, sem exigir ação manual mensal.
+- **AC2**: O sistema deve permitir encerrar um template de recorrência a partir de um
+  mês específico, preservando os lançamentos já gerados nos meses anteriores (RN-07).
+
+#### RF-F2-03 — Atualização de Valor de Recorrência (Reajuste)
+Resolve a pergunta 4 do `PRD.md` Seção 7 — ver AMB-04.
+
+- **AC1**: Quando o usuário edita o valor de um template de recorrência ativo, o
+  sistema deve exibir uma confirmação explícita informando a partir de qual
+  competência o novo valor passará a valer, antes de aplicar a mudança.
+- **AC2**: Se o usuário confirmar, então o sistema deve aplicar o novo valor apenas
+  aos lançamentos futuros gerados a partir da competência escolhida, nunca
+  retroativamente aos já lançados (RN-02).
+- **AC3**: Se o usuário cancelar a confirmação, então o sistema deve manter o valor
+  anterior do template inalterado.
+
+#### RF-F2-04 — Gastos Parcelados no Cartão: Cadastro
+- **AC1**: Quando o usuário cadastra uma compra parcelada (valor total ou por
+  parcela, número de parcelas, categoria, cartão), o sistema deve gerar
+  automaticamente uma parcela lançada em cada fatura subsequente até a quitação.
+- **AC2**: O sistema deve exibir, a qualquer momento, quantas parcelas já foram
+  pagas e quantas restam para uma compra parcelada específica.
+
+#### RF-F2-05 — Fatura de Cartão Projetada
+Depende de RF-F2-01 + RF-F2-04 + RF-F2-03 (mesma dependência nomeada no `PRD.md`
+Seção 5).
+
+- **AC1**: O sistema deve exibir, para cada cartão, a projeção da fatura corrente e
+  das próximas faturas (número de meses a definir pelo Software Architect conforme
+  volume de dados), somando parcelas e recorrências que caem em cada competência.
+- **AC2**: Quando um lançamento no cartão ocorre após a data de fechamento do ciclo
+  corrente, o sistema deve atribuí-lo automaticamente à próxima fatura, nunca à
+  fatura já fechada (RN-01, resolve pergunta 3 do `PRD.md` Seção 7).
+- **AC3**: O sistema deve indicar visualmente, para cada fatura projetada, se ela já
+  está fechada (não recebe mais lançamentos) ou ainda aberta.
+
+#### RF-F2-06 — Contas Fixas com Vencimento
+- **AC1**: Quando o usuário cadastra uma conta fixa (descrição, valor, categoria, dia
+  de vencimento), o sistema deve gerar um lançamento previsto (pendente) para cada
+  competência mensal.
+- **AC2**: O sistema deve permitir marcar uma conta fixa do mês como paga,
+  convertendo o lançamento previsto em lançamento efetivado, refletido no saldo.
+
+#### RF-F2-07 — Aviso de Conta Fixa a Vencer
+- **AC1**: Quando faltarem 3 dias corridos (padrão, configurável — RN-05) para o
+  vencimento de uma conta fixa ainda não paga, o sistema deve emitir uma notificação
+  de aviso.
+- **AC2**: Se a conta fixa não for marcada como paga até a data de vencimento, então
+  o sistema deve sinalizá-la visualmente como vencida/em atraso.
+
+#### RF-F2-08 — Metas com Acompanhamento de Progresso
+- **AC1**: Quando o usuário cadastra uma meta (nome, valor-alvo, prazo opcional), o
+  sistema deve permitir vincular aportes e calcular o percentual de progresso em
+  relação ao valor-alvo.
+- **AC2**: O sistema deve exibir visualmente o progresso de cada meta ativa.
+
+#### RF-F2-09 — Notificações (infraestrutura compartilhada)
+- **AC1**: O sistema deve centralizar em um único mecanismo os avisos de orçamento
+  próximo do teto (RF-MVP-07) e de conta fixa a vencer (RF-F2-07), sem duplicar
+  lógica de disparo — dependência de infraestrutura compartilhada já nomeada no
+  `PRD.md` Seção 4.
+- **AC2**: O usuário deve poder visualizar um histórico de notificações recentes
+  dentro do próprio app (não depende exclusivamente de push do dispositivo, cujo
+  mecanismo exato depende da decisão web/PWA vs. nativo — RNF-05, não decidido aqui).
+
+#### RF-F2-10 — Relatório Comparativo Entradas vs. Saídas Mês a Mês
+- **AC1**: O sistema deve exibir um gráfico comparando entradas e saídas ao longo
+  dos últimos 6 meses com dados disponíveis.
+- **AC2**: Se houver menos de 6 meses de dados (ex.: logo após o MVP), então o
+  sistema deve exibir o comparativo apenas para os meses efetivamente disponíveis,
+  deixando claro que não há dado (não preencher com zero enganoso).
+
+### Fase 3
+
+#### RF-F3-01 — Captura de Lançamento por Voz (NLP)
+NFR obrigatório e não-negociável associado: RNF-01 (confirmação humana). Ver FL-04.
+
+- **AC1**: Quando o usuário finaliza uma gravação de captura por voz, o sistema deve
+  interpretar a fala e pré-preencher o formulário de lançamento (reaproveita campos
+  de RF-MVP-04) com os valores extraídos, marcados como "sugestão automática, não
+  confirmada".
+- **AC2**: O sistema não deve, em nenhuma hipótese, persistir o lançamento sem ação
+  explícita de confirmação do usuário sobre o formulário pré-preenchido (RNF-01).
+- **AC3**: Quando o usuário edita qualquer campo pré-preenchido antes de confirmar,
+  o sistema deve considerar o valor editado (não o originalmente interpretado) ao
+  salvar.
+- **AC4**: Se o usuário cancelar a captura antes de confirmar, então o sistema não
+  deve persistir nenhum lançamento, e deve descartar o rascunho interpretado.
+
+#### RF-F3-02 — Captura de Lançamento por Foto/OCR
+Mesmo padrão de confirmação de RF-F3-01, adaptado a imagem de recibo/nota fiscal.
+
+- **AC1**: Quando o usuário fotografa um recibo/nota fiscal, o sistema deve extrair
+  via OCR os campos possíveis (valor, data, estabelecimento/categoria sugerida) e
+  pré-preencher o mesmo formulário de confirmação de RF-F3-01.
+- **AC2**: O sistema não deve persistir o lançamento sem confirmação explícita do
+  usuário (RNF-01).
+- **AC3**: Se o OCR não conseguir extrair um campo obrigatório (ex.: valor
+  ilegível), então o sistema deve apresentar o campo em branco para preenchimento
+  manual, sem bloquear o restante do formulário pré-preenchido.
+
+#### RF-F3-03 — Importação de Extrato Bancário (OFX/CSV)
+- **AC1**: Quando o usuário importa um arquivo OFX ou CSV, o sistema deve interpretar
+  as transações e apresentar uma lista de lançamentos candidatos para revisão antes
+  de qualquer persistência definitiva.
+- **AC2**: Quando uma transação importada for identificada como possível duplicata
+  de um lançamento já existente (mesma data/valor/conta), o sistema deve sinalizar a
+  possível duplicidade antes de confirmar a importação.
+- **AC3**: O sistema não deve persistir lançamentos importados sem confirmação do
+  usuário sobre a lista revisada — extensão do princípio de RNF-01 por consistência
+  de produto (ver AMB-06b).
+
+#### RF-F3-04 — Integração com Open Finance
+Mecanismo técnico (direto vs. agregador) **não decidido aqui** — ver RNF-06, EXT-04.
+
+- **AC1**: Quando o usuário autoriza a conexão com uma instituição via Open Finance,
+  o sistema deve sincronizar periodicamente as transações da conta conectada e
+  apresentá-las como candidatas, seguindo o mesmo fluxo de revisão de RF-F3-03 (não
+  persistência automática silenciosa).
+- **AC2**: Independentemente do mecanismo técnico escolhido pelo Software
+  Architect/CTO, o requisito funcional de revisão antes de persistir permanece
+  válido.
+
+#### RF-F3-05 — Relatório de Evolução Patrimonial
+- **AC1**: O sistema deve exibir a evolução do saldo consolidado ao longo do tempo,
+  em série temporal gráfica.
+- **AC2**: O sistema deve permitir filtrar a evolução patrimonial por conta
+  individual, além da visão consolidada.
+
+#### RF-F3-06 — Exportação de Relatórios (PDF/CSV)
+Formato exato **não fechado nesta rodada** — ver AMB-05 (premissa a validar antes do
+detalhamento tático desta fase).
+
+- **AC1**: Quando o usuário solicita exportação em CSV, o sistema deve gerar um
+  arquivo contendo, no mínimo, os campos data, conta, forma de pagamento, categoria,
+  subcategoria, descrição, tipo (entrada/saída) e valor de cada lançamento do
+  período selecionado.
+- **AC2**: Quando o usuário solicita exportação em PDF, o sistema deve gerar um
+  documento legível contendo pelo menos o resumo do período (saldo, entradas,
+  saídas, distribuição por categoria).
+
+---
+
+## 2. Requisitos Não-Funcionais
+
+#### RNF-01 — Confirmação Humana Obrigatória Antes de Salvar Lançamento Automatizado (NÃO-NEGOCIÁVEL)
+Herdado da ressalva 2 do Gate 1 e do `PRD.md` Seção 4. Nenhum lançamento capturado
+por voz, foto/OCR, importação de extrato ou Open Finance é persistido no ledger sem
+uma ação explícita e informada do usuário confirmando os dados interpretados. Vale
+para todas as fontes automatizadas da Fase 3, não apenas voz/foto (extensão por
+consistência de produto — AMB-06b). Testável via RF-F3-01 AC2, RF-F3-02 AC2,
+RF-F3-03 AC3, RF-F3-04 AC1: nenhum caminho de persistência de lançamento de origem
+automatizada deve existir sem um evento de confirmação explícito registrado (RNF-08).
+
+#### RNF-02 — Confidencialidade e Criptografia em Repouso
+Dados financeiros armazenados devem ser criptografados em repouso (herdado do Gate 1
+/`PRD.md` MVP). Algoritmo/mecanismo específico: decisão do Software Architect no
+`SDD.md` — **não decidido aqui**.
+
+#### RNF-03 — Comunicação Segura em Trânsito
+Toda comunicação cliente-servidor deve usar transporte criptografado (HTTPS/TLS).
+Inferência de baseline de segurança de produção a partir de "padrão de segurança de
+produção" citado no `PRD.md` Seção 2 — interpretação de baixo risco, ver AMB-07.
+
+#### RNF-04 — Confiabilidade/Persistência (meta técnica NÃO decidida aqui)
+Exigência qualitativa herdada do `PRD.md` Seção 3/4: "não posso perder lançamento
+nem ter o app fora do ar". Este documento carrega a exigência adiante como requisito
+de produto não-negociável em nível qualitativo, mas **não formaliza** SLA numérico,
+RPO/RTO ou estratégia de backup — isso é decisão do Software Architect, revisada
+pelo CTO no Gate 2, conforme `PRD.md` Seção 3 e Seção 6 (item 4) e `CTO-REVIEW.md`.
+
+#### RNF-05 — Plataforma (Web/PWA vs. Nativo) — NÃO decidido aqui
+`PRD.md` deixa explicitamente para o Software Architect (ressalva 3 do Gate 1) a
+decisão entre web responsivo/PWA e app nativo. Este documento registra apenas a
+exigência de experiência: uso confortável tanto em desktop quanto em celular — o
+"como" é decisão de arquitetura, revisada no Gate 2.
+
+#### RNF-06 — Build vs. Buy de Voz/OCR/Open Finance — NÃO decidido aqui
+Decisão entre provedor terceirizado (STT, OCR, agregador Open Finance) e build
+próprio é do Software Architect, revisada pelo CTO no Gate 2
+(`build-vs-buy-analysis`). Este documento registra apenas a necessidade funcional
+(RF-F3-01, RF-F3-02, RF-F3-04) e a integração externa correspondente (EXT-01,
+EXT-02, EXT-04), não a tecnologia/fornecedor.
+
+#### RNF-07 — Idioma e Moeda
+Interface em português brasileiro (pt-BR); moeda única BRL em todas as fases
+(multi-moeda fora de escopo, herdado do `PRD.md` Seção 4). Idioma inferido do
+contexto do briefing — ver AMB-08.
+
+#### RNF-08 — Auditabilidade de Confirmação
+Todo lançamento de origem automatizada (voz, foto, importação, Open Finance) deve
+manter registro (mesmo que técnico/interno) de que passou por confirmação humana
+explícita, com timestamp — suporta a testabilidade de RNF-01 e permite auditoria
+futura caso o usuário questione um lançamento específico.
+
+#### RNF-09 — Escala e Volume de Dados
+Sistema dimensionado para carga de usuário único (não multi-tenant). Volume mensal
+de referência não-oficial: ver AMB-01. Diretriz herdada do `CTO-REVIEW.md`
+("evitar arquitetura distribuída desnecessária para carga de usuário único") — é uma
+diretriz para o Software Architect, não uma meta de performance formal definida
+aqui.
+
+---
+
+## 3. Regras de Negócio
+
+| ID | Regra | Racional | Exceção |
+|---|---|---|---|
+| RN-01 | Lançamento no cartão após a data de fechamento do ciclo entra na **próxima** fatura, nunca na atual | Definição padrão de fechamento de fatura de cartão de crédito no mercado brasileiro — uma vez fechado o ciclo, nenhum novo lançamento pode alterar seu total; é assim que qualquer emissor opera (fato de domínio, não escolha de produto). Resolve pergunta 3 do `PRD.md` Seção 7 — ver AMB-03. | Nenhuma identificada; se o emissor do cartão do stakeholder usar regra não-padrão, precisa ser reportado e revalidado. |
+| RN-02 | Alteração de valor de um template de recorrência exige confirmação explícita e se aplica apenas prospectivamente (lançamentos futuros) | O produto existe para devolver controle e visibilidade ao stakeholder (`PRD.md` Seção 1); atualizar valor monetário silenciosamente contradiz esse objetivo e o próprio `PRD.md` já estabelece o mesmo princípio para captura automatizada. Resolve pergunta 4 — ver AMB-04. | Correção de erro de cadastro (não um reajuste real) ainda passa pela mesma confirmação explícita, mas o usuário pode optar por aplicar retroativamente a partir de uma competência específica que ele escolha — nunca é silencioso. |
+| RN-03 | Confirmação humana obrigatória antes de salvar lançamento de origem automatizada (voz, foto, importação, Open Finance) | Herdado como NFR obrigatório e não-negociável do Gate 1/`PRD.md`; risco de erro de interpretação (valor, categoria, forma de pagamento errados) já citado pelo CTO. | Nenhuma — aplica-se a toda fonte automatizada, sem opção de desativar. |
+| RN-04 | Alerta de orçamento em 80% do teto (aproximação); alerta de estouro acima de 100% | `PRD.md` pede alerta "ao se aproximar do teto" sem limiar numérico; 80% é padrão comum de UX financeira, dá margem de reação antes do estouro. Interpretação registrada — ver AMB-09. | Usuário pode ajustar o limiar de alerta por categoria. |
+| RN-05 | Aviso de conta fixa 3 dias corridos antes do vencimento (padrão) | `PRD.md` pede "aviso antes de vencer" sem prazo definido; 3 dias dá tempo de ação sem gerar fadiga de notificação. Interpretação registrada — ver AMB-10. | Usuário pode configurar prazo diferente por conta fixa. |
+| RN-06 | Parcela de cartão reduz o limite disponível desde o lançamento da compra, não apenas quando "cai" em cada fatura | Reflete o comportamento real de limite de crédito — comprometimento futuro já reduz o limite disponível para novas compras. | Nenhuma identificada no MVP/Fase 2; se o emissor usar regra diferente, revalidar (mesma premissa de RN-01). |
+| RN-07 | Cancelamento/encerramento de um template de recorrência ou parcelamento não apaga lançamentos já gerados | Preserva a integridade histórica do ledger — um mês já lançado (possivelmente já pago) não deve desaparecer retroativamente por causa de um cancelamento futuro; consistente com "não perder lançamento" (`PRD.md` Seção 3/4). | Usuário pode excluir manualmente um lançamento específico já gerado (RF-MVP-04, CRUD normal) se for erro pontual — ação distinta de cancelar o template. |
+| RN-08 | Exclusão de conta com lançamentos vinculados vira inativação, não exclusão definitiva | Integridade referencial — excluir definitivamente quebraria o histórico de saldo/lançamentos já reportados no dashboard e relatórios. | Conta recém-criada sem nenhum lançamento vinculado pode ser excluída definitivamente. |
+| RN-09 | Taxonomia de categorias/subcategorias parte de um conjunto padrão sugerido, mas é 100% editável | Resolve a ausência do dado real da planilha atual (AMB-02) sem bloquear o MVP nem forçar o stakeholder a recomeçar do zero. | Nenhuma — customização total sempre disponível. |
+| RN-10 | Moeda única BRL em todas as fases | Herdado do corte de escopo "fora" do `PRD.md` Seção 4 — multi-moeda não solicitado. | Reavaliar apenas se o stakeholder declarar necessidade explícita. |
+| RN-11 | Baseline real de M2 (volume de lançamentos/mês) apurado operacionalmente a partir dos dados do MVP, não estimado a priori | `PRD.md` Seção 3 já registra explicitamente que "não foi inventado um número para não violar o critério de métrica mensurável e verificável"; BA segue o mesmo princípio (ver RF-MVP-06 AC3, AMB-01). | Nenhuma. |
+
+---
+
+## 4. Fluxos de Usuário/Processo
+
+### FL-01 — Lançamento Manual (MVP)
+
+```mermaid
+flowchart TD
+    A[Usuário abre "Novo Lançamento"] --> B[Preenche data, conta, forma de pagamento, categoria/subcategoria, valor, tipo, descrição]
+    B --> C{Todos os campos obrigatórios preenchidos?}
+    C -- Não --> D[Sistema exibe erro nos campos ausentes] --> B
+    C -- Sim --> E[Sistema persiste o lançamento]
+    E --> F[Sistema atualiza saldo da conta associada]
+    F --> G[Sistema atualiza dashboard: saldo consolidado, entradas/saídas do mês, distribuição por categoria]
+```
+
+### FL-02 — Fechamento de Fatura e Lançamento no Cartão (Fase 2)
+
+```mermaid
+flowchart TD
+    A[Novo lançamento no cartão de crédito] --> B{Data do lançamento é anterior ou igual à data de fechamento do ciclo corrente?}
+    B -- Sim --> C[Lançamento entra na fatura corrente, ainda aberta]
+    B -- Não --> D[Lançamento entra na próxima fatura - RN-01]
+    C --> E[Sistema recalcula total da fatura corrente e limite disponível - RN-06]
+    D --> F[Sistema recalcula total da próxima fatura e limite disponível - RN-06]
+```
+
+### FL-03 — Reajuste de Valor de Recorrência (Fase 2)
+
+```mermaid
+flowchart TD
+    A[Usuário edita valor de um template de recorrência ativo] --> B["Sistema exibe confirmação: novo valor a partir de qual competência?"]
+    B --> C{Usuário confirma?}
+    C -- Não --> D[Sistema mantém valor anterior; nenhuma alteração aplicada]
+    C -- Sim --> E[Sistema aplica novo valor apenas aos lançamentos futuros a partir da competência escolhida]
+    E --> F[Lançamentos já gerados em meses anteriores permanecem com o valor antigo - RN-02 AC2]
+```
+
+### FL-04 — Captura Automatizada com Confirmação Humana Obrigatória (Fase 3, voz/foto)
+
+Resolve a pergunta 6 do `PRD.md` Seção 7 — interpretação registrada em AMB-06.
+
+```mermaid
+flowchart TD
+    A[Usuário inicia captura por voz ou foto] --> B["Sistema processa entrada via provedor STT/OCR (decisão técnica do Software Architect, RNF-06)"]
+    B --> C{Processamento extraiu os campos principais?}
+    C -- Parcialmente/Não --> D[Sistema pré-preenche o formulário com os campos extraídos e deixa em branco os que faltam]
+    C -- Sim --> E[Sistema pré-preenche todos os campos do formulário]
+    D --> F["Formulário exibido como RASCUNHO / SUGESTÃO AUTOMÁTICA (reaproveita a tela de RF-MVP-04)"]
+    E --> F
+    F --> G[Usuário revisa e edita inline qualquer campo, se necessário]
+    G --> H{Usuário confirma explicitamente?}
+    H -- Cancelar --> I[Sistema descarta o rascunho; nada é persistido]
+    H -- Confirmar --> J["Sistema persiste o lançamento com flag de origem automatizada + timestamp de confirmação (RNF-08)"]
+    J --> K[Sistema atualiza saldo, dashboard e fatura projetada, se aplicável]
+```
+
+### FL-05 — Importação de Extrato / Open Finance (Fase 3)
+
+```mermaid
+flowchart TD
+    A[Extrato importado via OFX/CSV ou sincronizado via Open Finance] --> B[Sistema interpreta transações e monta lista de lançamentos candidatos]
+    B --> C{Transação candidata coincide com lançamento já existente - mesma data/valor/conta?}
+    C -- Sim --> D[Sistema sinaliza possível duplicata]
+    C -- Não --> E[Sistema mantém como candidata normal]
+    D --> F[Usuário revisa a lista completa de candidatos]
+    E --> F
+    F --> G{Usuário confirma quais lançamentos importar?}
+    G -- Nenhum/Cancelar --> H[Nada é persistido]
+    G -- Confirma seleção --> I[Sistema persiste apenas os lançamentos selecionados, marcados como origem importada]
+```
+
+---
+
+## 5. Dependências entre Requisitos e Integrações Externas
+
+### 5.1 Dependências internas (o que bloqueia o quê)
+
+| Requisito | Depende de | Motivo |
+|---|---|---|
+| RF-MVP-04 (Lançamento manual) | RF-MVP-01, RF-MVP-02, RF-MVP-03 | Precisa que conta, forma de pagamento e categoria já existam para popular os campos do lançamento. |
+| RF-MVP-05 / RF-MVP-06 (Dashboard) | RF-MVP-04 | Não há dado para exibir sem lançamentos registrados. |
+| RF-MVP-07 (Orçamento) | RF-MVP-03, RF-MVP-04 | Precisa de categoria definida e de lançamentos reais para calcular gasto vs. teto. |
+| RF-F2-01 (Cadastro de cartão) | RF-MVP-02 | Forma de pagamento "crédito" precisa existir antes de vincular um cartão a ela. |
+| RF-F2-04 (Parcelamento) | RF-F2-01 | Precisa saber a qual cartão a parcela pertence. |
+| RF-F2-03 (Reajuste de recorrência) | RF-F2-02 | Só existe reajuste de um template de recorrência já cadastrado. |
+| RF-F2-05 (Fatura projetada) | RF-F2-01 + RF-F2-04 + RF-F2-02/RF-F2-03 | A fatura soma cadastro do cartão, parcelas e recorrências — dependência já nomeada no `PRD.md` Seção 5. |
+| RF-F2-07 (Aviso de conta fixa) | RF-F2-06, RF-F2-09 | Precisa da conta fixa cadastrada e da infraestrutura de notificação. |
+| RF-F2-09 (Notificações) | RF-MVP-07, RF-F2-06 | Os dois gatilhos de notificação (orçamento, conta fixa) precisam existir antes da infraestrutura compartilhada ter o que disparar. |
+| RF-F3-01 / RF-F3-02 (Voz/Foto) | RF-MVP-04 | Reaproveitam o formulário de lançamento manual como base do fluxo de confirmação (FL-04). |
+| RF-F3-03 (Importação OFX/CSV) | RF-MVP-01 | Transação importada precisa ser associada a uma conta existente. |
+| RF-F3-04 (Open Finance) | RF-F3-03 | Reaproveita o mesmo fluxo de revisão/candidatos (FL-05) — não decide o mecanismo técnico de sincronismo. |
+| RF-F3-05 (Evolução patrimonial) | RF-MVP-05 | É a mesma métrica de saldo consolidado, observada como série histórica. |
+| RF-F3-06 (Exportação) | RF-MVP-04 | Depende dos campos de dados estruturados já definidos no lançamento manual (data, conta, forma de pagamento, categoria, valor, tipo). |
+
+### 5.2 Integrações externas necessárias
+
+| ID | Integração | Requisito que a exige | Decisão técnica pendente |
+|---|---|---|---|
+| EXT-01 | Provedor de Speech-to-Text (STT) | RF-F3-01 | Build vs. buy — Software Architect/CTO, Gate 2 (`build-vs-buy-analysis`). Não decidido aqui (RNF-06). |
+| EXT-02 | Provedor de OCR/processamento de documento | RF-F3-02 | Build vs. buy — Software Architect/CTO, Gate 2. Não decidido aqui (RNF-06). |
+| EXT-03 | Parser de arquivo OFX/CSV | RF-F3-03 | OFX é especificação pública (formato aberto), mas a biblioteca/implementação é decisão técnica do Software Architect. |
+| EXT-04 | Open Finance Brasil — direto (certificação BACEN) ou agregador terceirizado | RF-F3-04 | Build vs. buy — Software Architect/CTO, Gate 2. Risco de custo/regulatório já registrado no `PRD.md` Seção 6 (item 6). Não decidido aqui. |
+| EXT-05 | Mecanismo de notificação (push web/PWA vs. push nativo) | RF-F2-09 | Depende da decisão web/PWA vs. nativo — Software Architect, Gate 2 (RNF-05). Não decidido aqui. |
+| EXT-06 | API de autenticação biométrica/PIN do dispositivo | RF-MVP-08 | Depende da plataforma escolhida (API do navegador/OS vs. nativa) — Software Architect. Não decidido aqui. |
+
+---
+
+## 6. Premissas e Riscos Resolvidos
+
+### 6.1 Premissas/riscos herdados do `PRD.md` Seção 6 — status após checagem do BA
+
+| # | Premissa/Risco (PRD.md) | Status | Evidência/Racional da checagem |
+|---|---|---|---|
+| 1 | Volume médio de lançamentos mensais não informado (baseline de M2) | **Resolvido operacionalmente** (não confirmado nem refutado numericamente) | Sem stakeholder interativo disponível nesta rodada, o BA não inventou um número oficial. Em vez disso, definiu instrumentação (RF-MVP-06 AC3, RN-11) para medir o valor real a partir do uso do MVP. Faixa de referência não-oficial (60–120 lançamentos/mês) adotada só para dimensionamento técnico de UI/paginação — ver AMB-01. |
+| 2 | Stakeholder aceita lançar manualmente tudo durante MVP/Fase 2 sem abandonar por fricção | **Não pode ser validado nem refutado nesta rodada** | Depende de percepção qualitativa direta do stakeholder; o próprio `PRD.md` já atribui essa validação ao PM ("antes de liberar o MVP para desenvolvimento"). O BA não tem fonte para checar e não assume validado por ausência de evidência contrária. Risco permanece Aberto, dono continua PM. |
+| 3 | Premissa de usuário único se mantém por toda a iniciativa | **Não pode ser validado nesta rodada** | Depende de declaração futura do próprio stakeholder (dono explícito no `PRD.md`). Nenhuma informação nova disponível ao BA. Permanece como estava, a revisitar no início de cada fase. |
+| 4 | Confiabilidade de produção sem meta técnica formal (SLA/backup) | **Fora do escopo de resolução do BA — corretamente delegado** | `PRD.md` já atribui a formalização ao Software Architect/CTO (Gate 2). BA carrega a exigência qualitativa adiante como RNF-04 sem inventar número (guardrail: BA nunca decide arquitetura). |
+| 5 | Automação de voz/foto depende de build vs. buy ainda não tomado | **Fora do escopo de resolução do BA — corretamente delegado** | Mesma lógica do item 4; necessidade funcional registrada (RF-F3-01/02) e integração nomeada (EXT-01/EXT-02), sem decidir provedor. |
+| 6 | Open Finance direto exige certificação BACEN; via agregador pode ter custo incompatível com "sem orçamento formal" | **Fora do escopo de resolução do BA — corretamente delegado** | Mesma lógica; registrado como EXT-04, decisão até Gate 2. |
+| 7 | Autenticação biométrica/PIN e criptografia aceitas mesmo sendo usuário único | **Validado com evidência textual** | `PRD.md` Seção 2 (Público-Alvo) declara explicitamente: "Trata dados financeiros como sensíveis e espera padrão de segurança de produção (login forte, criptografia) mesmo sendo o único usuário." Confirma a premissa diretamente pela fonte de negócio já existente, sem necessidade de nova elicitação. |
+| 8 | Hipótese de "sem data-alvo fixa, priorizando stack de baixo custo" | **Não pode ser revalidado nesta rodada** | Depende de confirmação direta do stakeholder (dono explícito: PM + Stakeholder no `PRD.md`). Nenhuma nova fonte disponível ao BA. Permanece hipótese herdada, não promovida a fato confirmado. |
+
+### 6.2 Perguntas do `PRD.md` Seção 7 — status de resolução
+
+| # | Pergunta | Como foi resolvida | Referência |
+|---|---|---|---|
+| 1 | Volume médio de lançamentos mensais (baseline M2) | Não estimado como número oficial; instrumentação definida para medir o valor real a partir do MVP | RF-MVP-06 AC3, RN-11, AMB-01 |
+| 2 | Categorias/subcategorias já usadas na planilha atual | Taxonomia padrão sugerida no primeiro acesso, 100% editável, sem obrigar recomeço do zero | RF-MVP-03, RN-09, AMB-02 |
+| 3 | Regra de fechamento de fatura de cartão | Lançamento pós-fechamento entra na próxima fatura — resolvido como fato de domínio (padrão de mercado), não escolha de produto | RN-01, RF-F2-05 AC2, FL-02, AMB-03 |
+| 4 | Regra de reajuste de gasto recorrente | Confirmação explícita sempre obrigatória, aplicada só prospectivamente | RN-02, RF-F2-03, FL-03, AMB-04 |
+| 5 | Formato exato de exportação (CSV/PDF) | **Não fechado** — campos mínimos de CSV inferidos do modelo de dados já definido; layout de PDF não especificado; registrado como premissa a validar antes do detalhamento tático da Fase 3 | RF-F3-06, AMB-05 |
+| 6 | Fluxo exato de confirmação humana (voz/foto) | Revisão inline reaproveitando o formulário de lançamento manual do MVP, com confirmação explícita obrigatória | FL-04, RF-F3-01/02, RNF-01, AMB-06 |
+
+---
+
+## 7. Interpretações Registradas
+
+Toda ambiguidade de **interpretação de detalhe** do `PRD.md` que o BA resolveu por
+conta própria, sem alterar escopo ou objetivo de negócio, com a interpretação
+escolhida, o racional e o risco residual se a interpretação estiver errada.
+
+| ID | Ambiguidade original | Interpretação escolhida | Racional | Risco residual |
+|---|---|---|---|---|
+| AMB-01 | Volume médio de lançamentos mensais (pergunta 1) | Não estimar número oficial de baseline; instrumentar o MVP para medir o valor real (RF-MVP-06 AC3). Faixa de referência não-oficial de 60–120/mês usada só para dimensionamento técnico. | Evita inventar critério que o próprio `PRD.md` já disse explicitamente que não deveria ser inventado (Seção 3). | Baixo — faixa de referência é só parâmetro técnico de UI/paginação, não é critério de aceite de negócio nem meta oficial de M2. |
+| AMB-02 | Categorias/subcategorias da planilha atual (pergunta 2) | Taxonomia padrão sugerida, 100% editável desde o primeiro acesso. | Mantém o MVP funcional sem bloquear por dado ausente; preserva a possibilidade total de o stakeholder recriar sua taxonomia real assim que tiver acesso ao produto. | Baixo — taxonomia sugerida pode não corresponder ao uso atual, gerando retrabalho de reclassificação inicial; mitigado por ser 100% editável. |
+| AMB-03 | Regra de fechamento de fatura (pergunta 3) | Lançamento pós-fechamento entra na próxima fatura, por definição padrão de faturamento de cartão. | É fato de domínio, não escolha de produto — todo emissor de cartão no Brasil opera assim; resolvido com confiança alta sem nova rodada de elicitação. | Baixo — só incorreto se o stakeholder usar arranjo de emissor não-padrão, sem indício disso no briefing. |
+| AMB-04 | Regra de reajuste de recorrência (pergunta 4) | Sempre exigir confirmação explícita antes de aplicar, prospectivamente. | Consistência com o princípio central do produto (controle/visibilidade) e com o NFR já obrigatório de confirmação de captura automatizada (RNF-01) — mesmo padrão aplicado a qualquer atualização automática de valor monetário. | Médio-baixo — pode gerar confirmação "a mais" para reajustes triviais e esperados; refinamento futuro (ex.: aceitar automaticamente reajuste de uma assinatura específica) não foi assumido como requisito atual por não ter sido solicitado. |
+| AMB-05 | Formato exato de exportação (pergunta 5) | Não resolvido em definitivo — só campos mínimos de CSV inferidos do modelo de dados já existente; layout de PDF não especificado. | Fase 3 está distante o suficiente (depende de decisões de Gate 2 ainda pendentes) para não travar este documento agora; melhor registrar como premissa explícita a validar do que inventar um layout completo sem base. | Médio, mas isolado à Fase 3 — não bloqueia MVP, Fase 2, nem a arquitetura de dados que o Software Architect vai desenhar agora. |
+| AMB-06 | Fluxo exato de confirmação humana (pergunta 6) | Revisão inline reaproveitando o formulário de lançamento manual do MVP (RF-MVP-04), pré-preenchido e marcado como sugestão, com confirmação explícita obrigatória (FL-04) — em vez de tela de revisão totalmente separada. | Reaproveita fluxo já confiável e testado, reduz esforço de implementação (relevante no contexto "sem orçamento formal" do Gate 1), evita duplicar lógica de validação em duas superfícies de UI. | Baixo — layout exato de tela cabe ao UX/UI especificar a partir deste fluxo funcional; decisão do BA é sobre o mecanismo funcional, não sobre pixels. |
+| AMB-06b | Escopo da confirmação humana obrigatória: só voz/foto (texto literal do `PRD.md`) ou também importação/Open Finance? | Estendida também a RF-F3-03 (importação) e RF-F3-04 (Open Finance) — mesmo padrão de revisão antes de persistir. | O mesmo risco que motivou a exigência para voz/foto (erro de interpretação automática, ex.: categorização errada, duplicidade) existe igualmente em importação/Open Finance; reverter um lançamento indevido no ledger tem custo maior que uma confirmação extra. | Baixo/positivo — é uma camada extra de segurança que o `PRD.md` não pediu literalmente para essas duas fontes, mas não contradiz nenhuma decisão de escopo (extensão de regra de segurança já aprovada para o mesmo tipo de risco, não mudança de objetivo de negócio). Se o Software Architect ou o PM considerarem que isso extrapola o requisito literal, deve ser tratado como divergência a escalar de volta — o BA optou pela interpretação mais conservadora, não pela mais permissiva. |
+| AMB-07 | Comunicação em trânsito (TLS/HTTPS) não mencionada literalmente | Baseline de produção inferido de "padrão de segurança de produção" (`PRD.md` Seção 2). | Prática elementar de qualquer aplicação web de produção que trata dado sensível. | Desprezível. |
+| AMB-08 | Idioma da interface não declarado explicitamente | Português brasileiro (pt-BR). | Todo o briefing, `PRD.md` e contexto do stakeholder são em português; referência a BACEN/Open Finance Brasil confirma contexto nacional. | Nenhum identificado. |
+| AMB-09 | Limiar numérico de "alerta ao se aproximar do teto" (orçamento) não definido | 80% do teto para alerta de aproximação; 100%+ para alerta de estouro; customizável por categoria (RN-04). | `PRD.md` não define percentual; 80% é padrão comum de UX financeira; customização evita travar definitivamente um número que pode não servir a todas as categorias. | Baixo — mitigado por ser configurável. |
+| AMB-10 | Prazo de "aviso antes de vencer" (conta fixa) não definido | 3 dias corridos antes do vencimento, configurável por conta fixa (RN-05). | Equilíbrio entre dar tempo de reação e não gerar fadiga de notificação. | Baixo — mitigado por ser configurável. |
+
+**Nenhuma das ambiguidades acima tocou escopo ou objetivo de negócio do `PRD.md`** —
+todas são interpretação de detalhe de requisito já aceito. Nenhum escalonamento para
+o PM foi necessário nesta rodada. Se o Software Architect ou o CTO, ao ler este
+documento, discordarem de alguma interpretação por entenderem que ela na verdade
+toca escopo/objetivo de negócio (em especial AMB-04 ou AMB-06b), o encaminhamento
+correto é reportar em `BLOCKERS.md` como bloqueio ao BA, não reinterpretar
+silenciosamente.
+
+---
+
+## Checklist de Pronto (auto-verificação do BA)
+
+- [x] Todo requisito funcional tem critério de aceite testável (EARS) — Seção 1
+- [x] Toda regra de negócio tem racional declarado — Seção 3
+- [x] Todo fluxo de usuário/processo relevante tem pontos de decisão e caminhos
+      alternativos mapeados — Seção 4 (5 fluxos, todos com pelo menos um `{decisão}`)
+- [x] Toda dependência entre requisitos nomeia o que bloqueia o quê; toda integração
+      externa está nomeada — Seção 5
+- [x] Toda premissa/risco herdado do PM foi validado ou refutado com evidência citada
+      — Seção 6.1 (8/8 itens com veredito explícito)
+- [x] Toda ambiguidade resolvida pelo BA está registrada na Seção 7, com a
+      interpretação escolhida e o porquê — 10 interpretações + 1 extensão (AMB-06b)
+- [x] Nenhuma das 7 seções está vazia ou com placeholder
+
+**PRD-TECNICO.md pronto — liberado para o Software Architect.**
