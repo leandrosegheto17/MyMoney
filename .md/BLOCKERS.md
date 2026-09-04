@@ -2303,3 +2303,72 @@ quem reportou.
   stakeholder formalizada em `ADR-014`. Este bloqueio não reabre — qualquer
   reconsideração futura do 2º fator (ex.: se o produto ganhar mais
   titulares/dinheiro real) exige um novo ADR, não a reversão deste.
+
+---
+
+## Bloqueio 019 — 2026-09-04
+
+- **Reportado por**: stakeholder (bug real ao tentar cadastrar uma
+  subcategoria em produção), investigado via `superpowers:systematic-debugging`
+- **Escalado para**: ninguém — corrigido nesta mesma sessão, não é decisão de
+  produto/arquitetura, é bug de implementação
+- **Artefato/trecho afetado**: `public.validate_category_hierarchy()`
+  (trigger `categories_validate_hierarchy`, `BEFORE INSERT OR UPDATE ON
+  categories`), herdada da implementação legada (`schema-baseline-legacy.sql`)
+- **Descrição**: causa raiz confirmada por reprodução direta (SQL real contra
+  o projeto real, `supabase db query --linked`, não suposição) — a função
+  exigia `new.user_id` **idêntico** ao `user_id` da categoria-pai, inclusive
+  quando a categoria-pai é uma **categoria de sistema** (`user_id IS NULL`,
+  as 12 categorias padrão seedadas no primeiro acesso). Como toda conta nova
+  só tem essas 12 categorias como raiz, **toda tentativa de criar uma
+  subcategoria falhava, sem exceção** — contradiz `PRD-TECNICO.md` RF-MVP-03
+  AC1 ("taxonomia padrão... 100% editável"). `CategoriesPage.tsx` nunca
+  restringiu a escolha de "Categoria pai" às categorias custom do usuário
+  (oferece todas as raízes, incluindo as de sistema) — nem deveria, dado o
+  requisito de 100% editável; o bug estava exclusivamente na camada de banco.
+- **Impacto se não resolvido**: RF-MVP-03 (categorização hierárquica)
+  funcionalmente quebrada para o único cenário real de uso — usuário nunca
+  consegue expandir a taxonomia padrão sugerida, feature central do produto
+  inutilizável desde o primeiro acesso.
+- **Correção aplicada**: migration
+  `supabase/migrations/20260904110000_fix_category_hierarchy_system_parent.sql`
+  — regra corrigida para "pai deve ser do mesmo usuário **ou** categoria de
+  sistema (`user_id IS NULL`), nunca de outro usuário real" (defesa
+  cross-user preservada). Aplicada via `supabase db push --linked` contra o
+  projeto real.
+- **Teste de regressão, RED→GREEN**:
+  `supabase/tests/be_m05_category_hierarchy_system_parent.test.sql` — CASO 1
+  (subcategoria sob categoria de sistema) confirmado **RED** antes da
+  migration (mesma mensagem de erro do relato original, reproduzida ao vivo),
+  **GREEN** depois; CASO 2 (pai de outro usuário real continua rejeitado,
+  agora por RLS ocultar a linha antes do trigger rodar, não mais pela
+  checagem de `user_id` — mesma propriedade de segurança, mensagem
+  diferente) também `PASS`. Regressão da suíte completa (24 arquivos
+  pré-existentes + os 2 novos desta sessão) confirmou zero efeito colateral
+  nas regras de profundidade/auto-referência já cobertas por
+  `be_m03_04_05_crud.test.sql` (Casos 4-6).
+- **Achados colaterais durante a regressão, não corrigidos nesta rodada —
+  registrados para transparência, não escondidos**:
+  1. `be_m07_dashboard.test.sql` CASO 2 falha — asserta
+     `current_total_balance_cents = 24000` (valor absoluto), mas
+     `get_month_provision()` soma o saldo consolidado **real** de todas as
+     contas ativas do usuário, que hoje já tem saldo real acumulado de uso
+     genuíno (R$ 16.483,81 no momento desta rodada). Teste pré-existente,
+     nunca ajustado para tolerar dado real crescendo em produção — não
+     relacionado a categorias/hierarquia, não é regressão desta correção.
+  2. `be_m14_user_id_default_auth_uid.test.sql` falha ao inserir uma
+     transação de fixture — mesma classe de bug já encontrada e corrigida
+     dentro de `qa_m02_rn08_rn09_and_rls_reinforcement.test.sql` nesta sessão:
+     a fixture busca `payment_methods WHERE account_id = <conta nova
+     recém-criada>`, mas o trigger de seed de formas de pagamento padrão só
+     roda na 1ª conta que o usuário jamais criou — contas novas não ganham
+     forma de pagamento própria. Também pré-existente, não relacionado a esta
+     correção.
+
+  Nenhum dos dois é regressão introduzida agora nem afeta usuário real —
+  ambos são falhas do **fixture do teste**, não do produto. Ficam como
+  limpeza de baixo risco/baixa prioridade para quando alguém tocar
+  `BE-M-07`/`BE-M-14` de novo; não abrem novo item em `TASK.md` por conta
+  própria.
+- **Status**: **Resolvido — 2026-09-04.** Corrigido, testado (RED→GREEN) e
+  aplicado em produção na mesma sessão em que foi reportado.
