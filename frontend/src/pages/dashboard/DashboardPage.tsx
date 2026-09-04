@@ -103,7 +103,7 @@ export function DashboardPage() {
           </Card>
 
           <Card>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-1 gap-3 text-left sm:grid-cols-3 sm:gap-4 sm:text-center">
               <div>
                 <p className="text-xs text-neutral-500">Entradas do mês</p>
                 <p className="font-semibold text-income">↑ {formatCentsToBRL(data.incomeCents)}</p>

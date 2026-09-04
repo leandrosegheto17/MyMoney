@@ -140,17 +140,19 @@ export function AccountsPage() {
         <ul className="flex flex-col gap-3">
           {accounts.map((account) => (
             <li key={account.id}>
-              <Card className="flex items-center justify-between gap-4">
-                <div>
+              <Card className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-neutral-900">{account.name}</p>
+                    <p className="truncate font-medium text-neutral-900" title={account.name}>
+                      {account.name}
+                    </p>
                     {!account.is_active && <Badge tone="neutral">Inativa</Badge>}
                   </div>
                   <p className="text-sm text-neutral-500">{ACCOUNT_TYPE_LABELS[account.type]}</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <p className="text-lg font-semibold tabular-nums text-neutral-800">{formatCentsToBRL(account.current_balance_cents)}</p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="ghost" onClick={() => openEditForm(account)}>
                       Editar
                     </Button>

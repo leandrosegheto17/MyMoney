@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, ConfirmationDialog, EmptyState, Modal, Select, Skeleton } from "../../components/base";
+import { Alert, Button, ConfirmationDialog, EmptyState, Modal, Select } from "../../components/base";
 import { useToast } from "../../components/base/Toast";
-import { ProgressBar } from "../../components/domain/ProgressBar";
+import { BudgetCard } from "../../components/domain/BudgetCard";
 import { CurrencyInput } from "../../components/domain/CurrencyInput";
 import { createBudget, deleteBudget, getBudgetStatus, listBudgets, monthKey, updateBudget } from "../../lib/api/budget";
 import { listCategories } from "../../lib/api/categories";
 import { ApiError } from "../../lib/api/errors";
-import { formatCentsToBRL } from "../../lib/currency";
 import type { Budget, BudgetStatusItem, Category } from "../../lib/api/types";
 
 const THRESHOLD_OPTIONS = [
@@ -15,7 +14,37 @@ const THRESHOLD_OPTIONS = [
   { value: "90", label: "90%" },
 ];
 
-/** S-BUD-01/02 — UX-SPEC.md Padrão A + `ProgressBar` (3 estados, RN-04). */
+/** Grade de cards de resumo — UX-SPEC.md Seção 2.1 (Padrão C) e 6.3 (1 → 2 → 3 → 4 colunas), mesma grade compartilhada com `S-CAT-01`. */
+const CARD_GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+const SKELETON_CARD_COUNT = 6;
+
+/**
+ * S-BUD-01/02 — UX-SPEC.md Seção 2.2 (revisado 2026-09-04, RF-REF-06): grade de
+ * `BudgetCard` (Padrão C) substitui a lista com `ProgressBar` solto. Clique no
+ * corpo do card (única ação do card) abre `S-BUD-02` para editar o teto,
+ * inalterado; `ProgressBar`/indicadores de severidade (RN-04) reaproveitados
+ * dentro do card, sem alteração de cálculo/dado (nenhuma chamada de API nova).
+ * A ação "Remover orçamento", antes um botão solto ao lado de "Editar" na lista,
+ * foi movida para dentro do formulário `S-BUD-02` (ver `requestDeleteFromForm`) —
+ * decisão de detalhe registrada em `TASK.md` FE-REF-07: o `BudgetCard` só expõe a
+ * ação primária (Padrão C, sem ação secundária própria neste card, diferente do
+ * `CategoryCard`), e nem `UX-SPEC.md` nem o critério de aceite de RF-REF-06 exigem
+ * remoção da capacidade de excluir orçamento já existente no MVP — mesmo fluxo de
+ * exclusão (`deleteBudget`/`ConfirmationDialog`) preservado sem alteração.
+ *
+ * **Correção de achado de qualidade (2026-09-04, regressão funcional, AC1)**: o
+ * card de edição/exclusão é dirigido inteiramente por `BudgetStatusItem`
+ * (`statuses`), nunca por `budgets.find(...)`. `getBudgetStatus()` resolve o mês
+ * corrente **no servidor** (`America/Sao_Paulo`), enquanto `listBudgets()` (usado
+ * só para excluir categorias já orçadas no formulário de novo orçamento, ver
+ * `budgetedCategoryIds` abaixo) é uma listagem simples sem filtro de mês local —
+ * em qualquer divergência de fuso entre os dois, um `.find()` cruzando os dois
+ * poderia falhar silenciosamente e fazer o card sumir da grade inteira (nenhum
+ * `EmptyState`, porque `statuses.length` não é 0). `BudgetStatusItem` já carrega
+ * `budget_id`/`category_id`/`limit_cents`/`alert_threshold_pct` — tudo que
+ * `openEditForm`/`confirmDelete` precisam — então o cruzamento com `budgets` deixa
+ * de ser necessário para renderizar/editar/excluir.
+ */
 export function BudgetPage() {
   const { showToast } = useToast();
   const [statuses, setStatuses] = useState<BudgetStatusItem[] | null>(null);
@@ -24,7 +53,7 @@ export function BudgetPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [editingBudget, setEditingBudget] = useState<BudgetStatusItem | null>(null);
   const [categoryId, setCategoryId] = useState("");
   const [limitCents, setLimitCents] = useState(0);
   const [thresholdPct, setThresholdPct] = useState("80");
@@ -32,7 +61,7 @@ export function BudgetPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const [deleteTarget, setDeleteTarget] = useState<Budget | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BudgetStatusItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   async function load() {
@@ -64,11 +93,12 @@ export function BudgetPage() {
     setIsFormOpen(true);
   }
 
-  function openEditForm(budget: Budget) {
-    setEditingBudget(budget);
-    setCategoryId(budget.category_id);
-    setLimitCents(budget.limit_cents);
-    setThresholdPct(String(budget.alert_threshold_pct));
+  /** Clique no `BudgetCard` (elemento clicável primário, Padrão C) — abre `S-BUD-02`, dirigido 100% por `status` (ver nota de correção acima). */
+  function openEditForm(status: BudgetStatusItem) {
+    setEditingBudget(status);
+    setCategoryId(status.category_id);
+    setLimitCents(status.limit_cents);
+    setThresholdPct(String(status.alert_threshold_pct));
     setFormErrors({});
     setSaveError(null);
     setIsFormOpen(true);
@@ -85,7 +115,7 @@ export function BudgetPage() {
     setSaveError(null);
     try {
       if (editingBudget) {
-        await updateBudget(editingBudget.id, { limit_cents: limitCents, alert_threshold_pct: Number(thresholdPct) });
+        await updateBudget(editingBudget.budget_id, { limit_cents: limitCents, alert_threshold_pct: Number(thresholdPct) });
       } else {
         await createBudget({ category_id: categoryId, month: monthKey(), limit_cents: limitCents, alert_threshold_pct: Number(thresholdPct) });
       }
@@ -99,11 +129,18 @@ export function BudgetPage() {
     }
   }
 
+  /** `S-BUD-02`, botão "Remover orçamento" (ver nota acima) — fecha o formulário e reabre a confirmação já existente. */
+  function requestDeleteFromForm() {
+    if (!editingBudget) return;
+    setIsFormOpen(false);
+    setDeleteTarget(editingBudget);
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      await deleteBudget(deleteTarget.id);
+      await deleteBudget(deleteTarget.budget_id);
       setDeleteTarget(null);
       showToast("Orçamento removido");
       await load();
@@ -122,39 +159,31 @@ export function BudgetPage() {
       </div>
 
       {loadError && <Alert variant="danger">{loadError}</Alert>}
-      {!statuses && !loadError && <Skeleton lines={4} aria-label="Carregando orçamentos" />}
+      {!statuses && !loadError && (
+        <div role="status" aria-label="Carregando orçamentos" className={CARD_GRID_CLASSES}>
+          {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+            <div key={index} className="h-32 animate-pulse rounded-lg bg-neutral-200" />
+          ))}
+        </div>
+      )}
       {statuses && statuses.length === 0 && (
         <EmptyState title="Nenhum orçamento definido este mês" action={<Button onClick={openNewForm}>Cadastrar</Button>} />
       )}
 
       {statuses && statuses.length > 0 && (
-        <ul className="flex flex-col gap-3">
-          {statuses.map((status) => {
-            const budget = budgets.find((b) => b.id === status.budget_id);
-            return (
-              <li key={status.budget_id}>
-                <Card>
-                  <ProgressBar
-                    label={status.category_name}
-                    pctSpent={status.pct_spent}
-                    alertLevel={status.alert_level}
-                    detailText={`${formatCentsToBRL(status.spent_cents)} de ${formatCentsToBRL(status.limit_cents)}`}
-                  />
-                  {budget && (
-                    <div className="mt-2 flex justify-end gap-2">
-                      <Button variant="ghost" onClick={() => openEditForm(budget)}>
-                        Editar
-                      </Button>
-                      <Button variant="ghost" onClick={() => setDeleteTarget(budget)}>
-                        Remover
-                      </Button>
-                    </div>
-                  )}
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
+        <div className={CARD_GRID_CLASSES}>
+          {statuses.map((status) => (
+            <BudgetCard
+              key={status.budget_id}
+              categoryName={status.category_name}
+              spentCents={status.spent_cents}
+              limitCents={status.limit_cents}
+              pctSpent={status.pct_spent}
+              alertLevel={status.alert_level}
+              onEdit={() => openEditForm(status)}
+            />
+          ))}
+        </div>
       )}
 
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={editingBudget ? "Editar orçamento" : "Novo orçamento"}>
@@ -172,13 +201,22 @@ export function BudgetPage() {
           />
           <CurrencyInput label="Teto" required valueCents={limitCents} onValueChange={setLimitCents} error={formErrors.limit} />
           <Select label="Limiar de alerta" options={THRESHOLD_OPTIONS} value={thresholdPct} onChange={(event) => setThresholdPct(event.target.value)} />
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={isSaving}>
-              Cancelar
-            </Button>
-            <Button onClick={() => void handleSubmit()} loading={isSaving}>
-              Salvar
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {editingBudget ? (
+              <Button variant="ghost" onClick={requestDeleteFromForm} disabled={isSaving}>
+                Remover orçamento
+              </Button>
+            ) : (
+              <span />
+            )}
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={isSaving}>
+                Cancelar
+              </Button>
+              <Button onClick={() => void handleSubmit()} loading={isSaving}>
+                Salvar
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

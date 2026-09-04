@@ -61,6 +61,19 @@ um realias puro** — a Vercel recusa promoção direta e recria a build usando 
 ambiente `Production` (mesmo source, novo `dpl_`), contradizendo a premissa de
 "zero rebuild" registrada em §3/§6.1. Detalhe completo, achados e ressalvas em
 §9.6; nenhuma outra seção anterior deste documento foi reaberta.
+**Atualização incremental — 2026-09-04**: `deployment-execution` do sexto lote
+fechado, primeiro do Pacote de Refinamento (Fase 2.1), "Lançamentos —
+Hierarquia & Atalhos" (`BE-REF-02`, `FE-REF-02`, `FE-REF-03`), liberado por
+dupla aprovação em `TASK.md` Seção 7 (`QA-REPORT.md` Seção 10.6, Aprovado, 3/3
+sem ressalva individual + `SECURITY-REVIEW.md` Seção 1.18, Aprovado sem débito
+novo). Migration `be_ref_02` reconfirmada já aplicada (`supabase migration
+list --linked`, 39/39 remote=local), não reaplicada. **Deploy real em staging
+concluído com sucesso** via Vercel CLI local (mesmo mecanismo dos 5 lotes
+anteriores — pipeline de CI/CD automatizado segue não operacional). Detalhe
+completo, incluindo observação de transparência sobre deployments de produção
+não registradas encontradas durante a rodada, em §9.8; nenhuma seção anterior
+deste documento foi reaberta. **Nenhum deploy em produção foi executado** —
+fora do escopo autorizado deste dispatch.
 **Gate de entrada**: `SDD.md` aprovado com ressalvas no Gate 2 do CTO (2026-09-02).
 Conforme `EXECUTION-FLOW.md` ("DevOps prepara desde o início, deploya só no fim") e
 `devops.md`, `infrastructure-as-code-provisioning` e `cicd-pipeline-configuration`
@@ -92,7 +105,7 @@ frontend estático e pipeline de CI/CD, conforme `SDD.md` Seção 3.
 |---|---|
 | IaC de hospedagem do frontend (`vercel.json`) | Provisionado (código) |
 | Pipeline de CI/CD (`.github/workflows/frontend-ci-cd.yml`) | Configurado (código) |
-| Deploy em staging | **Concluído — 4 lotes** ("Fundação Técnica & Infraestrutura", 2026-09-03, §9.2; "Contas & Formas de Pagamento", 2026-09-03, §9.3; "Ledger & Dashboard", 2026-09-03, §9.4; "Categorização", 2026-09-03, §9.5) — deploy real executado via Vercel CLI local contra o projeto legado `mymoney` (reuso autorizado pelo stakeholder), com o mesmo alias estável `mymoney-staging.vercel.app` realiasado para a deployment mais recente a cada lote. Pipeline de CI/CD automatizado (`.github/workflows/frontend-ci-cd.yml`) segue **não operacional** para deploys futuros — GitHub Actions Secrets (`VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`) ainda não configurados (`gh` CLI indisponível nesta sessão; `BLOCKERS.md` Bloqueio 004) |
+| Deploy em staging | **Concluído — 5 lotes** ("Fundação Técnica & Infraestrutura", 2026-09-03, §9.2; "Contas & Formas de Pagamento", 2026-09-03, §9.3; "Ledger & Dashboard", 2026-09-03, §9.4; "Categorização", 2026-09-03, §9.5; "Lançamentos — Hierarquia & Atalhos" (Fase 2.1), 2026-09-04, §9.8) — deploy real executado via Vercel CLI local contra o projeto legado `mymoney` (reuso autorizado pelo stakeholder), com o mesmo alias estável `mymoney-staging.vercel.app` realiasado para a deployment mais recente a cada lote. Pipeline de CI/CD automatizado (`.github/workflows/frontend-ci-cd.yml`) segue **não operacional** para deploys futuros — GitHub Actions Secrets (`VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID`) ainda não configurados (`gh` CLI indisponível nesta sessão; `BLOCKERS.md` Bloqueio 004) |
 | Deploy em produção | **Executado — 2026-09-03 (§9.6)**, primeira promoção real deste pipeline, autorizada explicitamente pelo stakeholder. `mymoney-pink-phi.vercel.app` confirmado `READY`/respondendo, servindo `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`. Escopo: build inteiro então em staging, incluindo lotes sem validação formal QA/DevSecOps por lote (desvio de processo consciente do stakeholder — ver §9.6). Janela de observação pós-deploy (24h) em andamento; Gate 4 (§11) segue não fechado até ela terminar |
 | Observabilidade | **Parcial** — logs nativos de build/runtime do Vercel ativos por padrão (sem configuração adicional necessária); Web Vitals/Analytics e alerta ainda não configurados via `observability-setup` formal — pendência carregada, não bloqueou esta promoção (instrução explícita do stakeholder cobriu só a promoção, não a rodada completa de observabilidade) |
 | Validação de NFR contra infraestrutura real | Pendente — depende de deploy real existir (`non-functional-requirement-validation`) |
@@ -1296,10 +1309,320 @@ consciente do stakeholder (não decisão minha).
 | (working tree — lote Ledger & Dashboard) | Staging | 2026-09-03 | **Concluído** — deploy real via Vercel CLI local (`dpl_5UyCp7jWrxRr38M65ycmTBh2buvu`), mesmo alias `mymoney-staging.vercel.app` realiasado para a nova deployment. Pipeline de CI/CD automatizado segue pendente de GitHub Actions Secrets (`BLOCKERS.md` Bloqueio 004). Achado não-bloqueante: 1 teste flaky (`UnlockPage.test.tsx`) observado numa das execuções da suíte, não reproduzível isoladamente nem em reexecução completa (§9.4) |
 | (working tree — lote Categorização) | Staging | 2026-09-03 | **Concluído** — deploy real via Vercel CLI local (`dpl_DE4zJAkNS4iCBKtZACqPstXy6FUh`), mesmo alias `mymoney-staging.vercel.app` realiasado para a nova deployment. Migration crítica `be_m14` (Bloqueio 015) reconfirmada já aplicada, não reaplicada. Pipeline de CI/CD automatizado segue pendente de GitHub Actions Secrets (`BLOCKERS.md` Bloqueio 004). Achado agravado: `UnlockPage.test.tsx` flaky em 3/3 execuções completas da suíte nesta rodada (isolado, passa 3/3) — escalado a Frontend/QA (§9.5) |
 | (working tree — build inteiro de staging, além dos 4 lotes fechados) | **Produção** | 2026-09-03 | **Concluído — primeira promoção real a produção deste pipeline** — via `vercel promote` (rebuild sob ambiente `Production`, achado registrado em §9.6), `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`, servindo `mymoney-pink-phi.vercel.app`. Autorizado explicitamente pelo stakeholder, incluindo lotes sem validação formal QA/DevSecOps por lote (desvio de processo consciente, não decidido pelo DevOps). `mymoney-lsm.vercel.app` não realiasado (§9.6, item 4). Observabilidade formal, drill de rollback e janela de 24h ainda pendentes — ver §9.6/§11 |
+| (working tree — lote Lançamentos — Hierarquia & Atalhos, Fase 2.1) | Staging | 2026-09-04 | **Concluído** — deploy real via Vercel CLI local (`dpl_6nWVMUzHXpJWmvbNGuMjFR6QkUvD`), mesmo alias `mymoney-staging.vercel.app` realiasado para a nova deployment. Migration `be_ref_02` reconfirmada já aplicada (`supabase migration list --linked`, 39/39 remote=local), não reaplicada. Pipeline de CI/CD automatizado segue pendente de GitHub Actions Secrets (`BLOCKERS.md` Bloqueio 004). 229/229 testes passando, nenhuma flakiness de `UnlockPage.test.tsx` observada nesta rodada. Observação de transparência não investigada (fora de escopo): 3 deployments `Production` de ~6h atrás não registradas em nenhuma entrada anterior — ver §9.8. Deploy em produção: não realizado, pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
+
+### 9.8 Execução — 2026-09-04 (lote "Lançamentos — Hierarquia & Atalhos", Fase 2.1)
+
+**Gatilho**: `TASK.md` Seção 7 registrou o fechamento do sexto lote (primeiro do
+Pacote de Refinamento, Fase 2.1) em 2026-09-04, com dupla aprovação confirmada
+— `QA-REPORT.md` Seção 10.6 ("Veredito de lote consolidado": **Aprovado**, 3/3
+tarefas sem ressalva individual — `BE-REF-02`, `FE-REF-02`, `FE-REF-03`) e
+`SECURITY-REVIEW.md` Seção 1.18 ("Veredito do lote: Aprovado, sem débito
+novo"). Coluna "Deploy" da linha do lote em `TASK.md` Seção 7 registrava "Ainda
+não realizado" — este é o gatilho explícito para o deploy, conforme a própria
+nota do Tech Lead em 7.6 ("Este registro de Seção 7 é o que libera o DevOps
+para realizar o deploy deste lote como próximo passo do orquestrador"). Escopo
+autorizado: **staging apenas** — deploy em produção é pausa obrigatória do
+orquestrador, fora deste dispatch.
+
+**0. Migrations — confirmadas já aplicadas, não reaplicadas.** Rodei
+`supabase migration list --linked`: todas as 39 migrations locais têm `remote`
+idêntico a `local`, incluindo a última,
+`20260904120000_be_ref_02_transaction_shortcuts.sql` (`BE-REF-02` — RPC
+`get_transaction_shortcuts()` + coluna `transactions.created_via_shortcut`) —
+nenhuma pendência de schema, migration do lote já em produção (aplicada
+diretamente contra o projeto Supabase linkado durante a implementação, como
+informado no dispatch). Não reapliquei.
+
+**Disciplina de pré-deploy (mesmos 3 estágios do pipeline, executados
+localmente antes de deployar, mesmo padrão dos 5 lotes anteriores)**:
+
+| Etapa | Comando | Resultado |
+|---|---|---|
+| Instalação de dependências | `npm ci` (`frontend/`) | OK — 464 pacotes, 0 vulnerabilidades |
+| Lint | `npm run lint` (oxlint) | OK, exit code 0 — só os mesmos *warnings* não-bloqueantes já registrados nos lotes anteriores (`react(set-state-in-effect)`, `react(only-export-components)`), nenhum erro novo, nenhum warning novo introduzido por `FE-REF-02`/`FE-REF-03` |
+| Build de produção | `npm run build` (`tsc -b && vite build`) | OK — `dist/` gerado, mesmo aviso não-bloqueante de tamanho de chunk (>500 kB) já registrado nos lotes anteriores |
+| Teste automatizado | `npm test -- --passWithNoTests` (vitest) | **53 arquivos de teste, 229 testes, 229/229 passando** — confirma de forma independente o mesmo número já reportado por QA (`QA-REPORT.md` Seção 10.1). **Diferente de §9.4/§9.5, nenhuma flakiness de `UnlockPage.test.tsx` observada nesta execução completa da suíte** — não considero o achado anterior resolvido só por esta observação isolada (seguem sem ação corretiva aplicada), mas registro que não se manifestou nesta rodada |
+
+**Nenhuma mudança de infraestrutura foi necessária** — mesmo projeto Vercel
+`mymoney` já linkado (`frontend/.vercel/project.json`:
+`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`, `team_LGMpqv4TnLt60QJ52AKDqQI9`, idêntico
+aos lotes anteriores) — só uma build nova do código já presente na árvore de
+trabalho (`ShortcutBar`/`ShortcutChip`, hierarquia do item de lista).
+
+**Deploy real executado**:
+
+```
+cd frontend && vercel deploy --yes
+```
+
+| Campo | Valor |
+|---|---|
+| Status | `READY` |
+| Deployment ID | `dpl_6nWVMUzHXpJWmvbNGuMjFR6QkUvD` |
+| Target | `preview` (confirmado via `vercel inspect`; **não** produção — nenhum `--prod`/`vercel promote` executado, conforme escopo autorizado) |
+| URL da deployment | `https://mymoney-7dd10kppt-leandrosegheto17s-projects.vercel.app` |
+
+**Alias de staging atualizado**:
+
+```
+vercel alias set mymoney-7dd10kppt-leandrosegheto17s-projects.vercel.app mymoney-staging.vercel.app
+  Success! https://mymoney-staging.vercel.app now points to mymoney-7dd10kppt-leandrosegheto17s-projects.vercel.app
+```
+
+Confirmado via `vercel alias ls`: `mymoney-staging.vercel.app` →
+`mymoney-7dd10kppt-leandrosegheto17s-projects.vercel.app`.
+
+**Smoke test básico (mesma limitação já registrada nos lotes anteriores, sem
+sessão autenticada real)**: build limpo (tabela acima) e deployment `READY`
+(`vercel inspect`) são as duas confirmações mecânicas disponíveis sem burlar a
+proteção SSO do projeto. `curl -I https://mymoney-staging.vercel.app` retorna
+`302` para `vercel.com/sso-api` — mesmo comportamento herdado já registrado em
+§9.2-9.5, não uma regressão desta rodada.
+
+**Observação de transparência, fora do escopo deste deploy**: `vercel ls
+mymoney --scope leandrosegheto17s-projects` (rodado para confirmar a
+deployment mais recente antes do alias) mostrou 3 deployments `Production`
+datadas de ~6h atrás (2 `Error`, 1 `Ready`), não registradas em nenhuma entrada
+prévia deste documento (a última promoção a produção registrada é §9.6,
+2026-09-03). Não investiguei a origem — está fora do escopo autorizado deste
+dispatch (staging apenas, deste lote específico) — mas sinalizo aqui por
+completude, para que uma rodada futura de DevOps confirme o que essas
+deployments representam e se as `Error` exigem atenção.
+
+**Nenhum achado novo de infraestrutura nesta rodada.** Pendências que seguem
+carregadas, sem mudança nesta rodada: (a) `VERCEL_TOKEN` não gerado; (b)
+GitHub Actions Secrets/`Variable` não configurados — pipeline automático segue
+inoperante para push em `main`; (c) proteção "Required reviewers" do
+Environment `production` do GitHub, pendente desde a primeira rodada; (d)
+plano de teste de rollback (§6.2) não executado — exigiria promover para
+produção, fora do escopo autorizado desta rodada (deploy só em staging); (e)
+Disaster Recovery (§6.3) segue com pré-condições não satisfeitas (Bloqueios
+007/011/012); (f) débito de processo `QA-DEBT-011` (smoke test manual real
+ainda não exercitado contra o Supabase linkado) segue sem ação nesta rodada —
+natureza de tooling/processo, não bloqueia este deploy.
+
+**Resultado desta rodada: deploy real de staging do lote "Lançamentos —
+Hierarquia & Atalhos (Fase 2.1)" concluído com sucesso.**
+`https://mymoney-staging.vercel.app` serve `dpl_6nWVMUzHXpJWmvbNGuMjFR6QkUvD`
+(`READY`, confirmado por `vercel inspect`/`curl`). `TASK.md` Seção 7, coluna
+"Deploy" da linha "Lançamentos — Hierarquia & Atalhos (Fase 2.1)", atualizada
+nesta mesma rodada para "Concluído em staging". **Nenhuma promoção a produção
+foi executada** — pausa obrigatória do orquestrador, fora deste dispatch.
+
+### 9.9 Execução — 2026-09-04 (lote "Categorização (Fase 2.1)", Pacote de
+Refinamento)
+
+**Gatilho**: `TASK.md` Seção 7 (linha "Categorização (Fase 2.1)", `FE-REF-06`/
+`QA-REF-04`) registrou o fechamento do sétimo lote com dupla aprovação
+confirmada — verifiquei eu mesmo, na fonte, e não só por leitura do `TASK.md`:
+`QA-REPORT.md` Seção 11.6 ("Veredito de lote consolidado: **Aprovado**", sem
+ressalva, Definition of Done Seção 11.7 100% marcada) e `SECURITY-REVIEW.md`
+Seção 1.20 ("Veredito do lote: **Aprovado com débito**", `SEC-DEBT-012`, baixa
+severidade — `category.color` consumido como valor de CSS inline sem validação
+de formato, sem exploitabilidade prática hoje, não-bloqueante, sem prazo
+urgente). Débito de segurança de baixa severidade já foi decisão do DevSecOps
+(mesma lógica de uma aprovação condicional de QA) — não pauso o deploy
+esperando confirmação adicional do CTO por causa dele. Coluna "Deploy" da linha
+do lote em `TASK.md` Seção 7 registrava "Deploy ainda não realizado" — este é
+o gatilho explícito para este dispatch. Escopo autorizado: **staging apenas**
+— deploy em produção não é o passo agora.
+
+**0. Migrations — confirmado que não há nenhuma deste lote.** Rodei
+`supabase migration list --linked`: as 40 migrations locais têm `remote`
+idêntico a `local`, incluindo a última, `20260904120000` (`be_ref_02` —
+`FE-REF-06`/`QA-REF-04` são puramente frontend, `CategoryCard.tsx`/
+`CategoriesPage.tsx`, sem migration própria, exatamente como informado no
+dispatch). Nenhuma pendência de schema, nenhuma migration nova para este
+lote — confirmado, não presumido.
+
+**Disciplina de pré-deploy (mesmos 3 estágios do pipeline, executados
+localmente antes de deployar, mesmo padrão dos 6 lotes anteriores)**:
+
+| Etapa | Comando | Resultado |
+|---|---|---|
+| Instalação de dependências | `npm ci` (`frontend/`) | OK — 464 pacotes, 0 vulnerabilidades |
+| Lint | `npm run lint` (oxlint) | OK, exit code 0 — só os mesmos *warnings* não-bloqueantes já registrados nos lotes anteriores (`react(set-state-in-effect)`, `react(only-export-components)`), nenhum erro novo, nenhum warning novo introduzido por `FE-REF-06` |
+| Build de produção | `npm run build` (`tsc -b && vite build`) | OK — `dist/` gerado, mesmo aviso não-bloqueante de tamanho de chunk (>500 kB) já registrado nos lotes anteriores |
+| Teste automatizado | `npm test -- --passWithNoTests` (vitest) | **54 arquivos de teste, 244 testes, 244/244 passando** — confirma de forma independente o mesmo número já reportado por QA (`QA-REPORT.md` Seção 11, nota de `FE-REF-06`: "244/244 PASS"). Nenhuma flakiness de `UnlockPage.test.tsx` observada nesta execução |
+
+**Nenhuma mudança de infraestrutura foi necessária** — mesmo projeto Vercel
+`mymoney` já linkado (`frontend/.vercel/project.json`:
+`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`, `team_LGMpqv4TnLt60QJ52AKDqQI9`, idêntico
+aos lotes anteriores) — só uma build nova do código já presente na árvore de
+trabalho (`CategoryCard.tsx` novo, `CategoriesPage.tsx` reescrito).
+
+**Deploy real executado**:
+
+```
+cd frontend && vercel deploy --yes
+```
+
+| Campo | Valor |
+|---|---|
+| Status | `READY` |
+| Deployment ID | `dpl_56mwUor3EofAxt1vcpQMK1mkQ2oH` |
+| Target | `preview` (confirmado via `vercel inspect`; **não** produção — nenhum `--prod`/`vercel promote` executado, conforme escopo autorizado) |
+| URL da deployment | `https://mymoney-povmvl1wf-leandrosegheto17s-projects.vercel.app` |
+
+**Alias de staging atualizado**:
+
+```
+vercel alias set mymoney-povmvl1wf-leandrosegheto17s-projects.vercel.app mymoney-staging.vercel.app
+  Success! https://mymoney-staging.vercel.app now points to mymoney-povmvl1wf-leandrosegheto17s-projects.vercel.app
+```
+
+Confirmado via `vercel alias ls`: `mymoney-staging.vercel.app` →
+`mymoney-povmvl1wf-leandrosegheto17s-projects.vercel.app`.
+
+**Smoke test básico (mesma limitação já registrada nos lotes anteriores, sem
+sessão autenticada real)**: build limpo (tabela acima) e deployment `READY`
+(`vercel inspect`) são as duas confirmações mecânicas disponíveis sem burlar a
+proteção SSO do projeto. `curl -I https://mymoney-staging.vercel.app` retorna
+`302` para `vercel.com/sso-api` — mesmo comportamento herdado já registrado em
+§9.2-9.5/§9.8, não uma regressão desta rodada.
+
+**Observação de transparência, reconfirmação do já sinalizado em §9.8, sem
+mudança**: `vercel ls mymoney --scope leandrosegheto17s-projects` mostra as
+mesmas 3 deployments `Production` já sinalizadas em §9.8 (2 `Error`, 1
+`Ready`, agora ~6-7h/15h/17h atrás), sem nenhuma deployment `Production` nova
+desde a promoção registrada em §9.6 — confirma que este dispatch (staging
+apenas) não alterou produção, mas a pendência de investigação sinalizada em
+§9.8 (origem das deployments `Error`) segue em aberto, sem ação nesta rodada
+(fora do escopo autorizado).
+
+**Nenhum achado novo de infraestrutura nesta rodada.** Pendências que seguem
+carregadas, sem mudança nesta rodada: (a) `VERCEL_TOKEN` não gerado; (b)
+GitHub Actions Secrets/`Variable` não configurados — pipeline automático segue
+inoperante para push em `main`; (c) proteção "Required reviewers" do
+Environment `production` do GitHub, pendente desde a primeira rodada; (d)
+plano de teste de rollback (§6.2) não executado — exigiria promover para
+produção, fora do escopo autorizado desta rodada; (e) Disaster Recovery (§6.3)
+segue com pré-condições não satisfeitas (Bloqueios 007/011/012); (f) débito de
+processo `QA-DEBT-011` segue sem ação; (g) `SEC-DEBT-012` (baixa severidade,
+`category.color` sem validação de formato) — não bloqueante, sem prazo
+urgente, condicionado a funcionalidade futura ainda não planejada; nenhuma
+ação de infraestrutura cabe a este agente sobre este débito, é de dono
+frontend.
+
+**Resultado desta rodada: deploy real de staging do lote "Categorização (Fase
+2.1)" concluído com sucesso.** `https://mymoney-staging.vercel.app` serve
+`dpl_56mwUor3EofAxt1vcpQMK1mkQ2oH` (`READY`, confirmado por `vercel inspect`/
+`curl`). `TASK.md` Seção 7, coluna "Deploy" da linha "Categorização (Fase
+2.1)", atualizada nesta mesma rodada para "Concluído em staging". **Nenhuma
+promoção a produção foi executada** — fora do escopo autorizado deste
+dispatch.
+
+### 9.10 Execução — 2026-09-04 (lote "Orçamento (Fase 2.1)", Pacote de
+Refinamento)
+
+**Gatilho**: `TASK.md` Seção 7 (linha "Orçamento (Fase 2.1)", `FE-REF-07`/
+`QA-REF-05`) registrou o fechamento do oitavo lote com dupla aprovação
+confirmada — verifiquei eu mesmo, na fonte, e não só por leitura do `TASK.md`:
+`QA-REPORT.md` Seção 12.6 ("Veredito de lote (`EXECUTION-FLOW.md`, 'QA — uma
+vez por lote'): **Aprovado**", sem ressalva, Definition of Done Seção 12.7
+100% marcada) e `SECURITY-REVIEW.md` Seção 1.22 ("Veredito do lote:
+**Aprovado, sem débito de segurança**"). O único achado desta rodada,
+`QA-DEBT-012` (contraste WCAG do texto de percentual do `ProgressBar` em
+estado `warning`), é débito de QA/acessibilidade, não de segurança — não gera
+`SEC-DEBT-*`, dono é Frontend (próxima revisão de design tokens), sem prazo
+urgente e sem implicação de deploy. Coluna "Deploy" da linha do lote em
+`TASK.md` Seção 7 registrava "Deploy ainda não realizado" — este é o gatilho
+explícito para este dispatch. Escopo autorizado: **staging apenas** — deploy
+em produção não é o passo agora.
+
+**0. Migrations — confirmado que não há nenhuma deste lote.** Rodei
+`supabase migration list --linked`: as 40 migrations locais têm `remote`
+idêntico a `local`, incluindo a última, `20260904120000` (`be_ref_02` — lote
+irmão "Lançamentos — Hierarquia & Atalhos", não deste lote). `FE-REF-07`/
+`QA-REF-05` são puramente frontend (`BudgetCard.tsx` novo,
+`BudgetPage.tsx` reescrito, `ProgressBar.tsx` com prop aditiva,
+`frontend/src/index.css` com token `--color-danger-soft` novo), sem migration
+própria — confirmado por `git status --porcelain supabase/migrations`, sem
+arquivo novo além do já existente `20260904120000` (não tocado por este
+lote), exatamente como informado no dispatch. Nenhuma pendência de schema.
+
+**Disciplina de pré-deploy (mesmos 3 estágios do pipeline, executados
+localmente antes de deployar, mesmo padrão dos 7 lotes anteriores)**:
+
+| Etapa | Comando | Resultado |
+|---|---|---|
+| Instalação de dependências | `npm ci` (`frontend/`) | OK — 464 pacotes, 0 vulnerabilidades |
+| Lint | `npm run lint` (oxlint) | OK, exit code 0 — só os mesmos *warnings* não-bloqueantes já registrados nos lotes anteriores (`react(set-state-in-effect)`, incluindo o mesmo padrão em `BudgetPage.tsx`; `react(only-export-components)`), nenhum erro novo, nenhum warning novo introduzido por `FE-REF-07` |
+| Build de produção | `npm run build` (`tsc -b && vite build`) | OK — `dist/` gerado, mesmo aviso não-bloqueante de tamanho de chunk (>500 kB) já registrado nos lotes anteriores |
+| Teste automatizado | `npm test -- --passWithNoTests` (vitest) | **55 arquivos de teste, 259 testes, 259/259 passando** — confirma de forma independente (e sem a flakiness isolada de `UnlockPage.test.tsx` observada por QA em execução paralela) o mesmo número já reportado por QA (`QA-REPORT.md` Seção 12.1: "258/259" na execução paralela com o restante do runner, "3/3 PASS" na reexecução isolada) |
+
+**Nenhuma mudança de infraestrutura foi necessária** — mesmo projeto Vercel
+`mymoney` já linkado (`frontend/.vercel/project.json`:
+`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`, `team_LGMpqv4TnLt60QJ52AKDqQI9`, idêntico
+aos lotes anteriores) — só uma build nova do código já presente na árvore de
+trabalho (`BudgetCard.tsx` novo, `BudgetPage.tsx` reescrito, `ProgressBar.tsx`/
+`index.css` com mudança aditiva).
+
+**Deploy real executado**:
+
+```
+cd frontend && vercel deploy --yes
+```
+
+| Campo | Valor |
+|---|---|
+| Status | `READY` |
+| Deployment ID | `dpl_FgjXYnxQRhL2KcJjdc1WoyZ6xzha` |
+| Target | `preview` (confirmado via `vercel inspect`; **não** produção — nenhum `--prod`/`vercel promote` executado, conforme escopo autorizado) |
+| URL da deployment | `https://mymoney-ho8nhc2e3-leandrosegheto17s-projects.vercel.app` |
+
+**Alias de staging atualizado**:
+
+```
+vercel alias set mymoney-ho8nhc2e3-leandrosegheto17s-projects.vercel.app mymoney-staging.vercel.app
+  Success! https://mymoney-staging.vercel.app now points to mymoney-ho8nhc2e3-leandrosegheto17s-projects.vercel.app
+```
+
+Confirmado via `vercel alias ls`: `mymoney-staging.vercel.app` →
+`mymoney-ho8nhc2e3-leandrosegheto17s-projects.vercel.app`.
+
+**Smoke test básico (mesma limitação já registrada nos lotes anteriores, sem
+sessão autenticada real)**: build limpo (tabela acima) e deployment `READY`
+(`vercel inspect`) são as duas confirmações mecânicas disponíveis sem burlar a
+proteção SSO do projeto. `curl -I https://mymoney-staging.vercel.app` retorna
+`302` para `vercel.com/sso-api` — mesmo comportamento herdado já registrado em
+§9.2-9.5/§9.8-9.9, não uma regressão desta rodada.
+
+**Observação de transparência, reconfirmação do já sinalizado em §9.8/§9.9,
+sem mudança**: `vercel ls mymoney --scope leandrosegheto17s-projects` mostra
+deployments `Production` mais antigas (7h-18h atrás no momento desta rodada,
+incluindo as mesmas `Error`/`Ready` já sinalizadas), sem nenhuma deployment
+`Production` nova desde a promoção registrada em §9.6 — confirma que este
+dispatch (staging apenas) não alterou produção. A pendência de investigação
+sinalizada em §9.8 (origem das deployments `Error`) segue em aberto, sem ação
+nesta rodada (fora do escopo autorizado).
+
+**Nenhum achado novo de infraestrutura nesta rodada.** Pendências que seguem
+carregadas, sem mudança nesta rodada: (a) `VERCEL_TOKEN` não gerado; (b)
+GitHub Actions Secrets/`Variable` não configurados — pipeline automático segue
+inoperante para push em `main`; (c) proteção "Required reviewers" do
+Environment `production` do GitHub, pendente desde a primeira rodada; (d)
+plano de teste de rollback (§6.2) não executado — exigiria promover para
+produção, fora do escopo autorizado desta rodada; (e) Disaster Recovery (§6.3)
+segue com pré-condições não satisfeitas (Bloqueios 007/011/012); (f) débito de
+processo `QA-DEBT-011` segue sem ação; (g) `QA-DEBT-012` (baixa severidade,
+contraste WCAG do texto de percentual do `ProgressBar` em estado `warning`,
+`--color-warning` pré-existente) — débito de design token/acessibilidade, não
+de segurança, sem componente de infraestrutura; nenhuma ação cabe a este
+agente sobre este débito, é de dono frontend/design.
+
+**Resultado desta rodada: deploy real de staging do lote "Orçamento (Fase
+2.1)" concluído com sucesso.** `https://mymoney-staging.vercel.app` serve
+`dpl_FgjXYnxQRhL2KcJjdc1WoyZ6xzha` (`READY`, confirmado por `vercel inspect`/
+`curl`). `TASK.md` Seção 7, coluna "Deploy" da linha "Orçamento (Fase 2.1)",
+atualizada nesta mesma rodada para "Concluído em staging". **Nenhuma promoção
+a produção foi executada** — fora do escopo autorizado deste dispatch.
 
 ## 10. Incidentes Pós-Deploy
 
-**Staging**: nenhum incidente registrado nos 4 deploys realizados (§9.2-9.5).
+**Staging**: nenhum incidente registrado nos 7 deploys realizados (§9.2-9.5,
+§9.8-9.10).
 
 **Produção**: primeiro deploy real de produção deste pipeline executado em
 2026-09-03 (§9.6). Janela de observação pós-deploy (padrão 24h, `devops.md`)
@@ -1336,11 +1659,14 @@ fechamento de ciclo completo.
 - [x] Gate de produção exige ação manual (`workflow_dispatch`) + Environment
       protection pendente de configuração (registrado em `BLOCKERS.md`) — nunca
       deploy automático
-- [x] Build em staging — **concluído em 2026-09-03**: lote "Fundação Técnica &
-      Infraestrutura" (§9.2), lote "Contas & Formas de Pagamento" (§9.3), lote
-      "Ledger & Dashboard" (§9.4) e lote "Categorização" (§9.5), todos
-      publicados em `mymoney-staging.vercel.app` (alias realiasado para a
-      deployment mais recente a cada lote)
+- [x] Build em staging — **concluído em 2026-09-03/04**: lote "Fundação Técnica
+      & Infraestrutura" (§9.2), lote "Contas & Formas de Pagamento" (§9.3), lote
+      "Ledger & Dashboard" (§9.4), lote "Categorização" (§9.5), lote
+      "Lançamentos — Hierarquia & Atalhos" (Fase 2.1, §9.8, 2026-09-04), lote
+      "Categorização (Fase 2.1)" (§9.9, 2026-09-04) e lote "Orçamento (Fase
+      2.1)" (§9.10, 2026-09-04), todos publicados em
+      `mymoney-staging.vercel.app` (alias realiasado para a deployment mais
+      recente a cada lote)
 - [x] Build em produção — **concluído em 2026-09-03 (§9.6)**, primeira
       promoção real deste pipeline, `mymoney-pink-phi.vercel.app` confirmado
       `READY`/`200 OK` servindo `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`. Ressalva de

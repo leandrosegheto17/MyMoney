@@ -1423,3 +1423,668 @@ fechamento do Bloqueio 006). Bloqueio 009 (CORS wildcard, SEC-DEBT-001) não exi
 decisão minha — já delegado integralmente a `backend` pelo próprio DevSecOps, sem
 questão estratégica em aberto; permanece `Aberto` em `BLOCKERS.md`, sob responsabilidade
 de Backend, sem necessidade de meu veredito.
+
+---
+
+## Gate 1 — Pré-descoberta (Pacote de Refinamento: Dashboard/Lançamentos/Formas de
+Pagamento/Categorias/Orçamento) — 2026-09-04
+
+**Skill aplicada**: `tech-strategy-review`.
+**Input avaliado**: briefing de negócio recebido diretamente do dono do produto
+(verbatim, sem artefato formal prévio), a partir de uso real do app já em produção
+(`https://mymoney-lsm.vercel.app`) — 6 pontos de melhoria, mais uma referência visual
+externa (`github.com/leandrosegheto17/FinancialControl`, inspiração de layout, não
+código a reaproveitar).
+**Contexto**: `PRD.md`, `PRD-TECNICO.md`, `SDD.md` Seção 5 (modelo de dados
+vigente, `ADR-012`), `GUARDRAILS.md` (G-01/G-02/G-04/G-19), `UX-SPEC.md`
+(repaginação visual + regras de responsividade formalizadas em 2026-09-04),
+`AUDITORIA-BE-M-00.md`, `SECURITY-REVIEW.md`, `BLOCKERS.md` (Bloqueio 010 resolvido,
+Bloqueio 013 aberto), `API-CONTRACT.yaml`. **Este é um novo pacote de escopo sobre um
+produto já em produção — não reabre nem invalida nenhuma aprovação dos Gates 1-3
+originais nem das reaberturas já fechadas (Bloqueio 003, Bloqueio 006, Revisão de
+Segurança do Lote MVP).**
+
+### Objetivo de negócio
+
+Declarado explicitamente, não é "deixar bonito": reduzir atrito de uso no dia a dia
+real (scroll excessivo no desktop, hierarquia visual ruim na lista de lançamentos,
+esforço de lançamento manual, campo redundante no formulário, navegação ruim em
+Categorias/Orçamento). Isto **não é um objetivo novo** — é a mesma linha do objetivo
+de negócio original fixado por mim no Gate 1 inaugural (`"reduzir ao mínimo o
+lançamento manual... dando visibilidade"`), agora informado por uso real em vez de
+hipótese. Objetivo aprovado como está, sem necessidade de reformulação.
+
+### Alinhamento com roadmap
+
+Alinhado. Este pacote não compete com o faseamento já validado (MVP/Fase 2/Fase 3) —
+é trabalho de refinamento contínuo sobre MVP+Fase 2 já entregues, equivalente em
+natureza à repaginação visual já aprovada e implementada em 2026-09-04
+(`UX-SPEC.md`, "Atualização 2026-09-04"). Recomendo ao PM tratar isto como um pacote
+próprio (ex.: "Fase 2.1" ou "Melhorias Contínuas"), não emendado silenciosamente
+dentro da Fase 3 (captura automatizada) nem tratado como reabertura do MVP.
+
+### Plausibilidade de orçamento/prazo
+
+Mesmo contexto de sempre: projeto pessoal, execução solo, sem orçamento/prazo formal
+declarado (`CTO-REVIEW.md` Gate 1 original, Gate 3 "Declaração de capacidade" —
+esforço decorrido tende ao somatório, não ao caminho crítico). Não é bloqueio. O
+dono do produto não priorizou os 6 itens entre si — registro como lacuna a levantar
+pelo PM, não decido eu a ordem. Sinalizo, sem vincular, que o item 3 (atalhos de
+lançamento rápido) é o mais diretamente alinhado ao objetivo-norte original
+("reduzir ao mínimo o lançamento manual") e o item 4 é o de maior risco/esforço —
+isso é insumo para o PM priorizar, não uma decisão minha de sequenciamento.
+
+### Avaliação superficial por item
+
+**Itens 1 (dashboard desktop), 2 (hierarquia visual do item de lista), 5
+(Categorias em cards), 6 (Orçamento em cards)** — risco técnico baixo, mesma
+natureza da repaginação já aprovada e implementada em 2026-09-04. Não tocam schema,
+API nem regra de negócio — são puramente apresentação. Único ponto de atenção, não
+bloqueante: `UX-SPEC.md` já formalizou convenções de responsividade próprias
+(Seção 2.1/3.1.1 — `min-w-0`/`truncate`, grid 2 colunas a partir de `md` para
+formulário de 5+ campos, achado de consistência `design-system-consistency-check`)
+depois da última rodada. UX/UI deve estender essas convenções já existentes ao
+desenhar o grid multi-coluna do dashboard e os cards de Categorias/Orçamento, não
+inventar um padrão visual paralelo — isso é revisão normal de UX/UI, não peço um
+gate meu adicional para isso.
+
+**Item 3 (atalhos de lançamento rápido, top 10 subcategorias)** — risco técnico
+baixo/médio. Não é puro front-end: exige uma nova consulta agregada (RPC ou view)
+de "subcategorias mais usadas recentemente" e, possivelmente, uma heurística de
+"forma de pagamento mais associada" à subcategoria — isso é regra de negócio nova,
+ainda não especificada com precisão suficiente para virar critério de aceite
+testável. Recomendo ao PM/BA que o `PRD.md`/`PRD-TECNICO.md` definam explicitamente:
+(a) a janela e o critério de "mais usadas" (frequência simples vs. recência
+ponderada, período de referência, critério de desempate); (b) o algoritmo de
+"forma de pagamento/conta mais associada" (última usada com essa subcategoria? mais
+frequente?) — sem isso, Backend e QA não têm o que testar de forma objetiva. É
+aditivo ao modelo de dados existente (consulta sobre `transactions` já existente,
+sem tabela nova aparente à primeira vista) — Software Architect confirma no Gate 2
+se precisar de índice novo ou view materializada; não vejo risco de arquitetura de
+alto risco/custo aqui a ponto de exigir `architecture-decision-review` formal, mas o
+Software Architect decide isso ao produzir o SDD delta, não eu antecipando.
+
+**Item 4 (forma de pagamento já vincular a conta) — avaliação de maior peso deste
+Gate 1, conforme pedido.**
+
+Fato técnico que muda a natureza do risco declarado no briefing: **o vínculo
+forma de pagamento↔conta já existe no modelo de dados vigente.** Confirmei por
+leitura de `SDD.md` Seção 5.1, `AUDITORIA-BE-M-00.md` (Seção 3, achado 2) e
+`SECURITY-REVIEW.md` (linha 554) que `public.payment_methods` já tem `account_id`
+(FK para `accounts`) e `credit_card_id`, mutuamente exclusivos via check constraint
+(`payment_methods_account_or_card_check`) — decisão herdada da implementação
+anterior reaproveitada (`ADR-012`), auditada e adotada desde `BE-M-00`. **Isto não é
+uma mudança estrutural de schema a inventar do zero** — o item 4, tecnicamente, é
+majoritariamente uma simplificação de contrato de API/UI: parar de exigir
+`account_id` como campo independente no formulário/`POST /transactions` quando
+`payment_method_id` já resolve a conta, e ajustar a nomenclatura de exibição
+(`"Débito Conta X"`) para tornar isso visível ao usuário.
+
+Dito isso, há três pontos concretos que **impedem** que eu trate isto como
+cosmético e que devem ser resolvidos pelo Software Architect em `architecture-
+decision-review` formal no Gate 2, não decididos ad hoc por Frontend:
+
+1. **Geração/nomenclatura de forma de pagamento por conta ainda não está
+   resolvida como regra de produto.** A auditoria original (`AUDITORIA-BE-M-00.md`
+   Seção 3.1) amarrou o seed das 4 formas de pagamento padrão à **primeira conta
+   ativa** do usuário — não existe hoje um mecanismo automático que gere
+   "Débito Conta Y"/"Pix Conta Y" quando o usuário cadastra uma segunda conta. O
+   schema permite tecnicamente múltiplas linhas de `payment_methods` por conta
+   (nenhuma constraint impede), mas a regra de **quando e como** essas
+   combinações são criadas (automático ao criar conta? manual pelo usuário? só
+   quando a conta é usada pela primeira vez?) é uma decisão de produto/arquitetura
+   que falta, não uma limitação técnica a contornar.
+2. **G-02 (meu próprio guardrail, `GUARDRAILS.md`) se aplica diretamente.** O
+   produto está em uso real (`https://mymoney-lsm.vercel.app`), com contas,
+   formas de pagamento e lançamentos reais — diferente da auditoria de 2026-09-02
+   (`AUDITORIA-BE-M-00.md`, "0 accounts, 0 transactions, 0 payment_methods"), o
+   cenário hoje é de dado de produção real. Qualquer mudança que precise
+   reorganizar/consolidar linhas existentes de `payment_methods` (ex.: migrar
+   registros antigos para o novo padrão de nomenclatura por conta) é `ALTER`/
+   dado potencialmente destrutivo e **exige minha revisão explícita antes de
+   aplicar, sem exceção** — não decido isso agora por antecipação; só registro
+   que a condição já existe e será cobrada no Gate 2.
+3. **Bloqueio de segurança já identificado e ainda aberto fica mais crítico com
+   esta mudança.** `BLOCKERS.md`, Bloqueio 013 (2026-09-03, DevSecOps, mesma
+   classe de IDOR do Bloqueio 010/G-19): as policies de `INSERT`/`UPDATE` de
+   `payment_methods` não validam que o `account_id` referenciado pertence ao
+   mesmo usuário. Hoje esse bloqueio está classificado como `Aberto`, sem
+   necessidade de veredito meu, porque **"o vetor não depende da UI hoje... a
+   tela `PaymentMethodsPage.tsx` não expõe esse campo no formulário"** — a
+   exploração exigiria chamada direta à API. O item 4, por definição, muda essa
+   premissa: se a forma de pagamento passa a ser o mecanismo primário pelo qual o
+   usuário associa conta no fluxo de lançamento, a superfície de exposição deste
+   gap deixa de ser hipotética. Aplico aqui o mesmo raciocínio que já usei nos
+   vereditos do Bloqueio 006 e do Bloqueio 010 ("gatilho errado para esperar",
+   correção já conhecida e de custo baixo — mesmo padrão `EXISTS(...)` de
+   `BE-M-13`): **fecho antecipadamente, como condição deste Gate 1, que o
+   Bloqueio 013 não pode seguir aberto quando a implementação do item 4
+   começar** — não decido se ele deve ser corrigido antes ou junto (isso é
+   sequenciamento tático do Tech Lead), só que não pode ser adiado com o
+   argumento de que "a UI não expõe hoje", porque deixará de ser verdade.
+
+Recomendo ao Business Analyst e ao Software Architect: tratar o item 4 com o mesmo
+rigor de um Gate 2 completo (`architecture-decision-review` formal, produzindo ADR
+próprio) antes de qualquer implementação — não por causa do tamanho do schema a
+mudar (que é pequeno, o vínculo já existe), mas por causa da combinação de dado
+real em produção (G-02), regra de produto ainda não definida (ponto 1) e um risco
+de segurança já conhecido cuja urgência muda com esta decisão (ponto 3). Compra/
+build não se aplica aqui (não há vendor).
+
+### Gap de roster
+
+Nenhum gap crítico. O roster atual (PM, Business Analyst, Software Architect,
+UX/UI, Tech Lead, Backend, Frontend, QA, DevSecOps, DevOps) cobre integralmente os
+6 itens deste pacote — inclusive o item 4, que precisa de Software Architect (ADR)
+e DevSecOps (fechamento do Bloqueio 013), ambos já no roster.
+
+### Veredito: Aprovado com ressalvas
+
+PM/Business Analyst estão liberados para iniciar o levantamento detalhado deste
+pacote (adendo/nova seção de `PRD.md`, não reescrita do documento existente),
+cobrindo os 6 itens do briefing. Ressalvas a carregar:
+
+1. Itens 1, 2, 5, 6: tratar como refinamento de UX de baixo risco; UX/UI deve
+   reutilizar as convenções de responsividade já formalizadas em `UX-SPEC.md`
+   (2026-09-04), não criar padrão visual paralelo.
+2. Item 3: PM/BA devem especificar com precisão testável o critério de "mais
+   usadas recentemente" e o algoritmo de "forma de pagamento/conta mais
+   associada" antes de o Tech Lead decompor em `TASK.md` — sem isso não há
+   critério de aceite objetivo para Backend/QA.
+3. Item 4: **não é um ajuste cosmético de formulário.** Fica formalmente
+   sinalizado, desde este Gate 1, que o SDD.md delta para este item exige
+   `architecture-decision-review` completo meu no Gate 2 (ADR próprio do
+   Software Architect), com três condições de aceite já fixadas por mim desde
+   agora: (a) regra de produto explícita para geração/nomenclatura de forma de
+   pagamento por conta (múltiplas contas); (b) qualquer reorganização de dado
+   real existente em `payment_methods` respeita G-02 (revisão explícita minha
+   antes de qualquer `ALTER`/`DROP` destrutivo); (c) `BLOCKERS.md` Bloqueio 013
+   (IDOR em `payment_methods.account_id`) deve estar fechado antes ou junto da
+   implementação — não pode seguir aberto sob a premissa de que "a UI não expõe
+   o campo hoje", porque o item 4 torna essa premissa falsa.
+4. Nenhum gap de roster identificado.
+5. Dono do produto não priorizou os 6 itens entre si — PM deve levantar isso
+   explicitamente no `PRD.md`, com o item 3 sinalizado (não vinculante) como o
+   mais alinhado ao objetivo-norte original e o item 4 como o de maior
+   risco/esforço.
+
+Nenhum bloqueio novo a registrar em `BLOCKERS.md` neste gate — o Bloqueio 013 já
+existe e já está sob responsabilidade de Backend/DevSecOps; a única mudança aqui é
+que fixo, com poder de veto do Gate 2, que ele passa a ser pré-condição do item 4,
+não mais um item de prioridade discricionária.
+
+---
+
+## Gate 2 — Pós-SDD (Pacote de Refinamento, Adendo A) — 2026-09-04
+
+**Skills aplicadas**: `architecture-decision-review` (ADR-015, ADR-016, foco nas 3
+condições de aceite do item 4 fixadas por mim no Gate 1 desta rodada),
+`risk-and-compliance-check` (transversal). `build-vs-buy-analysis` não se aplica —
+nenhum vendor novo em nenhum dos 6 itens (confirmado em A.3).
+**Input avaliado**: `SDD.md`, "Adendo A ao SDD.md — Pacote de Refinamento de Produção
+(Fase 2.1)" (Software Architect, rascunho, Seções A.1-A.7); `adr/015-rpc-atalhos-
+lancamento-rapido-e-flag-origem-atalho.md`; `adr/016-unificacao-conta-forma-
+pagamento-resolucao-server-side.md`.
+**Contexto**: `PRD.md` Adendo A, `PRD-TECNICO.md` Adendo A, `CTO-REVIEW.md` "Gate 1 —
+Pré-descoberta (Pacote de Refinamento...) — 2026-09-04" (3 condições de aceite do
+item 4), `GUARDRAILS.md` (G-02, G-19), `BLOCKERS.md` Bloqueio 013, `ADR-012`
+(vínculo `payment_methods.account_id`/`credit_card_id` já auditado).
+
+### Retomada das ressalvas do Gate 1 desta rodada
+
+| Ressalva do Gate 1 | Como foi endereçada no Adendo A | Avaliação |
+|---|---|---|
+| 1. Itens 1, 2, 5, 6 tratados como refinamento visual de baixo risco, reaproveitando convenções já formalizadas | A.1/A.2.4 confirmam: sem componente novo, sem ADR, reaproveitam RF-MVP-05/06/07/03 e as convenções de `UX-SPEC.md` | **Atendida.** Concordo com a classificação — nenhum dos 4 itens introduz decisão arquitetural; não exijo ADR retroativo para eles. |
+| 2. Item 3: critério de "mais usadas" e algoritmo de forma de pagamento associada especificados com precisão testável antes do SDD | `PRD-TECNICO.md` Adendo A (RN-12/RN-13, não reaberto por mim aqui) já fechou os critérios; ADR-015 traduz isso em algoritmo SQL determinístico (Decisão 1, passos 1-5) | **Atendida.** A RPC é auditável e reproduz o desempate exigido em um único lugar — ver avaliação completa abaixo. |
+| 3. Item 4: `architecture-decision-review` completo cobrindo as 3 condições (a) nomenclatura, (b) G-02, (c) Bloqueio 013 | ADR-016 completo, com seção própria para cada uma das 3 condições (Decisões 1/2, 4, 5) | **Avaliada em detalhe abaixo — não é um "sim" simples para a condição (c).** |
+| 4. Nenhum gap de roster | Confirmado, nenhum papel novo necessário | Concordo. |
+| 5. PM prioriza os 6 itens | `PRD.md` Adendo A trata isso (fora do escopo deste Gate 2, que é só arquitetura) | N/A para este gate. |
+
+### `architecture-decision-review` — ADR-015 (item 3, atalhos de lançamento rápido)
+
+- **Trade-off declarado**: sim — RPC sob demanda vs. view materializada vs.
+  cálculo client-side, com prós/contras explícitos e fator decisivo nomeado
+  (desproporcionalidade de infraestrutura de agendamento frente ao volume de
+  referência de RNF-09).
+- **Escalabilidade/custo**: proporcionais — nenhum índice novo, nenhuma
+  infraestrutura nova (`pg_cron` adicional, tabela de auditoria), decisão
+  explicitamente ancorada no volume de referência já validado (60-120/mês).
+  Concordo com a decisão de **não** criar índice composto agora — é dívida
+  técnica genuína, não uma lacuna, porque tem severidade e condição de revisão
+  nomeadas (A.6.2: "revisitar se o volume real ultrapassar consistentemente a
+  faixa de RNF-09").
+- **Mecanismo de rastreamento (RNF-12)**: campo booleano ortogonal
+  (`created_via_shortcut`) em vez de estender o enum `source` — decisão correta.
+  A justificativa (não acoplar "canal de captura" a "ponto de entrada dentro da
+  captura manual", preservando a leitura de RNF-01/RNF-08 sobre `source`) é
+  precisa e evita meu maior receio automático nesse tipo de decisão: enfraquecer
+  a barreira de confirmação humana por engenharia de atalho de conveniência. Não
+  enfraquece — o próprio ADR-015 confirma que o atalho continua exigindo
+  confirmação explícita antes de salvar (RF-REF-03 AC5), e a nova coluna é só
+  rastreamento, não um caminho de escrita alternativo.
+- **Segurança**: `SECURITY INVOKER`, filtra por `auth.uid()` no próprio corpo —
+  mesmo padrão já auditado nas RPCs de dashboard existentes. Sem achado novo.
+- **Veredito pontual ADR-015: Aprovado**, sem ressalva.
+
+### `architecture-decision-review` — ADR-016 (item 4, unificação conta + forma de pagamento)
+
+Este é o núcleo deste gate, conforme delegado por mim mesmo no Gate 1. Avalio as 3
+condições de aceite uma a uma, por leitura direta do ADR-016 — não do resumo.
+
+#### Condição (a) — regra de geração/nomenclatura de forma de pagamento por conta
+
+**Satisfeita, nos dois componentes que a condição cobre.** A alegação do resumo ("a
+nomenclatura já vinha fechada pelo PM") é factualmente correta, mas incompleta — a
+condição que fixei no Gate 1 tinha dois componentes (geração **e** nomenclatura), e
+confirmei por leitura de `PRD.md` Adendo A, Seção A.5, que o PM fechou **ambos** como
+decisão de produto: item 1 (rótulo `"{Forma} {Conta}"`, só com sufixo quando há >1
+conta ativa) e item 3 (geração automática das 4 formas de pagamento não-cartão para
+toda conta nova, 2ª em diante). O ADR-016 não reabre nenhuma dessas duas decisões de
+produto — corretamente as trata como já fechadas e as traduz em desenho técnico:
+Decisão 1 (rótulo 100% client-side, sem persistência) e Decisão 2 (`CREATE OR REPLACE
+FUNCTION` estendendo `accounts_seed_default_payment_methods` a toda conta ativa nova).
+Também confirmo que o PM já havia corretamente excluído `credit_card_id` da regra de
+nomenclatura (`PRD.md` A.5, item 5) — antes mesmo do achado técnico do Software
+Architect sobre `credit_card_id` não vincular conta, o que significa que aquele achado
+**não invalida nenhuma decisão de produto já tomada**, ver análise dedicada abaixo.
+
+**Achado adicional deste gate, não coberto pelo ADR-016**: a Decisão 2 (`CREATE OR
+REPLACE FUNCTION`) só semeia formas de pagamento para contas ativas **novas** a partir
+do redeploy — é um trigger `AFTER INSERT` cujo corpo alterado só passa a valer para
+`INSERT`s futuros em `accounts`. Se o usuário real já tiver hoje, em produção, uma 2ª
+(ou 3ª) conta ativa criada **antes** deste redeploy, essa conta específica não recebe
+retroativamente suas 4 formas de pagamento — o trigger antigo só semeava na 1ª conta
+de todas (`AUDITORIA-BE-M-00.md` Seção 3.1, citada no próprio Gate 1). O ADR-016
+Decisão 4 declara explicitamente "nenhum backfill/normalização de `payment_methods`
+existentes é executado", enquadrado ali como um ponto a favor da conformidade com
+G-02 — o que é verdade sobre G-02 (backfill aditivo de linha nova, um `INSERT`, nem
+precisaria da minha revisão sob G-02), mas o ADR não verifica se esse backfill é
+**necessário para a correção funcional do item 4**, o que é uma pergunta diferente.
+Não decido isso por presunção — não sei, sem verificar o dado real, se o usuário já
+tem hoje uma 2ª conta ativa. **Ressalva não-bloqueante, condição de pré-deploy**:
+antes de finalizar a implementação, Backend deve consultar `accounts` em produção; se
+existir qualquer conta ativa além da mais antiga sem suas 4 formas de pagamento
+próprias, uma migration aditiva de backfill (`INSERT ... SELECT`, mesmo padrão do seed
+original) deve ser incluída no mesmo lote — não é uma mudança de arquitetura nova,
+apenas fechar um caso de borda que o ADR-016 não considerou.
+
+#### Condição (b) — conformidade com G-02
+
+**Satisfeita, com verificação linha a linha própria, não por aceitar o resumo.**
+Reproduzo minha própria checagem sobre a Decisão 4 do ADR-016:
+
+| Mudança | Operação real | G-02 se aplica? (minha verificação) |
+|---|---|---|
+| Rótulo (Decisão 1) | Nenhuma no banco | Não — correto |
+| Seed por conta nova (Decisão 2) | `CREATE OR REPLACE FUNCTION`, mesmo nome, corpo novo | Não — G-02 é textualmente restrito a "`ALTER`/`DROP` destrutivo (remoção/redefinição de **coluna**, `DROP TABLE`, `TRUNCATE`)" sobre objeto com dado real; redefinir o corpo de uma função não remove nem altera nenhuma linha/coluna de dado existente. Concordo com a leitura do ADR. |
+| Resolução de `account_id` (Decisão 3) | `CREATE FUNCTION` + `CREATE TRIGGER`, ambos novos | Não — aditivo puro, `account_id` continua `NOT NULL` sem `ALTER COLUMN`. Concordo. |
+| Backfill de contas pré-existentes (achado meu acima, condição (a)) | Seria `INSERT` de linha nova em `payment_methods` | Não — mesma lógica: criação de linha nova não é `ALTER`/`DROP` destrutivo. Registro isto explicitamente para que Backend não trate esse backfill, se necessário, como exigindo minha revisão prévia — não exige. |
+
+**Confirmo a alegação do resumo: G-02 não é acionado por nenhuma parte deste item,
+incluindo o backfill que eu mesmo identifiquei como possivelmente necessário.** Nenhum
+dado real (`profile`, `categories`, `accounts`, `payment_methods`, `transactions` já
+existentes) é apagado, renomeado ou tem seu tipo/nullability alterado por este ADR.
+
+#### Condição (c) — Bloqueio 013 fechado antes ou junto da implementação
+
+**Aqui a alegação do resumo simplifica uma nuance real que só aparece na leitura
+direta do ADR-016, Decisão 5 — não reprovo por isso, mas registro a nuance
+formalmente, porque é exatamente o tipo de coisa que este gate existe para pegar.**
+
+A condição que eu mesmo fixei no Gate 1 (texto literal): "Bloqueio 013... deve estar
+fechado **antes ou junto da implementação**... não decido se antes ou junto, isso é
+sequenciamento tático do Tech Lead". O ADR-016 entrega algo tecnicamente mais preciso,
+mas textualmente diferente: "implementação pode prosseguir em paralelo... mas o
+**deploy/exposição em produção** fica condicionado". Ou seja, o ADR desloca o ponto de
+bloqueio de "implementação" (o que eu havia fixado) para "deploy/exposição em
+produção" (mais tarde no pipeline) — não é a mesma coisa que "junto da implementação".
+
+Avalio o racional técnico por trás desse deslocamento, não só a diferença de palavras:
+
+1. **É novo em relação ao que eu tinha na mão no Gate 1.** Quando fixei a condição (c),
+   eu sabia que o Bloqueio 013 estava "Aberto" e que o item 4 tornaria a superfície de
+   exposição real em vez de hipotética — mas não tinha a análise de que o trigger novo
+   desta ADR (Decisão 3) já embute sua **própria** checagem de ownership
+   (`AND user_id = auth.uid()` na busca de `payment_methods`), independente da correção
+   do Bloqueio 013, e que a RLS de `transactions`/`accounts` já existente (`BE-M-13`)
+   roda **depois** desse trigger e já rejeita qualquer resolução para conta alheia
+   (403). Isso é evidência nova, não uma reinterpretação frouxa da minha condição.
+2. **O ADR aplica exatamente o mesmo precedente que eu mesmo fixei no Bloqueio 010** —
+   citado explicitamente pelo Software Architect ("confirma o precedente do CTO
+   (Bloqueio 010)"). Concordo com a analogia: o próprio Bloqueio 013, no meu veredito
+   de Gate 1, já reconhece esse padrão ("aplico aqui o mesmo raciocínio que já usei nos
+   vereditos do Bloqueio 006 e do Bloqueio 010"). Não é o Software Architect inventando
+   um precedente novo para se autoconceder folga — é ele aplicando corretamente um
+   precedente que eu já havia estabelecido antes deste Gate 1.
+3. **O risco residual real, com o Bloqueio 013 aberto e o item 4 em produção, é
+   exatamente o que a Decisão 5 descreve**: nenhuma escrita cross-tenant bem-sucedida
+   (contida pela RLS já existente), só (i) um 403 confuso para o próprio usuário se uma
+   linha de `payment_methods` dele estiver corrompida, e (ii) uma superfície de erro
+   visível só quando existir um 2º `auth.users` real — a mesma condição de gatilho já
+   usada para o Bloqueio 010. Isso é consistente com a análise de exploitabilidade que
+   o próprio Bloqueio 013 já registra em `SECURITY-REVIEW.md`/`BLOCKERS.md`.
+
+**Decisão: aceito o deslocamento do ponto de bloqueio de "implementação" para "deploy
+em produção", como uma correção legítima da minha condição original à luz de uma
+informação técnica que eu não tinha no Gate 1 (a checagem de ownership própria do
+trigger) — mas isso não é uma aprovação tácita/informal.** Fixo agora, formalmente,
+como a condição vigente que substitui o texto literal da condição (c) do Gate 1: **o
+item 4 pode ser codificado com o Bloqueio 013 ainda aberto, mas nenhum deploy do item
+4 em ambiente de produção ocorre antes de o DevSecOps confirmar, em `BLOCKERS.md`, que
+o Bloqueio 013 está `Resolvido`.** Isso precisa virar uma dependência explícita e
+mecânica no `TASK.md` (não uma nota de rodapé) — a tarefa/lote de deploy do item 4 deve
+listar o fechamento do Bloqueio 013 como pré-requisito bloqueante, cabendo ao Tech Lead
+decidir a mecânica exata (feature flag, PR separado, ordem de merge), exatamente como o
+próprio ADR-016 já delega.
+
+#### Achado técnico não antecipado — `credit_card_id` não vincula conta
+
+Confirmo a leitura do Software Architect: **não invalida nenhuma decisão de produto já
+tomada**, e está adequadamente contido dentro do ADR-016, pelos seguintes motivos,
+verificados por leitura direta (não pelo resumo):
+
+- O PM (`PRD.md` Adendo A, Seção A.5, item 5) já havia excluído formas de pagamento de
+  cartão de crédito da regra de nomenclatura, tratando-as como "fora do escopo deste
+  item" — a decisão de produto nunca dependeu de `credit_card_id` resolver uma conta.
+- A única peça que presumia isso, de forma factualmente incorreta, é o texto literal do
+  AC2 do `PRD-TECNICO.md` Adendo A (RF-REF-04): "resolver a conta associada via vínculo
+  já existente `payment_methods.account_id`/`credit_card_id`". O ADR-016 (Opção D)
+  preserva integralmente o comportamento observável prometido pelo AC2 ("sem exigir
+  nenhuma seleção adicional do usuário") através de um mecanismo diferente do que o
+  texto do AC presumia (fallback determinístico para a conta ativa mais antiga, em vez
+  de uma resolução via `credit_card_id`) — o requisito funcional continua atendido, só
+  a justificativa textual do AC está desatualizada frente ao schema real.
+- **Não bloqueia este gate.** Recomendo, não exijo, que o Business Analyst corrija a
+  citação de `credit_card_id` no texto do AC2 na próxima revisão do `PRD-TECNICO.md`,
+  por precisão documental — não é uma reabertura do Gate 1 nem uma mudança de
+  comportamento a implementar.
+- **Acompanhamento correto, mas não decidido**: o ADR-016 sinaliza corretamente ao
+  BA/PM, sem decidir, que o comportamento pré-existente ("compra de cartão debita
+  conta imediatamente, além de compor a fatura") pode não ser o que o stakeholder
+  realmente quer — concordo que isso é uma decisão de negócio fora da autoridade do
+  Software Architect, e confirmo que não decido isso por ele agora; fica registrado
+  como item em aberto para o BA/PM levantar, se quiserem, como requisito novo.
+
+### `risk-and-compliance-check` (transversal ao Adendo A)
+
+| Item | Evidência | Resposta | Severidade |
+|---|---|---|---|
+| Dado pessoal/sensível novo | A.5, A.7 | Nenhum campo novo de dado sensível — `created_via_shortcut` é metadado de uso, não dado financeiro adicional | — |
+| Minimização | A.5 | Sim — nenhuma coluna nova além do estritamente necessário aos 2 ADRs | — |
+| Retenção/descarte | Não se aplica | Nenhuma entidade nova sujeita à política do `ADR-011`; colunas novas seguem o mesmo ciclo de vida de `transactions`/`payment_methods` já coberto | — |
+| Autorização/RLS | A.7 | Confirmado, por leitura direta (não só a afirmação do SDD): nenhuma tabela nova, nenhuma policy nova necessária; a RPC do item 3 e o trigger do item 4 reaproveitam RLS/ownership já existentes, com defesa em profundidade adicional no trigger do item 4 (ver condição (c) acima) | — |
+| Vendor lock-in | A.3 | Nenhuma mudança — nenhum vendor novo | — |
+| Regressão em fluxo já em produção | A.6.1 | Risco nomeado (Fase 2: `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` sempre enviam `account_id` explícito hoje, logo não acionam o trigger novo) com mitigação por desenho (trigger só age em `NEW.account_id IS NULL`) — correto, mas ressalva: recomendo que o Backend inclua um teste de regressão automatizado confirmando isso, não apenas a confirmação manual pré-deploy já pedida pelo próprio SDD.md | Baixa, mitigada |
+
+Nenhum achado de compliance novo. Nenhuma mudança de jurisdição/localização de dado
+(nenhuma integração externa nova).
+
+### Avaliação geral de trade-off/dívida técnica/custo (`architecture-decision-review`, documento inteiro)
+
+- Todo trade-off relevante tem justificativa escrita, não só a escolha — confirmado
+  em ambos os ADRs (seções "Pros and Cons" completas para todas as opções
+  consideradas, inclusive as rejeitadas).
+- Nenhum vendor lock-in novo — não se aplica `build-vs-buy-analysis` a este adendo.
+- Custo operacional: mínimo, coerente com o Princípio 3 do `SDD.md` original — nenhuma
+  infraestrutura nova em nenhum dos 2 ADRs.
+- Dívida técnica: toda dívida aceita tem motivo e condição de revisão nomeados
+  (A.6.2) — nenhuma dívida "muda depois, sem gatilho declarado".
+
+### Recomendação
+
+Aprovar o Adendo A como um todo, sem devolução de nenhum ADR ao Software Architect —
+as 3 condições de aceite do item 4 estão satisfeitas em substância, com uma correção
+formal ao texto da condição (c) (deslocada de "implementação" para "deploy em
+produção", registrada acima com o racional completo) e duas ressalvas não-bloqueantes
+de pré-deploy (backfill de contas pré-existentes; teste de regressão automatizado para
+Fase 2). Nenhuma delas impede `ux-ui`/`tech-lead` de avançar imediatamente sobre este
+SDD — são condições a satisfazer antes do deploy do item 4 especificamente, não antes
+do início do trabalho.
+
+### Veredito: Aprovado com ressalvas
+
+- `SDD.md` Adendo A como um todo: **Aprovado com ressalvas**
+- ADR-015: **Aprovado**, sem ressalva
+- ADR-016: **Aprovado com ressalvas** — as 3 condições de aceite do Gate 1 estão
+  satisfeitas; ressalvas registradas:
+  1. **Condição (c) reformulada, vinculante a partir deste registro**: implementação
+     do item 4 pode prosseguir com o Bloqueio 013 aberto; **nenhum deploy do item 4
+     em produção antes de `BLOCKERS.md` Bloqueio 013 estar `Resolvido`**, confirmado
+     pelo DevSecOps. Tech Lead deve registrar isso como dependência explícita e
+     bloqueante no `TASK.md` (não uma nota), com a mecânica exata (feature flag, PR
+     separado, ordem de merge) a seu critério.
+  2. Backend deve verificar, contra o dado real de produção, se existe conta ativa
+     além da mais antiga do usuário sem suas 4 formas de pagamento próprias; se
+     existir, incluir migration aditiva de backfill no mesmo lote do item 4 (não
+     aciona G-02 — é `INSERT` de linha nova).
+  3. Recomendo (não exijo) que o Business Analyst corrija, na próxima revisão do
+     `PRD-TECNICO.md`, a citação de `credit_card_id` no texto de RF-REF-04 AC2, hoje
+     tecnicamente imprecisa frente ao schema real (achado do ADR-016) — não bloqueia
+     nenhum gate, é só precisão documental.
+  4. Recomendo que o Backend inclua teste de regressão automatizado confirmando que
+     `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` continuam enviando
+     `account_id` explícito e não são afetados pelo trigger novo — complementar à
+     confirmação manual já pedida pelo próprio `SDD.md` A.6.1.
+
+`ux-ui` e `tech-lead` estão liberados para avançar em paralelo a partir deste SDD
+(Adendo A) imediatamente. Nenhuma das ressalvas acima bloqueia o início do trabalho de
+UX/UI nem a decomposição do `TASK.md` pelo Tech Lead — a única dependência real e
+bloqueante fica isolada ao **deploy em produção do item 4** especificamente (ressalva
+1), que o Tech Lead deve modelar como tal no `TASK.md`.
+
+Nenhum bloqueio novo a registrar em `BLOCKERS.md` neste gate — a reformulação da
+condição (c) é resolvida por este próprio parecer (mecanismo padrão de
+`architecture-decision-review`), não por um conflito entre agentes que exija
+arbitragem via `BLOCKERS.md`. O Bloqueio 013 em si permanece `Aberto`, sob
+responsabilidade de Backend/DevSecOps, agora com a condição de deploy explicitada
+acima anexada ao seu registro por referência a este Gate 2.
+
+---
+
+## Gate 3 — Pré-TASK.md (Pacote de Refinamento, Fase 2.1) — 2026-09-04
+
+**Skills aplicadas**: `capacity-and-timeline-validation` (`TASK.md`, Adendo),
+`guardrails-governance` (confirmação de não-alteração de `GUARDRAILS.md`).
+**Input avaliado**: `TASK.md` — "Nota de Inclusão — Pacote de Refinamento de Produção
+(Fase 2.1) — 2026-09-04" (Tech Lead), Seções 1.8, 2 (nota), 3.4, 4.4, 5, 6.1.1
+(`UX-02`), 6.2 (`DET-09` a `DET-11`), 6.3.1, e Checklist de Pronto do Adendo — 18
+tarefas novas (`BE-REF-01..06`, `FE-REF-01..07`, `QA-REF-01..05`), 5 lotes.
+**Contexto**: `CTO-REVIEW.md` "Gate 1" e "Gate 2 — Pós-SDD" (Pacote de Refinamento,
+Adendo A) — 2026-09-04, `PRD.md`/`PRD-TECNICO.md`/`SDD.md` Adendo A, `ADR-015`/
+`ADR-016`, `GUARDRAILS.md` (vigente, G-01 a G-18 aprovados, G-19 proposta pendente de
+rodada anterior), `BLOCKERS.md` Bloqueio 013 (verificado `Aberto` por leitura direta
+nesta rodada, sem atualização desde 2026-09-03).
+
+### Retomada das ressalvas do Gate 2 desta rodada
+
+| Ressalva do Gate 2 | Como foi endereçada no `TASK.md` | Avaliação |
+|---|---|---|
+| 1. Condição (c) reformulada: implementação pode prosseguir com Bloqueio 013 aberto; nenhum deploy do item 4 em produção antes de Bloqueio 013 `Resolvido`, como dependência explícita e mecânica (não nota de rodapé) | `BE-REF-06` (Seção 3.4) modelada como tarefa própria, com dupla condição de entrada (`QA-REF-03` aprovado + Bloqueio 013 `Resolvido`, "as duas condições, não uma ou outra"); Seção 4.4 mapeia isso como linha de dependência própria no lote "Formas de Pagamento Unificadas"; `DIR-39` (Seção 1.8) fixa o mecanismo (feature flag `payment_method_unification_enabled`) como diretriz obrigatória | **Avaliada em detalhe abaixo — atendida, com uma ressalva de rastreabilidade não-bloqueante.** |
+| 2. Backend verifica dado real de produção e inclui backfill de contas ativas pré-existentes sem suas 4 formas de pagamento, se necessário | `BE-REF-05` — Backend/Frontend | **Atendida, com precisão superior à minha própria formulação** — ver avaliação abaixo. |
+| 3. Recomendação (não exigência) de corrigir a citação de `credit_card_id` no `PRD-TECNICO.md` | `DET-11` (Seção 6.2): nenhuma tarefa criada, correto — é ajuste de outro artefato, fora do escopo de decomposição do Tech Lead | Concordo — era recomendação ao BA, não ao Tech Lead; nada a cobrar aqui. |
+| 4. Recomendação de teste de regressão automatizado (Fase 2 não afetada pelo trigger novo) | `BE-REF-04`, critério de aceite explicita "teste de não-regressão obrigatório" cobrindo `RecurringTemplate`/`InstallmentPurchase`/`FixedBill`; `QA-REF-03` retoma o mesmo ponto | **Atendida**, incorporada ao critério de aceite, não deixada como nota separada. |
+
+### 1. Dependência vinculante — Bloqueio 013 → deploy do item 4: é mecânica ou só documental?
+
+Verifiquei por leitura direta do `TASK.md` (não do resumo do Tech Lead), em três pontos
+que precisam ser consistentes entre si: `DIR-39` (Seção 1.8), a linha de `BE-REF-06`
+(Seção 3.4) e a tabela de dependências do lote (Seção 4.4). Os três batem entre si, sem
+divergência de texto:
+
+- `DIR-39` fixa o mecanismo: feature flag `payment_method_unification_enabled`, default
+  `false` em produção; código de `BE-REF-01` a `BE-REF-05`/`FE-REF-04`/`FE-REF-05` pode
+  ser mesclado e implantado com a flag desligada; `BE-REF-06` é o único ato que liga a
+  flag.
+- `BE-REF-06` (Seção 3.4) tem critério de aceite verificável: "flag existe e está
+  `false` em produção até este ato explícito; changelog/runbook de deploy registra a
+  data e quem confirmou `BLOCKERS.md` Bloqueio 013 `Resolvido` antes de ligar a flag;
+  nenhuma outra tarefa deste pacote liga a flag por conta própria" — e depende
+  explicitamente de **duas** condições (`QA-REF-03` aprovado **e** Bloqueio 013
+  `Resolvido`), não uma ou outra.
+- Seção 4.4 isola exatamente o escopo do bloqueio: implementação inteira do lote pode
+  fechar e ser mesclada com o Bloqueio 013 ainda aberto; só `BE-REF-06` fica retido —
+  igual ao que eu havia decidido no Gate 2.
+
+**Isto é mecânico no único sentido em que "mecânico" é alcançável neste pipeline**: não
+é uma nota de rodapé nem uma expectativa verbal — é uma tarefa própria, com estimativa,
+dono e critério de aceite testável, que **não existe como "concluída" sem o
+changelog/runbook registrando a confirmação do DevSecOps**, e cuja exposição ao usuário
+(a flag) é fisicamente desacoplada do merge de código. Não é, e não pode ser neste
+projeto, um gate automatizado que leia `BLOCKERS.md` e bloqueie um deploy por CI — esse
+nível de automação não existe em nenhum outro guardrail deste pipeline (o mesmo padrão
+de "flag desligada até confirmação humana" já é usado por `DIR-26`/`SPK-003` para Open
+Finance, também sem enforcement automatizado). Julgo pelo mesmo padrão que já apliquei
+a `DIR-26`: é o nível de rigor mecânico proporcional e consistente com o resto do
+projeto, não uma diluição seletiva para este caso. **Aprovado, sem devolução.**
+
+**Ressalva não-bloqueante, de rastreabilidade**: verifiquei `BLOCKERS.md`, Bloqueio 013,
+por leitura direta e completa — o registro **não foi atualizado** com uma referência
+cruzada de volta a `TASK.md`/`BE-REF-06`/este Gate 2-3 desta rodada; ele segue
+textualmente idêntico ao que estava em 2026-09-03, sob responsabilidade de
+Backend/DevSecOps. A referência hoje é unidirecional (`TASK.md` → `BLOCKERS.md`), não
+eu mesmo determinei no Gate 2 que teria de ser bidirecional (minha frase "anexada ao seu
+registro por referência a este Gate 2" descrevia o meu próprio parecer apontando para o
+Bloqueio 013, não uma instrução para editar `BLOCKERS.md`) — não é uma reprovação. Mas,
+por completude e para que um leitor de `BLOCKERS.md` sozinho (sem abrir `TASK.md`)
+enxergue que este bloqueio virou pré-condição de deploy de uma feature em produção,
+recomendo que o DevSecOps, ao confirmar a correção de `BE-REF-01` e mudar o Status do
+Bloqueio 013 para `Resolvido`, inclua nessa mesma atualização uma linha citando
+`TASK.md BE-REF-06` como consumidor da resolução — mesmo padrão de citação cruzada já
+usado em outras entradas deste documento (ex.: Bloqueio 010 citado por `SEC-DEBT-006`
+dentro do próprio Bloqueio 013). Não bloqueia este Gate 3.
+
+### 2. `BE-REF-05` — cobre a ressalva de backfill do Gate 2?
+
+**Sim, integralmente, e com precisão superior à minha própria formulação.** Comparei o
+texto da ressalva 2 do meu Gate 2 ("Backend deve verificar, contra o dado real de
+produção, se existe conta ativa além da mais antiga do usuário sem suas 4 formas de
+pagamento próprias; se existir, incluir migration aditiva de backfill... não aciona
+G-02") contra o critério de aceite real de `BE-REF-05`: a tarefa exige (a) a query de
+verificação documentada no PR, mesmo que o resultado seja "0 contas afetadas" — fechando
+exatamente o risco que eu mesmo nomeei no Gate 2 de "a decisão de não fazer backfill
+correndo o risco de nunca ter sido verificada" —; (b) migration só com `INSERT`, nunca
+`UPDATE`/`DELETE`, coerente com `DIR-38`/G-02; (c) teste de idempotência (rodar a
+migration 2x não duplica linha), que eu não havia pedido explicitamente, mas que é
+exatamente o tipo de rigor que evita um retrabalho silencioso em um ambiente sem
+staging separado (`G-02`, nota da Seção 1 de `GUARDRAILS.md`). **Aprovado, sem
+ressalva adicional.**
+
+### 3. Decisão do Tech Lead de não alterar `GUARDRAILS.md`
+
+Apliquei os 4 critérios de `guardrails-drafting` aos dois padrões técnicos novos deste
+pacote, da mesma forma que teria aplicado a uma proposta de regra nova — não aceitei a
+conclusão do Tech Lead por afirmação, verifiquei cada um:
+
+| Padrão técnico novo | Inegociável (não preferência de estilo)? | Origem rastreável? | Verificável objetivamente? | Abrangência de projeto inteiro (não tarefa isolada)? | Deveria virar guardrail? |
+|---|---|---|---|---|---|
+| Checagem de ownership própria no trigger `transactions_default_account_from_payment_method` (`BE-REF-04`, `ADR-016` Decisão 3), independente da RLS | Sim, para esta tarefa | `ADR-016` | Sim | **Não** — é uma técnica de defesa em profundidade aplicada a **um** trigger específico, não um princípio novo sobre todo objeto do projeto; o princípio geral (nenhuma escrita server-side confia só em RLS alheia sem checagem própria quando resolve referência automaticamente) já não está expresso como regra própria em `GUARDRAILS.md` hoje e este único caso não basta para generalizar um texto novo sem inventar abrangência que a evidência não sustenta — mesma régua que já apliquei ao aceitar G-19 como *proposta*, não como regra automática, quando só havia 2 tabelas como evidência | **Não.** Concordo com o Tech Lead: é aplicação pontual e completa de `G-04`/`G-07` já vigentes, não um princípio novo. |
+| Feature flag `payment_method_unification_enabled` como mecanismo de gate de deploy condicionado a um bloqueio de segurança (`DIR-39`) | Sim, para este deploy específico | `ADR-016` Decisão 5, minha própria condição de aceite no Gate 2 | Sim (flag ligada/desligada é um fato binário verificável) | **Não** — é a mesma mecânica já usada por `DIR-26`/`SPK-003` (Open Finance) **sem** ter virado guardrail formal naquele caso; não há inconsistência em tratar os dois da mesma forma agora. Um princípio geral ("toda funcionalidade com risco de segurança conhecido e não resolvido fica atrás de feature flag até a correção ser confirmada") **poderia**, em tese, virar guardrail de projeto — mas isso seria uma decisão minha de elevar um padrão já usado duas vezes a regra formal, não uma correção ao Tech Lead por omissão: ele não inventou o padrão agora, replicou um já aceito por mim sem objeção em `DIR-26`. | **Não neste momento** — mas registro, não como ressalva bloqueante, que se um terceiro caso do mesmo padrão aparecer, passo a exigir formalização como guardrail (2 ocorrências pontuais ainda cabem como precedente de implementação; 3 já seria um padrão de projeto que `guardrails-drafting` exigiria capturar). |
+| `created_via_shortcut` (coluna nova, `ADR-015` Decisão 2) | Não | — | — | Não — é campo de rastreamento de uma única feature | **Não.** Nem o Tech Lead propôs, corretamente. |
+
+**Veredito — `guardrails-governance`: confirmo formalmente a não-alteração.** Nenhuma
+das decisões técnicas deste pacote atende aos 4 critérios simultaneamente para virar
+regra nova em `GUARDRAILS.md`; a avaliação do Tech Lead (racional na "Nota de
+Inclusão", topo do `TASK.md`) está correta em ambos os pontos, meu único acréscimo é o
+registro acima sobre o padrão de feature-flag-por-bloqueio-de-segurança já ter dois usos
+sem virar regra — não é uma falha desta rodada, é um ponto de atenção para a próxima vez
+que esse padrão aparecer. `GUARDRAILS.md` permanece como está (G-01 a G-18 aprovados,
+G-19 ainda proposta, pendência de rodada anterior — não relacionada a este pacote, não
+resolvida por este gate, seguirá aguardando meu veredito em separado, sem se misturar
+com a decomposição da Fase 2.1).
+
+### 4. Capacidade e prazo — `capacity-and-timeline-validation`
+
+Nenhuma restrição de prazo/orçamento formal segue declarada em nenhum artefato upstream
+(mesmo fato desde o Gate 1 original) — não há "prazo-alvo" contra o qual medir
+incompatibilidade, mesma lógica já registrada no Gate 3 original e no Gate 3 (Reaberto
+por Bloqueio 003). Avaliação qualitativa dos +15.5 dias ideais (Backend 5.0, Frontend
+7.0, QA 3.5) especificamente:
+
+- **Natureza do incremento**: 100% trabalho de refinamento sobre bounded contexts já
+  existentes e em produção (Dashboard, Ledger, Contas & Formas de Pagamento,
+  Categorização, Orçamento) — nenhuma tecnologia nova, nenhum vendor novo, nenhum spike
+  identificado (confirmado na nota da Seção 2), ambos os ADRs aprovados sem reabertura.
+  É um incremento de risco técnico baixo/médio, proporcionalmente ao esforço mais baixo
+  já visto neste projeto por unidade de escopo (5 lotes independentes, nenhum caminho
+  crítico cruzando lotes — diferente de MVP/Fase 2/Fase 3).
+- **Evidência de capacidade real, não só hipótese**: diferente do Gate 3 original (onde
+  a "declaração de capacidade" era inteiramente prospectiva, sem nenhuma entrega prévia
+  para calibrar), esta rodada acontece **depois** de MVP e Fase 2 terem sido
+  efetivamente entregues e postos em produção real (`https://mymoney-lsm.vercel.app`),
+  incluindo a resolução de duas reaberturas de arquitetura de alto risco (Bloqueio
+  003/006) e de dois achados de segurança sistêmicos (Bloqueio 010/015) sem
+  desistência do projeto. Isso não me dá um número de velocity (nenhum dado de tempo
+  decorrido real foi reportado a mim em nenhum artefato), mas é evidência qualitativa
+  concreta — não presunção — de que a capacidade solo/serial já declarada no Gate 3
+  original é real e sustentada ao longo de um histórico de entrega, não uma hipótese
+  otimista não testada.
+- **Proporção**: +15.5 dias sobre um remanescente que já estava em ≈121.25 (agora
+  ≈136.75) é um incremento de ≈13% — mesma ordem de grandeza dos incrementos pontuais já
+  aprovados por mim em rodadas anteriores (Bloqueio 003 +1.25, Bloqueio 010 +1.5,
+  Bloqueio 015 +1.75, todos aprovados sem ressalva de capacidade), só que desta vez
+  fruto de escopo de produto novo, não de correção — daí a exigência correta do Tech
+  Lead de que eu faça `capacity-and-timeline-validation` completo, não uma aprovação
+  pontual de delta.
+- **Risco 11 (Seção 5)**: os 3 riscos nomeados pelo Tech Lead (baseline de dashboard não
+  medido; confirmação de terceiro do DevSecOps como elo mais tardio do caminho crítico
+  do lote de Formas de Pagamento; volume de subcategorias não auditado) são todos riscos
+  de **atraso localizado a um lote específico**, nunca de inviabilidade do pacote
+  inteiro — coerente com o desenho de 5 lotes mutuamente independentes (Seção 4.4).
+  Concordo com a classificação e não exijo nenhuma ação adicional além da já proposta
+  pelo próprio Tech Lead (abrir `BE-REF-01` cedo dentro do lote).
+
+**Veredito — `capacity-and-timeline-validation`: Aprovado com ressalvas** (mesma
+natureza das ressalvas já registradas no Gate 3 original, não ressalvas novas de
+mérito):
+
+1. Esforço decorrido real tende ao somatório (≈15.5 dias adicionais), não ao caminho
+   crítico mais curto de cada lote — mesma declaração de capacidade solo/serial já
+   fixada desde o Gate 3 original, reafirmada aqui sem alteração.
+2. Nenhuma tarefa deste pacote deve ser tratada como "concluída" antes do
+   changelog/runbook de `BE-REF-06` registrar a confirmação do DevSecOps sobre o
+   Bloqueio 013 — reforço da ressalva 1 do Gate 2 desta rodada, agora sob a ótica de
+   prazo/capacidade: um atraso na resposta do DevSecOps é risco de cronograma do lote
+   "Formas de Pagamento Unificadas" especificamente, não do pacote inteiro.
+3. Recomendo (não exijo) que o Tech Lead reavalie a estimativa de `FE-REF-06` se a
+   auditoria futura do volume real de subcategorias (risco 11, terceiro item) revelar
+   volume muito acima da faixa de referência de RNF-09 — mesmo padrão de "dívida técnica
+   com gatilho de revisão nomeado" já usado em outras partes deste `TASK.md`.
+
+### 5. Pendência `UX-02` (baseline de rolagem do dashboard não medido)
+
+**Aceitável como pendência de pré-execução, não como algo que deveria ter sido resolvido
+antes deste gate.** Aplico o mesmo precedente que eu mesmo já usei para `UX-01`
+(tela de exclusão de conta) no Gate 3 original: não é lacuna estrutural do `SDD.md`
+(a base — a própria meta de redução de rolagem, RF-REF-01 AC4 — já está definida; falta
+só a medição concreta, que é atividade de execução do UX/UI, não decisão de arquitetura
+pendente), está isolada a **um único lote** dos 5 (Seção 4.4 confirma: nenhum outro lote
+depende do dashboard), e está corretamente modelada como dependência explícita de
+execução em vez de premissa assumida silenciosamente. Não decido eu, neste gate, exigir
+que a medição já tivesse sido feita — isso re-abriria a mesma discussão já encerrada com
+o precedente de `UX-01`, sem motivo novo para tratar os dois casos de forma diferente.
+
+### Veredito consolidado — Gate 3 (Pacote de Refinamento, Fase 2.1): **Aprovado com ressalvas**
+
+- `TASK.md` (Adendo, Fase 2.1): **Aprovado com ressalvas** (ver ressalvas 1-3 da seção
+  "Capacidade e prazo" acima) — rascunho vira versão final desta seção do documento de
+  planejamento, liberado para `backend`, `frontend` e `qa` iniciarem execução
+  imediatamente, em qualquer um dos 5 lotes, sem ordem obrigatória entre eles.
+- `GUARDRAILS.md`: **confirmado sem alteração** — nenhuma regra nova era exigida por
+  este pacote; ponto de atenção registrado (não ressalva bloqueante) sobre o padrão de
+  feature-flag-por-bloqueio-de-segurança, a reconsiderar como guardrail formal se um
+  terceiro caso aparecer.
+- Dependência vinculante Bloqueio 013 → deploy do item 4: **confirmada como mecânica e
+  corretamente implementada** (`DIR-39`, `BE-REF-06`, Seção 4.4), com uma ressalva
+  não-bloqueante de rastreabilidade (cross-reference em `BLOCKERS.md`, item 1 acima).
+
+**Este é o último gate de planejamento desta rodada.** Com o veredito Aprovado com
+ressalvas, o Pacote de Refinamento (Fase 2.1) está liberado para a fase de execução —
+Backend, Frontend e QA podem iniciar qualquer um dos 5 lotes imediatamente; o único
+ponto retido é, como já era desde o Gate 2, a **exposição em produção** do lote "Formas
+de Pagamento Unificadas" especificamente (`BE-REF-06`), condicionada ao fechamento do
+Bloqueio 013. Nenhum bloqueio novo a registrar em `BLOCKERS.md` neste gate — a
+ressalva de rastreabilidade (item 1) é uma recomendação de processo ao dono do Bloqueio
+013 (DevSecOps), não um conflito entre agentes que exija arbitragem. Meu envolvimento a
+partir daqui volta a ser por escalonamento (bloqueio reportado por outro agente,
+incluindo a confirmação de fechamento do Bloqueio 013) ou pelos pontos fixos
+remanescentes do pipeline.

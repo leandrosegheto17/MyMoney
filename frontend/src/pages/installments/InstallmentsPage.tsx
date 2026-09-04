@@ -153,43 +153,59 @@ export function InstallmentsPage() {
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title="Nova compra parcelada">
         <div className="flex flex-col gap-4">
           {saveError && <Alert variant="danger">{saveError}</Alert>}
-          <Input label="Descrição" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} error={formErrors.description} />
-          <CurrencyInput label="Valor total da compra" required valueCents={form.totalAmountCents} onValueChange={(cents) => setForm({ ...form, totalAmountCents: cents })} error={formErrors.amount} />
-          <Input
-            label="Número de parcelas"
-            required
-            type="number"
-            min={2}
-            value={form.installmentsCount}
-            onChange={(event) => setForm({ ...form, installmentsCount: event.target.value })}
-            error={formErrors.installments}
-          />
-          <CategoryPicker
-            categories={categories.map((c) => ({ id: c.id, name: c.name, parentId: c.parent_category_id }))}
-            value={{ categoryId: form.categoryId, subcategoryId: form.subcategoryId }}
-            onChange={(value) => setForm({ ...form, categoryId: value.categoryId, subcategoryId: value.subcategoryId })}
-            error={formErrors.category}
-            required
-          />
-          <Select
-            label="Conta (débito das parcelas)"
-            required
-            placeholder="Selecione"
-            options={accounts.map((a) => ({ value: a.id, label: a.name }))}
-            value={form.accountId}
-            onChange={(event) => setForm({ ...form, accountId: event.target.value })}
-            error={formErrors.account}
-          />
-          <Select
-            label="Cartão de crédito"
-            required
-            placeholder="Selecione"
-            options={creditCardPaymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
-            value={form.paymentMethodId}
-            onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })}
-            error={formErrors.paymentMethod}
-          />
-          <Input label="Data da compra" required type="date" value={form.purchaseDate} onChange={(event) => setForm({ ...form, purchaseDate: event.target.value })} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="min-w-0 md:col-span-2">
+              <Input label="Descrição" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} error={formErrors.description} />
+            </div>
+            <div className="min-w-0">
+              <CurrencyInput label="Valor total da compra" required valueCents={form.totalAmountCents} onValueChange={(cents) => setForm({ ...form, totalAmountCents: cents })} error={formErrors.amount} />
+            </div>
+            <div className="min-w-0">
+              <Input
+                label="Número de parcelas"
+                required
+                type="number"
+                min={2}
+                value={form.installmentsCount}
+                onChange={(event) => setForm({ ...form, installmentsCount: event.target.value })}
+                error={formErrors.installments}
+              />
+            </div>
+            <div className="min-w-0 md:col-span-2">
+              <CategoryPicker
+                categories={categories.map((c) => ({ id: c.id, name: c.name, parentId: c.parent_category_id }))}
+                value={{ categoryId: form.categoryId, subcategoryId: form.subcategoryId }}
+                onChange={(value) => setForm({ ...form, categoryId: value.categoryId, subcategoryId: value.subcategoryId })}
+                error={formErrors.category}
+                required
+              />
+            </div>
+            <div className="min-w-0">
+              <Select
+                label="Conta (débito das parcelas)"
+                required
+                placeholder="Selecione"
+                options={accounts.map((a) => ({ value: a.id, label: a.name }))}
+                value={form.accountId}
+                onChange={(event) => setForm({ ...form, accountId: event.target.value })}
+                error={formErrors.account}
+              />
+            </div>
+            <div className="min-w-0">
+              <Select
+                label="Cartão de crédito"
+                required
+                placeholder="Selecione"
+                options={creditCardPaymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
+                value={form.paymentMethodId}
+                onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })}
+                error={formErrors.paymentMethod}
+              />
+            </div>
+            <div className="min-w-0">
+              <Input label="Data da compra" required type="date" value={form.purchaseDate} onChange={(event) => setForm({ ...form, purchaseDate: event.target.value })} />
+            </div>
+          </div>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={isSaving}>
               Cancelar

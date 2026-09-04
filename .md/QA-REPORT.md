@@ -1332,6 +1332,678 @@ detalhe completo desta rodada.
 
 ---
 
+## 10. Veredito de Lote — "Lançamentos — Hierarquia & Atalhos (Fase 2.1)" (2026-09-04)
+
+**Gatilho**: lote definido em `TASK.md` Seção 3.4 (coluna "Lote") + Seção 4.4,
+subseção "Lote: Lançamentos — Hierarquia & Atalhos (Fase 2.1)". 3 tarefas de
+implementação confirmadas `Concluída` no `TASK.md` no momento deste veredito:
+`BE-REF-02` (RPC `get_transaction_shortcuts()` + coluna
+`transactions.created_via_shortcut`), `FE-REF-02` (hierarquia visual do item de
+lista) e `FE-REF-03` (`ShortcutBar`/`ShortcutChip`). Esta rodada é, ao mesmo
+tempo, a execução de `QA-REF-02` (a própria linha de QA deste lote) — o veredito
+consolidado abaixo fecha as 4 linhas de uma vez, conforme a convenção de
+`EXECUTION-FLOW.md` ("QA — uma vez por lote"). Nenhuma das 3 tarefas de
+implementação tinha veredito próprio anterior em `QA-REPORT.md` — validação de
+aceite completa, do zero, para as 3, mais a checagem de integração cruzada e não
+funcional de nível de lote.
+
+### 10.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` (suíte completa) | **229/229 passando** — confirma de forma independente o número já reportado por `FE-REF-02`/`FE-REF-03` na nota de evidência do `TASK.md`, não apenas leitura do relato |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo |
+| `cd frontend && npm run lint` (`oxlint`) | Nenhum erro novo — só os mesmos avisos pré-existentes `react(set-state-in-effect)`/`react(only-export-components)` já presentes antes deste lote em outras telas (não introduzidos por `BE-REF-02`/`FE-REF-02`/`FE-REF-03`) |
+| Leitura direta de código-fonte real — `frontend/src/pages/transactions/TransactionsPage.tsx`, `TransactionFormModal.tsx`, `frontend/src/components/domain/ShortcutBar.tsx`, `ShortcutChip.tsx`, `frontend/src/lib/api/shortcuts.ts`, `frontend/src/lib/api/transactions.ts`, `frontend/src/lib/api/request.ts`, `frontend/src/lib/api/types.ts` | Confirma campo a campo o caminho `ShortcutChip` (clique) → `TransactionsPage` (estado `shortcutPrefill`) → `TransactionFormModal` (pré-preenchimento + foco) → `createTransaction` (payload) → `withOwnerId`/`unwrap` (INSERT real) — ver Seção 10.3 |
+| Leitura direta de `supabase/migrations/20260904120000_be_ref_02_transaction_shortcuts.sql` e `supabase/tests/be_ref_02_transaction_shortcuts.test.sql` | Algoritmo da RPC (janela 90 dias com os dois limites, fallback ao histórico, desempate recência→nome, resolução de `payment_method_id` por RN-13) confere linha a linha com `ADR-015` Decisão 1 e com `PRD-TECNICO.md` RN-12/RN-13; os 6 casos de teste (CASO 1 a 6) cobrem literalmente ranking simples, fallback de AC7, os 2 critérios de desempate, resolução/exceção de `payment_method_id`, isolamento cross-user + AC2, e o corte em exatamente 10 linhas — nenhuma lacuna de cobertura restante em relação ao critério de aceite de `BE-REF-02` |
+| `API-CONTRACT.yaml` (`/rpc/get_transaction_shortcuts`, `Transaction.created_via_shortcut`, v0.18.0) vs. migration real vs. consumo do Frontend | Shape idêntico nos 3 lugares (`category_id uuid`, `payment_method_id uuid nullable`, sem parâmetros de request) — ver Seção 10.3 |
+| Tentativa de execução independente da suíte SQL de `BE-REF-02` contra uma instância local fresca (`supabase start` com portas/`project_id` isolados para não colidir com outro projeto Docker já em execução na máquina, revertido integralmente ao final via `git checkout -- supabase/config.toml`, confirmado sem diff) | **Não concluída** — a aplicação sequencial de todas as migrations desde `20260827170841_baseline_legacy.sql` falha antes mesmo de chegar em `BE-REF-02` (`relation "budget" already exists`, ao aplicar `20260902100000_be_m01_...`), porque os dumps `baseline_legacy` já carregam o schema completo de um estado posterior. Isto é uma limitação pré-existente de tooling (`BLOCKERS.md` Bloqueio 011, já documentada antes deste lote), não algo introduzido por `BE-REF-02` — não bloqueia este veredito, mas registrado como recomendação em `QA-DEBT-011` (Seção 10.4), já que impede qualquer QA futuro de rodar a suíte SQL localmente do zero, dependendo sempre de `supabase db query --linked` contra o projeto real |
+| Acesso a credenciais reais do Supabase linkado | **Não disponível nesta sessão** (mesma ressalva já registrada por `FE-REF-03` no `TASK.md`) — não foi possível re-executar `be_ref_02_transaction_shortcuts.test.sql` ao vivo nem fazer uma chamada de rede real ponta a ponta (clique real no navegador contra o backend real). Validação de integração cruzada desta rodada (Seção 10.3) é por leitura direta de código/contrato + testes automatizados com API mockada na fronteira (mesmo padrão RTL já estabelecido em todo o projeto, `QA-F2-02`, Seção 9) — suficiente para confirmar que o contrato é respeitado exatamente, mas não substitui um smoke test manual real; sinalizado como recomendação não-bloqueante em `QA-DEBT-011` |
+
+### 10.2 `acceptance-criteria-validation` de lote
+
+**BE-REF-02** — Critério de aceite (`TASK.md`): RPC retorna até 10 linhas
+`(category_id, payment_method_id)` já ordenadas conforme RN-12; vazio quando sem
+histórico (AC2); teste cobre ranking simples, fallback de AC7, os 2 desempates,
+resolução/exceção de `payment_method_id` (RN-13), isolamento cross-user.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Até 10 linhas, ordenadas (`ORDER BY top10.rn`) | Migration linhas 178-181, 230-236; CASO 6 confirma corte exato em 10 quando há ≥10 categorias na janela | Passa |
+| Vazio quando usuário sem histórico (AC2) | CASO 5 (`v_attacker`, nunca inserido, 0 lançamentos) — `count = 0` | Passa |
+| Ranking por frequência desc. (RN-12) | CASO 1 (`CAT_A` freq=3 antes de `CAT_B` freq=2 antes de `CAT_C` freq=1) | Passa |
+| Fallback de AC7 (< 10 subcategorias na janela, completa com histórico) | CASO 2 (`CAT_OLD`, só fora da janela, entra por último) | Passa |
+| Desempate (i) recência | CASO 3a (`CAT_C` mais recente vence `CAT_D` mais antigo, mesma freq) — inclui guarda de mutação (linha futura `v_today+30` em `CAT_D`, provando que o limite superior da janela é respeitado) | Passa |
+| Desempate (ii) ordem alfabética | CASO 3b (`AAA_...` vence `ZZZ_...`, mesma freq e data) | Passa |
+| Resolução de `payment_method_id` (RN-13), incluindo exceção `NULL` | CASO 4 (`CAT_A` resolve pix, mais frequente; `CAT_OLD` resolve via fallback de histórico; `CAT_PMNULL` resolve `NULL`) | Passa |
+| Isolamento cross-user | CASO 5 (mesmo caso de AC2 acima, prova as duas coisas ao mesmo tempo) | Passa |
+| `created_via_shortcut` aditivo, `DEFAULT false`, aceita `true` explícito (RNF-12) | Bloco final do teste — `bool_and(... = false)` para todo lançamento sem valor explícito, depois `UPDATE ... true` confirmado | Passa |
+
+**Veredito de `BE-REF-02`: Aprovado.** Todos os elementos literais do critério de
+aceite têm cobertura automatizada dedicada, e a leitura direta do SQL confirma que
+a implementação corresponde exatamente ao algoritmo descrito em `ADR-015`
+Decisão 1 (incluindo os 2 achados de fix-loop já documentados e corrigidos antes
+deste veredito, que este QA não precisou reabrir).
+
+**FE-REF-02** — Critério de aceite (`TASK.md`): item de lista exibe subcategoria
+em destaque (`font-semibold`) e descrição+forma de pagamento como texto
+secundário; sem descrição não exibe texto de preenchimento nem "·" solto; valor/
+seta/badge/demais comportamentos preservados; teste dedicado ao caso de descrição
+vazia.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Linha 1 = subcategoria, `font-semibold`/`text-base` | `TransactionsPage.tsx` linhas 242-246; teste "linha 1 é a subcategoria em maior destaque" (PASS) | Passa |
+| Linha 2 = descrição (quando preenchida) + forma de pagamento, unidas só quando ambas existem | `TransactionsPage.tsx` linha 233 (`.filter(Boolean).join(" · ")`) | Passa |
+| Descrição vazia (nula **ou string vazia**) — linha 2 mostra só a forma de pagamento, sem "·" solto nem "(sem descrição)" | Teste dedicado "descrição vazia: linha 2 mostra só a forma de pagamento..." (PASS) — confirmado por leitura que `transaction.description || null` trata tanto `null` quanto `""` da mesma forma (RN-17 literal: "nula ou string vazia") | Passa |
+| Linha 1 também omitida por completo quando `category_id` não resolve (RN-17 aplicado por simetria, achado de revisão anterior já corrigido) | `TransactionsPage.tsx` linhas 239-246 (`{subcategoryName && (...)}`) | Passa |
+| Valor, seta de entrada/saída, ações Editar/Excluir preservados (AC4) | Teste "lista lançamentos agrupados por dia, com valor formatado e seta de saída" (PASS), inalterado nesta leitura | Passa |
+| Regra anti-corte (`min-w-0 flex-1` + `truncate`) nas duas linhas | `TransactionsPage.tsx` linhas 238, 243, 248 | Passa |
+
+**Veredito de `FE-REF-02`: Aprovado.** Nenhuma divergência entre o critério de
+aceite literal e a implementação real.
+
+**FE-REF-03** — Critério de aceite (`TASK.md`): barra só quando RPC retorna ≥1
+linha, até 10 chips; clique pré-preenche campos de RN-13 com foco no Valor;
+usuário pode editar qualquer campo pré-preenchido (AC5); persiste com
+`created_via_shortcut=true`; skeleton cobre a latência sem bloquear o resto da
+tela.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Barra omitida com 0 atalhos (AC2), inclusive falha silenciosa da RPC | `ShortcutBar.tsx` linha 50 (`if (items.length === 0) return null`); testes "AC2..." e "falha ao carregar a RPC omite a barra silenciosamente..." (ambos PASS) | Passa |
+| Até 10 `ShortcutChip`, ícone + nome da subcategoria | RPC já limita a 10 (Seção 10.2 acima); teste "AC1..." (PASS) | Passa |
+| Clique pré-preenche subcategoria, forma de pagamento, tipo (`categories.kind`), data = hoje; descrição vazia, valor em branco | Teste "AC3/AC4..." (PASS) — os 4 campos conferidos por valor real do `<select>`/`<input>` do diálogo, não só por chamada de função | Passa |
+| Foco automático no campo Valor (desvio intencional documentado) | Mesmo teste acima — `toHaveFocus()` no campo Valor | Passa |
+| AC5 — usuário pode editar campo pré-preenchido | Teste "AC5..." (PASS) — troca de forma de pagamento confirmada | Passa |
+| AC6 — persiste com `created_via_shortcut=true` só nesse fluxo | Teste "AC6..." (PASS) + teste "fluxo normal... não envia created_via_shortcut" (PASS) — os dois lados da regra confirmados, não só o caminho feliz | Passa |
+| Skeleton cobre latência sem bloquear o resto da tela | Teste "exibe skeleton de pílulas enquanto get_transaction_shortcuts está pendente..." (PASS) — confirma que a lista de lançamentos carrega normalmente enquanto a RPC ainda está pendente | Passa |
+| `aria-label` explícito no `ShortcutChip` (achado de revisão anterior, UX-SPEC Seção 5) | `ShortcutChip.tsx` linha 26 (`aria-label={`Lançar em ${label}`}`) — confirmado presente e correto nesta rodada, não presumido (ver Seção 10.5) | Passa |
+
+**Veredito de `FE-REF-03`: Aprovado.** Cobertura automatizada e leitura direta de
+código confirmam os 8 critérios de aceite (AC1-AC8) sem divergência.
+
+### 10.3 `cross-platform-integration-testing` de lote
+
+Ponto de integração real deste lote: Frontend consumindo a RPC de Backend
+(`get_transaction_shortcuts()`) e o campo `created_via_shortcut` no `INSERT` de
+`transactions` — verificação campo a campo contra `API-CONTRACT.yaml` v0.18.0 e
+contra a migration real (não contra a intenção documentada em `ADR-015` isolada).
+
+| Campo do contrato | Uso no Frontend | Resultado |
+|---|---|---|
+| `POST /rpc/get_transaction_shortcuts`, sem parâmetros | `frontend/src/lib/api/shortcuts.ts` — `.rpc("get_transaction_shortcuts", {})`, nome e ausência de parâmetros idênticos | Passa |
+| Resposta `{category_id: uuid, payment_method_id: uuid \| null}[]`, já ordenada pelo servidor | `TransactionShortcut` (`types.ts` linhas 375-377) — shape idêntico; `shortcutItems` (`TransactionsPage.tsx`) mapeia sem reordenar (`DIR-34`) | Passa |
+| `Transaction.created_via_shortcut: boolean, default false` | `NewTransaction` (`types.ts` linha 108/114) inclui o campo como opcional; `TransactionFormModal.tsx` linha 158 só o inclui no payload quando `!editingTransaction && shortcutPrefill` — omitido em todo o resto, backend assume `false` | Passa |
+| `INSERT` real não descarta o campo antes de chegar ao PostgREST | `createTransaction` (`transactions.ts` linha 33) → `withOwnerId` (`request.ts` linha 54, `{...input, user_id}` — spread preserva todas as chaves) → `.insert(...)` direto, sem transformação intermediária | Passa |
+| Fluxo ponta a ponta clique-no-chip → formulário pré-preenchido → submissão com `created_via_shortcut=true` | Cadeia completa exercitada por 1 teste de integração de componentes (`TransactionsPage.test.tsx`, "AC6...") — `ShortcutBar`→`ShortcutChip` (clique real via `userEvent`) → `TransactionsPage` (estado `shortcutPrefill`) → `TransactionFormModal` (efeitos de pré-preenchimento/foco reais, não mockados) → `createTransaction` (mock só na fronteira de rede) — é o nível de integração real alcançável neste projeto (mesmo padrão RTL+mock-na-fronteira já estabelecido em `QA-F2-02`, Seção 9; não há Playwright/navegador real configurado) | Passa, com a ressalva de fronteira registrada em `QA-DEBT-011` (nenhuma chamada de rede real contra o Supabase linkado foi exercitada nesta rodada) |
+| Corrida `get_transaction_shortcuts()` responde antes de `categories`/`loadReferenceData()` falhar permanentemente | 2 testes dedicados ("achado de qualidade: RPC de atalhos responde antes de categories..." / "...falha permanente ao carregar categories...") — ambos PASS, confirmando que a barra nunca renderiza chip sem nome/ícone nem fica presa em skeleton indefinidamente | Passa |
+
+**Conclusão**: nenhuma divergência entre o contrato publicado (`API-CONTRACT.yaml`
+v0.18.0), a migration real aplicada e o consumo do Frontend. O único ponto não
+coberto por esta rodada é a chamada de rede real contra o projeto Supabase
+linkado (sem credenciais disponíveis nesta sessão) — mesma limitação já sinalizada
+por `FE-REF-03` no `TASK.md`, registrada como recomendação não-bloqueante em
+`QA-DEBT-011`.
+
+### 10.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica encontrado nesta rodada. Um item novo,
+de natureza recomendatória (não é um defeito funcional):
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-011 | **Duas lacunas de verificação real, ambas de ambiente/tooling, não de comportamento incorreto observado**: (1) nenhum agente (Backend, Frontend ou QA) executou, até este veredito, um smoke test manual real — clique real no navegador contra o projeto Supabase linkado de fato, sem mock — do fluxo `ShortcutChip` → confirmação → persistência de `created_via_shortcut=true`; toda a validação existente é SQL direto contra o projeto real (Backend, `BEGIN`/`ROLLBACK`) **ou** testes de componente com a API mockada na fronteira (Frontend/QA). (2) `supabase start` local, aplicando todas as migrations do zero (`supabase/migrations/`), falha antes de chegar em `BE-REF-02` com `relation "budget" already exists" ao aplicar `20260902100000_be_m01_...` — os dumps `baseline_legacy` (`20260827170841_baseline_legacy.sql` em diante) já carregam o schema completo de um estado posterior ao invés de representarem só o delta legado, então uma instância local fresca nunca consegue replayar a história completa de migrations; isso impede qualquer futuro QA/Backend de rodar a suíte SQL localmente do zero, dependendo sempre de `supabase db query --linked` contra o projeto real (que já tem os efeitos colaterais de rodadas de teste anteriores só mitigados por `BEGIN`/`ROLLBACK` disciplinado) | Baixa | BE-REF-02, FE-REF-03 (item 1); ambiente/tooling do projeto como um todo, não uma tarefa específica (item 2) | Item 1: antes do primeiro deploy real deste lote em produção, alguém com credenciais reais (Backend ou DevOps) deveria confirmar manualmente o fluxo completo uma vez. Item 2: próxima vez que `BLOCKERS.md` Bloqueio 011 for revisitado, considerar também corrigir os dumps `baseline_legacy` para representarem só o delta real de cada snapshot, ou documentar explicitamente que replay local do zero não é suportado (só `db push --linked` a partir de um projeto real já existente) | Não bloqueia — toda evidência disponível (leitura de código, contrato, e testes automatizados nos dois lados da fronteira) converge para "implementação correta"; este item é uma recomendação de fechamento de lacuna de processo, não um defeito funcional observado em nenhum teste |
+
+`QA-DEBT-001` a `010` (Seções 1.5/2.5/4.4/5.4/6.4/7.4) não tocam nenhuma tarefa
+deste lote especificamente — não duplicados aqui.
+
+**Padrão recorrente? Não.** `QA-DEBT-011` é uma observação de processo/tooling
+(ausência de smoke test real com credenciais + limitação de replay local de
+migrations), categoricamente diferente dos achados funcionais anteriores
+(`QA-DEBT-006` a `010`, cada um um gap concreto de comportamento numa tela/
+componente específico). Não configura um padrão de decomposição de tarefa ou de
+diretriz de implementação malformada — nenhum escalonamento a `tech-lead` é
+gerado por mim nesta rodada; o item 2 acima já referencia `BLOCKERS.md` Bloqueio
+011 existente, sem abrir um bloqueio novo.
+
+### 10.5 `non-functional-validation` de lote
+
+| Tarefa | Requisito não funcional | Evidência | Resultado |
+|---|---|---|---|
+| FE-REF-03 | RNF-12 (mecanismo auditável de origem) | `created_via_shortcut` verificável em consulta direta (`SELECT ... WHERE created_via_shortcut = true`), confirmado pelo próprio teste SQL de `BE-REF-02` (bloco final) | Passa |
+| BE-REF-02 | RNF-14 (latência não deve degradar perceptivelmente) | Sem índice composto dedicado — dívida técnica conscientemente aceita em `ADR-015`, não uma correção pendente desta rodada; mitigação de UX confirmada: `ShortcutBar` sempre mostra skeleton de pílulas enquanto a RPC está pendente (teste dedicado, Seção 10.2), nunca bloqueia o resto da tela | Passa (dívida técnica já aceita pela arquitetura, não um achado novo de QA) |
+| FE-REF-03 | Acessibilidade — `ShortcutChip` (`UX-SPEC.md` Seção 5) | `aria-label="Lançar em {label}"` confirmado presente nesta rodada por leitura direta do código-fonte atual (não presumido a partir da nota de revisão anterior no `TASK.md`) — `<button>` nativo, `min-h-11` (≥44px), `focus-visible:outline-2` | Passa |
+| FE-REF-02/FE-REF-03 | Cenário de erro — falha da RPC de atalhos nunca bloqueia nem exibe `Banner` (UX-SPEC Seção 4.2) | Teste "falha ao carregar a RPC omite a barra silenciosamente..." (PASS) — confirma ausência de `role="alert"` e do texto do erro na tela | Passa |
+| Lote como um todo | Regressão consolidada, sem débito novo de performance/build | `npx vitest run` 229/229, `tsc -b` limpo, `npm run lint` sem erro novo (Seção 10.1) | Passa |
+
+### 10.6 Veredito de lote consolidado
+
+| Tarefa | Veredito de tarefa (fixado nesta rodada) |
+|---|---|
+| BE-REF-02 | Aprovado |
+| FE-REF-02 | Aprovado |
+| FE-REF-03 | Aprovado |
+| QA-REF-02 | Concluída (esta própria rodada de validação) |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"): Aprovado.**
+Nenhuma tarefa é reprovada; nenhuma reversão de status a `Em andamento` é
+necessária no `TASK.md`. O único item registrado nesta rodada (`QA-DEBT-011`) é
+uma recomendação de processo de severidade Baixa (smoke test manual real +
+limitação de tooling de replay local de migrations), não um defeito funcional —
+não reduz o veredito a "com ressalvas". Nenhum `BLOCKERS.md` `Aberto` nesta data
+toca `BE-REF-02`/`FE-REF-02`/`FE-REF-03` diretamente.
+
+**Padrão recorrente? Não** (racional completo na Seção 10.4) — nenhum
+escalonamento novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada.
+
+### 10.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 3 tarefas foi testado e está passando
+      (Seção 10.2 — `BE-REF-02`, `FE-REF-02`, `FE-REF-03`, integralmente)
+- [x] Nenhum bug de severidade alta/crítica em aberto
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo —
+      nenhum bug funcional encontrado nesta rodada; `QA-DEBT-011` é uma
+      recomendação de processo, registrada com dono e prazo sugerido mesmo assim
+      (Seção 10.4)
+- [x] Testes de integração cruzada executados onde há dependência entre trilhas
+      — Frontend↔Backend via `get_transaction_shortcuts()`/`created_via_shortcut`
+      verificado campo a campo contra o contrato publicado e a migration real
+      (Seção 10.3), com a ressalva registrada de que a chamada de rede real
+      (não mockada) não foi exercitada nesta sessão por falta de credenciais
+- [x] Requisito não funcional relevante validado (Seção 10.5) — RNF-12
+      (auditabilidade), RNF-14 (latência, dívida técnica já aceita + mitigação de
+      UX confirmada), acessibilidade (`aria-label` do `ShortcutChip` reconfirmado,
+      não presumido), cenário de erro (falha silenciosa da RPC)
+
+---
+
+## 11. Veredito de Lote — "Categorização (Fase 2.1)" (2026-09-04)
+
+**Gatilho**: lote definido em `TASK.md` Seção 3.4 (coluna "Lote") + Seção 4.4,
+subseção "Categorização (Fase 2.1)". 1 tarefa de implementação confirmada
+`Concluída` no `TASK.md` no momento deste veredito: `FE-REF-06` (`CategoryCard` +
+grade de cards substituindo a lista em árvore de `S-CAT-01`), já com revisão de
+spec-compliance/qualidade própria aprovada, sem achado. Esta rodada é, ao mesmo
+tempo, a execução de `QA-REF-04` (a própria linha de QA deste lote) — o veredito
+consolidado abaixo fecha as 2 linhas de uma vez, conforme a convenção de
+`EXECUTION-FLOW.md` ("QA — uma vez por lote"). Lote totalmente isolado dos demais
+(`TASK.md` Seção 4.4: "Caminho crítico do lote: FE-REF-06 → QA-REF-04. Totalmente
+isolado dos demais"), sem dependência de Backend (reaproveita `GET /categories` e
+`get_monthly_category_summary()` já existentes, RF-MVP-06).
+
+### 11.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `cd frontend && npx vitest run src/components/domain/CategoryCard.test.tsx src/pages/categories/CategoriesPage.test.tsx` | **17/17 passando** (7 + 10) |
+| `cd frontend && npx vitest run` (suíte completa) | **244/244 passando** — confirma de forma independente o número já reportado por `FE-REF-06` na nota de evidência do `TASK.md`, não apenas leitura do relato |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo |
+| `cd frontend && npm run lint` (`oxlint`) | Nenhum erro novo — só os mesmos avisos pré-existentes `react(set-state-in-effect)`/`react(only-export-components)` já presentes antes deste lote em outras telas, incluindo o mesmo aviso em `CategoriesPage.tsx` já sinalizado pelo próprio `FE-REF-06` como padrão idêntico ao de `AccountsPage`/`DashboardPage`/etc. |
+| Leitura direta de código-fonte real — `frontend/src/components/domain/CategoryCard.tsx`, `frontend/src/pages/categories/CategoriesPage.tsx`, `frontend/src/lib/api/categories.ts`, `frontend/src/lib/api/dashboard.ts` | Confirma estrutura de irmãos não-aninhados, cálculo de total no client, e que `listCategories()`/`getMonthlyCategorySummary()` são exatamente as mesmas funções já consumidas antes deste lote (`GET /categories`, `POST /rpc/get_monthly_category_summary`) — nenhuma chamada de API nova (ver Seção 11.3) |
+| `git diff --stat` de `CategoriesPage.tsx` | Reescrita completa e limpa (120 inserções / 68 remoções), sem artefato órfão da lista em árvore anterior | Passa |
+| Acesso a credenciais reais do Supabase linkado / Playwright configurado no projeto | **Não disponível nesta sessão** (mesma ressalva já registrada em rodadas anteriores, `QA-REF-02` Seção 10.1) — validação de responsividade (Seção 11.5) por asserção estática das classes Tailwind de breakpoint em jsdom (mesmo método já usado em `QA-REF-02`/`FE-REF-03`), não por captura de tela em navegador real; não é um achado novo, é o mesmo método já estabelecido no projeto |
+
+### 11.2 `acceptance-criteria-validation` de lote
+
+**FE-REF-06** — Critério de aceite literal (`TASK.md`): grade exibe 1
+`CategoryCard` por categoria de topo-nível com nome, ícone/cor, total gasto no mês
+(mesmo cálculo de RF-MVP-06) e número de subcategorias, sem exigir clique
+adicional (AC2); clique no card abre a visão de subcategorias (AC3); ações de
+editar/excluir preservadas (AC4); grade colapsa 1→2→3→4 colunas conforme Padrão C;
+nenhuma chamada de API nova.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Nome + ícone/cor exibidos sem clique adicional | `CategoryCard.tsx` linhas 49-62; teste "exibe nome, ícone, total gasto no mês e contagem de subcategorias sem exigir clique adicional (AC2)" (PASS) | Passa |
+| Total gasto no mês = saídas da categoria + subcategorias, mesmo cálculo de RF-MVP-06 (AMB-15) | `CategoriesPage.tsx` linhas 78-89 (`totalSpentByRoot`, filtra `kind === "expense"`, soma por `rootId`); teste "AC2: total gasto soma saídas da categoria + subcategorias..., ignorando entradas" (PASS) — confirma explicitamente que uma entrada (`kind: "income"`) de valor alto (999999) na mesma subcategoria não contamina o total | Passa |
+| Número de subcategorias, singular/plural correto | `CategoryCard.tsx` linha 38; testes "sem exigir clique adicional (AC2)" (4 subcategorias) e "usa singular para exatamente 1 subcategoria" (PASS ambos) | Passa |
+| Clique no corpo do card abre `S-CAT-01a` com a lista de subcategorias (AC3) | Teste "AC3: clique no corpo do card abre S-CAT-01a com a lista de subcategorias" (PASS) — confirma `role="dialog"` com nome acessível `"Alimentação — subcategorias"` e a subcategoria `"Restaurante"` dentro dele | Passa |
+| Editar categoria a partir do card (ícone `[✎]`), sem passar por `S-CAT-01a` (AC4) | Teste "AC4: ícone Editar do card é ação secundária própria — abre o formulário direto, sem passar por S-CAT-01a" (PASS) — confirma que o diálogo de subcategorias **não** é aberto nesse caminho | Passa |
+| Editar/excluir subcategoria a partir de dentro do modal (AC4) | Teste "AC4: dentro de S-CAT-01a, editar/excluir de subcategoria continuam disponíveis" (PASS) | Passa |
+| Editar a categoria de topo-nível a partir de dentro do modal (botão "Editar categoria", AC4) | Teste "AC4: dentro de S-CAT-01a, 'Editar categoria' edita a categoria de topo-nível" (PASS) — confirma que o formulário abre pré-preenchido com o nome real da categoria | Passa |
+| Excluir categoria de topo-nível — acessível "a partir do card ou da visão expandida" (RF-REF-05 AC4 literal, não exige as duas superfícies para a mesma ação) | Implementado só dentro de `S-CAT-01a` (botão "Excluir categoria", `CategoriesPage.tsx` linhas 218-220) — decisão de detalhe já registrada explicitamente na nota de evidência de `FE-REF-06` no `TASK.md`, conferida aqui contra o texto literal de `RF-REF-05` AC4 ("acessíveis a partir do card **ou** da visão expandida") e de `UX-SPEC.md` (bloco "S-CAT-01 revisado", que só desenha "Editar categoria" no cabeçalho do modal e delega onde fica "Excluir categoria" ao critério do AC4) — não é uma reinterpretação silenciosa do critério, é a leitura mais direta do "ou" literal; teste "RN-09: exclusão bloqueada..." exercita esse caminho (PASS) | Passa |
+| Bloqueio de exclusão (RN-09) preservado, sem regressão | Teste "RN-09: exclusão bloqueada mostra contagem de lançamentos vinculados e CTA 'Ver lançamentos desta categoria'" (PASS) | Passa |
+| Grade colapsa 1→2→3→4 colunas (Padrão C) | `CategoriesPage.tsx` linha 12 (`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`) — idêntico byte a byte à convenção de `UX-SPEC.md` Seção 2.1/6.3; teste "grade colapsa 1→2→3→4 colunas conforme Padrão C" (PASS) | Passa |
+| Nenhuma chamada de API nova | `CategoriesPage.tsx` linha 53 — `listCategories()` (`GET /categories`) e `getMonthlyCategorySummary()` (`POST /rpc/get_monthly_category_summary`), as duas já existentes antes deste lote e já consumidas pelo Dashboard (RF-MVP-06); confirmado por leitura de `lib/api/categories.ts`/`lib/api/dashboard.ts` — nenhuma rota nova em `API-CONTRACT.yaml` | Passa |
+| Estado vazio / estado de erro preservados | Testes "estado vazio: nenhuma categoria cadastrada mostra EmptyState com CTA" / "estado de erro: falha ao carregar mostra Alert de recarregamento" (PASS ambos) | Passa |
+
+**Veredito de `FE-REF-06`: Aprovado.** Todos os elementos literais do critério de
+aceite (RF-REF-05 AC1-AC4, AMB-15) têm cobertura automatizada dedicada; nenhuma
+divergência entre o critério de aceite literal e a implementação real; a única
+decisão de detalhe (local único de "Excluir categoria") já estava documentada pelo
+próprio Frontend e resiste à checagem literal do "ou" em AC4 — não é achado de QA,
+é confirmação de uma leitura já correta.
+
+### 11.3 `cross-platform-integration-testing` de lote
+
+Não há dependência cruzada de Backend neste lote (`TASK.md` Seção 4.4: "Nenhuma
+dependência de Backend deste pacote"). Verificação limitada, conforme escopo desta
+tarefa, a confirmar que o Frontend consome corretamente `GET /categories` e
+`get_monthly_category_summary()` já existentes, sem regressão.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| `listCategories()` — mesma função/rota já usada antes deste lote | `frontend/src/lib/api/categories.ts` linha 6-8 (`GET /categories`, inalterada por este lote) | Passa |
+| `getMonthlyCategorySummary()` — mesma RPC já consumida pelo Dashboard (RF-MVP-06) | `frontend/src/lib/api/dashboard.ts` linha 15-17 (`POST /rpc/get_monthly_category_summary`, inalterada por este lote); `API-CONTRACT.yaml` linha 1162 já publica esta RPC desde antes deste lote | Passa |
+| Ambas as chamadas em paralelo (`Promise.all`), sem nova espera serial | `CategoriesPage.tsx` linha 53 | Passa |
+| Cálculo de total no client não introduz dependência de campo novo do contrato | `MonthlyCategorySummaryItem` (`types.ts`) usa só `category_id`/`kind`/`total_cents`, já existentes; `totalSpentByRoot` (`CategoriesPage.tsx` linhas 78-89) não lê nenhum campo além desses | Passa |
+| Nenhuma regressão no consumo do Dashboard da mesma RPC | `npx vitest run` (suíte completa, inclui `DashboardPage.test.tsx`) 244/244 PASS — nenhum teste do Dashboard quebrado por este lote | Passa |
+
+**Conclusão**: nenhuma regressão de integração. O Frontend continua consumindo
+exatamente as mesmas 2 chamadas já existentes, agora também na tela de
+Categorias, sem alteração de contrato nem novo endpoint.
+
+### 11.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica, média ou baixa encontrado nesta rodada.
+Nenhum item novo de débito técnico registrado — implementação e cobertura de
+teste já estavam completas e corretas no momento desta validação.
+
+`QA-DEBT-001` a `011` (Seções 1.5/2.5/4.4/5.4/6.4/7.4/10.4) não tocam nenhuma
+tarefa deste lote especificamente — não duplicados aqui.
+
+**Padrão recorrente? Não.** Nenhum achado nesta rodada, logo nenhuma base para
+identificar padrão recorrente; nenhum escalonamento a `tech-lead`/`BLOCKERS.md` é
+gerado por esta rodada.
+
+### 11.5 `non-functional-validation` de lote
+
+| Tarefa | Requisito não funcional | Evidência | Resultado |
+|---|---|---|---|
+| FE-REF-06 | Acessibilidade — clicável primário e botão "Editar" são elementos irmãos, nunca aninhados (`UX-SPEC.md` Seção 5, "Card clicável") | Teste "acessibilidade (Seção 5): clicável primário e botão Editar são elementos irmãos, nunca aninhados" (PASS) — confirma `primary.contains(secondary) === false`, `secondary.contains(primary) === false`, `primary.parentElement === secondary.parentElement` | Passa |
+| FE-REF-06 | `aria-label` do clicável primário descreve a ação, não só repete o nome | Teste "aria-label do clicável primário descreve a ação (não só o nome), com total/contagem associados via aria-describedby" (PASS) — `"Ver subcategorias de Moradia"`, com `aria-describedby` apontando para o total e a contagem (conteúdo confirmado, não só presença do atributo) | Passa |
+| FE-REF-06 | Ordem de tabulação — clicável primário antes do botão "Editar" | Teste "ordem de tabulação: clicável primário antes do botão Editar (Seção 5)" (PASS) — confirma pela ordem real do DOM (`getAllByRole("button")[0]`/`[1]`), não presumida pela ordem do JSX | Passa |
+| FE-REF-06 | Alvo de toque ≥ 44×44px do botão "Editar" (`UX-SPEC.md` Seção 5, "Alvos de toque") | `CategoryCard.tsx` linha 74 — `min-h-11 min-w-11` (44×44px, escala Tailwind padrão 11 = 2.75rem = 44px) | Passa |
+| FE-REF-06 | Alvo de toque do clicável primário — não é um ícone isolado, é a área de maior destaque do card (nome+ícone+total+contagem), naturalmente > 44×44px por conter 3 linhas empilhadas de texto + selo de ícone de 32px + padding | `CategoryCard.tsx` linhas 42-69 (`flex flex-col`, `py-1 pb-9`, 3 `<span>` empilhados) — sem medição de pixel em navegador real (Playwright não configurado no projeto), mas a composição estrutural garante altura muito acima do mínimo | Passa (por inspeção estrutural, mesma limitação de ferramenta já registrada em rodadas anteriores) |
+| FE-REF-06 | Responsividade — grade 1→2→3→4 colunas (Padrão C, `UX-SPEC.md` Seção 2.1/6.3) | Teste "grade colapsa 1→2→3→4 colunas conforme Padrão C" (PASS) — classes `grid-cols-1`, `sm:grid-cols-2`, `lg:grid-cols-3`, `xl:grid-cols-4` confirmadas presentes no container real da grade; mesmas classes Tailwind já validadas em produção pelo restante do design system (Padrão A, breakpoints idênticos) | Passa |
+| FE-REF-06 | `min-w-0` anti-corte no card individual (nome de categoria longo) | `CategoryCard.tsx` linha 41 (`Card`) e linha 47 (clicável primário) — ambos com `min-w-0`, mais `truncate` no `<span>` do nome (linha 59) | Passa |
+| Lote como um todo | Regressão consolidada, sem débito novo de performance/build | `npx vitest run` 244/244, `tsc -b` limpo, `npm run lint` sem erro novo (Seção 11.1) | Passa |
+
+### 11.6 Veredito de lote consolidado
+
+| Tarefa | Veredito de tarefa (fixado nesta rodada) |
+|---|---|
+| FE-REF-06 | Aprovado |
+| QA-REF-04 | Concluída (esta própria rodada de validação) |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"): Aprovado.**
+Nenhuma tarefa é reprovada; nenhuma reversão de status a `Em andamento` é
+necessária no `TASK.md`. Nenhum bug de qualquer severidade encontrado nesta
+rodada; nenhum débito técnico novo registrado. Nenhum `BLOCKERS.md` `Aberto`
+nesta data toca `FE-REF-06` diretamente.
+
+**Padrão recorrente? Não** (racional completo na Seção 11.4) — nenhum
+escalonamento novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada.
+
+### 11.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite da tarefa foi testado e está passando
+      (Seção 11.2 — `FE-REF-06`, integralmente, AC1-AC4 + AMB-15)
+- [x] Nenhum bug de severidade alta/crítica em aberto
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo —
+      nenhum bug de nenhuma severidade encontrado nesta rodada (Seção 11.4)
+- [x] Testes de integração cruzada executados quando há dependência entre
+      Backend/Frontend/Mobile — não aplicável a este lote (sem dependência de
+      Backend); confirmado por leitura direta que o consumo de `GET /categories`/
+      `get_monthly_category_summary()` é idêntico ao já existente, sem regressão
+      (Seção 11.3)
+- [x] Requisito não funcional relevante validado (Seção 11.5) — acessibilidade
+      (irmãos não-aninhados, `aria-label`/`aria-describedby`, ordem de tabulação,
+      alvo de toque ≥44×44px do botão "Editar"), responsividade (grade 1→2→3→4
+      colunas)
+
+---
+
+## 12. Veredito de Lote — "Orçamento (Fase 2.1)" (2026-09-04)
+
+**Gatilho**: lote definido em `TASK.md` Seção 3.4 (coluna "Lote") + Seção 4.4,
+subseção "Orçamento (Fase 2.1)" ("Caminho crítico do lote: FE-REF-07 → QA-REF-05.
+Totalmente isolado dos demais"). 1 tarefa de implementação confirmada `Concluída`
+no `TASK.md` no momento deste veredito: `FE-REF-07` (`BudgetCard` + grade de cards
+substituindo a lista de `S-BUD-01`), já com 1 rodada de fix-loop (revisão de
+spec-compliance/qualidade, 2 achados reais + 1 menor, todos corrigidos na mesma
+sessão) e revisão final aprovada, sem achado residual bloqueante. Esta rodada é, ao
+mesmo tempo, a execução de `QA-REF-05` (a própria linha de QA deste lote) — o
+veredito consolidado abaixo fecha as 2 linhas de uma vez, conforme a convenção de
+`EXECUTION-FLOW.md` ("QA — uma vez por lote"). Sem dependência de Backend
+(reaproveita `GET /budget`/`get_budget_status()`/RF-MVP-07/RN-04 já existentes).
+
+### 12.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `cd frontend && npx vitest run src/components/domain/BudgetCard.test.tsx src/pages/budget/BudgetPage.test.tsx src/components/domain/ProgressBar.test.tsx` | **21/21 passando** (9 + 7 + 5) |
+| `cd frontend && npx vitest run` (suíte completa, 55 arquivos) | **258/259 passando** — 1 falha isolada em `UnlockPage.test.tsx` (arquivo não tocado por este lote); reexecutado **isoladamente** nesta própria rodada (`npx vitest run src/pages/auth/UnlockPage.test.tsx`) → **3/3 PASS**, confirmando de forma independente (não só por leitura do relato de `FE-REF-07`) que se trata da mesma flakiness de timing sob carga paralela do runner completo já documentada na nota de evidência, não uma regressão real |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo |
+| `cd frontend && npm run lint` (`oxlint`) | Nenhum erro novo — só os mesmos avisos pré-existentes `react(set-state-in-effect)` já presentes antes deste lote em outras telas, incluindo o mesmo aviso em `BudgetPage.tsx` (padrão idêntico a `AccountsPage`/`CategoriesPage`/etc., não introduzido por esta tarefa) |
+| Leitura direta de código-fonte real — `frontend/src/components/domain/BudgetCard.tsx`, `frontend/src/pages/budget/BudgetPage.tsx`, `frontend/src/components/domain/ProgressBar.tsx`, `frontend/src/lib/api/budget.ts`, `frontend/src/index.css`, `supabase/migrations/*get_budget_status*` | Confirma estrutura do card (único `<button>`, sem ação secundária), a correção real do Achado 1 (render/edição/exclusão 100% dirigidos por `BudgetStatusItem`, nunca por `budgets.find(...)`), que `getBudgetStatus()`/`listBudgets()`/`listCategories()` são exatamente as mesmas funções/rotas já existentes antes deste lote, e que `get_budget_status()` resolve o mês corrente no servidor via `(now() at time zone 'America/Sao_Paulo')::date` (ver Seção 12.2, verificação dedicada de fuso) | Passa |
+| `git diff HEAD --stat -- frontend/src/lib/api/` | Só `types.ts` alterado nesta sessão (campos de `BE-REF-02`, lote diferente) — `budget.ts`/`categories.ts` intocados, confirma ausência de chamada de API nova neste lote (Seção 12.3) | Passa |
+| Cálculo independente de contraste WCAG (fórmula de luminância relativa, `text-warning` `#d97706` sobre `warning-soft` `#fef3c7`) | **2.86:1** — reproduz exatamente o valor apontado pela revisão de qualidade da própria tarefa; verificado também que a mesma combinação sobre `color.surface` branco (uso pré-existente em `DashboardPage`) já dá **3.19:1**, também abaixo de 4.5:1 — confirma que a causa raiz é um token pré-existente no projeto inteiro, não uma regressão introduzida por `FE-REF-07` (ver Seção 12.4) | Ver achado registrado, não-bloqueante |
+| Acesso a credenciais reais do Supabase linkado / Playwright configurado no projeto | **Não disponível nesta sessão** (mesma ressalva já registrada em rodadas anteriores, `QA-REF-02` Seção 10.1 / `QA-REF-04` Seção 11.1) — validação de responsividade por asserção estática das classes Tailwind de breakpoint em jsdom, não por captura de tela em navegador real; não é achado novo | — |
+
+### 12.2 `acceptance-criteria-validation` de lote
+
+**FE-REF-07** — Critério de aceite literal (`TASK.md`): grade exibe 1 `BudgetCard`
+por categoria com orçamento definido no mês (nunca card vazio para categoria sem
+orçamento, AC4), com categoria, gasto vs. teto, percentual e indicador de
+severidade, sem exigir clique adicional (AC2); card em alerta/estouro recebe
+destaque visual perceptível ao passar o olho pela grade inteira (AC3); clique abre
+`S-BUD-02` para editar o teto, inalterado; nenhuma chamada de API nova.
+
+**QA-REF-05** — Critério de aceite literal (`TASK.md`, idêntico em espírito a
+`FE-REF-07`, mesmos 4 pontos): card exibe os 4 dados exigidos sem clique adicional;
+os 3 estados de severidade (normal/alerta 80%/estouro >100%) renderizam com
+destaque visual distinto (não só variação de cor); categoria sem orçamento no mês
+não gera card vazio; clique abre `S-BUD-02` sem regressão.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Categoria, gasto vs. teto, percentual exibidos sem clique adicional (AC2) | `BudgetCard.tsx` linhas 83-91 (`ProgressBar` sempre renderizado dentro do `<button>`, nenhum dado atrás de estado colapsado); teste "exibe categoria, gasto vs. teto e percentual sem exigir clique adicional (AC2)" (PASS) | Passa |
+| Indicador de severidade (RN-04) exibido sem clique adicional | `ProgressBar` recebe `alertLevel` direto de `status.alert_level` (`BudgetPage.tsx` linha 182), sem interação prévia | Passa |
+| 3 estados de severidade — normal (<80%) sem destaque | Teste "estado normal (< 80%): sem destaque de severidade (data-severity=none)" (PASS) — `SEVERITY_CARD_STYLE.none` é `undefined`, sem `style`/`border-2` | Passa |
+| 3 estados de severidade — alerta (≥80%) com destaque distinto | Teste "card em alerta (>=80%) recebe destaque visual adicional no próprio card, perceptível na grade (AC3)" (PASS) — `data-severity="warning"`, `backgroundColor` não-vazio, classe `border-2` presente | Passa |
+| 3 estados de severidade — estouro (>100%) com destaque **diferente** do de alerta | Teste "card em estouro (>100%) recebe destaque visual diferente do de alerta (severidade maior, AC3)" (PASS) — `data-severity="exceeded"`, cor de fundo/borda distinta (`--color-danger-soft`/`--color-danger` vs. `--color-warning-soft`/`--color-warning`) | Passa |
+| Destaque "não só variação de cor" (mesma exigência de acessibilidade já vigente) | Camada 1 (já existente, RN-04/MVP, não tocada por esta tarefa): `ProgressBar.tsx` `LEVEL_CONFIG` — ícone (`⚠`/`⛔`) + texto (`"do teto"`/`"do teto (estourado)"`) sempre junto da cor, nunca só a barra colorida. Camada 2 (nova, `FE-REF-07`, AC3): `border-2` (mudança de espessura de borda, não só de tom) + mudança de `backgroundColor` do card inteiro — 2 pistas visuais adicionais não-cromáticas (forma/espessura de borda + extensão da área destacada) somadas às de ícone/texto já existentes | Passa |
+| Categoria sem orçamento no mês não gera card vazio (AC4) | Teste "categoria sem orçamento no mês não gera card vazio (AC4)" (`BudgetPage.test.tsx`) — `getBudgetStatus()` retorna só as categorias orçadas, `listCategories()` inclui uma categoria extra sem orçamento ("Saúde (sem orçamento)"), confirmado ausente da tela (PASS) | Passa |
+| Clique no corpo do card abre `S-BUD-02` sem regressão | Teste "clique no corpo do BudgetCard abre S-BUD-02 (editar teto) — única ação do card" (PASS) — heading "Editar orçamento" presente após o clique | Passa |
+| **Verificação dedicada de fuso horário (Achado 1 do fix-loop) — comportamento real, não só o teste novo passando** | Tracei a cadeia completa: (1) `get_budget_status(p_month default null)` resolve o mês corrente **no servidor**, `date_trunc('month', coalesce(p_month, (now() at time zone 'America/Sao_Paulo')::date))` (`supabase/migrations`, função de `BE-M-08`, não tocada por `FE-REF-07`) — independente do fuso do dispositivo do usuário; (2) `BudgetPage.tsx` chama `getBudgetStatus()` sem `p_month` (linha 70), deixando 100% a cargo do servidor; (3) render/edição/exclusão do card (`openEditForm`/`confirmDelete`/`requestDeleteFromForm`) usam exclusivamente o objeto `BudgetStatusItem` retornado por essa chamada (`editingBudget`/`deleteTarget` tipados como `BudgetStatusItem`, não mais `Budget`) — a antiga dependência de `budgets.find((b) => b.id === status.budget_id)`, que cruzava um resultado resolvido no servidor com `listBudgets()` (sem esse filtro de fuso), foi eliminada por completo do caminho de render/edição/exclusão. Ou seja: a correção não é um remendo que só engana o teste novo — ela remove estruturalmente a única fonte da divergência de fuso que existia (o cruzamento entre os dois resultados), tornando o card imune a qualquer descompasso de fuso entre cliente e servidor perto da virada de mês, por construção, não por sorte de asserção. **Achado adicional, fora do escopo bloqueante desta tarefa**: `listBudgets()` continua resolvida com `monthKey()` (mês calculado no **dispositivo**, `frontend/src/lib/api/budget.ts` linha 6-7) e usada só para `budgetedCategoryIds` (exclusão de categorias já orçadas no formulário de *novo* orçamento, `BudgetPage.tsx` linha 83) — essa lista específica *ainda* pode divergir do mês real do servidor perto da virada, mas (a) é lógica pré-existente do MVP, não tocada nem introduzida por `FE-REF-07`/`FE-M-11` (confirmado por `git diff HEAD` do arquivo — a linha de `budgetedCategoryIds` não aparece no diff desta tarefa), e (b) não afeta nenhum dos 4 critérios literais de `RF-REF-06 AC1-4`/`QA-REF-05` (que são sobre exibição/severidade/clique do card, não sobre a lista de categorias disponíveis para *criar* um orçamento novo) — registrado como observação, não como débito novo (ver Seção 12.4) | Passa (comportamento genuinamente correto, verificado por rastreio de código e não apenas por execução do teste) |
+| Nenhuma ação secundária além de "clique abre S-BUD-02" (crítério literal, sem "Remover" no card) | `BudgetCard.tsx` — único `<button>` cobrindo todo o card, `onEdit` como única prop de ação; "Remover orçamento" movido para dentro de `S-BUD-02` (teste "ação 'Remover orçamento' preservada dentro de S-BUD-02..." PASS) — decisão de detalhe já registrada pelo próprio `FE-REF-07`, conferida aqui contra o critério literal (que não exige preservar exclusão no card, diferente de `RF-REF-05 AC4` para Categorias) | Passa |
+| Nenhuma chamada de API nova | `BudgetPage.tsx` usa só `getBudgetStatus()`, `listBudgets()`, `listCategories()`, `createBudget()`, `updateBudget()`, `deleteBudget()` — todas já existentes antes deste lote; `git diff HEAD --stat -- frontend/src/lib/api/` confirma `budget.ts`/`categories.ts` intocados nesta sessão (Seção 12.1); nenhuma rota nova em `API-CONTRACT.yaml` relacionada a `/budget`/`/rpc/get_budget_status` | Passa |
+
+**Veredito de `FE-REF-07`: Aprovado.** Todos os elementos literais do critério de
+aceite (RF-REF-06 AC1-AC4) têm cobertura automatizada dedicada; a correção do
+fix-loop para o bug de fuso horário (Achado 1) foi verificada nesta rodada como
+estruturalmente correta — elimina a fonte da divergência, não apenas o sintoma —
+por rastreio de código, não apenas por reexecução do teste novo; nenhuma
+divergência entre o critério de aceite literal e a implementação real.
+
+### 12.3 `cross-platform-integration-testing` de lote
+
+Não há dependência cruzada de Backend neste lote (mesma classificação de
+`FE-REF-06`/`QA-REF-04`, Seção 11.3 — reaproveita RPC/tabela já existentes do MVP).
+Verificação limitada, conforme escopo desta tarefa, a confirmar que o Frontend
+consome corretamente `getBudgetStatus()`/`listBudgets()`/`listCategories()` já
+existentes, sem regressão e sem chamada nova.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| `getBudgetStatus()` — mesma RPC/rota já usada antes deste lote (`POST /rpc/get_budget_status`, `BE-M-08`) | `frontend/src/lib/api/budget.ts` linhas 33-36, inalterada por este lote (fora do `git diff HEAD --stat` desta sessão) | Passa |
+| `listBudgets()` — mesma rota já usada antes deste lote (`GET /budget?month=eq.{month}`) | `frontend/src/lib/api/budget.ts` linhas 11-13, inalterada por este lote | Passa |
+| `listCategories()` — mesma rota já usada antes deste lote (`GET /categories`) | `frontend/src/lib/api/categories.ts`, inalterada por este lote (mesma função já validada em `QA-REF-04` Seção 11.3) | Passa |
+| `createBudget()`/`updateBudget()`/`deleteBudget()` — mesmas rotas já usadas antes deste lote, comportamento inalterado (só o tipo do parâmetro de origem mudou de `Budget` para `BudgetStatusItem`, o *shape* enviado ao servidor é idêntico) | `frontend/src/lib/api/budget.ts` linhas 19-30, inalteradas; `BudgetPage.tsx` chama `updateBudget(editingBudget.budget_id, ...)` — `budget_id` de `BudgetStatusItem` e `id` de `Budget` referenciam a mesma PK, confirmado pelo teste de regressão do Achado 1 (`updateBudget` chamado com `"b1"` correto mesmo com `listBudgets()` vazio) | Passa |
+| `API-CONTRACT.yaml` — nenhuma mudança em `/budget`/`/rpc/get_budget_status`/`/categories` nesta sessão | `git diff HEAD -- .md/API-CONTRACT.yaml` — as únicas mudanças da sessão são de `BE-REF-02` (`/rpc/get_transaction_shortcuts`, `Transaction.created_via_shortcut`), lote diferente | Passa |
+| Nenhuma regressão no consumo de `get_budget_status()` pelo Dashboard (mesma RPC) | `npx vitest run` (suíte completa) inclui `DashboardPage.test.tsx`, sem quebra nesta rodada (Seção 12.1) | Passa |
+
+**Conclusão**: nenhuma regressão de integração. O Frontend continua consumindo
+exatamente as mesmas 6 chamadas já existentes, agora renderizadas em formato de
+card em vez de lista, sem alteração de contrato nem novo endpoint.
+
+### 12.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica encontrado nesta rodada. Um item novo,
+de natureza de débito de design system pré-existente (não uma regressão
+introduzida por `FE-REF-07`):
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-012 | Contraste do texto de percentual do `ProgressBar` no estado `warning` (`text-warning` `#d97706`) contra o fundo `warning-soft` (`#fef3c7`, novo uso introduzido por `FE-REF-07` dentro do `BudgetCard`) mede **≈2.86:1** (WCAG AA exige ≥4.5:1 para texto normal — FAIL), calculado de forma independente nesta rodada (fórmula de luminância relativa, resultado idêntico ao já apontado pela própria revisão de qualidade de `FE-REF-07`). **Não é uma regressão desta tarefa**: a mesma combinação de token (`text-warning` sobre qualquer fundo claro típico do design system) já falha hoje — `text-warning` sobre `color.surface` branco (uso pré-existente em `DashboardPage`, não tocado por este lote) mede **≈3.19:1**, também abaixo de 4.5:1, confirmado nesta rodada por cálculo independente. A causa raiz é o próprio token `--color-warning: #d97706` (contraste insuficiente contra fundos claros em geral), pré-existente no projeto inteiro desde o MVP, não algo que `FE-REF-07` introduziu ou piorou — `FE-REF-07` só expôs um novo local (fundo `warning-soft` dentro do card) onde o mesmo problema já latente se torna visível | Baixa (achado de acessibilidade pré-existente, não regressão; `text-neutral-600`/detalhe já corrigido nesta mesma tarefa passa em 6.81:1) | `ProgressBar.tsx` (`LEVEL_CONFIG.warning.textClass`) — afeta toda tela que usa `ProgressBar` em estado de alerta (`BudgetPage`, `DashboardPage`, `GoalsPage`), não uma tarefa isolada deste lote | Próxima revisão de design tokens do projeto (fora do escopo deste lote/`FE-REF-07`) — recomenda-se recalibrar `--color-warning` para um tom mais escuro que preserve ≥4.5:1 contra `color.surface` e `warning-soft`, ou aplicar a mesma técnica de `detailTextClassName` (override de classe por fundo) também ao texto de percentual do próprio `ProgressBar` | **Não reabre `FE-REF-07`/`QA-REF-05`** — conforme instrução explícita desta rodada: achado já sinalizado pelo revisor de qualidade da própria tarefa, confirmado aqui como problema de token pré-existente em todo o projeto (não introduzido por esta tarefa), registrado como débito não-bloqueante |
+
+`QA-DEBT-001` a `011` (Seções 1.5/2.5/4.4/5.4/6.4/7.4/10.4) não tocam nenhuma
+tarefa deste lote especificamente — não duplicados aqui. `QA-DEBT-010` (mesmo
+componente `ProgressBar.tsx`, achado de `aria-valuenow` > `aria-valuemax` no
+estado de estouro) é um achado distinto, não superposto a `QA-DEBT-012` (que é de
+contraste, não de semântica ARIA).
+
+**Padrão recorrente? Não.** `QA-DEBT-012` é um achado isolado de token de design
+pré-existente, já auto-identificado pelo próprio Frontend durante o fix-loop desta
+tarefa (não uma lacuna de decomposição de tarefa nem de diretriz de implementação
+malformada) — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` é gerado por esta
+rodada.
+
+### 12.5 `non-functional-validation` de lote
+
+| Tarefa | Requisito não funcional | Evidência | Resultado |
+|---|---|---|---|
+| FE-REF-07 | Acessibilidade — destaque de severidade não depende só de cor (`UX-SPEC.md` Seção 5/3.3) | Ícone+texto do `ProgressBar` (camada pré-existente, RN-04) + `border-2`/mudança de área de fundo do card (camada nova, AC3) — ver Seção 12.2, linha dedicada | Passa |
+| FE-REF-07 | Contraste do texto secundário (`detailText`) do card sobre fundo de severidade, ≥4.5:1 (`UX-SPEC.md` Seção 5) | `text-neutral-600` sobre `warning-soft`/`danger-soft` — calculado de forma independente nesta rodada: **6.81:1**/**6.39:1** (ambos PASS, reproduz os valores já apontados pela revisão de qualidade da própria tarefa); `text-neutral-500` mantido sobre `color.surface` (estado `none`), já validado antes deste lote | Passa |
+| FE-REF-07 | Contraste do texto de percentual do `ProgressBar` sobre fundo de severidade | **FAIL não-bloqueante** — ver `QA-DEBT-012` (Seção 12.4), problema de token pré-existente, não regressão desta tarefa | Registrado como débito, não bloqueia |
+| FE-REF-07 | `aria-label`/`aria-describedby` do clicável primário (`UX-SPEC.md` Seção 5) | Teste "acessibilidade: aria-label descreve a ação (não só o nome), com o conteúdo visível associado via aria-describedby" (PASS) — `"Editar orçamento de Moradia"`, `aria-describedby` aponta para texto real (`"R$ 800,00 de R$ 1.000,00"`/`"80%"`) | Passa |
+| FE-REF-07 | `min-w-0`/`truncate` anti-corte (nome de categoria longo, `UX-SPEC.md` Seção 3.1.1) | Teste "nome longo de categoria não estoura o card (min-w-0/truncate, regra anti-corte)" (PASS) | Passa |
+| FE-REF-07 | Responsividade — grade 1→2→3→4 colunas (Padrão C) | `BudgetPage.tsx` linha 18, classes idênticas a `CategoriesPage`/Padrão C, já validadas em `QA-REF-04` | Passa (por asserção estática de classe, mesma limitação de ferramenta já registrada) |
+| FE-REF-07 | Cenário de erro — falha ao carregar orçamentos | `Alert` de recarregamento preservado (`BudgetPage.tsx` linha 161), comportamento herdado do MVP, sem alteração por este lote | Passa |
+| Lote como um todo | Regressão consolidada, sem débito novo de performance/build | `npx vitest run` 258/259 (1 flake isolado e reconfirmado à parte), `tsc -b` limpo, `npm run lint` sem erro novo (Seção 12.1) | Passa |
+
+### 12.6 Veredito de lote consolidado
+
+| Tarefa | Veredito de tarefa (fixado nesta rodada) |
+|---|---|
+| FE-REF-07 | Aprovado |
+| QA-REF-05 | Concluída (esta própria rodada de validação) |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"): Aprovado.**
+Nenhuma tarefa é reprovada; nenhuma reversão de status a `Em andamento` é
+necessária no `TASK.md`. O único item registrado nesta rodada (`QA-DEBT-012`) é
+uma recomendação de débito de design token de severidade Baixa, pré-existente ao
+projeto inteiro e já auto-identificada pelo revisor de `FE-REF-07` — não reduz o
+veredito a "com ressalvas", conforme instrução explícita desta rodada e critério
+de autoridade de QA (severidade baixa/média não bloqueia, vira débito registrado
+com prazo). Nenhum `BLOCKERS.md` `Aberto` nesta data toca `FE-REF-07` diretamente.
+
+**Padrão recorrente? Não** (racional completo na Seção 12.4) — nenhum
+escalonamento novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada.
+
+### 12.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite da tarefa foi testado e está passando
+      (Seção 12.2 — `FE-REF-07`, integralmente, AC1-AC4, incluindo verificação
+      dedicada e independente do comportamento de fuso horário perto da virada de
+      mês, não apenas a reexecução do teste novo)
+- [x] Nenhum bug de severidade alta/crítica em aberto
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo —
+      `QA-DEBT-012` (Seção 12.4), com dono (próxima revisão de design tokens) e
+      prazo sugerido
+- [x] Testes de integração cruzada executados quando há dependência entre
+      Backend/Frontend/Mobile — não aplicável a este lote (sem dependência de
+      Backend); confirmado por leitura direta que o consumo de
+      `getBudgetStatus()`/`listBudgets()`/`listCategories()` é idêntico ao já
+      existente, sem regressão (Seção 12.3)
+- [x] Requisito não funcional relevante validado (Seção 12.5) — acessibilidade
+      (destaque não-só-cor, contraste do texto secundário, `aria-label`/
+      `aria-describedby`, anti-corte), responsividade (grade 1→2→3→4 colunas),
+      cenário de erro
+
+---
+
+## 13. Veredito de Lote — "Formas de Pagamento Unificadas (Fase 2.1)" (2026-09-04)
+
+**Gatilho**: lote definido em `TASK.md` Seção 3.4 (coluna "Lote") + Seção 4.4,
+subseção "Formas de Pagamento Unificadas (Fase 2.1)" ("Caminho crítico do lote:
+BE-REF-04 → FE-REF-04 → FE-REF-05 → QA-REF-03 → Bloqueio 013 Resolvido →
+BE-REF-06"). 6 tarefas de implementação confirmadas `Concluída` no `TASK.md` no
+momento deste veredito, nenhuma delas com veredito próprio anterior em
+`QA-REPORT.md`: `BE-REF-01` (fecha o IDOR de `payment_methods.account_id`,
+`BLOCKERS.md` Bloqueio 013), `BE-REF-03` (seed das 4 formas não-cartão em toda
+conta ativa nova, não só a 1ª), `BE-REF-04` (trigger
+`transactions_default_account_from_payment_method`, resolução automática de
+`account_id` via `payment_method_id`, com 1 rodada de fix-loop já documentada,
+3 achados corrigidos), `BE-REF-05` (backfill real em produção, 2 contas
+afetadas), `FE-REF-04` (formulário unificado sem campo "Conta", 1 achado de
+fix-loop de severidade alta corrigido — `account_id: null` explícito na
+edição), `FE-REF-05` (`derivePaymentMethodLabel()` aplicada nas demais
+superfícies exigidas por RNF-13). Esta rodada é, ao mesmo tempo, a execução de
+`QA-REF-03` (a própria linha de QA deste lote) — o veredito consolidado abaixo
+fecha as 7 linhas de uma vez, conforme a convenção de `EXECUTION-FLOW.md`
+("QA — uma vez por lote"). `BLOCKERS.md` Bloqueio 013 já confirmado
+`Resolvido` pelo DevSecOps (2026-09-04) antes desta rodada — não é objeto de
+validação desta rodada (fora do escopo de QA, já fechado por outro agente),
+só uma pré-condição já satisfeita para `BE-REF-06` seguir depois deste
+veredito.
+
+### 13.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `supabase migration list --linked` | 45/45 migrations `local=remote`, incluindo as 5 deste lote (`20260904130000` a `20260904160000`, `BE-REF-01/03/04/05`) — nenhuma pendência |
+| `supabase db query --linked --file supabase/tests/be_ref_01_payment_methods_account_ownership.test.sql` | **PASS**, reexecutado ao vivo contra o projeto real (`BEGIN`/`ROLLBACK`), não apenas leitura do relato do Backend |
+| `supabase db query --linked --file supabase/tests/be_ref_03_payment_methods_seed_all_accounts.test.sql` | **PASS**, idem |
+| `supabase db query --linked --file supabase/tests/be_ref_04_transactions_default_account.test.sql` | **PASS** (10/10 casos, incluindo os 3 casos de fix-loop — M-1/M-2 UPDATE preservando `account_id`, M-3 cartão sem conta ativa, addendum RN-08/UPDATE), reexecutado ao vivo |
+| `supabase db query --linked --file supabase/tests/be_ref_05_payment_methods_backfill.test.sql` | **PASS**, idem |
+| Consulta direta contra dados reais de produção (`accounts`/`payment_methods` do usuário real, não a suíte sintética) — ver Seção 13.2 | As 3 contas ativas reais hoje ("C6", "Mercado Pago", "Mercado Pago - Cofrinho") têm as 4 formas de pagamento não-cartão próprias cada (12 linhas), confirmando o backfill (`BE-REF-05`) e o seed (`BE-REF-03`) em conjunto, não só a suíte de teste isolada |
+| Regressão completa da suíte SQL (31 arquivos `.sql` em `supabase/tests/`, reexecutados um a um contra o projeto linkado, `BEGIN`/`ROLLBACK`) | **30/31 PASS** — só `be_m07_dashboard.test.sql` CASO 2 falha (`current_total_balance_cents esperado 24000, obtido 2280366`), falha pré-existente já documentada em `BLOCKERS.md` Bloqueio 019 (valor real de saldo em produção, não relacionada a este lote); nenhum blocker novo, nenhuma regressão introduzida por este lote |
+| Leitura direta de `supabase/migrations/20260903170000_be_f2_04_recurring_template_adjustments.sql`, `20260903180000_be_f2_05_installment_purchases.sql`, `20260903190000_be_f2_06_fixed_bills.sql` (geradores de `RecurringTemplate`/`InstallmentPurchase`/`FixedBill`) | Os 3 `INSERT` de `transactions` continuam passando `account_id` explícito a partir da própria linha do template/plano/conta fixa (`v_tpl.account_id`/`v_plan.account_id`/`v_bill.account_id`, coluna `NOT NULL` nas 3 tabelas de origem) — confirma por leitura de código, não só pelo relato do Backend, que os 3 fluxos de Fase 2 nunca acionam o trigger novo (`WHEN NEW.account_id IS NULL`) |
+| `cd frontend && npx vitest run` (suíte completa) | **280/280 passando** — confirma de forma independente o número já reportado por `FE-REF-04`/`FE-REF-05` |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo |
+| `cd frontend && npm run lint` (`oxlint`) | Nenhum erro novo — só os mesmos avisos pré-existentes `react(set-state-in-effect)` já presentes antes deste lote em outras telas |
+| Leitura direta de código-fonte real — `frontend/src/lib/paymentMethods/derivePaymentMethodLabel.ts`, `TransactionFormModal.tsx`, `TransactionsPage.tsx` | Confirma a regra literal de RN-14 (cartão/sem `account_id` → nome cru; ≤1 conta ativa → nome cru; >1 conta ativa → sufixo com nome da conta) e o payload exato de criação (`account_id` omitido) vs. edição (`account_id: null` explícito) |
+| `grep -rl "derivePaymentMethodLabel" frontend/src` | Só nos 3 arquivos esperados (`TransactionFormModal.tsx`, `TransactionsPage.tsx`, e o próprio módulo/teste da função) — nenhuma reimplementação local em nenhuma outra tela, confirmando RNF-13/DIR-37 |
+| Acesso a credenciais reais do Supabase linkado | **Disponível nesta sessão** (diferente de rodadas anteriores) — permitiu reexecução ao vivo da suíte SQL completa e consulta direta a dados reais, não só leitura de relato; ainda sem Playwright configurado no projeto, então o clique real em navegador não foi exercitado — mesma ressalva de `QA-DEBT-011`, não duplicada aqui |
+
+### 13.2 `acceptance-criteria-validation` de lote
+
+Critério de aceite literal de `QA-REF-03` (`TASK.md`): campo "Conta" ausente do
+formulário; lançamento sem `account_id` explícito resolve corretamente para
+forma não-cartão e para cartão (fallback à conta mais antiga); rótulo
+desambiguado idêntico nas superfícies exigidas por RNF-13; 2ª conta nova recebe
+as 4 formas de pagamento automaticamente; contas pré-existentes sem suas 4
+formas próprias recebem o backfill; lançamento de cartão via formulário
+unificado ainda resolve `card_invoice_id` (RN-01); os 3 fluxos de Fase 2
+continuam enviando `account_id` explícito sem regressão.
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Campo "Conta" ausente do formulário (nem visível nem oculto) | `TransactionFormModal.tsx` — `accountId`/`<Select label="Conta">`/`nextErrors.account` eliminados por completo (confirmado por leitura direta); teste `queryByLabelText("Conta")` ausente | Passa |
+| Lançamento sem `account_id`, forma não-cartão, resolve para a conta vinculada | `be_ref_04...test.sql` CASO 1 — reexecutado ao vivo, PASS | Passa |
+| Lançamento sem `account_id`, forma cartão, resolve para a conta ativa mais antiga (fallback) | CASO 2 — reexecutado ao vivo, PASS | Passa |
+| `payment_method_id` que não pertence ao usuário autenticado é rejeitado com erro claro | CASO 3 — reexecutado ao vivo, PASS; efeito de UI confirmado por teste dedicado em `TransactionsPage.test.tsx` (`Alert` de erro exibido, sem cair na fila offline) | Passa |
+| `kind=transfer` continua exigindo `account_id` explícito | CASO 4 — reexecutado ao vivo, PASS | Passa |
+| Rótulo desambiguado (RN-14) idêntico nas superfícies exigidas por RNF-13 | `derivePaymentMethodLabel()` importada sem reimplementação em `TransactionFormModal` (`FE-REF-04`) e `TransactionsPage` (linha 2 do item de lista + `FilterBar`, `FE-REF-05`); teste dedicado "item de lista e filtro 'forma de pagamento' exibem o mesmo rótulo desambiguado para a mesma forma de pagamento" (PASS); `ShortcutChip` confirmado sem forma de pagamento (vacuidade documentada, 2 fontes consistentes de `UX-SPEC.md`) | Passa |
+| 2ª (e N-ésima) conta nova recebe as 4 formas de pagamento automaticamente | `be_ref_03...test.sql` CASO 2/3 — reexecutado ao vivo, PASS; confirmado também com dado real (Seção 13.1, consulta direta) | Passa |
+| Contas pré-existentes sem suas 4 formas próprias recebem o backfill | `be_ref_05...test.sql` — reexecutado ao vivo, PASS; confirmado com dado real: as 3 contas ativas do usuário real hoje têm as 4 formas próprias cada, incluindo as 2 que precisaram do backfill ("Mercado Pago", "Mercado Pago - Cofrinho") | Passa |
+| Lançamento de cartão via formulário unificado ainda resolve `card_invoice_id` (RN-01/RF-F2-05) | CASO 2/6 do mesmo teste — reexecutado ao vivo, PASS (nenhuma interferência entre os dois mecanismos, `ADR-016` Decisão 7) | Passa |
+| Os 3 fluxos de Fase 2 (`RecurringTemplate`/`InstallmentPurchase`/`FixedBill`) continuam enviando `account_id` explícito, sem regressão | CASO 5 (não sobrescrito) — reexecutado ao vivo, PASS; confirmado por leitura direta das 3 migrations geradoras (Seção 13.1) — nenhuma delas foi tocada por este lote | Passa |
+| **Nota específica do Backend (`FE-REF-04`) — trocar a forma de pagamento na edição de um lançamento já existente** | Server-side: CASO 8 (`account_id` migra corretamente de X para Y quando só `payment_method_id` muda no `UPDATE`) — reexecutado ao vivo, PASS. Client-side: `TransactionFormModal.tsx` confirma `account_id: null` explícito (nunca omitido) em toda edição, por leitura direta; teste de regressão dedicado em `TransactionsPage.test.tsx` ("editar um lançamento trocando a forma de pagamento para uma vinculada a outra conta envia `account_id: null`") reproduz o cenário exato do achado original e passa. RN-08 na edição (`BLOCKERS.md` Bloqueio 020) também verificado — CASO 10, migrar via `payment_method_id` para uma conta desde então inativada continua rejeitado mesmo em `UPDATE` — reexecutado ao vivo, PASS | Passa |
+
+**Veredito das 6 tarefas de implementação: Aprovado, sem ressalva individual em
+nenhuma.** Todos os elementos literais do critério de aceite de `QA-REF-03` têm
+cobertura automatizada dedicada, reexecutada ao vivo contra o projeto real
+nesta rodada (não apenas leitura do relato de quem implementou), e a leitura
+direta do código confirma que a implementação corresponde exatamente a
+`ADR-016` e ao critério de aceite de cada tarefa.
+
+### 13.3 `cross-platform-integration-testing` de lote
+
+Ponto de integração real deste lote: Frontend (`TransactionFormModal.tsx`)
+omitindo/anulando `account_id` no payload de `POST`/`PATCH /transactions` e o
+Backend resolvendo esse campo server-side via o trigger novo — verificação
+campo a campo contra `API-CONTRACT.yaml` v0.19.0, a migration real e o consumo
+do Frontend.
+
+| Campo do contrato | Uso no Frontend | Resultado |
+|---|---|---|
+| `Transaction.account_id` — opcional quando `payment_method_id` é enviado e `kind != transfer`; obrigatório quando `kind = transfer` | `TransactionFormModal.tsx` nunca cria `kind=transfer` (toggle só alterna Entrada/Saída) — omissão incondicional na criação está dentro da condição do contrato | Passa |
+| `account_id` explícito nunca é sobrescrito pelo servidor | Confirmado nos dois lados: CASO 5 do teste SQL (server) + os 3 geradores de Fase 2 sempre enviam explícito (Seção 13.1, leitura direta) | Passa |
+| Novo `400` (`account_id` omitido + `payment_method_id` de outro usuário, ou `account_id` omitido com `kind=transfer`/sem `payment_method_id`) | `lib/api/errors.ts` mapeia todo `400` para `kind: "validation"` de forma genérica (mecanismo pré-existente); teste dedicado em `TransactionsPage.test.tsx` reproduz o cenário exato e confirma o `Alert` correto, sem cair na fila offline | Passa |
+| `account_id: null` explícito na edição (semântica `UPDATE` do PostgREST, diferente de `INSERT`) | Não documentado literalmente como um campo do contrato (é um detalhe de payload, não de schema), mas o comportamento resultante (edição sempre repropaga a conta correta) está coberto nos dois lados da fronteira (Seção 13.2, nota específica) | Passa |
+| Migration real (`20260904150000_be_ref_04_...sql`) vs. `API-CONTRACT.yaml` v0.19.0 | `Transaction.required` mudou de `[account_id, kind, amount_cents, transaction_date]` para `[kind, amount_cents, transaction_date]` — confirmado idêntico à migration real e ao tipo `NewTransaction` do Frontend | Passa |
+
+**Conclusão**: nenhuma divergência entre o contrato publicado, a migration real
+aplicada (confirmada por `supabase migration list --linked`, 45/45
+`local=remote`) e o consumo do Frontend. A checagem própria de ownership do
+trigger (independente de RLS) e a rejeição de `payment_method_id` de outro
+usuário foram verificadas nos dois lados (SQL real + teste de componente),
+fechando o ponto de integração cruzada deste lote.
+
+### 13.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica encontrado nesta rodada — os 2 bugs
+reais de severidade alta já haviam sido encontrados e corrigidos pelo próprio
+time de implementação em fix-loop antes desta validação (`FE-REF-04` Achado 1
+— edição não repropagava `account_id`; `BE-REF-04` M-1 — `WHEN` do trigger de
+`UPDATE` não disparava com payload que só mudava `payment_method_id`), e este
+QA reexecutou os testes de regressão de ambos ao vivo (Seção 13.2, nota
+específica) em vez de simplesmente aceitar o relato — confirmados corrigidos.
+
+1 item novo, de natureza recomendatória (não é um defeito funcional):
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-013 | `TASK.md` Seção 6.2 `DET-09`/`DIR-39` descreve a mecânica de exposição em produção deste lote como uma **feature flag** (`payment_method_unification_enabled`, default `false`) que já existiria no código mesclado, e `BE-REF-06` (ainda "Não iniciada") apenas a ligaria após a confirmação do DevSecOps. Confirmado por `grep` em todo o repositório (frontend e `supabase/migrations`) que **nenhuma flag desse nome, ou qualquer mecanismo de feature flag, existe hoje no código** — nem no trigger `transactions_default_account_from_payment_method` (que já está incondicionalmente ativo na base real via `supabase db push --linked`, sem nenhum `WHEN` condicionado a flag) nem no formulário unificado do Frontend (o campo "Conta" já foi removido incondicionalmente por `FE-REF-04`). Não é um defeito de nenhuma das 6 tarefas validadas nesta rodada — nenhuma delas tinha a criação da flag em seu próprio critério de aceite — é uma lacuna a resolver dentro do próprio escopo de `BE-REF-06`, que hoje pressupõe "ligar" algo que ainda não existe para ser ligado | Baixa | `BE-REF-06` | Antes de `BE-REF-06` iniciar: confirmar com o Tech Lead se a mecânica ainda é criar a flag (código novo, não coberto por nenhuma tarefa deste pacote) ou se, dado que nenhum deploy de produção deste lote foi executado ainda (`DEPLOY.md`, nenhuma seção deste lote registrada) e o único artefato já "exposto" é a migration no banco linkado (não o Frontend), a decisão de mecânica pode ser revisitada sem risco real hoje | Não bloqueia este veredito nem reduz a aprovação das 6 tarefas — o comportamento funcional entregue por todas elas está correto e testado; é uma observação de release-readiness para a única tarefa que ainda falta (`BE-REF-06`), registrada aqui porque é o momento em que este QA tem visibilidade completa do lote |
+
+`QA-DEBT-001` a `012` não tocam nenhuma tarefa deste lote especificamente — não
+duplicados aqui.
+
+**Padrão recorrente? Não.** `QA-DEBT-013` é uma observação isolada de
+release-readiness sobre uma tarefa que ainda não começou (`BE-REF-06`), não um
+padrão de bug repetido entre as 6 tarefas validadas nesta rodada — cada uma
+delas, individualmente, foi aprovada sem ressalva. Não configura um padrão de
+decomposição de tarefa ou de diretriz de implementação malformada — nenhum
+escalonamento a `tech-lead` é gerado por mim nesta rodada além do próprio
+registro em `QA-DEBT-013` (que já é visível ao Tech Lead via `QA-REPORT.md`,
+consumidor documentado deste artefato).
+
+### 13.5 `non-functional-validation` de lote
+
+| Tarefa | Requisito não funcional | Evidência | Resultado |
+|---|---|---|---|
+| BE-REF-01 | Segurança — IDOR de `payment_methods.account_id` (`SECURITY-REVIEW.md` SEC-DEBT-006) | 5 casos de RLS real (`SET LOCAL ROLE authenticated`, usuário B sintético) reexecutados ao vivo, PASS — IDOR fechado em `INSERT` e `UPDATE`, fluxo legítimo preservado | Passa |
+| BE-REF-04 | Segurança — checagem própria de ownership de `payment_method_id`, independente de RLS (defesa em profundidade) | CASO 3/9 reexecutados ao vivo, PASS — erro explícito (`23514`/400), nunca a violação de `NOT NULL` crua | Passa |
+| FE-REF-04 | Cenário de erro — novo `400` de `BE-REF-04` tratado sem quebrar o formulário nem cair na fila offline | Teste dedicado (Seção 13.3) confirma `Alert` de erro exibido dentro do modal | Passa |
+| FE-REF-04 | Grid responsivo "2 colunas a partir de `md`" preservado após remover 1 campo (7→6) | Confirmado por leitura direta (`grid-cols-1 md:grid-cols-2`) e teste dedicado | Passa |
+| Lote como um todo | Regressão consolidada — backend (SQL) e frontend | 30/31 SQL PASS (1 falha pré-existente não relacionada, Bloqueio 019), `npx vitest run` 280/280, `tsc -b` limpo, `lint` sem erro novo (Seção 13.1) | Passa |
+| Lote como um todo | Dado real de produção não corrompido pela validação | Toda verificação em `BEGIN`/`ROLLBACK` (SQL) ou `SELECT` puro (consulta de backfill); nenhuma linha real alterada por este QA | Passa |
+
+### 13.6 Veredito de lote consolidado
+
+| Tarefa | Veredito de tarefa (fixado nesta rodada) |
+|---|---|
+| BE-REF-01 | Aprovado |
+| BE-REF-03 | Aprovado |
+| BE-REF-04 | Aprovado |
+| BE-REF-05 | Aprovado |
+| FE-REF-04 | Aprovado |
+| FE-REF-05 | Aprovado |
+| QA-REF-03 | Concluída (esta própria rodada de validação) |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"): Aprovado.**
+Nenhuma tarefa é reprovada; nenhuma reversão de status a `Em andamento` é
+necessária no `TASK.md`. O único item registrado nesta rodada (`QA-DEBT-013`)
+é uma observação de release-readiness sobre `BE-REF-06` (ainda não iniciada),
+não um defeito funcional de nenhuma das 6 tarefas validadas — não reduz o
+veredito a "com ressalvas". Nenhum `BLOCKERS.md` `Aberto` nesta data toca
+`BE-REF-01`/`BE-REF-03`/`BE-REF-04`/`BE-REF-05`/`FE-REF-04`/`FE-REF-05`
+diretamente (Bloqueio 013 já `Resolvido`; Bloqueio 020 é débito de baixa
+severidade já mitigado no caminho que este lote controla, ver Seção 13.2).
+
+**Padrão recorrente? Não** (racional completo na Seção 13.4) — nenhum
+escalonamento novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada além
+do registro de `QA-DEBT-013`.
+
+**Condição de `BE-REF-06` (`TASK.md` Seção 4.4)**: com este veredito
+("`QA-REF-03` aprovado") somado a `BLOCKERS.md` Bloqueio 013 já `Resolvido`
+pelo DevSecOps, **as duas condições vinculantes do CTO (Gate 2) estão agora
+satisfeitas** — `BE-REF-06` pode prosseguir, sujeito à observação de
+`QA-DEBT-013` (a flag em si ainda precisa ser criada como parte do escopo de
+`BE-REF-06`, não é um bloqueio, é o próprio trabalho da tarefa).
+
+### 13.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 6 tarefas foi testado e está passando
+      (Seção 13.2 — integralmente, reexecutado ao vivo contra o projeto real)
+- [x] Nenhum bug de severidade alta/crítica em aberto (os 2 já encontrados e
+      corrigidos em fix-loop pelo próprio time de implementação foram
+      reverificados nesta rodada, não só aceitos por relato)
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo
+      — `QA-DEBT-013` (Seção 13.4), com dono (`BE-REF-06`) e prazo sugerido
+- [x] Testes de integração cruzada executados — Frontend↔Backend via
+      `account_id`/`payment_method_id` verificado campo a campo contra o
+      contrato publicado (v0.19.0) e a migration real (Seção 13.3)
+- [x] Requisito não funcional relevante validado (Seção 13.5) — segurança
+      (IDOR fechado, defesa em profundidade), cenário de erro, responsividade
+      preservada, regressão consolidada, integridade do dado real de produção
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -1345,3 +2017,7 @@ detalhe completo desta rodada.
 | 2026-09-03 (veredito de lote) | Lote "Orçamento": BE-M-08, FE-M-11 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma ressalva individual | 0 | QA-DEBT-010 (baixa, `aria-valuenow` > `aria-valuemax` em `ProgressBar.tsx` no estado de estouro) |
 | 2026-09-04 (revisão pontual, não é lote) | Bypass temporário de MFA por e-mail — `BLOCKERS.md` Bloqueio 018 (`custom_access_token_hook`, `AuthContext.tsx`/`SKIP_EMAIL_MFA`) | **Aprovado** (revisão pontual) — evidência real de suíte automatizada + SQL direto contra o banco real + teste real de rollback + verificação de regressão de 1º fator/PIN/desbloqueio | 0 | Nenhum novo (`SEC-DEBT-011` já cobre o risco de segurança, referenciado não duplicado) |
 | 2026-09-04 | QA-M-02, QA-F2-01, QA-F2-02 (3) | **Aprovado** (3/3), nenhuma ressalva | 0 | Nenhum novo |
+| 2026-09-04 (veredito de lote) | Lote "Lançamentos — Hierarquia & Atalhos (Fase 2.1)": BE-REF-02, FE-REF-02, FE-REF-03 (3) + QA-REF-02 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (3/3), nenhuma ressalva individual | 0 | QA-DEBT-011 (baixa, recomendação de processo — smoke test manual real pendente + limitação de replay local de migrations, não é defeito funcional) |
+| 2026-09-04 (veredito de lote) | Lote "Categorização (Fase 2.1)": FE-REF-06 (1) + QA-REF-04 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (1/1), nenhuma ressalva | 0 | Nenhum novo |
+| 2026-09-04 (veredito de lote) | Lote "Formas de Pagamento Unificadas (Fase 2.1)": BE-REF-01, BE-REF-03, BE-REF-04, BE-REF-05, FE-REF-04, FE-REF-05 (6) + QA-REF-03 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (6/6), nenhuma ressalva individual | 0 | QA-DEBT-013 (baixa, observação de processo/release-readiness — `BE-REF-06` ainda não tem nenhuma flag real no código para "desligar", apesar de `DIR-39` pressupor uma já existente a ser ligada) |
+| 2026-09-04 (veredito de lote) | Lote "Orçamento (Fase 2.1)": FE-REF-07 (1) + QA-REF-05 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (1/1), nenhuma ressalva | 0 | QA-DEBT-012 (baixa, débito de design token pré-existente — contraste `text-warning`/`warning-soft` do `ProgressBar`, não é regressão desta tarefa) |

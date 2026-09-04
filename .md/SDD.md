@@ -664,3 +664,287 @@ Não é considerado final até aprovação (Aprovado ou Aprovado com ressalvas) 
 rodada — o restante do documento (Seções 1-4, 6 exceto os pontos reclassificados
 acima) já havia sido aprovado no Gate 2 original e não é reaberto para novo veredito,
 salvo se o CTO decidir revisitá-lo por consequência da mudança.
+
+---
+
+# Adendo A ao SDD.md — Pacote de Refinamento de Produção (Fase 2.1 — Melhorias Contínuas)
+
+**Dono**: Software Architect
+**Data**: 2026-09-04
+**Gate de entrada**: `PRD-TECNICO.md` Adendo A, liberado pelo Business Analyst em
+2026-09-04; `CTO-REVIEW.md`, "Gate 1 — Pré-descoberta (Pacote de Refinamento...) —
+2026-09-04", veredito **Aprovado com ressalvas**, com 3 condições de aceite fixadas
+para o item 4 (RF-REF-04).
+**Gate de saída**: revisão do CTO no **Gate 2** desta rodada
+(`architecture-decision-review` + `risk-and-compliance-check`) — este adendo é um
+rascunho pronto para revisão, não a arquitetura final. Só vira final após veredito
+Aprovado ou Aprovado com ressalvas do CTO.
+**Fonte**: `PRD-TECNICO.md` Adendo A (RF-REF-01 a 06, RNF-10 a 14, RN-12 a 18, FL-06,
+FL-07) + `CTO-REVIEW.md` Gate 1 desta rodada + `SDD.md` Seções 1-7 (arquitetura
+vigente, não reescrita) + `API-CONTRACT.yaml` (schema real) +
+`AUDITORIA-BE-M-00.md` + `BLOCKERS.md` Bloqueio 013 + `GUARDRAILS.md` G-02 +
+inspeção direta de `frontend/src/pages/transactions/TransactionFormModal.tsx`,
+`supabase/schema-baseline-legacy.sql` (`apply_transaction_effect`,
+`payment_methods_account_or_card_check`) e
+`supabase/migrations/20260902100100_be_m02_payment_methods_defaults.sql`.
+**Consumidor imediato**: `cto` (Gate 2 desta rodada); em seguida `ux-ui` e
+`tech-lead`.
+
+**Natureza deste adendo**: aditivo ao `SDD.md` original — as Seções 1-7 acima
+permanecem vigentes e não são reescritas nem invalidadas. Este adendo cobre
+exclusivamente os 6 itens do Pacote de Refinamento, com a mesma estrutura fixa de 7
+seções do `SDD.md`, prefixadas `A.1`-`A.7` para não colidir com a numeração
+original. Toda referência a "Seção N" sem prefixo, dentro deste adendo, aponta para
+a seção correspondente do `SDD.md` original.
+
+**Nota sobre a Seção 5 original**: a Seção 5 do `SDD.md` (Modelo de Dados de Alto
+Nível) foi escrita antes da implementação da Fase 2 e trata `Budget`, `CreditCard`,
+`Invoice`, `RecurringTemplate`, `InstallmentPurchase`, `FixedBill`, `Goal` como
+"entidades ainda ausentes" (Seção 5.2) — isso está **desatualizado** em relação ao
+código real: a Fase 2 já foi implementada e essas entidades já existem em produção
+(confirmado por `API-CONTRACT.yaml` e pelas migrations `BE-F2-*`). Esta é uma
+divergência pré-existente do documento, não introduzida por este adendo, e corrigi-la
+integralmente está fora do escopo deste pacote de refinamento (não afeta nenhum dos 6
+itens). Este adendo usa `API-CONTRACT.yaml` e as migrations reais como fonte de
+verdade onde a Seção 5 original diverge, sinalizado explicitamente onde relevante.
+
+---
+
+## A.1 Visão Geral da Arquitetura (delta)
+
+Nenhum princípio da Seção 1 muda. Confirma-se, item a item, o mesmo veredito do CTO
+no Gate 1 desta rodada:
+
+- **Itens 1, 2, 5, 6** (dashboard grid desktop, hierarquia visual da lista de
+  lançamentos, Categorias em cards, Orçamento em cards): **reorganização pura de
+  apresentação, sem novo componente de arquitetura.** Reaproveitam integralmente
+  dado/cálculo já existente (RF-MVP-05/06/07, RF-MVP-03) e as convenções de
+  responsividade já formalizadas em `UX-SPEC.md` (RNF-11). Nenhum destes 4 itens
+  introduz decisão arquitetural relevante — **nenhum ADR novo é produzido para eles**,
+  mesmo critério já usado na Seção 2.5 do `SDD.md` original para "decisões de fluxo de
+  dados de rotina sem ADR próprio".
+- **Item 3** (atalhos de lançamento rápido): introduz **um componente novo**, uma RPC
+  de agregação (`public.get_transaction_shortcuts()`) e um campo novo de
+  rastreamento (`transactions.created_via_shortcut`) — ver ADR-015 e A.2/A.5.
+- **Item 4** (unificação conta + forma de pagamento): não introduz componente novo,
+  mas altera o **contrato** do formulário de lançamento manual e introduz dois
+  triggers server-side novos sobre tabelas já existentes — ver ADR-016 e A.2/A.5.
+  Confirma-se a leitura do CTO no Gate 1: **não é um ajuste cosmético**, mas também
+  não é uma "mudança estrutural de schema do zero" — é resolução server-side sobre um
+  vínculo de dado já existente e auditado (ADR-012), com achados técnicos concretos
+  documentados no ADR-016 (em especial: `credit_card_id` não resolve nenhuma conta,
+  ao contrário do que o texto literal de RF-REF-04 AC2 presumia).
+
+Nenhuma integração externa nova (confirma `PRD-TECNICO.md` Adendo A, Seção A.5.2) e
+nenhuma mudança de stack (A.3).
+
+## A.2 Componentes e Fluxo de Dados (delta)
+
+### A.2.1 Componentes novos/alterados
+
+| Componente | Responsabilidade | Requisito | Novo/Alterado |
+|---|---|---|---|
+| `public.get_transaction_shortcuts()` (RPC, `SECURITY INVOKER`, `STABLE`) | Calcula até 10 atalhos de subcategoria + forma de pagamento mais associada, conforme RN-12/RN-13 | RF-REF-03 | Novo (ADR-015) |
+| `transactions.created_via_shortcut` (coluna) | Rastreamento auditável de origem do lançamento (atalho vs. formulário completo), suporta M6 | RNF-12 | Novo (ADR-015) |
+| `accounts_seed_default_payment_methods()` (função/trigger já existente, `BE-M-02`) | Gera as 4 formas de pagamento não-cartão para **toda** conta ativa nova, não só a 1ª | RN-15 | Alterado — mesmo nome, corpo novo (ADR-016) |
+| `transactions_default_account_from_payment_method` (novo trigger `BEFORE INSERT/UPDATE`) | Resolve `transactions.account_id` a partir de `payment_method_id` quando o client o omite | RF-REF-04 AC1/AC2, RN-16 | Novo (ADR-016) |
+| `derivePaymentMethodLabel()` (função utilitária compartilhada, frontend) | Calcula o rótulo `"{Forma} {Conta}"`/`"{Forma}"` em tempo de exibição (RN-14), consumida por todas as superfícies exigidas por RNF-13 | RF-REF-04 AC3/AC6, RNF-13 | Novo (ADR-016), 100% client-side, sem endpoint |
+
+Nenhum componente novo em Edge Functions, Storage, Realtime ou integração externa —
+os 6 itens reaproveitam integralmente Postgres/PostgREST/RLS.
+
+### A.2.2 Fluxo — Atalho de Lançamento Rápido (item 3), estende FL-06 do BA
+
+```mermaid
+flowchart TD
+    A[Tela de lancamentos carrega] --> B["Frontend chama RPC get_transaction_shortcuts()"]
+    B --> C{RPC retornou linhas?}
+    C -- Nao / vazio --> D[Barra de atalhos omitida - RF-REF-03 AC2]
+    C -- Sim, ate 10 linhas --> E[Frontend renderiza ate 10 botoes de atalho]
+    E --> F[Usuario clica em um atalho]
+    F --> G["Formulario abre pre-preenchido: category_id + payment_method_id vindos da RPC, kind = categories.kind (ja carregado no client), date = hoje"]
+    G --> H[Foco automatico no campo valor]
+    H --> I[Usuario confirma ou edita antes de confirmar]
+    I --> J["POST /transactions com created_via_shortcut=true"]
+```
+
+### A.2.3 Fluxo — Lançamento com Forma de Pagamento Unificada (item 4), estende FL-01/FL-06
+
+```mermaid
+flowchart TD
+    A[Usuario seleciona forma de pagamento no formulario unificado] --> B[Frontend NAO envia account_id no payload]
+    B --> C["POST/PATCH /transactions (account_id omitido)"]
+    C --> D["Trigger BEFORE INSERT/UPDATE: transactions_default_account_from_payment_method"]
+    D --> E{payment_method.type = credit_card?}
+    E -- Nao --> F[NEW.account_id := payment_method.account_id]
+    E -- Sim --> G[NEW.account_id := conta ativa mais antiga do usuario]
+    F --> H["RLS transactions_insert_own/_update_own valida ownership de account_id (BE-M-13, ja existente)"]
+    G --> H
+    H --> I{Ownership valido?}
+    I -- Nao --> J[403 - rejeitado]
+    I -- Sim --> K[Lancamento persistido; card_invoice_id resolvido pelo mecanismo ja existente RN-01, sem interferencia deste trigger]
+```
+
+### A.2.4 Decisões de fluxo de dados de rotina (sem ADR próprio) — itens 1, 2, 5, 6
+
+- **Item 1 (dashboard grid)**: pura mudança de CSS/layout (`grid-template-columns`
+  condicionado ao breakpoint desktop já formalizado em `UX-SPEC.md`), consumindo os
+  mesmos dados já retornados por RF-MVP-05/06/07 — nenhuma chamada de API nova, nenhum
+  dado novo.
+- **Item 2 (hierarquia visual da lista)**: reordenação de elementos já renderizados
+  (subcategoria, descrição, forma de pagamento) no mesmo componente de item de lista;
+  quando o item 4 estiver implementado, o texto secundário de forma de pagamento
+  passa a usar `derivePaymentMethodLabel()` (RNF-13) — acoplamento não-bloqueante já
+  identificado pelo BA (`PRD-TECNICO.md` Adendo A, Seção A.5.1).
+- **Itens 5 e 6 (Categorias/Orçamento em cards)**: reaproveitam os mesmos dados já
+  calculados por RF-MVP-06 (`get_monthly_category_summary`) e RF-MVP-07/RN-04
+  (orçamento vs. teto), apenas em layout de grade em vez de lista expansível.
+
+---
+
+## A.3 Stack Tecnológica e Justificativa (delta)
+
+**Nenhuma mudança de stack.** Os 6 itens são implementados integralmente sobre a
+stack já decidida na Seção 3 do `SDD.md` original: React/TypeScript + Tailwind no
+frontend, Postgres/PostgREST/RLS no backend, sem Edge Function nova, sem serviço
+externo novo (confirma `PRD-TECNICO.md` Adendo A, Seção A.5.2 — "nenhuma integração
+externa nova identificada neste pacote"). Nenhuma linha nova é adicionada à tabela de
+stack da Seção 3; nenhuma marcação "Gate 2? Sim" nova por escolha de tecnologia — as
+duas revisões formais deste Gate 2 (ADR-015, ADR-016) são de **desenho de solução**
+sobre a stack já aprovada, não de escolha de tecnologia nova.
+
+---
+
+## A.4 Decisões Arquiteturais (ADRs) — índice do adendo
+
+| ADR | Título | Status |
+|---|---|---|
+| [015](./adr/015-rpc-atalhos-lancamento-rapido-e-flag-origem-atalho.md) | RPC de sugestão para atalhos de lançamento rápido (RF-REF-03) e mecanismo de rastreamento de origem (RNF-12) | Accepted |
+| [016](./adr/016-unificacao-conta-forma-pagamento-resolucao-server-side.md) | Unificação de Conta + Forma de Pagamento no formulário de lançamento — resolução server-side de `account_id`, rótulo calculado em exibição, e sequenciamento com o Bloqueio 013 | Accepted |
+
+Mesma disciplina de imutabilidade da Seção 4 original: nenhum ADR é editado após
+aceito; mudança de decisão gera novo ADR, marcando o anterior como `Status:
+Superseded by ADR-NNN`. Nenhum ADR original (001-014) é tocado por este adendo.
+
+**Itens 1, 2, 5, 6 não têm ADR** — confirmado em A.1 como decisão de rotina sem
+relevância arquitetural (mesmo padrão da Seção 2.5 do `SDD.md` original), não uma
+omissão.
+
+---
+
+## A.5 Modelo de Dados de Alto Nível (delta)
+
+Nenhuma tabela nova. Alterações aditivas sobre tabelas já existentes:
+
+| Mudança | Tabela | Tipo de operação | ADR |
+|---|---|---|---|
+| `created_via_shortcut boolean not null default false` | `transactions` | `ALTER TABLE ... ADD COLUMN ... DEFAULT false NOT NULL` (aditiva) | ADR-015 |
+| `accounts_seed_default_payment_methods()` — corpo alterado para semear em toda conta ativa nova, não só a 1ª | `payment_methods` (via trigger em `accounts`) | `CREATE OR REPLACE FUNCTION` (mesmo nome, sem tocar dado existente) | ADR-016 |
+| `transactions_default_account_from_payment_method` (novo trigger `BEFORE INSERT/UPDATE`) | `transactions` | `CREATE FUNCTION` + `CREATE TRIGGER` (novos) | ADR-016 |
+| `public.get_transaction_shortcuts()` (nova RPC) | Leitura sobre `transactions`/`categories`/`payment_methods`, sem escrita | `CREATE FUNCTION` | ADR-015 |
+
+**Nenhuma coluna existente é removida, renomeada ou tem seu tipo/nullability
+alterado.** `transactions.account_id` permanece `NOT NULL` sem nenhum `ALTER
+COLUMN`. Nenhum backfill/normalização é executado sobre dado já existente em
+`payment_methods` ou `transactions` — confirma a conformidade com G-02 detalhada no
+ADR-016, Decisão 4.
+
+Nenhum índice novo é criado (ver ADR-015 — decisão explícita de não adicionar índice
+composto, dado o volume de referência de RNF-09; registrado como dívida técnica de
+baixa severidade em A.6).
+
+---
+
+## A.6 Riscos Técnicos e Dívida Técnica Aceita (delta)
+
+### A.6.1 Riscos e gargalos novos
+
+| Risco/Gargalo | Componente | Severidade | Mitigação ou plano |
+|---|---|---|---|
+| RPC de atalhos (item 3) reavalia a agregação inteira a cada carregamento de tela, sem índice composto dedicado | `get_transaction_shortcuts()` | Baixa | Aceito como dívida técnica (A.6.2) — volume de referência de RNF-09 (60–120/mês) não justifica índice/view materializada agora; revisitar se o volume real medido (RN-11) ultrapassar consistentemente essa faixa |
+| Trigger de resolução de `account_id` (item 4) passa a valer para **toda** transação nova, inclusive as geradas automaticamente por `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` (Fase 2, já em produção) | `transactions_default_account_from_payment_method` | Baixa | Mitigado por desenho: o trigger só age quando `account_id IS NULL` — os 3 fluxos de Fase 2 sempre enviam `account_id` explícito hoje, então não são afetados na prática (ADR-016, Decisão 3/"Pros and Cons" Opção B). Backend deve confirmar, antes do deploy, que nenhum desses 3 fluxos foi alterado para omitir `account_id` sem essa intenção |
+| Comportamento financeiro pré-existente e não corrigido: lançamento de cartão de crédito debita/credita uma conta (via `apply_transaction_effect`, herdado do schema legado) além de compor a fatura — preservado, não introduzido, por este adendo | `apply_transaction_effect`, `transactions_default_account_from_payment_method` | Média (produto), Baixa (técnico) | Sinalizado explicitamente ao Business Analyst/PM como possível requisito de negócio futuro (ADR-016, Decisão 3/Opção E) — não decidido pelo Software Architect; nenhuma ação técnica requerida nesta rodada além de preservar o status quo de forma determinística |
+| Bloqueio 013 (`payment_methods.account_id` sem validação de ownership) passa de "gap cosmético" a "pré-condição de exposição em produção" do item 4 | `payment_methods_insert_own`/`_update_own` | Média (elevada pelo item 4, mesma severidade base do Bloqueio 013 em `SECURITY-REVIEW.md`) | Trigger da Decisão 3 do ADR-016 já inclui checagem própria de ownership (`AND user_id = auth.uid()`), independente da correção do Bloqueio 013 — RLS de `transactions`/`accounts` já impede escrita cross-tenant mesmo sem essa correção (ADR-016, Decisão 5); deploy do item 4 em produção, ainda assim, condicionado à confirmação do DevSecOps de que o Bloqueio 013 está fechado |
+
+### A.6.2 Dívida técnica aceita conscientemente (delta)
+
+| Dívida Técnica Aceita | Motivo | Condição de revisão |
+|---|---|---|
+| Sem índice composto dedicado para a RPC de atalhos (item 3) | Volume de referência de RNF-09 não justifica o custo/complexidade agora | Revisitar se o volume real medido (RN-11) ultrapassar consistentemente a faixa de 60–120/mês |
+| Comportamento de "compra de cartão debita conta imediatamente" preservado sem correção (item 4) | Fora do escopo desta rodada — nenhum requisito do `PRD-TECNICO.md` Adendo A pediu essa correção; corrigir seria decisão de negócio, não de arquitetura | Revisitar se o BA/PM levantar formalmente o requisito de "compra de cartão não deve afetar saldo de conta até o pagamento da fatura" |
+| `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` não recebem a unificação de conta + forma de pagamento nesta rodada | RF-REF-04 restringe o escopo explicitamente ao formulário de RF-MVP-04 | Revisitar se o BA/PM estender formalmente o requisito a esses 3 formulários |
+
+---
+
+## A.7 Requisitos de Segurança e Compliance (nível de arquitetura) — delta
+
+Esta subseção não substitui a Seção 7 original (Autenticação/Autorização/
+Criptografia/Isolamento Multi-Tenant permanecem exatamente como estão) — cobre
+apenas o que os 6 itens deste pacote acrescentam.
+
+- **Autorização (item 4)**: o novo trigger `transactions_default_account_from_payment_method`
+  roda com `SECURITY INVOKER` implícito (contexto do usuário autenticado, mesmo
+  padrão de toda a stack — Seção 7 original), e inclui checagem própria de
+  ownership (`payment_methods.user_id = auth.uid()`) antes de derivar `account_id`
+  — defesa em profundidade independente da RLS de `transactions`/`accounts` já
+  existente (BE-M-13) e independente da correção do Bloqueio 013 (ADR-016,
+  Decisão 5). Nenhuma tabela nova, nenhuma policy de RLS nova é necessária para os
+  6 itens deste pacote — as policies já existentes (`accounts_select_own`,
+  `payment_methods_select_own`, `transactions_insert_own`/`_update_own`) cobrem
+  integralmente os componentes novos.
+- **Autorização (item 3)**: `get_transaction_shortcuts()` é `SECURITY INVOKER`,
+  filtra por `auth.uid()` no próprio corpo — mesmo padrão já auditado nas RPCs de
+  dashboard existentes (`get_month_provision`, `get_monthly_category_summary`,
+  `get_month_transaction_count`, Seção 7 original, "Autenticação"). Nenhum dado de
+  outro usuário é acessível através desta RPC.
+- **Confidencialidade (item 4)**: o rótulo desambiguado (RN-14) é calculado
+  inteiramente a partir de dados que o frontend já tem acesso via RLS (as próprias
+  `accounts`/`payment_methods` do usuário autenticado) — não introduz nenhum novo
+  vetor de exposição de dado de outro usuário, mesmo na presença do Bloqueio 013
+  ainda aberto (ADR-016, Decisão 1 — análise completa de por que a busca
+  client-side não consegue vazar o nome de uma conta alheia).
+  **Confirma explicitamente**: **nenhuma nova policy de RLS, nenhuma nova
+  criptografia, nenhum novo mecanismo de isolamento é necessário para este pacote**
+  — os 6 itens reaproveitam integralmente o modelo de segurança já definido e
+  aprovado na Seção 7 original.
+- **Pré-condição de deploy do item 4 (não uma mudança de arquitetura de
+  segurança, uma condição de sequenciamento)**: `BLOCKERS.md` Bloqueio 013 deve
+  estar `Resolvido` antes de o item 4 ser exposto em produção — condição já fixada
+  pelo CTO no Gate 1 desta rodada, confirmada e detalhada tecnicamente no ADR-016,
+  Decisão 5. Implementação de código pode prosseguir em paralelo (o trigger novo já
+  nasce com sua própria checagem de ownership); o que fica condicionado é
+  exclusivamente a exposição/deploy em produção.
+
+---
+
+## Checklist de Pronto — Adendo A (auto-verificação do Software Architect)
+
+- [x] Toda decisão arquitetural relevante tem ADR correspondente em `.md/adr/` —
+      ADR-015 (item 3) e ADR-016 (item 4); itens 1, 2, 5, 6 confirmados sem
+      relevância arquitetural (A.1, A.4), mesmo padrão da Seção 2.5 do `SDD.md`
+      original
+- [x] Toda escolha de stack tem justificativa e trade-off/alternativa considerada
+      registrados — A.3 confirma explicitamente que não há escolha de stack nova
+      neste pacote; ADR-015/ADR-016 registram alternativas consideradas e rejeitadas
+      (RPC vs. view materializada vs. client-side; trigger condicional vs.
+      incondicional; preservar vs. corrigir o débito de conta em compra de cartão)
+- [x] Todo risco técnico/gargalo tem severidade; toda dívida técnica aceita
+      conscientemente tem o motivo e a condição de revisão registrados — A.6.1/A.6.2
+- [x] Requisitos de segurança cobrem autenticação, autorização, criptografia e
+      isolamento — A.7 confirma que nenhuma mudança é necessária nessas 4 frentes,
+      com o racional técnico de por que (não um item genérico sem detalhe)
+- [x] Nenhuma das 7 seções deste adendo está vazia ou com placeholder
+
+**Nenhum requisito do `PRD-TECNICO.md` Adendo A foi considerado tecnicamente
+inviável nesta rodada.** Um ponto foi sinalizado ao Business Analyst/PM para
+decisão de negócio, não por inviabilidade técnica: se o comportamento existente de
+"compra de cartão de crédito debita uma conta imediatamente, além de compor a
+fatura" deve ser revisto — este adendo preserva o status quo (ADR-016, Decisão 3,
+Opção D) e não decide a questão de negócio subjacente.
+
+**Adendo A ao SDD.md pronto — liberado para o Gate 2 do CTO
+(`architecture-decision-review` + `risk-and-compliance-check`, focado em ADR-015 e
+ADR-016).** Não é considerado final até aprovação (Aprovado ou Aprovado com
+ressalvas). O restante do `SDD.md` (Seções 1-7 originais) não é reaberto por este
+adendo — permanece exatamente como já aprovado, salvo se o CTO decidir revisitá-lo
+por consequência direta desta rodada.

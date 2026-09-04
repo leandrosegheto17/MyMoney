@@ -16,6 +16,7 @@
     "@simplewebauthn/browser": "^14.0.0",
     "@supabase/supabase-js": "^2.114.0",
     "dexie": "^4.4.5",
+    "lucide-react": "^1.41.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3"

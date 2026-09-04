@@ -348,6 +348,61 @@ racional em 7.4).
 
 ---
 
+## Nota de Inclusão — Pacote de Refinamento de Produção (Fase 2.1) — 2026-09-04
+
+**Esta nota não reabre nem reestima nenhuma tarefa já `Concluída` de MVP/Fase 2/Fase
+3 — é a inclusão de um adendo novo, decompondo os 6 itens do "Pacote de Refinamento"
+(`PRD.md` Adendo A, `PRD-TECNICO.md` Adendo A, `SDD.md` Adendo A + ADR-015/ADR-016),
+aprovado com ressalvas pelo CTO em `CTO-REVIEW.md`, "Gate 2 — Pós-SDD (Pacote de
+Refinamento, Adendo A) — 2026-09-04".**
+
+Novas tarefas numeradas na sequência própria desta rodada (`BE-REF-NN`/`FE-REF-NN`/
+`QA-REF-NN`, mesma convenção de `<fase>` já usada para `M`/`F2`/`F3` — Seção 3), sem
+reaproveitar nem colidir com nenhum ID já existente e sem reescrever/invalidar
+nenhuma tarefa concluída. Trata-se de uma nova fase lógica de execução ("Fase 2.1"),
+com lotes próprios que não cruzam fase (mesmo princípio já aplicado a "Relatórios
+(Fase 2)"/"Relatórios & Exportação (Fase 3)", Seção 6.3), mesmo quando o bounded
+context (`SDD.md` Seção 2.2) já existia em MVP/Fase 2.
+
+**Resumo do que muda em cada seção** (detalhe completo nas próprias seções, não
+repetido aqui):
+
+1. **Seção 1** — nova subseção 1.8, traduzindo `ADR-015`/`ADR-016` em `DIR-34` a
+   `DIR-39`.
+2. **Seção 2** — nenhum spike novo identificado; nota adicionada ao final da seção
+   com o racional de por que os 6 itens não atendem aos 4 critérios de
+   `technical-spike-identification` (os dois ADRs já resolveram, com confiança e
+   algoritmo determinístico, a única incerteza técnica que existia — item 3).
+3. **Seção 3** — nova subseção 3.4: 6 tarefas Backend + 7 Frontend + 5 QA = 18
+   tarefas novas.
+4. **Seção 4** — nova subseção 4.4, com uma subseção por lote (5 lotes) + caminho
+   crítico da Fase 2.1, incluindo a **dependência mecânica e bloqueante** exigida
+   pelo CTO no Gate 2 desta rodada: nenhum deploy em produção de `BE-REF-06` antes de
+   `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo DevSecOps.
+5. **Seção 5** — nova linha de esforço por time (+15.5 dias ideais no total: Backend
+   5.0, Frontend 7.0, QA 3.5) e um novo risco de prazo nomeado (nº 11).
+6. **Seção 6** — nova pendência de sincronização com UX/UI (`UX-02`, baseline de
+   rolagem do dashboard ainda não medido) e 3 novas lacunas de detalhe decididas pelo
+   Tech Lead (`DET-09` a `DET-11`); nenhuma lacuna estrutural nova é escalada ao
+   Software Architect.
+7. **Seção 7** — inalterada; nenhum dos 5 lotes novos foi fechado ainda (rascunho —
+   preenchimento é passo da fase de execução, não deste adendo).
+
+**Avaliação de `GUARDRAILS.md` (skill `guardrails-drafting`, cadência de uma vez por
+projeto, não por seção deste `TASK.md`)**: **nenhuma regra nova proposta nesta
+rodada.** Os dois padrões técnicos novos deste pacote — checagem de ownership própria
+do trigger `transactions_default_account_from_payment_method`, independente da RLS
+(`ADR-016` Decisão 3); e a decisão de não estender o enum `source` (`ADR-015`
+Decisão 2) — já são aplicações pontuais e completas de guardrails já vigentes
+(`G-04`/RLS por `auth.uid() = user_id`, `G-06`/confirmação humana sobre `source`), não
+um princípio novo, inegociável e válido para o projeto inteiro que ainda não
+estivesse coberto — não atendem ao critério de `guardrails-drafting` de "não é uma
+tarefa isolada". Ficam registrados como diretriz prática de implementação (Seção 1.8,
+`DIR-34` a `DIR-39`), não como guardrail. `.md/GUARDRAILS.md` **não é alterado** por
+este adendo.
+
+---
+
 ## 1. Diretrizes de Implementação
 
 Camada base de comportamento (pensar antes de codificar, simplicidade, mudanças
@@ -436,6 +491,22 @@ sobrevive, só muda o escopo textual de `mymoney` para `public`.
 | DIR-31 | Export lógico de backup roda com cadência **diária** (`pg_cron` + Edge Function, `pg_dump`/export), armazenado criptografado fora do Supabase — nunca semanal (cadência corrigida por ADR-009, supersede ADR-004). | **[OBRIGATÓRIA]** | Cron `0 0 * * *` (ou equivalente diário), não `0 0 * * 0`. |
 | DIR-32 | Job de export tem monitoramento/alerta de falha (quem avisa se o `pg_cron` não rodar) — não é "fire and forget". | **[OBRIGATÓRIA]** | Log de execução consultável; alerta (mesmo que simples, ex. e-mail) se o job não rodar por >26h. |
 
+### 1.8 Pacote de Refinamento — Atalhos e Forma de Pagamento Unificada (ADR-015, ADR-016)
+
+**Nova subseção — 2026-09-04.** Traduz as decisões de `ADR-015` (item 3) e `ADR-016`
+(item 4) em regra prática de implementação, mesmo padrão de `implementation-guideline-
+drafting` já usado nas subseções 1.1 a 1.7. Não duplica o texto dos ADRs — só a regra
+verificável derivada deles.
+
+| # | Regra | Classificação | Exemplo mínimo |
+|---|---|---|---|
+| DIR-34 | `public.get_transaction_shortcuts()` é a única fonte de verdade do algoritmo de ranking/desempate de RN-12/RN-13 — nenhum client duplica a lógica de frequência/recência/ordem alfabética em JavaScript. | **[OBRIGATÓRIA]** | `ShortcutBar` só exibe o que a RPC retornou, na ordem em que retornou — nenhum `.sort()` adicional no client. |
+| DIR-35 | `transactions.created_via_shortcut` é ortogonal a `transactions.source` — nunca usar uma coluna para inferir a outra, nem misturar as duas semânticas (canal de captura vs. ponto de entrada dentro da captura manual) em nenhuma consulta/regra nova. | **[OBRIGATÓRIA]** | Um lançamento criado via atalho continua `source='manual'`; `created_via_shortcut=true` é informação independente, só para M6. |
+| DIR-36 | O client nunca envia `account_id` no payload de `POST`/`PATCH /transactions` quando envia `payment_method_id` e `kind != transfer` — a resolução de `account_id` é sempre server-side, via o trigger `transactions_default_account_from_payment_method` (ADR-016 Decisão 3). Continua obrigatório enviar `account_id` explícito quando `kind = transfer` (fora de escopo de RF-REF-04). | **[OBRIGATÓRIA]** | `S-TXN-02` (formulário unificado) nunca inclui `account_id` no corpo da requisição; `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` (Fase 2, fora de escopo deste pacote) continuam enviando `account_id` explícito, sem mudança. |
+| DIR-37 | `derivePaymentMethodLabel()` é função única e compartilhada (não duplicada por tela) — toda superfície que exibe forma de pagamento (formulário, lista de lançamentos, filtros, `ShortcutChip`, relatórios) importa a mesma função (RNF-13). | **[OBRIGATÓRIA]** | Um único arquivo `frontend/src/lib/paymentMethods/derivePaymentMethodLabel.ts`, importado por `TransactionFormModal`, item de lista, `FilterBar` e `ShortcutChip` — nenhuma tela reimplementa o cálculo do sufixo de conta. |
+| DIR-38 | Nenhuma migration deste pacote altera/remove coluna existente, tabela existente ou dado real sem revisão explícita do CTO (G-02) — toda mudança de schema deste pacote é `CREATE FUNCTION`/`CREATE OR REPLACE FUNCTION`/`CREATE TRIGGER`/`ALTER TABLE ... ADD COLUMN` aditiva, incluindo a migration de backfill (`INSERT` de linha nova, nunca `UPDATE`/`DELETE` sobre `payment_methods` existente). | **[OBRIGATÓRIA]** | `ALTER TABLE public.transactions ADD COLUMN created_via_shortcut boolean NOT NULL DEFAULT false` é permitido sem revisão adicional; qualquer `ALTER COLUMN`/`DROP` em `payment_methods`/`transactions`/`accounts` exigiria revisão explícita do CTO antes de sequer ser proposto — nenhuma tarefa deste pacote propõe isso. |
+| DIR-39 | Deploy/exposição em produção do formulário unificado (RF-REF-04) fica atrás de feature flag (`payment_method_unification_enabled`, decisão de mecanismo do Tech Lead — ver Seção 6.2, `DET-09`) até `BLOCKERS.md` Bloqueio 013 estar confirmado `Resolvido` pelo DevSecOps. Código pode ser mesclado e implantado em produção com a flag desligada antes disso (o trigger da Decisão 3 já tem checagem própria de ownership, independente da correção do Bloqueio 013) — o que fica condicionado é exclusivamente a **exposição** ao usuário final. | **[OBRIGATÓRIA]** | `BE-REF-06` (Seção 3.4) é o único responsável por ligar a flag em produção; nenhuma outra tarefa deste pacote liga a flag por conta própria. |
+
 ---
 
 ## 2. Spikes Técnicos Identificados
@@ -447,6 +518,23 @@ sobrevive, só muda o escopo textual de `mymoney` para `public`.
 | **SPK-003** — bloqueia BE-F3-05/FE-F3-06 em produção (DIR-26) | O Pluggy aceita pessoa física/projeto pessoal sem CNPJ no tier "free/dev" assumido em `ADR-008`? Quais são os termos de responsabilidade de dado (operador vs. controlador) do Pluggy, e são compatíveis com LGPD para o caso de uso deste produto? (Duas condições de entrada da Fase 3 explicitamente nomeadas pelo CTO no Gate 2, subseção `ADR-008` — bloqueantes para o **início** da Fase 3 em relação a RF-F3-04 especificamente, não para MVP/Fase 2 nem para as demais tarefas de Fase 3.) | 3 dias úteis (inclui tempo de resposta do provedor a solicitação de sandbox) | Backend, com validação final do próprio stakeholder sobre aceitar/rejeitar os termos operador/controlador antes de produção | Não iniciado |
 
 Nenhuma outra tarefa deste documento atende aos 4 critérios de `technical-spike-identification` (tecnologia nova sem experiência prévia do time, integração não testada, múltiplas abordagens sem dado para decidir, escopo não decomponível com confiança) — as demais incertezas encontradas durante a decomposição foram tratadas como lacuna de detalhe (decidida e documentada na Seção 6) ou como lacuna estrutural do `SDD.md` (escalada ao Software Architect, também na Seção 6), nunca como spike "porque parecia difícil". **Nota**: a auditoria por objeto reaproveitado exigida por `ADR-012` (`DIR-02`) não é tratada como um novo spike — é um requisito de processo distribuído entre `BE-M-00` (auditoria geral) e as tarefas específicas que dependem de cada objeto (`BE-M-06`/`BE-M-07`/`BE-M-09`), com gatilho de escalonamento a `BLOCKERS.md` já definido caso algum achado não se resolva dentro do próprio escopo de auditoria — mesmo padrão de disciplina já usado por `SPK-001`.
+
+**Nota — Pacote de Refinamento (Fase 2.1), 2026-09-04**: nenhum spike novo
+identificado para os 6 itens deste pacote. O único ponto que o CTO havia sinalizado
+como incerteza técnica no Gate 1 desta rodada (item 3 — "algoritmo de ranking/forma
+de pagamento associada ainda não especificado com precisão suficiente para virar
+critério de aceite testável") foi integralmente resolvido antes de chegar a este
+Tech Lead: o PM/BA fecharam o critério com precisão testável (`RN-12`/`RN-13`,
+`PRD-TECNICO.md` Adendo A) e o Software Architect traduziu isso em algoritmo SQL
+determinístico e já revisado pelo CTO (`ADR-015`, "Aprovado, sem ressalva" no Gate 2
+desta rodada) — não resta incerteza de abordagem (múltiplas opções sem dado para
+decidir), tecnologia nova sem experiência prévia do time, nem integração não testada
+(RPC `SECURITY INVOKER` é o mesmo padrão já usado por 3 RPCs de dashboard existentes).
+O item 4 teve maior escrutínio (`ADR-016`, 3 condições de aceite do CTO), mas pela
+mesma razão não é spike: a incerteza ali era de **desenho de solução/sequenciamento**,
+já resolvida pelo Software Architect com confiança suficiente para estimar
+diretamente (Seção 3.4), não uma pergunta em aberto que um spike precisasse responder
+antes de estimar.
 
 ---
 
@@ -629,6 +717,48 @@ auditadas antes. Achado de sobreposição segue o mesmo fluxo de decisão do Blo
 | QA-F3-03 | Regressão completa pré-lançamento de Fase 3 (MVP + Fase 2 + Fase 3 integradas) | QA | Todo o escopo | Nenhuma regressão introduzida em MVP/Fase 2 pela introdução da Fase 3 | 2 dias | Não iniciada | Fechamento & Regressão Fase 3 |
 | QA-F3-04 | **[Nova — ADR-011]** Casos de teste para os jobs de expurgo (`BE-F3-08`: candidato/foto 30 dias, foto de confirmado 90 dias, export 24h; `BE-F3-10`: rotação de backup) e para o fluxo de exclusão de conta (`BE-F3-09`/`FE-F3-09`) | QA | ADR-011 | Teste automatizado confirma que dado além do prazo é removido e que dado dentro do prazo **não** é removido (fronteira testada nos dois sentidos, para cada categoria); teste de exclusão de conta confirma ausência de qualquer linha remanescente em `public`, objeto no Storage e usuário em Supabase Auth associados ao `user_id` excluído | 1 dia | Não iniciada | Retenção & Descarte de Dado / Exclusão de Conta |
 
+### 3.4 Pacote de Refinamento (Fase 2.1)
+
+**Nova subseção — 2026-09-04.** Decompõe `PRD-TECNICO.md` Adendo A (RF-REF-01 a 06)
++ `SDD.md` Adendo A + `ADR-015`/`ADR-016`, aprovados com ressalvas pelo CTO
+(`CTO-REVIEW.md`, "Gate 2 — Pós-SDD (Pacote de Refinamento, Adendo A) — 2026-09-04").
+Convenção de ID: `<fase>` = `REF`. Coluna Status inicia `Não iniciada` para toda
+tarefa. Nenhuma tarefa desta subseção altera/reestima tarefa já `Concluída` de
+MVP/Fase 2/Fase 3.
+
+#### Backend
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| BE-REF-01 | Corrigir `BLOCKERS.md` Bloqueio 013 (IDOR em `payment_methods.account_id`): acrescentar `EXISTS (SELECT 1 FROM public.accounts a WHERE a.id = account_id AND a.user_id = auth.uid())` às policies `payment_methods_insert_own`/`payment_methods_update_own` — mesmo padrão já aplicado em `BE-M-13`/`BE-F2-01` a `BE-F2-08` | Backend | `BLOCKERS.md` Bloqueio 013, `SECURITY-REVIEW.md` SEC-DEBT-006 | Teste automatizado confirma: (1) `INSERT`/`UPDATE` de `payment_methods` própria apontando `account_id` para conta de outro usuário é rejeitado (IDOR fechado); (2) fluxo legítimo (própria conta) sem regressão; (3) suíte de regressão completa (todas as migrations já aplicadas) permanece 100% PASS | 0.5 dia | **Concluída — 2026-09-04.** Migration aditiva `supabase/migrations/20260904130000_be_ref_01_payment_methods_account_ownership.sql` (par down em `supabase/migrations_down/`), aplicada em produção via `supabase db push --linked` e confirmada por `supabase migration list --linked` (local=remote). `DROP`+`CREATE` de `payment_methods_insert_own`/`payment_methods_update_own` (última versão vigente, redefinida por `BE-F2-01` com checagem de `credit_card_id`), acrescentando `(account_id is null or exists (select 1 from public.accounts a where a.id = account_id and a.user_id = auth.uid()))` — mesma cláusula condicional já usada para `credit_card_id` nas mesmas policies (`account_id` é nullable, obrigatório só quando `type <> credit_card`, `payment_methods_account_or_card_check`). Teste `supabase/tests/be_ref_01_payment_methods_account_ownership.test.sql` (RLS real, `SET LOCAL ROLE authenticated`, usuário B sintético inserido em `auth.users` só dentro da transação, mesmo padrão de `BE-M-13`): CASO 1 (IDOR fechado — `INSERT` de A referenciando `account_id` de B rejeitado), CASO 2 (fluxo legítimo — `INSERT` com `account_id` próprio, sucesso), CASO 3 (`UPDATE` redirecionando `account_id` próprio → B rejeitado), CASO 4 (fluxo legítimo — `UPDATE` para outra conta própria, sucesso), CASO 5 (não-regressão — cláusula de `credit_card_id`/BE-F2-01 preservada na policy) — todos `PASS` (`supabase db query --linked`, `BEGIN;...ROLLBACK;`, nenhuma linha real alterada). Regressão completa da suíte (28 arquivos SQL) reexecutada após a correção: 26/28 `PASS`; as mesmas 2 falhas pré-existentes já documentadas em `BLOCKERS.md` Bloqueio 019 (`be_m07_dashboard.test.sql` CASO 2, `be_m14_user_id_default_auth_uid.test.sql`) reproduzem de forma idêntica (mesma mensagem/valor), confirmando que não são efeito colateral desta correção; nenhum blocker novo aberto. Nenhuma mudança de contrato de API (RLS/policy, não schema) — `API-CONTRACT.yaml` inalterado por esta tarefa. Pré-condição de código para `BE-REF-03`/`BE-REF-04` (Seção 4.4) satisfeita; **exposição em produção** do item 4 continua condicionada a `BE-REF-06`/`DIR-39` (mecânica de feature flag, fora do escopo desta tarefa). | Formas de Pagamento Unificadas (Fase 2.1) |
+| BE-REF-02 | RPC `public.get_transaction_shortcuts()` (`SECURITY INVOKER`, `STABLE`) implementando o algoritmo de RN-12/RN-13 (janela de 90 dias + fallback ao histórico completo + desempate por recência/ordem alfabética + forma de pagamento mais associada por subcategoria); coluna `transactions.created_via_shortcut boolean NOT NULL DEFAULT false` (RNF-12) — `ADR-015` | Backend | RF-REF-03 AC1, AC2, AC7, AC8; RN-12, RN-13; RNF-12; RNF-14 | RPC retorna até 10 linhas `(category_id, payment_method_id)` já ordenadas conforme o desempate de RN-12; retorna vazio quando o usuário não tem nenhum lançamento no histórico (AC2); teste automatizado cobre: ranking simples, fallback de AC7 (menos de 10 subcategorias na janela), os 2 critérios de desempate, e a resolução de `payment_method_id` por RN-13 (incluindo o caso `NULL` quando a subcategoria nunca teve forma de pagamento associada); isolamento cross-user (RPC nunca retorna dado de outro usuário) | 1.5 dia | **Concluída — 2026-09-04.** Migration aditiva `supabase/migrations/20260904120000_be_ref_02_transaction_shortcuts.sql` (par down em `supabase/migrations_down/`), aplicada em produção via `supabase db push --linked` e confirmada por `supabase migration list --linked` (local=remote). Implementa `get_transaction_shortcuts()` (implícito `SECURITY INVOKER`, `STABLE`, filtra por `auth.uid()` no corpo, mesma convenção das 3 RPCs de dashboard de `BE-M-07` — DIR-34): agrega por `category_id` numa janela de 90 dias, com fallback ao histórico completo quando há menos de 10 subcategorias distintas na janela (grupo "janela" sempre ordenado antes do grupo "histórico" — nunca re-ranqueado por cima dele, leitura literal de RN-12 regra 5, "completar posições vazias"); desempate (i) recência, (ii) nome asc.; `payment_method_id` resolvido pelo mesmo critério janela+fallback por subcategoria (interpretação: "mesmo critério de RN-12" também reaplica o fallback à resolução de forma de pagamento, não só à seleção da categoria — decisão de detalhe de implementação, documentada aqui, não uma reinterpretação de RN-13). Coluna `created_via_shortcut boolean NOT NULL DEFAULT false`, ortogonal a `source` (DIR-35). Teste `supabase/tests/be_ref_02_transaction_shortcuts.test.sql` (RLS real, `SET LOCAL ROLE authenticated`, usuário sintético próprio inserido em `auth.users` só dentro da transação — mesmo padrão de `BE-M-13` — necessário porque o algoritmo é sensível à massa completa de lançamentos do usuário, e rodar sob o usuário real misturaria fixture com dado real de produção): CASO 1 (ranking simples), CASO 2 (fallback AC7), CASO 3a/3b (os 2 desempates), CASO 4 (resolução de `payment_method_id` por RN-13, incluindo o caso `NULL` via truque válido de schema — transação `kind=transfer` com `category_id` preenchido e `payment_method_id NULL`, já que todo lançamento income/expense exige `payment_method_id NOT NULL` pelo `CHECK` existente), CASO 5 (isolamento cross-user com atacante nunca inserido em `auth.users` + AC2, histórico vazio), CASO 6 (janela inflada para 19 categorias distintas — corte em exatamente 10 linhas e confirmação de que o ramo de fallback NÃO dispara quando a janela já tem ≥10) — todos `PASS` (`supabase db query --linked`, `BEGIN;...ROLLBACK;`, nenhuma linha real alterada). Contrato publicado em `API-CONTRACT.yaml` v0.18.0 (`/rpc/get_transaction_shortcuts` + `Transaction.created_via_shortcut`). **Fix-loop (revisão de spec-compliance/qualidade, tentativa 1/2, mesma sessão) — 3 achados corrigidos na mesma migration** (ainda não promovida a nenhum lote fechado — reescrita segura, sem novo arquivo/down pair): **Achado 1** (bug real, média — janela de 90 dias sem limite superior, permitindo lançamento futuro `pending` de conta fixa/recorrência/parcelamento vencer o desempate de recência de RN-12/RN-13): adicionado `transaction_date <= hoje` aos 4 CTEs de agregação (`cat_window_agg`, `cat_history_agg`, `pm_window_agg`, `pm_history_agg`), mesmo padrão de `get_month_transaction_count`/`get_income_expense_report`. **Achado 2** (lacuna de cobertura, média — corte em 10 linhas e ramo "sem fallback" nunca exercitados, pois a fixture original só tinha 8 categorias): novo CASO 6 no teste (12 categorias novas + as 7 já ativas na janela = 19 no total, ≥10 — assert `count = 10` e `CAT_OLD` fora do resultado). **Achado 3** (decisão semântica não registrada, baixa/média — `kind='transfer'` entra no ranking sem nota): decisão explícita tomada e documentada em 3 lugares — comentário da migration, `COMMENT ON FUNCTION`, e novo addendum em `ADR-015` (2026-09-04) — **mantida a inclusão** de `kind='transfer'` na agregação (racional: `get_monthly_category_summary`/`get_income_expense_report` excluem transfer porque somam `amount_cents` — incluir duplicaria dinheiro que só mudou de conta; `get_transaction_shortcuts()` nunca soma valor, só conta ocorrências para ranquear frequência, então a mesma distorção não se aplica; fidelidade ao algoritmo literal de `ADR-015`, que já falava só em `category_id is not null`, sem menção a `kind`). Consequência documentada: a exceção `NULL` de `payment_method_id` (RN-13) permanece alcançável no schema real via transferência com `category_id` preenchido e `payment_method_id` nulo (permitido pelo `CHECK`, incomum no fluxo normal), o que mantém o CASO 4 do teste válido sem alteração. Função corrigida reaplicada no projeto real via `CREATE OR REPLACE FUNCTION` (mesma migration, coluna `created_via_shortcut` já aplicada anteriormente não foi re-executada) e conferida com `pg_get_functiondef` contra o remoto — corpo idêntico ao arquivo local. Teste `be_ref_02_transaction_shortcuts.test.sql` reexecutado com os 6 casos, `PASS`. Regressão completa da suíte (27 arquivos SQL) reexecutada após a correção: 25/27 `PASS` (incluindo este, com CASO 6 novo); as mesmas 2 falhas pré-existentes e já documentadas em `BLOCKERS.md` Bloqueio 019 (`be_m07_dashboard.test.sql` CASO 2, `be_m14_user_id_default_auth_uid.test.sql`) reproduzem de forma idêntica (mesma mensagem/valor), confirmando que não são efeito colateral desta correção; nenhum blocker novo aberto. **Re-revisão (tentativa 2/2, mesma sessão) — 2 achados residuais corrigidos, ambos sem alterar a lógica da função**: **R1** (média — a correção do Achado 1 não tinha nenhum teste protegendo-a; mutação removendo os 4 `<= wb.until_date` passava a suíte inteira): adicionada 1 linha de fixture (2ª transação de `CAT_D`, data futura `v_today + 30`) que faz a asserção **já existente** de CASO 3a detectar a regressão — verificado eu mesmo por mutação (reaplicando a função sem os 4 limites superiores via `CREATE OR REPLACE FUNCTION` direto no projeto real): falha exatamente com `"CASO 3a FALHOU: CAT_C (mais recente, rn=5) deveria vencer CAT_D (mais antigo, rn=2)"`; reaplicando a versão corrigida, volta a `PASS` — confirmado com `pg_get_functiondef` que o corpo restaurado é idêntico ao arquivo local. **R2** (baixa, cosmética — narrativa do Achado 2/CASO 6 sugeria que o predicado `< 10` de `cat_history_agg` era a causa da ausência de `CAT_OLD`, quando na verdade é só short-circuit de performance, redundante hoje porque `ORDER BY grp asc` já garante isso): texto corrigido em 3 lugares — comentário de topo da migration, comentário do teste (cabeçalho + bloco do CASO 6), mensagem de erro do CASO 6 — sem mudança de lógica/asserção. Teste reexecutado com os 6 casos, `PASS`; regressão completa da suíte (27 arquivos) re-executada de novo após R1/R2: 25/27 `PASS`, mesmas 2 falhas pré-existentes reproduzindo de forma idêntica; nenhum blocker novo aberto | Lançamentos — Hierarquia & Atalhos (Fase 2.1) |
+| BE-REF-03 | Estender `accounts_seed_default_payment_methods()` (`BE-M-02`) para semear as 4 formas de pagamento não-cartão (Pix, Débito, Boleto, Dinheiro) em **toda** conta ativa nova (2ª em diante), não só a 1ª — `CREATE OR REPLACE FUNCTION`, mesmo corpo de trigger já existente — `ADR-016` Decisão 2, RN-15 | Backend | RF-REF-04 AC4; RN-15 | Ao cadastrar uma 2ª (ou N-ésima) conta ativa, as 4 formas de pagamento não-cartão vinculadas a essa conta são criadas automaticamente, com `is_system_default = true`, sem ação manual do usuário; teste automatizado confirma que a 1ª conta continua se comportando exatamente como antes (sem regressão) e que "Crédito" continua fora do seed automático | 0.5 dia | **Concluída — 2026-09-04.** Migration aditiva `supabase/migrations/20260904140000_be_ref_03_payment_methods_seed_all_accounts.sql` (par down em `supabase/migrations_down/`), aplicada em produção via `supabase db push --linked` e confirmada por `supabase migration list --linked` (local=remote). `CREATE OR REPLACE FUNCTION public.accounts_seed_default_payment_methods()` remove o guard `not exists (... is_system_default = true)` do corpo original (`BE-M-02`) — o trigger `accounts_after_insert_seed_default_payment_methods` (`AFTER INSERT ON accounts FOR EACH ROW WHEN (new.is_active = true)`, inalterado) já garante 1 disparo por conta ativa nova por construção, então a função passa a inserir as 4 linhas incondicionalmente a cada disparo, vinculadas à conta que disparou o trigger (`new.id`); "Crédito" inalterado (fora do seed automático, RF-F2-01). Teste `supabase/tests/be_ref_03_payment_methods_seed_all_accounts.test.sql` (mesmo usuário fixture real de `public.profiles`): CASO 1 (1ª conta — 4 formas próprias, sem regressão), CASO 2 (2ª conta — recebe suas próprias 4 formas, sem alterar a contagem da 1ª), CASO 3 (3ª conta — mesmo comportamento, "Crédito" continua fora), CASO 4 (conta criada já `is_active=false` não dispara o seed — trigger inalterado) — todos `PASS`. **Achado de teste corrigido em `be_m02_payment_methods_defaults.test.sql`** (não um achado de produto): CASO 1/2 originais contavam `is_system_default=true` **por usuário** (não por conta) — pressuposto implícito de que o usuário fixture (`public.profiles LIMIT 1`, usuário real de produção) começava sem nenhum `payment_methods`; deixou de ser válido a partir desta migration, já que qualquer conta nova (inclusive as 2 do próprio teste) agora semeia, e o usuário real já tinha 1 conta com 4 formas pré-existentes — reproduzido ao vivo (CASO 1 falhou com "obtido 8"). Corrigido escopando as asserções por `account_id` (mesmo padrão robusto já usado no teste novo de `BE-REF-03`), documentado no cabeçalho do arquivo; teste reexecutado, `PASS`. Regressão completa da suíte (29 arquivos SQL, incluindo os 2 testes tocados) reexecutada: 28/29 `PASS`; apenas `be_m07_dashboard.test.sql` CASO 2 continua falhando (mesma falha pré-existente documentada em `BLOCKERS.md` Bloqueio 019, valor real de saldo em produção, não relacionada a esta tarefa). **Achado positivo, não planejado**: `be_m14_user_id_default_auth_uid.test.sql`, que também constava em Bloqueio 019 como falha pré-existente de fixture ("conta nova recém-criada não ganha forma de pagamento própria"), passou a `PASS` como efeito colateral direto desta migration — o próprio gap que o fixture do teste expunha é exatamente o que `BE-REF-03` corrige; confirmado por reexecução isolada do arquivo. `BLOCKERS.md` Bloqueio 019 não precisa de reabertura (não é conteúdo incorreto, só passou a estar resolvido); registrado aqui para rastreabilidade. Sem mudança de contrato de API (trigger/função interna, não exposta) — `API-CONTRACT.yaml` inalterado por esta tarefa. | Formas de Pagamento Unificadas (Fase 2.1) |
+| BE-REF-04 | Novo trigger `transactions_default_account_from_payment_method` (`BEFORE INSERT OR UPDATE ON transactions`, dispara só quando `NEW.account_id IS NULL`): resolve `account_id` a partir de `payment_method_id` (conta vinculada, ou conta ativa mais antiga do usuário quando a forma é cartão de crédito), com checagem própria de ownership do `payment_method_id` — `ADR-016` Decisão 3; atualização de `API-CONTRACT.yaml` tornando `account_id` opcional no payload quando `payment_method_id` é enviado e `kind != transfer` — Decisão 6 | Backend | RF-REF-04 AC1, AC2, AC5; RN-16 | `POST`/`PATCH /transactions` sem `account_id` no payload, com `payment_method_id` de forma não-cartão, resolve `account_id` para a conta vinculada da forma de pagamento; com forma de cartão, resolve para a conta ativa mais antiga do usuário (comportamento hoje já observado, preservado); `payment_method_id` que não pertence ao usuário autenticado é rejeitado com erro claro (nunca deixa a violação de `NOT NULL` estourar sem contexto); `kind = transfer` continua exigindo `account_id` explícito, sem alteração; **teste de não-regressão obrigatório** (recomendação do CTO, Gate 2 desta rodada): `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` (Fase 2) continuam enviando `account_id` explícito e não acionam o trigger novo; lançamento de cartão via formulário unificado, sem `account_id` explícito, ainda resolve `card_invoice_id` corretamente (RN-01/RF-F2-05, sem interferência entre os dois mecanismos, `ADR-016` Decisão 7) | 1.5 dia | **Concluída — 2026-09-04.** Migration aditiva `supabase/migrations/20260904150000_be_ref_04_transactions_default_account_from_payment_method.sql` (par down em `supabase/migrations_down/`), aplicada em produção via `supabase db push --linked` e confirmada por `supabase migration list --linked` (local=remote). Função `transactions_default_account_from_payment_method()` implementa fielmente a lógica de `ADR-016` Decisão 3 (transfer/`payment_method_id NULL` → no-op; ownership própria via `WHERE id = NEW.payment_method_id AND user_id = auth.uid()`, erro `23514` → 400 se não encontrada; não-cartão → `account_id` vinculado; cartão → conta ativa mais antiga do usuário, Opção D). **Decisão de detalhe de implementação documentada no cabeçalho da migration** (não uma reinterpretação do ADR): os TRIGGERS (`transactions_before_insert_account_from_payment_method`/`transactions_before_update_account_from_payment_method`) usam nome distinto do da FUNÇÃO (mesma convenção já usada em `accounts_seed_default_payment_methods()`/trigger `accounts_after_insert_...` e `transactions_assign_card_invoice()`/triggers `transactions_before_{insert,update}_assign_card_invoice`) — necessário porque Postgres dispara múltiplos triggers `BEFORE` do mesmo evento em ordem alfabética de nome, e o nome literal citado no ADR/TASK.md ordenaria DEPOIS de `transactions_before_insert_block_inactive_account` (RN-08, pré-existente), que leria `NEW.account_id` ainda `NULL` e pularia silenciosamente o bloqueio de conta inativa sempre que o client omitisse `account_id`. Nome escolhido (`..._account_from_payment_method`) ordena alfabeticamente ANTES de `assign_card_invoice` e `block_inactive_account` — confirmado por `SELECT tgname FROM pg_trigger WHERE tgrelid = 'public.transactions'::regclass ORDER BY tgname` contra o projeto real (ordem: `account_from_payment_method` → `assign_card_invoice` → `block_inactive_account` → `set_status`). `API-CONTRACT.yaml` atualizado para v0.19.0: `Transaction.account_id` sai de `required`, descrição documenta a condição exata (Decisão 6); novo 400 documentado em `POST /transactions` para `payment_method_id` sem ownership. Teste `supabase/tests/be_ref_04_transactions_default_account.test.sql` (RLS real, usuário B sintético): CASO 1 (não-cartão resolve para a conta vinculada), CASO 2 (cartão resolve para a conta ativa mais antiga do usuário — verificada dinamicamente antes do teste, não hardcoded), CASO 3 (`payment_method_id` de B rejeitado), CASO 4 (`transfer` sem `account_id` continua falhando por `NOT NULL` — trigger não atua), CASO 5 (não-regressão — `account_id` explícito divergente do vinculado à forma de pagamento NUNCA é sobrescrito, mesmo padrão exato usado pelos 4 geradores automáticos de Fase 2, citados por arquivo/linha no cabeçalho do teste: `be_f2_03:170-173`, `be_f2_04:227-230`, `be_f2_05:238-241`, `be_f2_06:171-174`, todos com `account_id` `NOT NULL` na própria linha de template/plano/conta fixa), CASO 6 (RN-01 — `card_invoice_id` resolvido corretamente mesmo sem `account_id` explícito, `ADR-016` Decisão 7), CASO 7 (RN-08 preservado — conta resolvida via `payment_method_id` que foi desde então inativada continua bloqueada por `transactions_block_inactive_account`, prova direta da correção de ordenação de trigger), CASO 8 ([Fix-loop, achado M-1/M-2] UPDATE/PATCH que só muda `payment_method_id`, sem tocar `account_id` no payload — PostgREST preserva `OLD.account_id` em UPDATE que omite a coluna, diferente de INSERT; `account_id` migra corretamente para a conta da nova forma de pagamento), CASO 9 ([Fix-loop, achado M-3] usuário sem nenhuma conta ativa tentando lançar via forma `type=credit_card` — erro explícito `23514`/400, nunca a violação de `NOT NULL` crua), CASO 10 ([Fix-loop, addendum RN-08/UPDATE, `BLOCKERS.md` Bloqueio 020] UPDATE migrando `account_id` via `payment_method_id` para uma conta desde então inativada — rejeitado pela checagem própria de conta resolvida ativa, também em UPDATE) — todos `PASS` (10/10). **Fix-loop (revisão de spec-compliance/qualidade, tentativa 1/2) — 3 achados corrigidos na mesma migration, sem novo arquivo/par down (mesmo precedente de `BE-REF-02`), documentado no cabeçalho do arquivo**: M-1 (médio) — o trigger `BEFORE UPDATE` original só disparava com `WHEN (new.account_id IS NULL)`; em PATCH via PostgREST, omitir `account_id` do payload preserva `OLD.account_id` (diferente de INSERT), então o trigger nunca disparava ao editar só `payment_method_id`, contradizendo `API-CONTRACT.yaml` v0.19.0 (que já documentava a resolução automática para POST **e PATCH**) — corrigido ampliando o `WHEN` para `(new.account_id IS NULL OR new.payment_method_id IS DISTINCT FROM old.payment_method_id)`, mesmo padrão idiomático de `transactions_before_update_assign_card_invoice` (`BE-F2-02`); M-2 (menor, cobertura) — CASO 8 novo cobre exatamente esse cenário; M-3 (menor) — ramo `credit_card` sem nenhuma conta ativa do usuário deixava `NEW.account_id` `NULL` e estourava a violação de `NOT NULL` sem contexto, corrigido com checagem explícita + exceção clara (`23514`/400), CASO 9 novo cobre. **Achado adicional da mesma rodada** (observação da revisão de frontend/`FE-REF-04`): `transactions_block_inactive_account` (RN-08) só existe como `BEFORE INSERT`, nunca `BEFORE UPDATE` (lacuna pré-existente do schema legado) — o fix-loop M-1 tornou essa lacuna mais alcançável na prática; mitigado dentro da própria função (checa se a conta RESOLVIDA está ativa, INSERT e UPDATE), CASO 10 novo cobre; lacuna mais ampla (demais PATCHs que mudem `account_id`/`destination_account_id` por outra via) permanece registrada como débito técnico não-bloqueante em `BLOCKERS.md` Bloqueio 020, fora do escopo desta tarefa. **Reconciliação/verificação final (2026-09-04, sessão separada, pós fix-loop)**: `supabase migration list --linked` confirma `20260904150000` `local=remote`; consulta direta `pg_get_triggerdef`/`pg_get_functiondef` contra o projeto real confirmou que o trigger `transactions_before_update_account_from_payment_method` e a função `transactions_default_account_from_payment_method()` já estavam, no banco, byte-a-byte idênticos à versão pós-fix-loop do arquivo local (a migration já havia sido aplicada por completo antes da interrupção da sessão anterior) — nenhuma reconciliação/`CREATE OR REPLACE` adicional foi necessária. Suíte de 10 casos reexecutada contra o projeto real: `PASS`. Regressão completa da suíte (31 arquivos SQL, incluindo os 3 testes novos deste pacote) reexecutada: 30/31 `PASS`; só `be_m07_dashboard.test.sql` CASO 2 continua falhando (mesma falha pré-existente de `BLOCKERS.md` Bloqueio 019, valor real de saldo em produção, não relacionada); nenhum blocker novo aberto. | Formas de Pagamento Unificadas (Fase 2.1) |
+| BE-REF-05 | Backfill de formas de pagamento para contas ativas pré-existentes: consultar `accounts` reais em produção; para toda conta ativa além da mais antiga do usuário que ainda não tenha suas 4 formas de pagamento não-cartão próprias, `INSERT` aditivo das 4 linhas faltantes (mesmo padrão de seed de `BE-REF-03`) — ressalva não-bloqueante do CTO, Gate 2 desta rodada, condição de pré-deploy | Backend | `CTO-REVIEW.md` Gate 2 (Pacote de Refinamento), ressalva 2; RN-15 | Query de verificação contra `accounts`/`payment_methods` reais documentada no PR; se existir conta ativa sem as 4 formas de pagamento próprias, migration de backfill (`INSERT ... SELECT`, sem `UPDATE`/`DELETE`) inclui as linhas faltantes; se não existir nenhum caso, o PR documenta explicitamente "0 contas afetadas, backfill não necessário" em vez de omitir a verificação; teste automatizado confirma idempotência (rodar a migration 2x não duplica linha) | 0.75 dia | **Concluída — 2026-09-04.** Migration aditiva `supabase/migrations/20260904160000_be_ref_05_payment_methods_backfill.sql` (par down em `supabase/migrations_down/`, `DELETE` guardado — ver ressalva de risco/G-02 no próprio arquivo), aplicada em produção via `supabase db push --linked` e confirmada por `supabase migration list --linked` (local=remote). **Query de verificação documentada no cabeçalho da migration, executada contra o projeto real ANTES do `INSERT`**: `select count(*) ... where a.is_active = true and a.id <> (conta mais antiga ativa do usuário) and not exists (as 4 formas próprias)` → **resultado real: 2 contas afetadas** (as 2 contas mais recentes do único usuário real hoje, "Mercado Pago" e "Mercado Pago - Cofrinho" — a mais antiga, "C6", já tinha as 4 desde o seed original de `BE-M-02`; não é o caso "0 contas afetadas"). `INSERT ... SELECT` aditivo (`CROSS JOIN` dos 4 tipos padrão × contas elegíveis, `NOT EXISTS` por `(account_id, type)` garante que só as linhas faltantes entram) inseriu as 8 linhas esperadas (2 contas × 4 formas) — confirmado por `SELECT account_id, type FROM payment_methods WHERE user_id = <usuário real>` pós-migration: as 3 contas do usuário agora têm suas 4 formas próprias cada (12 linhas no total). Subquery de "conta mais antiga" usa a MESMA expressão (`order by created_at asc limit 1`, sem desempate por id) do trigger de `BE-REF-04`, garantindo consistência de critério entre os dois mecanismos (documentado no cabeçalho da migration). Teste `supabase/tests/be_ref_05_payment_methods_backfill.test.sql` (usuário sintético isolado, controle total do conjunto de contas — reexecuta a instrução `INSERT...SELECT` literal da migration, já que é migration de dado sem função/trigger próprio para chamar): CASO 1 (conta com gap simulado recebe as 4 linhas faltantes), CASO 2 (conta já semeada — via trigger de `BE-REF-03` — não é duplicada), CASO 3 (idempotência — reexecutar a mesma instrução 2x não duplica nenhuma linha, nem na conta com gap nem na já semeada) — todos `PASS`. Regressão completa da suíte (31 arquivos SQL, incluindo os 5 testes novos deste pacote — `BE-REF-01/03/04/05`) reexecutada ao final das 4 tarefas: **30/31 `PASS`**; só `be_m07_dashboard.test.sql` CASO 2 continua falhando (mesma falha pré-existente de `BLOCKERS.md` Bloqueio 019, valor real de saldo em produção, não relacionada a este pacote); nenhum blocker novo aberto. Sem mudança de contrato de API (backfill de dado, não schema/endpoint) — `API-CONTRACT.yaml` inalterado por esta tarefa. **Lote "Formas de Pagamento Unificadas (Fase 2.1)" — 4 das 6 tarefas de Backend concluídas** (`BE-REF-01`, `BE-REF-03`, `BE-REF-04`, `BE-REF-05`); `BE-REF-06` (gate de exposição em produção via feature flag) permanece retido, fora do escopo desta rodada, aguardando `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo DevSecOps + `QA-REF-03` aprovado (`DIR-39`, `ADR-016` Decisão 5, condição vinculante do CTO no Gate 2). | Formas de Pagamento Unificadas (Fase 2.1) |
+| BE-REF-06 | Gate de deploy em produção do item 4: feature flag `payment_method_unification_enabled` (default `false` em produção), ligada em produção **somente** após `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo DevSecOps — mecânica de sequenciamento delegada ao Tech Lead por `ADR-016` Decisão 5 (DIR-39) | Backend/DevOps | `CTO-REVIEW.md` Gate 2 (Pacote de Refinamento), ressalva 1 (condição vinculante); `ADR-016` Decisão 5 | Flag existe e está `false` em produção até este ato explícito; changelog/runbook de deploy registra a data e quem confirmou `BLOCKERS.md` Bloqueio 013 `Resolvido` antes de ligar a flag; nenhuma outra tarefa deste pacote liga a flag por conta própria (DIR-39) | 0.25 dia | Não iniciada — **bloqueada até Bloqueio 013 = Resolvido (Seção 4.4)** | Formas de Pagamento Unificadas (Fase 2.1) |
+
+#### Frontend
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-REF-01 | Dashboard grid multi-coluna a partir de `lg` (≥1024px): coluna esquerda (saldo+KPIs) + coluna direita (`DonutChart`+legenda lado a lado), linha 2 (Orçamentos do mês \| Últimos lançamentos lado a lado); layout mobile (< `lg`) preservado sem nenhuma alteração — `S-DASH-01` revisado | Frontend | RF-REF-01 AC1-AC4; RNF-10; RNF-11 | A partir de `lg`, dashboard renderiza em 2 colunas + linha 2 de 2 colunas, conforme wireframe de `UX-SPEC.md`; abaixo de `lg`, comportamento single-column idêntico ao já existente (nenhuma regressão mobile, teste visual/E2E cobre os dois breakpoints); nenhum dado novo é buscado (mesma chamada de API já existente); redução de rolagem (AC3) validada por QA contra o baseline medido pelo UX/UI (ver Seção 4.4, dependência bloqueante de início) | 1 dia | Não iniciada | Dashboard (Fase 2.1) |
+| FE-REF-02 | Hierarquia visual do item de lista de lançamentos: subcategoria como linha 1 (maior destaque), descrição (quando preenchida) + forma de pagamento como linha 2 (secundário); descrição vazia é omitida por completo, nunca "(sem descrição)" — `S-TXN-01` revisado | Frontend | RF-REF-02 AC1-AC4; RN-17, RN-18 | Item de lista exibe subcategoria em destaque (`font-semibold`) e descrição+forma de pagamento como texto secundário; lançamento sem descrição não exibe nenhum texto de preenchimento nem separador "·" solto; valor, seta de entrada/saída, badge de origem automatizada e demais comportamentos preservados sem alteração (AC4); teste automatizado cobre especificamente o caso de descrição vazia | 0.75 dia | **Concluída — 2026-09-04.** Hierarquia reescrita em `frontend/src/pages/transactions/TransactionsPage.tsx`: linha 1 = nome da subcategoria (`category_id` resolvido via `categoryNameById`), `text-base font-semibold`; linha 2 = descrição (quando preenchida) + forma de pagamento, unidas só quando ambas existem — quando a descrição está vazia, a linha 2 mostra só a forma de pagamento (sem "·" solto, sem "(sem descrição)"), e some por completo quando nenhuma das duas existe. `min-w-0`+`truncate` (regra anti-corte, UX-SPEC Seção 3.1.1) aplicado às duas linhas, não só a uma. Valor, seta de entrada/saída e ações Editar/Excluir preservados sem alteração (AC4); não havia badge de origem automatizada no código antes desta tarefa (Fase 3 ainda não implementada) — nada a preservar/quebrar nesse ponto, confirmado por leitura do código anterior à mudança. Teste automatizado dedicado ao caso de descrição vazia + teste de hierarquia geral (`font-semibold` na linha 1) em `TransactionsPage.test.tsx`. **Revisão de qualidade (2026-09-04, achado 3/3, corrigido nesta rodada)**: a linha 1 (subcategoria) também passou a renderizar condicionalmente — quando `category_id` é nulo/não resolve (`kind=transfer`, dado legado/importado sem categoria), a linha 1 some por completo em vez de deixar um `<p title="">` vazio ocupando espaço, mesmo tratamento já aplicado à linha 2 (RN-17). `npx vitest run` (suíte completa) 229/229 PASS após a correção; `npx tsc -b` limpo; `npm run lint` sem erro novo | Lançamentos — Hierarquia & Atalhos (Fase 2.1) |
+| FE-REF-03 | Componentes `ShortcutBar`/`ShortcutChip`: consomem `get_transaction_shortcuts()` a cada carregamento da tela de lançamentos, somem por completo (não renderizam vazio) quando a RPC retorna 0 linhas; clique em um `ShortcutChip` abre `S-TXN-02` pré-preenchido (subcategoria, forma de pagamento, tipo, data = hoje) com foco automático no campo Valor; submissão envia `created_via_shortcut=true` | Frontend | RF-REF-03 AC1-AC6; RN-13; RNF-12 | Barra aparece só quando a RPC retorna ao menos 1 linha, com até 10 `ShortcutChip`; clique pré-preenche exatamente os campos de RN-13, com foco no campo Valor (não no primeiro campo do formulário — desvio intencional documentado em `UX-SPEC.md`); usuário pode editar qualquer campo pré-preenchido antes de confirmar (AC5); lançamento confirmado por essa via persiste com `created_via_shortcut=true`; skeleton de carregamento (pílulas) cobre a latência da RPC sem bloquear o restante da tela | 1.5 dia | **Concluída — 2026-09-04.** `ShortcutBar`/`ShortcutChip` implementados (`frontend/src/components/domain/ShortcutBar.tsx`, `ShortcutChip.tsx`) e integrados a `TransactionsPage.tsx`: carregam via `getTransactionShortcuts()` (novo `frontend/src/lib/api/shortcuts.ts`) 1x por carregamento da tela (AC8, sem cache client-side); somem por completo (não renderizam vazio, `null`) quando a RPC devolve 0 linhas ou falha (falha tratada como "sem atalhos", sem `Banner`, UX-SPEC Seção 4.2); skeleton de 5 pílulas de largura variável durante o carregamento. Clique em um `ShortcutChip` abre `TransactionFormModal` (novo prop `shortcutPrefill`) pré-preenchido — subcategoria resolvida a partir de `categories` (mesmo padrão já usado para `editingTransaction`), forma de pagamento, tipo (`categories.kind`, RN-13) e data = hoje — com foco automático no campo Valor (efeito próprio, roda depois do focus trap do `Modal`, DOM ordering child-antes-do-pai); usuário pode editar qualquer campo pré-preenchido (AC5, testado trocando a forma de pagamento); submissão envia `created_via_shortcut: true` só nesse fluxo (fluxo normal do "+ Novo lançamento" não envia o campo, testado). **Nota sobre o ponto de sincronização com o Backend**: no início desta tarefa, `API-CONTRACT.yaml` ainda não publicava `get_transaction_shortcuts()` (`BE-REF-02` em implementação paralela) — sem bloquear a espera, a implementação já chamou desde o início o endpoint real pelo nome/shape exato documentado em `ADR-015` Decisão 1 (`getSupabaseClient().rpc("get_transaction_shortcuts", {})`, mesmo padrão das demais RPCs de `lib/api`), nenhum cálculo/ranking local no client (DIR-34). `BE-REF-02` fechou (`Concluída`) ainda durante esta sessão — `API-CONTRACT.yaml` v0.18.0 publicado e migration `20260904120000_be_ref_02_transaction_shortcuts.sql` aplicada em produção (confirmado por `supabase migration list --linked`, ver linha `BE-REF-02` acima); conferido campo a campo contra o contrato publicado e a migration real: nome da RPC, ausência de parâmetros, shape de resposta `(category_id uuid, payment_method_id uuid nullable)`, ordenação já pronta no servidor (`order by top10.rn`, sem necessidade de reordenar no client), e a semântica de `transactions.created_via_shortcut` (`boolean default false`, client só envia `true` explicitamente) — **tudo idêntico ao já implementado**, nenhuma linha de código de produção precisou mudar; só as notas de "mock temporário" nos comentários (`shortcuts.ts`, `types.ts`) foram atualizadas para referenciar o contrato real (`API-CONTRACT.yaml` v0.18.0) em vez de `ADR-015` isoladamente. Sem acesso a credenciais reais do Supabase nesta sessão (mesma ressalva já registrada em `FE-M-04` a `FE-M-12`/`FE-F2-*`) — confirmação feita por leitura direta da migration SQL aplicada e do contrato publicado, não por chamada de rede real; recomenda-se smoke test manual do fluxo completo (clique no atalho → confirmação → `created_via_shortcut=true` persistido) antes do Gate de QA fechar esta tarefa. Testes automatizados cobrindo os ACs literais: `ShortcutBar.test.tsx` (4 casos), `shortcuts.test.ts` (3 casos), mais 10 casos em `TransactionsPage.test.tsx` (AC1 chips renderizados; AC2 barra omitida sem histórico; AC3/AC4 pré-preenchimento + foco no Valor; AC5 edição de campo pré-preenchido; AC6 `created_via_shortcut=true`; skeleton de carregamento; falha silenciosa da RPC; fluxo normal sem o campo; + os 2 casos do achado 2 abaixo). **Revisão de qualidade (2026-09-04, 3 achados, 2 aplicáveis a esta tarefa, ambos corrigidos nesta rodada — fix-loop tentativa 1/2)**: **(1)** `ShortcutChip` não tinha `aria-label` exigido por `UX-SPEC.md` Seção 5 (linha `ShortcutChip`) — o texto visível (ícone `aria-hidden` + nome da subcategoria) sozinho não descrevia a ação para leitor de tela; corrigido com `aria-label="Lançar em {subcategoria}"` explícito no `<button>`; `ShortcutBar.test.tsx` e `TransactionsPage.test.tsx` atualizados para buscar o botão pelo novo nome acessível ("Lançar em Alimentação"/"Lançar em Restaurante"), não mais só o nome da subcategoria. **(2)** corrida/falha permanente entre `getTransactionShortcuts()` e `loadReferenceData()` podia renderizar `ShortcutChip` sem nome/ícone (`label: ""`) e com `kind="expense"` pré-preenchido incorretamente quando `categories` ainda não tinha resolvido (corrida transitória) ou nunca resolvia (`loadReferenceData()` não tinha `try/catch`, falha de qualquer uma das 3 chamadas deixava `categories` em `[]` para sempre) — corrigido com: novo estado `referenceDataReady` (setado no `finally` de `loadReferenceData()`, que ganhou `try/catch` para também não deixar mais nenhuma rejeição não tratada solta no processo) mantém `ShortcutBar` em skeleton até `categories` também estar pronto; `shortcutItems` passou a filtrar (`categoryById.has(shortcut.category_id)`) qualquer atalho cuja categoria não resolva, como reforço defensivo para o caso de falha permanente (a barra some por completo nesse caso, mesmo tratamento de AC2, em vez de ficar presa em carregamento ou mostrar chip anônimo). 2 novos testes cobrindo os dois cenários (`achado de qualidade: RPC de atalhos responde antes de categories...`/`achado de qualidade: falha permanente ao carregar categories...`). Achado 3 (linha 1 vazia sem `category_id` no item de lista) pertence a `FE-REF-02`, corrigido lá (ver nota daquela linha). `npx vitest run` (suíte completa, 53 arquivos) — 229/229 PASS (+2 em relação à primeira rodada desta tarefa); `npx tsc -b` limpo; `npm run lint` (`oxlint`) sem erro novo, só os mesmos warnings pré-existentes `react(set-state-in-effect)` já presentes em outras telas | Lançamentos — Hierarquia & Atalhos (Fase 2.1) |
+| FE-REF-04 | Formulário de lançamento manual (`S-TXN-02`, criação e edição): remove o campo "Conta" (7 → 6 campos); `<select>` de forma de pagamento passa a exibir o rótulo calculado por `derivePaymentMethodLabel()` (RN-14); payload de criação/edição nunca envia `account_id` quando `kind != transfer` (DIR-36) | Frontend | RF-REF-04 AC1, AC2, AC3, AC6; RN-14, RN-16; RNF-13 | Campo "Conta" não existe mais no formulário, nem visível nem oculto; `derivePaymentMethodLabel()` implementada como função única (DIR-37), usada pelo `<select>` deste formulário; rótulo exibe sufixo "{Forma} {Conta}" só quando há mais de 1 conta ativa, senão "{Forma}" simples; formas vinculadas a cartão de crédito continuam exibindo o nome do cartão, inalterado (AC5); grid responsivo "2 colunas a partir de `md`" preservado (ainda 5+ campos) | 1 dia | **Concluída — 2026-09-04.** `frontend/src/lib/paymentMethods/derivePaymentMethodLabel.ts` (função única, DIR-37) criada e consumida pelo `<select>` de `TransactionFormModal.tsx` (`options={paymentMethods.map((method) => ({ value: method.id, label: derivePaymentMethodLabel(method, accounts) }))}`) — mesma função reaproveitada por `FE-REF-05` (ver linha abaixo), nenhuma reimplementação local. Campo "Conta" removido por completo do formulário (state `accountId`, `<Select label="Conta">`, `nextErrors.account` — todos eliminados; nada oculto, confirmado por teste `dialog.queryByLabelText("Conta")` ausente, AC1). Payload de `createTransaction`/`updateTransaction` nunca envia `account_id` (DIR-36) — este formulário só cria `kind` income/expense (nenhum fluxo `kind=transfer` existe nesta base de código hoje, confirmado por leitura direta — o toggle do formulário só alterna Entrada/Saída), então a omissão é incondicional aqui; testes dedicados confirmam a ausência de `account_id` tanto na criação quanto na edição. Rótulo (RN-14) testado nos 3 cenários literais do AC: só 1 conta ativa → simples ("Pix"); >1 conta ativa → sufixo "{Forma} {Conta}" ("Pix Conta Corrente"); forma vinculada a cartão de crédito → nome do cartão inalterado mesmo com >1 conta ativa (AC5). Grid responsivo "2 colunas a partir de `md`" preservado (`grid-cols-1 md:grid-cols-2`, 5 itens de grid + toggle Entrada/Saída fora da grade = 6 campos, era 7), testado via `closest(".grid")`. **Efeito colateral necessário, resolvido nesta própria tarefa como pequeno desvio (não uma reinterpretação de UX-SPEC.md nem um desvio de escopo a escalonar)**: a fila offline (`lib/offline/db.ts`/`queue.ts`/`sync.ts`, DIR-11) é alimentada pelo mesmo formulário e exigia `accountId` obrigatório no schema local — `PendingTransaction.accountId` tornou-se opcional (campo mantido, não removido, só deixou de ser obrigatório, por compatibilidade com item já enfileirado localmente antes desta mudança, fora do controle desta migration de código) e `toNewTransaction()` (`sync.ts`) só inclui `account_id` no payload de sincronização real quando o item enfileirado já o carregava, mesma regra DIR-36 aplicada ao caminho offline; testes cobrindo os dois casos (com e sem `accountId`) adicionados a `queue.test.ts`/`sync.test.ts`. **Fechamento do ponto de sincronização com o Backend (mock-aware → contrato real confirmado, mesma sessão)**: implementação começou como mock-aware, adiantando o shape já 100% especificado por `ADR-016` Decisão 6 sem esperar a publicação formal (mesmo padrão de `FE-REF-03`/`BE-REF-02`) — `NewTransaction.account_id` marcado opcional em `lib/api/types.ts` com nota temporária no comentário. `BE-REF-04` publicou o contrato real ainda durante esta sessão (`API-CONTRACT.yaml` v0.19.0) e a nota de mock foi removida, substituída por confirmação campo a campo: **(1)** `Transaction.required` mudou de `[account_id, kind, amount_cents, transaction_date]` para `[kind, amount_cents, transaction_date]` — idêntico a `Pick<Transaction, "kind" | "amount_cents" | "transaction_date">` já implementado, nenhum ajuste de tipo necessário; **(2)** condição exata de omissão de `account_id` no contrato ("opcional quando `payment_method_id` é enviado e `kind != transfer`; obrigatório quando `kind = transfer`") confirmada idêntica ao comportamento já implementado (este formulário nunca cria `kind=transfer`, então a omissão incondicional já implementada está dentro da condição do contrato, não a viola); **(3)** novo `400` documentado ("`account_id` omitido + `payment_method_id` que não pertence ao usuário autenticado, checagem própria do trigger `transactions_default_account_from_payment_method`, independente de RLS" e "`account_id` omitido com `kind=transfer` ou sem `payment_method_id`") confirmado **já tratado adequadamente, sem nenhuma mudança de código necessária** — `lib/api/errors.ts` mapeia todo `status 400` para `kind: "validation"` de forma genérica (mecanismo pré-existente, não específico de nenhum endpoint), e `TransactionFormModal.handleSubmit` já cai no mesmo `else` de `setBanner(cause.message)` usado por todo `400`/`409` não-network deste formulário (nenhum tratamento especial por tipo de erro existe em nenhum lugar do form, então este novo `400` recebe exatamente o mesmo tratamento que qualquer outro); teste novo em `TransactionsPage.test.tsx` reproduz o cenário exato do `400` documentado e confirma o `Alert` de erro exibido dentro do modal, sem cair na fila offline (offline só trata `kind: "network"`). Migration real conferida: `supabase/migrations/20260904150000_be_ref_04_transactions_default_account_from_payment_method.sql` (existência confirmada por leitura direta do arquivo). Nenhuma divergência encontrada entre o que foi implementado mock-aware e o contrato real publicado — nenhum código de produção precisou mudar, só a nota de documentação em `lib/api/types.ts` (mock → confirmação real). **Fix-loop (revisão de spec-compliance/qualidade, tentativa 1/2, mesma sessão) — 1 achado real bloqueante corrigido, 4 observações não-bloqueantes registradas (1 delas também corrigida por trivialidade)**: **Achado 1** (bug real, severidade alta — editar um lançamento trocando a forma de pagamento não repropagava `account_id`, deixando o lançamento debitando a conta antiga silenciosamente enquanto lista/`<select>` já mostravam a forma nova). Causa raiz: o `PATCH` omitia `account_id` incondicionalmente, igual ao `POST` — mas no PostgREST, coluna ausente do payload de `UPDATE` **preserva o valor antigo** da linha (diferente do `INSERT`, onde ausência = `NULL`); como `NEW.account_id` nunca chegava `NULL` na edição, o `WHEN (NEW.account_id IS NULL)` do trigger `transactions_default_account_from_payment_method` (`supabase/migrations/20260904150000_...sql:107-111`) nunca disparava, e a conta resolvida na criação sobrevivia à troca de forma de pagamento. Corrigido enviando `account_id: null` **explicitamente** no payload de edição (nunca omitindo a chave), mantendo a omissão simples na criação (onde já funcionava corretamente) — mudança de payload contida, sem tocar em nenhuma migration/trigger do backend nem reabrir `ADR-016`: `NewTransaction.account_id` retipado para `string | null` (`lib/api/types.ts`, comentário dedicado explicando a diferença de semântica INSERT vs. UPDATE do PostgREST) e `TransactionFormModal.handleSubmit` passou a incluir `account_id: null` condicionalmente só quando `editingTransaction` existe. 2 testes novos em `TransactionsPage.test.tsx`: um confirmando `account_id: null` explícito em toda edição, e um de regressão reproduzindo o cenário exato do achado (criar com forma de pagamento A vinculada à conta X, editar trocando para forma B vinculada à conta Y, confirmar que o payload de update carrega `payment_method_id` novo + `account_id: null`). **Nota para QA**: este cenário (trocar a forma de pagamento na edição de um lançamento já existente) deveria entrar explicitamente no critério de aceite que `QA-REF-03` vai validar contra o comportamento real do trigger, não só o caminho de criação. **Observações não-bloqueantes do revisor (registradas, sem ação obrigatória nesta rodada)**: (1) célula órfã no grid `md` do formulário (5 itens em 2 colunas deixava "Valor" sozinho numa linha) — corrigida por trivialidade, `CurrencyInput` de "Valor" passou a `md:col-span-2`, mesmo padrão já usado por `CategoryPicker`/`Descrição`; (2) mensagem do novo `400` de `BE-REF-04` continua genérica ("Preencha todos os campos obrigatórios antes de salvar."), sem texto específico para o caso de `payment_method_id` de outro usuário — aceito, mesmo padrão genérico já usado por todo `400` do app, nenhuma tela tem mensagem específica por sub-causa dentro de um mesmo status HTTP; (3) retrocompatibilidade da fila offline com item já enfileirado antes desta mudança (sem `accountId`) — já coberta pelo tratamento condicional de `toNewTransaction()`; (4) outras telas (`RecurringTemplate`/`InstallmentPurchase`/`FixedBill`, Fase 2) seguem exibindo `payment_method.name` cru em vez de `derivePaymentMethodLabel()` — fora de escopo de `RF-REF-04` (`ADR-016` "Fora de Escopo" confirma que esses 3 formulários não são alterados por este pacote), não uma regressão introduzida aqui. `npx vitest run` (suíte completa, 56 arquivos) 280/280 PASS (+1 do teste de regressão do Achado 1); `npx tsc -b` limpo; `npm run lint` sem erro novo, só os mesmos warnings pré-existentes `react(set-state-in-effect)` | Formas de Pagamento Unificadas (Fase 2.1) |
+| FE-REF-05 | Aplicar `derivePaymentMethodLabel()` de forma consistente nas demais superfícies exigidas por RNF-13: texto secundário do item de lista (linha 2, `FE-REF-02`), `FilterBar` (rótulo do filtro "forma de pagamento"), `ShortcutChip` (quando exibir forma de pagamento) | Frontend | RF-REF-04 AC6; RNF-13 | As 3 superfícies importam a mesma função `derivePaymentMethodLabel()` (DIR-37, nenhuma reimplementação local); nenhuma superfície exibe rótulo divergente para a mesma forma de pagamento no mesmo momento (teste automatizado compara o rótulo renderizado nas 3 superfícies para o mesmo dado); filtro "conta" (`FilterBar`) permanece inalterado, não é removido por este pacote | 0.5 dia | **Concluída — 2026-09-04.** `derivePaymentMethodLabel()` (criada em `FE-REF-04`, acima) aplicada nas 2 superfícies de `TransactionsPage.tsx` que de fato exibem forma de pagamento hoje: linha 2 do item de lista (novo `paymentMethodLabelById`, memoizado a partir de `paymentMethods`+`accounts`, substituindo o `paymentMethodNameById` anterior que usava `method.name` cru) e `FilterBar` — opções do `<select>` "Forma de pagamento" (mesmo `paymentMethodLabelById`, nenhum cálculo duplicado). Teste dedicado confirma que as 2 superfícies exibem o mesmo rótulo ("Pix Conta Corrente") para o mesmo dado no mesmo momento (RNF-13). Filtro "conta" do `FilterBar` confirmado inalterado por teste dedicado. **`ShortcutChip` — decisão registrada, não uma lacuna de `UX-SPEC.md` a escalonar**: a cláusula condicional da própria tarefa ("quando exibir forma de pagamento") nunca se aplica hoje — confirmado por leitura direta de 2 fontes independentes e consistentes entre si dentro de `UX-SPEC.md`: o wireframe revisado de `S-TXN-01` (linha 349, "( 🍔 Alimentação )( 🚌 Transporte )...") e a tabela de componentes (linha 854, "`ShortcutChip`... pílula clicável... com ícone + nome da subcategoria") — nenhuma das duas fontes desenha ou descreve texto de forma de pagamento na pílula; não há reimplementação a corrigir nem rótulo a aplicar nesta 3ª superfície, e nenhuma reinterpretação de `UX-SPEC.md` foi feita (a especificação já responde a pergunta, de forma consistente nos dois lugares — não decidido unilateralmente aqui). Teste defensivo adicionado confirmando que `ShortcutChip` não exibe o nome da forma de pagamento pré-preenchida, preservando o comportamento já existente e fechando a leitura literal de RNF-13 ("nenhuma superfície exibe rótulo divergente") por vacuidade nesta 3ª superfície. `grep` em `frontend/src` confirma `derivePaymentMethodLabel` com uso só nos 3 arquivos esperados (`TransactionFormModal.tsx`, `TransactionsPage.tsx`, e o próprio módulo/teste da função) — nenhuma reimplementação local do cálculo em nenhuma outra tela. Esta tarefa não depende do contrato de `BE-REF-04` (ao contrário de `FE-REF-04`) — o rótulo é 100% client-side (`ADR-016` Decisão 1), por isso fecha `Concluída` já nesta sessão, independente do status de `BE-REF-04`. `npx vitest run` (suíte completa, 56 arquivos) 278/278 PASS; `npx tsc -b` limpo; `npm run lint` sem erro novo | Formas de Pagamento Unificadas (Fase 2.1) |
+| FE-REF-06 | `CategoryCard` + grade de cards substituindo a lista em árvore de `S-CAT-01`; clique no corpo do card abre `S-CAT-01a` (Modal/BottomSheet reaproveitado, lista de subcategorias); ícone "Editar" no card é ação secundária própria, nunca aninhada no clicável primário | Frontend | RF-REF-05 AC1-AC4 | Grade exibe 1 `CategoryCard` por categoria de topo-nível com nome, ícone/cor, total gasto no mês (mesmo cálculo de RF-MVP-06) e número de subcategorias, sem exigir clique adicional (AC2); clique no card abre a visão de subcategorias (AC3); ações de editar/excluir preservadas (AC4); grade colapsa 1→2→3→4 colunas conforme Padrão C (`UX-SPEC.md` Seção 2.1); nenhuma chamada de API nova | 1.25 dia | **Concluída — 2026-09-04.** `CategoryCard` novo (`frontend/src/components/domain/CategoryCard.tsx`), Padrão C (`UX-SPEC.md` Seção 2.1): contêiner não-interativo (`Card`) com 2 `<button>` irmãos — clicável primário (nome+ícone/cor, `aria-label="Ver subcategorias de {nome}"`, `aria-describedby` apontando para o total gasto e a contagem de subcategorias, para que essa informação, visível sem clique adicional por AC2, também chegue a leitor de tela apesar do `aria-label` sobrescrever o texto visível como nome acessível) e ícone "Editar" (`aria-label="Editar {nome}"`), nunca aninhado (Seção 5). `CategoriesPage.tsx` reescrito: `rootCategories` renderizadas em grade (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`, Padrão C/Seção 6.3); `load()` passou a buscar `getMonthlyCategorySummary()` (`lib/api/dashboard.ts`, já existente, consumida também pelo Dashboard — nenhuma chamada de API nova) em paralelo com `listCategories()`; total gasto por categoria de topo-nível calculado no client somando `total_cents` (`kind='expense'` apenas, RF-REF-05 AC2 literal "lançamentos de saída") da própria categoria + suas subcategorias (mesmo dado de RF-MVP-06, nenhum cálculo novo de backend). Clique no card abre `S-CAT-01a` (mesmo `Modal`/`BottomSheet`, sem componente novo) com a lista de subcategorias (ações "Editar"/"Excluir" por subcategoria preservadas) e rodapé "+ Nova subcategoria"; ícone "Editar" do card abre `S-CAT-02` direto, sem passar pelo modal (AC4). **Decisão de detalhe registrada (não é lacuna que bloqueasse a implementação)**: o bloco revisado de `UX-SPEC.md` (S-CAT-01/S-CAT-01a) desenha explicitamente só o ícone "Editar categoria" no cabeçalho do modal de subcategorias, sem desenhar onde fica "Excluir categoria" da categoria de topo-nível — mas o próprio AC4 (fonte literal deste `TASK.md`) já resolve isso, exigindo apenas que a ação esteja "acessível a partir do card ou da visão expandida", sem fixar local único; implementado como botão "Excluir categoria" ao lado de "Editar categoria", no topo do corpo de `S-CAT-01a` (mesmo padrão de botão `ghost` já usado nas ações de subcategoria) — reutiliza o `ConfirmationDialog`/bloqueio de exclusão (RN-09) já existentes, sem alteração de comportamento. Card individual e grade sempre com `min-w-0` (regra anti-corte, Seção 3.1.1). Skeleton de carregamento em formato de grade de retângulos (Seção 4.2, "Skeleton de cards"), substituindo o `Skeleton` de linhas genérico. Testes novos: `CategoryCard.test.tsx` (7 casos — AC2 conteúdo sem clique adicional, singular/plural de subcategoria, AC3 clique primário, ação secundária isolada sem disparar a primária, estrutura de irmãos não-aninhados, `aria-describedby`, ordem de tabulação) e `CategoriesPage.test.tsx` reescrito (10 casos — AC2, cálculo de total ignorando entradas, AC3, AC4 via ícone do card e via modal, edição da categoria de topo-nível a partir do modal, classes de grid do Padrão C, RN-09 bloqueio de exclusão via novo fluxo, estado vazio, estado de erro). `npx vitest run` (suíte completa, 54 arquivos) 244/244 PASS; `npx tsc -b` limpo; `npm run lint` (`oxlint`) sem erro novo, só o mesmo warning pré-existente `react(set-state-in-effect)` já presente em toda tela com `useEffect(() => { void load(); }, [])` (padrão idêntico ao já usado em `AccountsPage`/`DashboardPage`/etc., não introduzido por esta tarefa) | Categorização (Fase 2.1) |
+| FE-REF-07 | `BudgetCard` + grade de cards substituindo a lista de `S-BUD-01`; `ProgressBar` e indicadores de severidade (RN-04) reaproveitados dentro do card, com destaque visual adicional no card em alerta/estouro | Frontend | RF-REF-06 AC1-AC4 | Grade exibe 1 `BudgetCard` por categoria com orçamento definido no mês (nunca card vazio para categoria sem orçamento, AC4), com categoria, gasto vs. teto, percentual e indicador de severidade, sem exigir clique adicional (AC2); card em alerta/estouro recebe destaque visual perceptível ao passar o olho pela grade inteira (AC3); clique abre `S-BUD-02` para editar o teto, inalterado; nenhuma chamada de API nova | 1 dia | **Concluída — 2026-09-04.** `BudgetCard` novo (`frontend/src/components/domain/BudgetCard.tsx`), estruturalmente inspirado no `CategoryCard` (`FE-REF-06`) — contêiner `Card` não-interativo + clicável primário com `aria-label` descritivo ("Editar orçamento de {categoria}") e `aria-describedby` apontando para o bloco visível (categoria + `ProgressBar` reaproveitado sem alteração de props/lógica, RN-04). Diferente do `CategoryCard`, este card não tem ação secundária própria (critério literal: "clique abre S-BUD-02 para editar o teto", nenhuma outra ação no card) — por isso o card inteiro é um único `<button>`, sem risco de aninhar elemento interativo dentro de outro (a regra de acessibilidade do Padrão C existe especificamente para evitar isso, não se aplica aqui por não haver 2ª ação). Destaque visual de severidade (AC3) aplicado via `style` inline, não classe Tailwind: `Card` já define `bg-surface` na mesma div, e duas classes utilitárias de `background-color` no mesmo elemento têm precedência decidida pela ordem de geração do Tailwind (não pela ordem no atributo `class`) — `style` inline tem precedência determinística, elimina a ambiguidade. `warning`: `var(--color-warning-soft)` + `border-2 border-warning`; `exceeded`: `var(--color-danger-soft)` (novo token, `index.css`, ver correção do achado 3 abaixo) + `border-2 border-danger`; `data-severity` também exposto no card para asserção estável em teste. `BudgetPage.tsx` reescrito: grade (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`, Padrão C/Seção 6.3, mesma grade de `CategoriesPage`) renderizada 100% a partir de `getBudgetStatus()` (já existente, RF-MVP-07/`get_budget_status`) — nenhuma chamada de API nova; `listBudgets()` segue chamada só para excluir, no formulário de novo orçamento, categorias já orçadas no mês (`budgetedCategoryIds`), sem relação com a renderização/edição/exclusão do card (ver correção do achado 1 abaixo). Skeleton de carregamento em formato de grade de retângulos (`UX-SPEC.md` Seção 4.2, linha `S-BUD-01`: "Skeleton de cards... Padrão C", não mais `Skeleton` de linhas genérico). **Decisão de detalhe registrada (não é lacuna que bloqueasse a implementação — mesma classe de decisão já registrada em `FE-REF-06`, nota de fechamento do lote "Categorização", `Seção 7.7`)**: nem `UX-SPEC.md` nem o critério de aceite literal de `RF-REF-06` (AC1-4) mencionam preservar a ação "Remover orçamento" (diferente de `RF-REF-05` AC4, que exige explicitamente preservar edição/exclusão para Categorias) — como o `BudgetCard` só expõe a ação primária, sem ação secundária própria, a capacidade de exclusão já existente no MVP (`deleteBudget`, endpoint publicado em `API-CONTRACT.yaml`) não foi removida silenciosamente: movida para dentro do formulário `S-BUD-02` (botão "Remover orçamento", visível só ao editar, reaproveita o mesmo `ConfirmationDialog`/fluxo de exclusão já existente, sem alteração de comportamento nem chamada de API nova). Extensão pontual em `ProgressBar.tsx` (componente compartilhado, também usado por `DashboardPage`/`GoalsPage`): `min-w-0`/`truncate` aplicado ao label (regra anti-corte, `UX-SPEC.md` Seção 3.1.1) — necessário porque o card agora tem largura fixa na grade e o nome da categoria pode ser longo; mudança aditiva, não quebra nenhum uso existente (confirmado por `ProgressBar.test.tsx`, 4/4 `PASS` sem alteração). Testes: `BudgetCard.test.tsx` (7 casos — AC2 conteúdo sem clique adicional, AC3 clique único chama `onEdit`, severidade `none`/`warning`/`exceeded` via `data-severity`+estilo, `aria-describedby`, anti-corte de nome longo) e `BudgetPage.test.tsx` reescrito (6 casos — estado vazio, grade com dado de severidade, AC4 nunca renderiza card para categoria sem orçamento, clique abre `S-BUD-02`, ação "Remover orçamento" preservada dentro do formulário, formulário de criação não exibe "Remover orçamento"). **Fix-loop (revisão de spec-compliance/qualidade, tentativa 1/2, mesma sessão) — 2 achados reais corrigidos, 1 menor também corrigido**: **Achado 1** (bug real, regressão funcional, viola AC1 — card podia sumir por completo em silêncio): `openEditForm`/`confirmDelete`/`requestDeleteFromForm` dependiam de `budgets.find((b) => b.id === status.budget_id)` para localizar o `Budget` a editar/excluir — como `getBudgetStatus()` resolve o mês corrente **no servidor** (`America/Sao_Paulo`) e `listBudgets()` é uma listagem simples sem esse filtro, qualquer divergência de fuso entre os dois (ex.: dispositivo a leste de UTC-3 perto da virada do mês) fazia o `.find()` falhar para todo item e a grade inteira renderizar 0 cards, sem `EmptyState` nem `Alert` (`statuses.length` não é 0). Corrigido eliminando por completo a dependência de `budgets` para render/edição/exclusão: `editingBudget`/`deleteTarget` agora são tipados como `BudgetStatusItem` (não mais `Budget`), populados 100% a partir do próprio `status` clicado (`budget_id`, `category_id`, `limit_cents`, `alert_threshold_pct` — todos já presentes em `BudgetStatusItem`); `listBudgets()` permanece só para `budgetedCategoryIds` (exclusão de categorias já orçadas no formulário de *novo* orçamento), sem nenhuma relação com o card. Teste de regressão novo em `BudgetPage.test.tsx` reproduz o cenário exato (`listBudgets()` retorna `[]` enquanto `getBudgetStatus()` retorna a categoria orçada) e confirma que o card continua renderizando e que editar/salvar segue funcionando (`updateBudget` chamado com o `budget_id` correto). **Achado 2** (WCAG, regressão de contraste — `UX-SPEC.md` Seção 5, tokens calibrados para ≥4.5:1 só sobre `color.surface`): o destaque de severidade do Achado/AC3 muda o fundo do card, derrubando o contraste do texto secundário do `ProgressBar` (`detailText`, `text-neutral-500`) para 4.27:1 sobre `warning-soft` e 4.01:1 sobre o fundo `exceeded` (ambos FAIL). Corrigido com prop nova em `ProgressBar` (`detailTextClassName`, default `"text-neutral-500"`, não altera nenhum consumidor existente — `DashboardPage` não passa `detailText`); `BudgetCard` passa `"text-neutral-600"` quando `alertLevel !== "none"` (6.81:1/6.39:1, ambos PASS), mantendo `text-neutral-500` no estado `none` (sobre `color.surface`, já validado, sem alteração). Ícone/texto/cor do próprio indicador de severidade do `ProgressBar` não tocados (já corretos). **Achado 3** (menor, corrigido nesta rodada): novo token `--color-danger-soft: #f8e8e8` adicionado ao `@theme` de `index.css` (pré-calculado, equivalente sólido de `--color-danger` a 10% de opacidade sobre `color.surface` — mesma convenção `-soft` de `primary`/`income`/`expense`/`warning`), substituindo o `rgba(185, 28, 28, 0.1)` hardcoded em `BudgetCard.tsx` por `var(--color-danger-soft)`. Testes novos/ajustados nesta rodada: `BudgetCard.test.tsx` +2 casos (contraste `text-neutral-600` em severidade vs. `text-neutral-500` em `none`) — 9 casos totais; `BudgetPage.test.tsx` +1 caso (regressão do achado 1) — 7 casos totais; `ProgressBar.test.tsx` +1 caso (`detailTextClassName`, default e override) — 5 casos totais. `npx vitest run` (suíte completa, 55 arquivos) 259/259 PASS (1 falha isolada de `UnlockPage.test.tsx` observada numa única execução sob carga paralela do runner completo, não reproduzível isoladamente nem em uma segunda execução completa — arquivo não tocado por esta tarefa, mesma flakiness de timing já não relacionada ao escopo aqui); `npx tsc -b` limpo; `npm run lint` (`oxlint`) sem erro novo, só o mesmo warning pré-existente `react(set-state-in-effect)` já presente em toda tela com o padrão `useEffect(() => { void load(); }, [])` (não introduzido por esta tarefa) | Orçamento (Fase 2.1) |
+
+#### QA
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| QA-REF-01 | Casos de teste para o grid multi-coluna do dashboard: breakpoint `lg`, preservação integral do layout mobile (RNF-10), confirmação da meta de redução de rolagem (AC3) contra o baseline medido pelo UX/UI | QA | RF-REF-01 AC1-AC4 | Teste visual/E2E confirma o grid a partir de `lg` e o layout single-column idêntico abaixo de `lg`; medição de `scrollHeight` em 1440×900 confirma redução ≥ 40% em relação ao baseline registrado pelo UX/UI antes do deploy (Seção 4.4); nenhuma regressão nos dados exibidos (saldo, KPIs, gráfico, orçamentos, últimos lançamentos) | 0.5 dia | Não iniciada | Dashboard (Fase 2.1) |
+| QA-REF-02 | Casos de teste para hierarquia visual do item de lista (RN-17/RN-18) e para o algoritmo de atalhos (RN-12/RN-13), incluindo o fallback de AC7 e a rastreabilidade de `created_via_shortcut` (M6) | QA | RF-REF-02 AC1-AC4; RF-REF-03 AC1-AC8; RN-12, RN-13, RN-17, RN-18 | Item de lista sem descrição não exibe texto de preenchimento (teste dedicado); barra de atalhos omitida quando não há lançamento no histórico (AC2), presente com até 10 chips quando há; ranking e desempate (frequência → recência → alfabética) verificados com massa de dados controlada; fallback de AC7 (menos de 10 subcategorias na janela de 90 dias) verificado; lançamento originado de atalho persiste com `created_via_shortcut=true`, verificável em consulta direta | 1 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 10 (`BE-REF-02`, `FE-REF-02`, `FE-REF-03`, `QA-REF-02`): **Aprovado**, as 3 tarefas de implementação aprovadas sem ressalva, nenhum bug de severidade alta/crítica encontrado. Validação de aceite literal das 3 tarefas contra `TASK.md`/`ADR-015`/`UX-SPEC.md` S-TXN-01/`API-CONTRACT.yaml` v0.18.0 (`acceptance-criteria-validation`): item de lista sem descrição confirmado sem texto de preenchimento nem "·" solto (inclusive o caso de descrição `null` **e** string vazia, e a omissão simétrica da linha 1 quando `category_id` não resolve); `ShortcutBar` confirmada omitida com 0 atalhos (AC2, inclusive falha silenciosa da RPC) e limitada a 10 chips (limite já aplicado no servidor); ranking/desempate (frequência desc. → recência desc. → nome asc.) e fallback de AC7 verificados pelos 6 casos de `supabase/tests/be_ref_02_transaction_shortcuts.test.sql` (ranking simples, fallback, os 2 desempates, resolução/exceção de `payment_method_id`, isolamento cross-user + AC2, corte em exatamente 10 linhas), conferidos linha a linha contra `ADR-015` Decisão 1 e RN-12/RN-13 — nenhuma lacuna de cobertura. `cross-platform-integration-testing`: contrato de `/rpc/get_transaction_shortcuts`/`Transaction.created_via_shortcut` (`API-CONTRACT.yaml` v0.18.0) conferido campo a campo contra a migration real e o consumo do Frontend (`shortcuts.ts`, `types.ts`, `transactions.ts`, `request.ts`) — shape idêntico nos 3 lugares, `withOwnerId` confirmado por leitura direta não descartar `created_via_shortcut` antes do `INSERT`; fluxo clique-no-chip → formulário pré-preenchido (subcategoria/forma de pagamento/tipo/data, foco no campo Valor) → submissão com `created_via_shortcut=true` exercitado de ponta a ponta em teste de integração de componentes (`TransactionsPage.test.tsx`, RTL + mock só na fronteira de rede, mesmo padrão já estabelecido em `QA-F2-02`). `non-functional-validation`: RNF-12 (auditabilidade de `created_via_shortcut`) confirmada por consulta direta no teste SQL; RNF-14 (latência) — dívida técnica já conscientemente aceita em `ADR-015`, mitigação de UX (skeleton de pílulas sem bloquear o resto da tela) confirmada por teste dedicado; acessibilidade do `aria-label="Lançar em {subcategoria}"` do `ShortcutChip` (UX-SPEC.md Seção 5) reconfirmada presente por leitura direta do código atual, não presumida a partir da correção de rodada anterior. Execução própria desta rodada: `npx vitest run` (suíte completa) 229/229 PASS (confirmado de forma independente, não só por leitura do relato de `FE-REF-02`/`FE-REF-03`), `npx tsc -b` limpo, `npm run lint` sem erro novo. **Achado registrado, não-bloqueante**: `QA-DEBT-011` (severidade Baixa, `QA-REPORT.md` Seção 10.4) — recomendação de processo, não defeito funcional: (1) nenhuma chamada de rede real contra o Supabase linkado foi exercitada nesta rodada (sem credenciais disponíveis nesta sessão, mesma ressalva já registrada por `FE-REF-03`) — recomenda-se smoke test manual real antes do primeiro deploy deste lote; (2) tentativa de reexecutar a suíte SQL de `BE-REF-02` contra uma instância local fresca (`supabase start`, portas/`project_id` isolados, revertido integralmente ao final) não foi concluída — replay sequencial de todas as migrations falha antes de alcançar `BE-REF-02` por um problema pré-existente e não relacionado a este lote nos dumps `baseline_legacy` (`BLOCKERS.md` Bloqueio 011), que já carregam schema de um estado posterior; não impede a validação deste lote, que se apoiou em leitura direta do SQL real + os 6 casos de teste já documentados como `PASS` contra o projeto linkado pelo próprio Backend. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada. | Lançamentos — Hierarquia & Atalhos (Fase 2.1) |
+| QA-REF-03 | Casos de teste para o formulário unificado (RF-REF-04 AC1-AC6), geração automática de formas de pagamento por conta nova (RN-15), backfill de contas pré-existentes (`BE-REF-05`), e **não-regressão obrigatória** de RN-01/RF-F2-05 e dos 3 fluxos de Fase 2 (`RecurringTemplate`/`InstallmentPurchase`/`FixedBill`) | QA | RF-REF-04 AC1-AC6; RN-14, RN-15, RN-16; `ADR-016` Decisão 7 | Campo "Conta" ausente do formulário; lançamento sem `account_id` explícito resolve corretamente para forma não-cartão e para cartão (fallback à conta mais antiga); rótulo desambiguado idêntico nas superfícies exigidas por RNF-13 (compara com o resultado de `FE-REF-05`); 2ª conta nova recebe as 4 formas de pagamento automaticamente; contas pré-existentes sem suas 4 formas próprias recebem o backfill; lançamento de cartão via formulário unificado ainda resolve `card_invoice_id` corretamente (RN-01); os 3 fluxos de Fase 2 continuam enviando `account_id` explícito sem regressão de comportamento | 1 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 13 (`BE-REF-01`, `BE-REF-03`, `BE-REF-04`, `BE-REF-05`, `FE-REF-04`, `FE-REF-05`, `QA-REF-03`): **Aprovado**, as 6 tarefas de implementação aprovadas sem ressalva individual, nenhum bug de severidade alta/crítica encontrado. Diferente de rodadas anteriores, esta sessão teve acesso a credenciais reais do Supabase linkado — toda a suíte SQL relevante foi **reexecutada ao vivo** contra o projeto real (`supabase db query --linked`, `BEGIN`/`ROLLBACK`), não apenas lida do relato de quem implementou: `be_ref_01` (5 casos IDOR/RLS), `be_ref_03` (4 casos seed em toda conta nova), `be_ref_04` (10 casos, incluindo os 3 do fix-loop — UPDATE preservando `account_id`, cartão sem conta ativa, RN-08/UPDATE), `be_ref_05` (3 casos backfill/idempotência) — todos `PASS`. Confirmado também com **dado real de produção** (não só a suíte sintética): consulta direta a `accounts`/`payment_methods` do usuário real mostra as 3 contas ativas hoje ("C6", "Mercado Pago", "Mercado Pago - Cofrinho") com as 4 formas de pagamento não-cartão próprias cada, provando seed (`BE-REF-03`) e backfill (`BE-REF-05`) em conjunto. Regressão completa da suíte SQL (31 arquivos) reexecutada: 30/31 `PASS`, só `be_m07_dashboard.test.sql` CASO 2 falha (pré-existente, `BLOCKERS.md` Bloqueio 019, não relacionada). Leitura direta das 3 migrations geradoras de `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` (Fase 2) confirma que nenhuma delas foi tocada por este lote e todas continuam passando `account_id` explícito a partir da própria linha (`NOT NULL`), nunca acionando o trigger novo — não-regressão confirmada por leitura de código, não só pelo relato do Backend. **Nota específica do Backend (achado de `FE-REF-04`) validada explicitamente**: cenário de trocar a forma de pagamento na edição de um lançamento já existente — confirmado nos dois lados da fronteira (server: CASO 8 do teste de `BE-REF-04`, `account_id` migra corretamente ao mudar só `payment_method_id` em `UPDATE`; client: `TransactionFormModal.tsx` envia `account_id: null` explícito em toda edição, nunca omite a chave, com teste de regressão dedicado reproduzindo o cenário exato do achado original). Frontend: `npx vitest run` 280/280 `PASS` (reexecutado, não só lido do relato), `npx tsc -b` limpo, `npm run lint` sem erro novo; `grep` confirma `derivePaymentMethodLabel()` usada só nos 3 arquivos esperados, nenhuma reimplementação (RNF-13/DIR-37); teste dedicado confirma rótulo idêntico entre item de lista e `FilterBar` para a mesma forma de pagamento. **1 achado registrado, não-bloqueante**: `QA-DEBT-013` (`QA-REPORT.md` Seção 13.4, severidade Baixa) — `BE-REF-06`/`DIR-39` pressupõem uma feature flag (`payment_method_unification_enabled`) já existente no código a ser "ligada", mas `grep` em todo o repositório confirma que nenhuma flag desse nome (ou mecanismo equivalente) existe hoje — nem no trigger de `BE-REF-04` (já incondicionalmente ativo na base linkada) nem no formulário do Frontend (campo "Conta" já removido incondicionalmente); não é defeito de nenhuma das 6 tarefas validadas (a criação da flag nunca esteve no critério de aceite delas), é uma lacuna a resolver dentro do próprio escopo de `BE-REF-06`, sinalizada para quando essa tarefa iniciar. **Com este veredito, as duas condições vinculantes do CTO (Gate 2) para `BE-REF-06` estão satisfeitas** (`QA-REF-03` aprovado + `BLOCKERS.md` Bloqueio 013 já `Resolvido` pelo DevSecOps desde antes desta rodada) — `BE-REF-06` pode prosseguir. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada além do registro de `QA-DEBT-013`. | Formas de Pagamento Unificadas (Fase 2.1) |
+| QA-REF-04 | Casos de teste para a grade de `CategoryCard`, incluindo a navegação para `S-CAT-01a` e a preservação de editar/excluir | QA | RF-REF-05 AC1-AC4 | Card exibe os 4 dados exigidos sem clique adicional; clique abre a lista de subcategorias corretamente; editar/excluir categoria e subcategoria funcionam a partir do card e de dentro do modal, sem regressão em relação ao comportamento já existente | 0.5 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 11 (`FE-REF-06`, `QA-REF-04`): **Aprovado**, sem ressalva, nenhum bug de nenhuma severidade encontrado. `acceptance-criteria-validation` contra RF-REF-05 AC1-AC4/AMB-15 literal: os 4 dados (nome, ícone/cor, total gasto no mês somando saídas da categoria+subcategorias — mesmo cálculo de RF-MVP-06, número de subcategorias) confirmados exibidos sem clique adicional; clique no corpo do card confirmado abrindo `S-CAT-01a` com a lista de subcategorias corretas; editar categoria via ícone do card (sem passar pelo modal) e via botão "Editar categoria" dentro do modal, editar/excluir subcategoria dentro do modal, e RN-09 (bloqueio de exclusão) — todos confirmados sem regressão; "Excluir categoria" da categoria de topo-nível só dentro do modal — conferido contra o "ou" literal de RF-REF-05 AC4 ("acessíveis a partir do card **ou** da visão expandida"), não uma reinterpretação, apenas confirmação de leitura já correta e já registrada por `FE-REF-06`. `cross-platform-integration-testing`: confirmado por leitura direta que `listCategories()`/`getMonthlyCategorySummary()` são as mesmas funções/rotas já existentes antes deste lote (`GET /categories`, `POST /rpc/get_monthly_category_summary`, já publicadas em `API-CONTRACT.yaml`), consumidas em paralelo, sem chamada de API nova; suíte completa do Dashboard (mesma RPC) sem regressão. `non-functional-validation`: acessibilidade do Padrão C confirmada (clicável primário e botão "Editar" como irmãos nunca aninhados, `aria-label` descritivo, `aria-describedby` com o conteúdo real do total/contagem, ordem de tabulação primário-antes-do-secundário, alvo de toque `min-h-11 min-w-11` = 44×44px do botão "Editar"); grade 1→2→3→4 colunas confirmada pelas classes reais do container (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`, idênticas ao Padrão C). Execução própria desta rodada: `npx vitest run` (arquivos dedicados) 17/17 PASS, suíte completa 244/244 PASS (confirmado de forma independente, não só leitura do relato de `FE-REF-06`), `npx tsc -b` limpo, `npm run lint` sem erro novo. **Nenhum débito técnico novo registrado** — implementação e cobertura já estavam completas e corretas no momento desta validação. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada | Categorização (Fase 2.1) |
+| QA-REF-05 | Casos de teste para a grade de `BudgetCard`, incluindo os 3 estados de severidade (normal/alerta 80%/estouro >100%) e a ausência de card para categoria sem orçamento | QA | RF-REF-06 AC1-AC4 | Card exibe os 4 dados exigidos sem clique adicional; os 3 estados de severidade renderizam com destaque visual distinto (não só variação de cor, mesma exigência de acessibilidade já vigente); categoria sem orçamento no mês não gera card vazio; clique abre `S-BUD-02` sem regressão | 0.5 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 12 (`FE-REF-07`, `QA-REF-05`): **Aprovado**, sem ressalva, nenhum bug de severidade alta/crítica encontrado. `acceptance-criteria-validation` contra RF-REF-06 AC1-AC4 literal: os 4 dados (categoria, gasto vs. teto, percentual, indicador de severidade) confirmados exibidos sem clique adicional; os 3 estados de severidade (normal/alerta/estouro) confirmados com destaque visual distinto entre si (`data-severity`, `backgroundColor`, `border-2`) e "não só variação de cor" (ícone+texto pré-existente do `ProgressBar` somado a `border-2`+fundo do card, 2 camadas não-cromáticas); categoria sem orçamento no mês confirmada sem gerar card vazio (AC4); clique confirmado abrindo `S-BUD-02` sem regressão. **Verificação dedicada do bug de fuso horário corrigido no fix-loop (Achado 1)**: rastreado o comportamento real, não só a passagem do teste novo — `get_budget_status()` resolve o mês corrente no servidor via `(now() at time zone 'America/Sao_Paulo')::date`, e o render/edição/exclusão do card foram confirmados 100% dirigidos pelo retorno dessa RPC (`BudgetStatusItem`), sem nenhum cruzamento residual com `listBudgets()`/`monthKey()` (cliente) no caminho crítico — a correção elimina estruturalmente a fonte da divergência de fuso perto da virada de mês, não é um remendo que só engana o teste. `cross-platform-integration-testing`: confirmado por leitura direta e `git diff HEAD --stat -- frontend/src/lib/api/` que `getBudgetStatus()`/`listBudgets()`/`listCategories()` são exatamente as mesmas rotas já existentes antes deste lote (`budget.ts`/`categories.ts` intocados nesta sessão) — nenhuma chamada de API nova. `non-functional-validation`: cálculo independente de contraste WCAG confirma os valores já reportados pela revisão de qualidade da própria tarefa (`text-neutral-600` sobre `warning-soft`/`danger-soft`: 6.81:1/6.39:1, PASS); achado à parte já sinalizado pelo revisor — percentual do `ProgressBar` em `warning` (`text-warning` sobre `warning-soft`) mede 2.86:1 (FAIL), confirmado por cálculo independente nesta rodada, e confirmado como problema de token pré-existente no projeto inteiro (mesma combinação sobre `color.surface` branco em `DashboardPage`, não tocado por este lote, já mede 3.19:1, também FAIL) — **não é regressão desta tarefa**, registrado como `QA-DEBT-012` (baixa, não-bloqueante, `QA-REPORT.md` Seção 12.4), sem reabrir esta tarefa. Execução própria desta rodada: `npx vitest run` (arquivos dedicados) 21/21 PASS, suíte completa 258/259 PASS (1 falha isolada de `UnlockPage.test.tsx` reexecutada sozinha nesta rodada e confirmada 3/3 PASS, mesma flakiness de timing já documentada, arquivo não tocado por este lote), `npx tsc -b` limpo, `npm run lint` sem erro novo. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada. | Orçamento (Fase 2.1) |
+
 ---
 
 ## 4. Dependências e Ordem de Execução
@@ -744,6 +874,96 @@ risco de atrasá-lo — só `QA-F3-04` entra no caminho crítico, como pré-requ
 FE-F3-06) que só bloqueia produção especificamente dessa funcionalidade, não o
 restante da Fase 3.
 
+### 4.4 Pacote de Refinamento (Fase 2.1)
+
+**Nova subseção — 2026-09-04.** Diferente de 4.1-4.3 (uma tabela por fase inteira),
+esta subseção segue a convenção completa de `tech-lead.md` ("Seção 4 ... com uma
+subseção por Lote agrupando a tabela de dependências daquele lote") — os 5 lotes
+deste pacote são independentes entre si (nenhum bloqueia o início de outro; a única
+dependência de bloqueio real e mecânica é interna ao lote "Formas de Pagamento
+Unificadas", detalhada abaixo).
+
+#### Lote: Dashboard (Fase 2.1)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-REF-01 | **Dependência de execução, não de código**: UX/UI deve medir o baseline de `scrollHeight` de `S-DASH-01` em viewport 1440×900 (metodologia já fixada em `UX-SPEC.md`) **antes** do início desta tarefa — RF-REF-01 AC4 explicitamente proíbe iniciar sem o baseline medido | Bloqueio de execução (não de contrato/API) | Qualquer outro lote deste pacote |
+| QA-REF-01 | FE-REF-01 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: medição do baseline (UX/UI) → FE-REF-01 → QA-REF-01. Não
+depende de nenhuma tarefa Backend deste pacote nem de nenhum outro lote — pode
+começar e terminar de forma totalmente isolada, assim que o baseline existir.
+
+#### Lote: Lançamentos — Hierarquia & Atalhos (Fase 2.1)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| BE-REF-02 | BE-M-06 (tabela `transactions` já existe), BE-M-05 (`categories`) | Implementação completa | FE-REF-02 |
+| FE-REF-02 | Nenhuma dependência de Backend deste pacote (reordena dado já retornado por `GET /transactions`) | — | BE-REF-02, FE-REF-03 (depois de BE-REF-02) |
+| FE-REF-03 | BE-REF-02 (contrato da RPC) | Contrato | FE-REF-02 |
+| QA-REF-02 | FE-REF-02, FE-REF-03 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: BE-REF-02 → FE-REF-03 → QA-REF-02. FE-REF-02 corre em
+paralelo sem atrasar o caminho crítico (não depende de BE-REF-02). **Confirma a
+recomendação do BA/Software Architect**: este lote não depende do lote "Formas de
+Pagamento Unificadas" para funcionar — o acoplamento de UI existente (rótulo de forma
+de pagamento na linha 2 do item de lista, `ShortcutChip` reaproveitando o mesmo
+formulário) é não-bloqueante; quando o outro lote for concluído, o texto exibido
+muda, mas nenhum retrabalho estrutural é necessário aqui.
+
+#### Lote: Formas de Pagamento Unificadas (Fase 2.1)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| BE-REF-01 | Nenhuma (correção isolada de policy sobre tabela já existente) | — | BE-REF-02 (outro lote), BE-REF-03 |
+| BE-REF-03 | BE-M-02 (trigger original já existe) | Implementação completa | BE-REF-01, BE-REF-04 |
+| BE-REF-04 | BE-M-06 (`transactions`), BE-M-04 (`payment_methods`) | Implementação completa | BE-REF-03 |
+| BE-REF-05 | BE-REF-03 (mesma lógica de seed a replicar no backfill) | Implementação completa | — |
+| FE-REF-04 | BE-REF-04 (contrato: `account_id` opcional) | Contrato | — |
+| FE-REF-05 | FE-REF-04 (função `derivePaymentMethodLabel()` já existe), FE-REF-02 e FE-REF-03 do outro lote (para aplicar o rótulo nas superfícies que eles criaram) | Contrato | — |
+| QA-REF-03 | BE-REF-01, BE-REF-03, BE-REF-04, BE-REF-05, FE-REF-04, FE-REF-05 (implementação completa) | Implementação completa | — |
+| **BE-REF-06** | **QA-REF-03 aprovado (`QA-REPORT.md`) + `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo DevSecOps — as duas condições, não uma ou outra** | **Bloqueio externo, mecânico e vinculante (CTO, Gate 2 desta rodada)** | **Nenhuma — é o último passo do lote, único gate de deploy em produção** |
+
+**Caminho crítico do lote**: BE-REF-04 → FE-REF-04 → FE-REF-05 → QA-REF-03 →
+**Bloqueio 013 = Resolvido (DevSecOps)** → BE-REF-06. BE-REF-01 e BE-REF-03/BE-REF-05
+correm em paralelo ao caminho crítico de código, mas **BE-REF-01 (correção do
+Bloqueio 013) precisa estar concluída e confirmada `Resolvido` pelo DevSecOps antes de
+`BE-REF-06`, mesmo que já não bloqueie mais nenhuma outra tarefa de código deste
+lote** — é exatamente a materialização mecânica exigida pelo CTO: **implementação
+(BE-REF-01 a BE-REF-05, FE-REF-04/05) pode prosseguir e ser mesclada inteiramente com
+o Bloqueio 013 ainda `Aberto`; só `BE-REF-06` (deploy/exposição em produção) fica
+retido.** Recomendação de mecânica ao Backend/DevOps: abrir o PR de `BE-REF-01` o
+quanto antes dentro deste lote (não depende de nenhuma outra tarefa), para que a
+confirmação do DevSecOps não seja o item mais tardio do caminho crítico.
+
+#### Lote: Categorização (Fase 2.1)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-REF-06 | Nenhuma dependência de Backend deste pacote (reaproveita `GET /categories` e o cálculo já existente de RF-MVP-06) | — | Todo outro lote deste pacote |
+| QA-REF-04 | FE-REF-06 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: FE-REF-06 → QA-REF-04. Totalmente isolado dos demais
+lotes.
+
+#### Lote: Orçamento (Fase 2.1)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-REF-07 | Nenhuma dependência de Backend deste pacote (reaproveita `GET /budget`/RF-MVP-07/RN-04 já existentes) | — | Todo outro lote deste pacote |
+| QA-REF-05 | FE-REF-07 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: FE-REF-07 → QA-REF-05. Totalmente isolado dos demais
+lotes.
+
+**Caminho crítico da Fase 2.1 como um todo**: os 5 lotes são mutuamente independentes
+e podem rodar 100% em paralelo entre si — não existe um único caminho crítico
+sequencial cruzando lotes, diferente do MVP/Fase 2/Fase 3. O lote mais longo (maior
+soma de esforço sequencial interno) é "Formas de Pagamento Unificadas" (BE-REF-04 →
+FE-REF-04 → FE-REF-05 → QA-REF-03 → Bloqueio 013 Resolvido → BE-REF-06), que por isso
+tende a ser o último a fechar, especialmente se a confirmação do DevSecOps sobre o
+Bloqueio 013 atrasar — risco nomeado na Seção 5.
+
 ---
 
 ## 5. Riscos de Prazo Sinalizados
@@ -767,10 +987,10 @@ esforço total do projeto desde o início.
 
 | Time | Esforço total estimado (dias ideais) | Capacidade conhecida | Risco |
 |---|---|---|---|
-| Backend | MVP: **17.5** (↑ de 16.75 — Bloqueio 015/SEC-DEBT-008: `BE-M-14` nova, 0.75 dia, retroativa/já concluída, correção sistêmica de `DEFAULT auth.uid()` em 13 tabelas "ownable"; anteriormente ↑ de 15.25 — Bloqueio 010/SEC-DEBT-002: `BE-M-13` nova, 1.5 dia, correção sistêmica de ownership de FK cross-tenant em `budget`/`transactions` + `SECURITY DEFINER` nos triggers RN-08/RN-09, determinada pelo CTO como pré-requisito de início de Fase 3; demais linhas inalteradas por esta resolução, ver Seção 3.1) · Fase 2: 14.5 · Fase 3: 19.5 (inclui `BE-F3-08` reestimada em 2.5, mais `BE-F3-09` 2 e `BE-F3-10` 0.5, novas por ADR-011) · Spikes remanescentes: SPK-002 3 + SPK-003 3 = 6 (`SPK-001`, 2 dias, já executado e Resolvido — não conta mais como esforço remanescente) · **Total remanescente ≈ 56.75** (inalterado — `BE-M-14` é histórico/já gasto, não remanescente; histórico, incluindo `SPK-001`/`BE-M-14` já gastos: ≈ 59.5) | Não informada | Ver riscos nomeados abaixo |
-| Frontend | MVP: 22 (↑ de 21 — Bloqueio 015/SEC-DEBT-008: `FE-M-13` nova, 1 dia, retroativa/já concluída, defesa em profundidade `withOwnerId()` em 12 funções `create*`) · Fase 2: 14.5 · Fase 3: 16 (inclui `FE-F3-09` 1 dia preliminar, nova por ADR-011) · **Total ≈ 51.5 remanescente** (inalterado — `FE-M-13` é histórico/já gasto; histórico ≈ 52.5) | Não informada | Ver riscos nomeados abaixo |
-| QA | MVP: 3 · Fase 2: 3.5 · Fase 3: 6.5 (inclui `QA-F3-04` 1 dia, nova por ADR-011) · **Total ≈ 13** — inalterado por esta resolução | Não informada | Ver riscos nomeados abaixo |
-| **Total geral** | **Remanescente ≈ 121.25 dias ideais** (inalterado — `BE-M-14`/`FE-M-13` são histórico, já gastos, não remanescente) · **Histórico ≈ 125** (inclui os 2 dias de `SPK-001` + 1.75 dia de `BE-M-14`/`FE-M-13`, Bloqueio 015) — mudança líquida em relação ao total histórico anterior (≈123.25): **+1.75 dia**, integralmente atribuível a `BE-M-14`/`FE-M-13` (Bloqueio 015), 100% já executado antes desta formalização — não é reestimativa de trabalho futuro, é registro retroativo, mesmo tratamento já dado a `BE-M-12`. **Nota de materialidade**: nenhum novo `capacity-and-timeline-validation` pontual é necessário por este delta — diferente do Bloqueio 010 (+1.5 dia de trabalho **futuro** determinado pelo CTO, acima do limiar de +1.25 dia do Bloqueio 003), aqui o esforço já foi gasto e verificado, o remanescente não muda, e o próprio veredito de origem (DevSecOps, `SECURITY-REVIEW.md` Seção 1.12) já é o registro formal do achado e da correção | Não informada | — |
+| Backend | MVP: **17.5** (↑ de 16.75 — Bloqueio 015/SEC-DEBT-008: `BE-M-14` nova, 0.75 dia, retroativa/já concluída, correção sistêmica de `DEFAULT auth.uid()` em 13 tabelas "ownable"; anteriormente ↑ de 15.25 — Bloqueio 010/SEC-DEBT-002: `BE-M-13` nova, 1.5 dia, correção sistêmica de ownership de FK cross-tenant em `budget`/`transactions` + `SECURITY DEFINER` nos triggers RN-08/RN-09, determinada pelo CTO como pré-requisito de início de Fase 3; demais linhas inalteradas por esta resolução, ver Seção 3.1) · Fase 2: 14.5 · Fase 3: 19.5 (inclui `BE-F3-08` reestimada em 2.5, mais `BE-F3-09` 2 e `BE-F3-10` 0.5, novas por ADR-011) · Spikes remanescentes: SPK-002 3 + SPK-003 3 = 6 (`SPK-001`, 2 dias, já executado e Resolvido — não conta mais como esforço remanescente) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 5.0** (`BE-REF-01` 0.5 + `BE-REF-02` 1.5 + `BE-REF-03` 0.5 + `BE-REF-04` 1.5 + `BE-REF-05` 0.75 + `BE-REF-06` 0.25) · **Total remanescente ≈ 61.75** (↑ de 56.75 — todo o incremento é remanescente, nenhuma tarefa de Fase 2.1 executada ainda; histórico total, incluindo `SPK-001`/`BE-M-14` já gastos: ≈ 64.5) | Não informada | Ver riscos nomeados abaixo |
+| Frontend | MVP: 22 (↑ de 21 — Bloqueio 015/SEC-DEBT-008: `FE-M-13` nova, 1 dia, retroativa/já concluída, defesa em profundidade `withOwnerId()` em 12 funções `create*`) · Fase 2: 14.5 · Fase 3: 16 (inclui `FE-F3-09` 1 dia preliminar, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 7.0** (`FE-REF-01` 1 + `FE-REF-02` 0.75 + `FE-REF-03` 1.5 + `FE-REF-04` 1 + `FE-REF-05` 0.5 + `FE-REF-06` 1.25 + `FE-REF-07` 1) · **Total ≈ 58.5 remanescente** (↑ de 51.5; histórico ≈ 59.5) | Não informada | Ver riscos nomeados abaixo |
+| QA | MVP: 3 · Fase 2: 3.5 · Fase 3: 6.5 (inclui `QA-F3-04` 1 dia, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 3.5** (`QA-REF-01` 0.5 + `QA-REF-02` 1 + `QA-REF-03` 1 + `QA-REF-04` 0.5 + `QA-REF-05` 0.5) · **Total ≈ 16.5** (↑ de 13) | Não informada | Ver riscos nomeados abaixo |
+| **Total geral** | **Remanescente ≈ 136.75 dias ideais** (↑ de 121.25 — +15.5 dias integralmente atribuíveis ao Pacote de Refinamento, Fase 2.1, 100% trabalho futuro ainda não executado) · **Histórico ≈ 140.5** (inclui os 2 dias de `SPK-001` + 1.75 dia de `BE-M-14`/`FE-M-13`, Bloqueio 015, + os 15.5 dias remanescentes da Fase 2.1) — mudança líquida em relação ao total remanescente anterior (≈121.25): **+15.5 dias**. **Nota de materialidade**: diferente das reestimativas pontuais anteriores (Bloqueio 003/010/015, todas abaixo do limiar de ~1.5-1.75 dia), este é um incremento de escopo — um pacote de produto inteiro, não uma correção pontual — e portanto **exige `capacity-and-timeline-validation` completo do CTO no Gate 3 desta rodada**, não uma aprovação pontual de delta | Não informada | — |
 
 ### Riscos nomeados
 
@@ -913,6 +1133,32 @@ esforço total do projeto desde o início.
     severidade, não bloqueantes, seguem rastreados: `SEC-DEBT-009` (reprodução HTTP
     ponta a ponta pendente de credencial) e `SEC-DEBT-010` (`push_subscriptions` sem
     `withOwnerId` no Frontend, causa raiz já coberta pela camada de banco).
+11. **[Novo — 2026-09-04, Pacote de Refinamento]** Três riscos de prazo próprios desta
+    rodada, nenhum bloqueante do início do trabalho:
+    - **Baseline de rolagem do dashboard (RF-REF-01 AC4) ainda não medido.** `FE-REF-01`
+      não pode iniciar antes de UX/UI medir `scrollHeight` de `S-DASH-01` em
+      1440×900 (metodologia já fixada em `UX-SPEC.md`). Sem data-alvo declarada para
+      essa medição neste momento — se demorar, atrasa especificamente o lote
+      "Dashboard (Fase 2.1)", sem efeito nos demais 4 lotes (independentes entre si,
+      Seção 4.4). Sinalizado também como pendência de sincronização com UX/UI (Seção
+      6.1.1, `UX-02`).
+    - **Confirmação do DevSecOps sobre `BLOCKERS.md` Bloqueio 013 é o elo mais tardio
+      do caminho crítico do lote "Formas de Pagamento Unificadas".** Diferente do
+      Bloqueio 010 (correção 100% interna ao Backend, sob controle direto do
+      cronograma), aqui o item final do caminho crítico (`BE-REF-06`) depende de uma
+      confirmação de terceiro (DevSecOps) que este `TASK.md` não controla o prazo.
+      Mitigação já embutida na Seção 4.4 (recomendação de abrir `BE-REF-01` o quanto
+      antes, sem esperar o restante do lote); risco residual é de atraso, não de
+      inviabilidade — a implementação inteira do item 4 pode ficar pronta e só
+      aguardar essa confirmação.
+    - **Volume real de subcategorias customizadas em produção não auditado**
+      (`PRD-TECNICO.md` Adendo A, risco A7, "parcialmente validado" pelo BA) — se o
+      volume real for muito maior que o de referência, a grade de `CategoryCard`
+      (`FE-REF-06`) pode precisar de paginação/scroll virtual não estimada nesta
+      rodada. Não é motivo para spike (não há incerteza de abordagem, só possível
+      volume maior que o esperado) — recomendação ao UX/UI e ao próprio Tech Lead
+      (revisitar a estimativa de `FE-REF-06`) se o volume real, quando auditado,
+      divergir significativamente da faixa de referência de RNF-09.
 
 ---
 
@@ -935,6 +1181,7 @@ resolvidas pelo Software Architect (com decisão estratégica do CTO no caso de
 | ID | Pendência | Origem | Tarefa afetada | Status |
 |---|---|---|---|---|
 | **UX-01** | `ADR-011` delega explicitamente ao UX/UI o desenho do fluxo de tela de exclusão de conta ("Condição de revisão": "Fluxo de UI/UX do pedido de exclusão de conta ... fica a cargo do UX/UI e não é definido por esta ADR"). `UX-SPEC.md` ainda não tem essa tela — correto, já que a base arquitetural só existe desde a resolução de `CC-01`. Não é lacuna estrutural do `SDD.md` (não escala ao Software Architect); é um ponto de sincronização normal com o UX/UI, mesmo tratamento já usado para outras telas que dependem de decisão arquitetural prévia. | `adr/011-politica-retencao-descarte-dado-exclusao-conta.md`, "Condição de revisão" | `FE-F3-09` (Seção 3.3) | **Sinalizado ao UX/UI.** `FE-F3-09` segue com estimativa preliminar (1 dia, usando componentes já existentes) até `UX-SPEC.md` formalizar a tela definitiva; quando isso acontecer, a tarefa é reestimada conforme a regra geral de sincronização com UX/UI (não força o design a caber na estimativa preliminar). Não bloqueia o restante da Fase 3 nem o Gate 3. |
+| **UX-02** | **[Novo — 2026-09-04, Pacote de Refinamento]** `UX-SPEC.md` (RF-REF-01 AC4) delega explicitamente ao UX/UI a medição do baseline de `scrollHeight` de `S-DASH-01` (viewport 1440×900) **antes** do início da implementação de `FE-REF-01` — metodologia já fixada, mas a medição em si não foi executada nesta rodada (UX/UI não tinha, no seu próprio passo do pipeline, acesso a uma sessão com o app rodando). Não é lacuna estrutural do `SDD.md`; é ponto de sincronização normal com o UX/UI, mesmo tratamento de `UX-01`. | `UX-SPEC.md`, "`S-DASH-01` revisado para desktop", subseção "Dependência de execução em aberto" | `FE-REF-01` (Seção 3.4) | **Sinalizado ao UX/UI.** `FE-REF-01` está decomposta e estimada (1 dia), mas seu início fica condicionado à medição do baseline (Seção 4.4, dependência explícita) — não é uma reestimativa pendente, é uma pré-condição de execução. Não bloqueia os demais 4 lotes deste pacote, nenhum dos quais depende do dashboard. |
 
 ### 6.2 Lacunas de detalhe (decididas pelo Tech Lead, documentadas — não escaladas)
 
@@ -949,12 +1196,26 @@ resolvidas pelo Software Architect (com decisão estratégica do CTO no caso de
 
 | DET-07 | `BLOCKERS.md` Bloqueio 010 / `CTO-REVIEW.md` "Revisão de Segurança do Lote MVP" item 2: o CTO já decidiu **o quê** (corrigir ownership de FK cross-tenant, prazo antes de Fase 3) e delegou ao Tech Lead **como estruturar** isso em `TASK.md` — em que bloco colocar a tarefa (MVP vs. Fase 3) e como expressar o gate | Tarefa nova (`BE-M-13`) no bloco **Backend do MVP** (Seção 3.1), não em Fase 3, porque ela corrige objetos já criados por `BE-M-01`/já auditados por `BE-M-00` — a tarefa em si não é trabalho de Fase 3. O **gate** (nenhum `BE-F3-*` inicia antes de `BE-M-13` `Concluída`) é expresso como segunda pré-condição do bloco Fase 3 (Seção 3.3), mesmo mecanismo já usado para `CC-01`/`G-13` | Não é lacuna estrutural do `SDD.md` nem decisão de risco de segurança — essas duas já foram resolvidas pelo CTO/DevSecOps na origem (`BLOCKERS.md` Bloqueio 010). É puramente uma decisão de estrutura de documento (onde a tarefa vive, como o gate é expresso), dentro da autoridade normal do Tech Lead de decompor/sequenciar tarefas — não escalada ao Software Architect |
 | DET-08 | `BLOCKERS.md` Bloqueio 015 / `SECURITY-REVIEW.md` SEC-DEBT-008: causa raiz corrigida e verificada (Backend + DevSecOps, independentemente) antes de qualquer decisão de estrutura de documento ser necessária. Três decisões cabiam ao Tech Lead: (a) formalizar ou não como tarefa nova; (b) uma tarefa ou duas (Backend/Frontend); (c) em que lote registrar, dado que o achado nasceu durante a auditoria de "Categorização" mas seu escopo é todo o produto | (a) Sim, formalizar — `BE-M-14`/`FE-M-13` novas, retroativas (já `Concluída`), mesmo tratamento excepcional de `BE-M-12`; (b) Duas tarefas, uma por trilha (escopo/dono/evidência próprios em cada uma, diferente de `BE-M-13` que foi só Backend); (c) Lote **"Autenticação & Segurança"**, mesmo critério já usado para `BE-M-13` — correção sistêmica de autorização que toca toda tabela "ownable" é preocupação transversal de Autenticação/Autorização (`SDD.md` Seção 7), não pertence ao bounded context onde foi descoberta | Não é lacuna estrutural do `SDD.md` (a arquitetura já previa RLS `auth.uid() = user_id` como mecanismo de autorização — o gap era de implementação/execução, não de desenho) nem decisão de risco de segurança (já resolvida pelo DevSecOps/Backend/Frontend na origem, `SECURITY-REVIEW.md` Seção 1.12, veredito "Aprovado com débito" para o lote). É puramente decisão de estrutura de documento (formalizar como tarefa, quantas, em que lote), dentro da autoridade normal do Tech Lead — não escalada ao Software Architect. **Sobre a validade dos 3 lotes já fechados (Fundação, Contas & Formas de Pagamento, Ledger & Dashboard)**: concordo com a conclusão do DevSecOps de que não precisam ser reabertos — a causa raiz era uma pré-condição de plataforma ausente desde o início do projeto (nenhuma coluna `user_id` jamais teve `DEFAULT`, em nenhum ponto do histórico), não uma regressão introduzida por trabalho feito dentro de nenhum desses lotes; a correção da pré-condição não invalida os critérios de aceite/débitos já registrados individualmente em cada um |
+| DET-09 | **[Novo — 2026-09-04, Pacote de Refinamento]** `ADR-016` Decisão 5 delega explicitamente ao Tech Lead "a mecânica exata (feature flag, PR separado, ordem de merge)" de sequenciamento entre a implementação do item 4 e o fechamento do Bloqueio 013 | Mecânica escolhida: **feature flag** (`payment_method_unification_enabled`, default `false` em produção), não PR separado nem ordem de merge especial — todo o código de `BE-REF-01` a `BE-REF-05`/`FE-REF-04`/`FE-REF-05` pode ser mesclado e implantado normalmente (inclusive em produção) com a flag desligada; `BE-REF-06` é o único ato que liga a flag, condicionado à confirmação do DevSecOps (DIR-39, Seção 4.4) | Feature flag é o mecanismo de menor atrito operacional para um time solo (nenhum branch de longa duração, nenhuma coordenação de ordem de merge entre Backend/Frontend) e separa limpamente "código pronto" de "exposição ao usuário" — exatamente a distinção que o próprio `ADR-016`/CTO fizeram entre implementação e deploy |
+| DET-10 | **[Novo — 2026-09-04, Pacote de Refinamento]** Nomenclatura e agrupamento dos 5 lotes desta rodada (Seção 3.4/4.4): itens 2 e 3 (RF-REF-02/03) e item 4 (RF-REF-04) tocam o mesmo bounded context "Ledger (Lançamentos)" e a mesma tela (`S-TXN-01`/`S-TXN-02`) — caberia agrupá-los em um único lote | Mantidos como **dois lotes separados**: "Lançamentos — Hierarquia & Atalhos" (itens 2+3) e "Formas de Pagamento Unificadas" (item 4, cujo entregável primário cruza para o bounded context "Contas & Formas de Pagamento" — trigger de seed em `payment_methods`, RN-15) | Um único lote "Lançamentos" faria o critério de fechamento de lote (Seção "Critério de Aprovação de Lote", `tech-lead.md`) reter o deploy de itens 2/3 (sem nenhum problema de segurança) até o Bloqueio 013 fechar — só porque compartilham bounded context/tela com o item 4. A separação em 2 lotes deixa itens 2/3 livres para fechar e ir a produção independentemente do prazo de confirmação do DevSecOps sobre o Bloqueio 013 (Seção 5, risco 11), sem violar a regra de que todo lote deriva de bounded context — o item 4 tem entregável estrutural (trigger em `payment_methods`) que justifica o bounded context "Contas & Formas de Pagamento" como critério primário, mesmo padrão já usado em `BE-M-01`/6.3 ("tarefa atribuída ao lote do seu entregável primário/estrutural") |
+| DET-11 | **[Novo — 2026-09-04, Pacote de Refinamento]** `CTO-REVIEW.md` Gate 2 desta rodada recomenda (não exige) que o Business Analyst corrija, na próxima revisão do `PRD-TECNICO.md`, a citação tecnicamente imprecisa de `credit_card_id` no texto de RF-REF-04 AC2 (achado do `ADR-016`: `credit_card_id` não resolve nenhuma conta) | Nenhuma tarefa de `TASK.md` criada para isso — é correção de precisão documental em outro artefato (`PRD-TECNICO.md`), fora do escopo de decomposição de implementação deste Tech Lead | O comportamento funcional prometido pelo AC2 já está integralmente coberto por `BE-REF-04` (fallback determinístico à conta ativa mais antiga) — a imprecisão é só na justificativa textual do requisito, não no comportamento entregue; não há nada para Backend/Frontend/QA implementar a mais por causa deste achado |
 
 Nenhuma outra lacuna estrutural foi encontrada durante a decomposição — as três
 condições explicitamente citadas pelo CTO no Gate 2 (spike de schema legado, ressalva
 de OCR, condições de entrada de Open Finance) já estavam corretamente endereçadas
 como spikes (Seção 2) ou diretrizes obrigatórias (Seção 1), não como lacunas
 estruturais adicionais.
+
+**Confirmação — Pacote de Refinamento (Fase 2.1), 2026-09-04**: nenhuma lacuna
+estrutural nova encontrada durante a decomposição dos 6 itens deste pacote. As 3
+condições de aceite que o CTO fixou para o item 4 (Gate 1 desta rodada) já chegaram
+integralmente satisfeitas no `SDD.md` Adendo A/`ADR-016`, confirmadas pelo próprio CTO
+no Gate 2 desta rodada (`CTO-REVIEW.md`) — as únicas 2 ressalvas remanescentes
+(reformulação da condição (c) para "deploy", e o backfill de contas pré-existentes)
+foram traduzidas diretamente em tarefa/dependência mecânica (`BE-REF-06`, Seção 4.4;
+`BE-REF-05`), não em lacuna a escalar. As 3 lacunas de detalhe encontradas nesta
+decomposição (`DET-09` a `DET-11`) são, todas, decisão de estrutura de documento
+dentro da autoridade normal do Tech Lead — nenhuma toca mérito de arquitetura.
 
 ### 6.3 Racional do Agrupamento em Lotes (Seção 3) — retroatividade documental, 2026-09-03
 
@@ -1047,6 +1308,41 @@ lote soma exatamente as 74 tarefas da Seção 3 (29 MVP + 21 Fase 2 + 24 Fase 3)
 `BE-M-14`/`FE-M-13` (Bloqueio 015, retroativas, ver Nota de Resolução de Risco
 (Bloqueio 015) — 76 tarefas no total desde 2026-09-03).
 
+### 6.3.1 Racional do Agrupamento em Lotes — Pacote de Refinamento (Fase 2.1), 2026-09-04
+
+Mesmo critério da subseção 6.3 acima, aplicado às 18 tarefas novas de Seção 3.4 — os
+5 lotes são uma nova fase lógica ("Fase 2.1"), nenhum cruza para MVP/Fase 2/Fase 3:
+
+- **Dashboard (Fase 2.1)**: `FE-REF-01`/`QA-REF-01`. Dashboard não é bounded context
+  próprio no `SDD.md` Seção 2.2 (mesma observação já registrada em 6.3 para o lote
+  "Ledger & Dashboard" do MVP) — usado como lote próprio nesta rodada, em vez de
+  agrupado com "Lançamentos", porque este pacote não tem nenhum outro item tocando
+  Ledger que compartilhe tela/componente com o dashboard (diferente do MVP, onde
+  Dashboard e Lançamentos foram agrupados por dependência direta de dado — aqui as
+  mudanças são de layout puro, isoladas por tela).
+- **Lançamentos — Hierarquia & Atalhos (Fase 2.1)**: `BE-REF-02`, `FE-REF-02`,
+  `FE-REF-03`, `QA-REF-02`. Bounded context "Ledger (Lançamentos)" (`SDD.md` Seção
+  2.2), cobrindo os itens 2 e 3 do pacote (RF-REF-02/03) — mesma tela (`S-TXN-01`),
+  sem a condição de bloqueio de deploy que separa o item 4 (ver `DET-10`).
+- **Formas de Pagamento Unificadas (Fase 2.1)**: `BE-REF-01`, `BE-REF-03`,
+  `BE-REF-04`, `BE-REF-05`, `BE-REF-06`, `FE-REF-04`, `FE-REF-05`, `QA-REF-03`.
+  Entregável primário/estrutural cruza para o bounded context "Contas & Formas de
+  Pagamento" (trigger de seed em `payment_methods`, RN-15) — mesmo critério de
+  "atribuir ao entregável primário" já usado em 6.3 (`BE-M-01`). Separado do lote
+  acima especificamente para isolar a condição de bloqueio de deploy (Bloqueio 013)
+  a um lote próprio, sem reter o fechamento de "Lançamentos — Hierarquia & Atalhos"
+  (racional completo em `DET-10`).
+- **Categorização (Fase 2.1)**: `FE-REF-06`/`QA-REF-04`. Bounded context
+  "Categorização" (`SDD.md` Seção 2.2), reaproveitado sem alteração de critério —
+  mesmo nome do lote MVP homônimo, disambiguado por fase (mesmo padrão já usado para
+  "Relatórios (Fase 2)"/"Relatórios & Exportação (Fase 3)").
+- **Orçamento (Fase 2.1)**: `FE-REF-07`/`QA-REF-05`. Bounded context "Orçamento"
+  (`SDD.md` Seção 2.2), mesmo critério do lote anterior.
+
+Nenhuma tarefa desta subseção ficou sem lote; nenhum dos 5 lotes cruza fase; a
+contagem soma exatamente as 18 tarefas novas de Seção 3.4 (6 Backend + 7 Frontend + 5
+QA).
+
 ---
 
 ## 7. Log de Lotes Fechados
@@ -1069,7 +1365,12 @@ abaixo. **Segundo lote fechado, mesma data** ("Contas & Formas de Pagamento") �
 racional em 7.2 abaixo. **Terceiro lote fechado, mesma data** ("Ledger &
 Dashboard") — ver racional em 7.3 abaixo. **Quarto lote fechado, mesma data**
 ("Categorização") — ver racional em 7.4 abaixo. **Quinto lote fechado, mesma data**
-("Orçamento") — ver racional em 7.5 abaixo.
+("Orçamento") — ver racional em 7.5 abaixo. **Sexto lote fechado, 2026-09-04**
+("Lançamentos — Hierarquia & Atalhos", Fase 2.1, Pacote de Refinamento) — ver
+racional em 7.6 abaixo. **Sétimo lote fechado, mesma data** ("Categorização (Fase
+2.1)", Pacote de Refinamento) — ver racional em 7.7 abaixo. **Oitavo lote fechado,
+mesma data** ("Orçamento (Fase 2.1)", Pacote de Refinamento) — ver racional em 7.8
+abaixo.
 
 | Lote | Tarefas incluídas | Data de fechamento | Veredito QA | Veredito DevSecOps | Débitos registrados | Deploy |
 |---|---|---|---|---|---|---|
@@ -1078,6 +1379,9 @@ Dashboard") — ver racional em 7.3 abaixo. **Quarto lote fechado, mesma data**
 | Ledger & Dashboard | BE-M-06, BE-M-07, FE-M-03, FE-M-09, FE-M-10 | 2026-09-03 | Aprovado com ressalvas (4/5 Aprovado; FE-M-09 Aprovado com ressalva — `QA-REPORT.md` Seção 5.6) | Aprovado com débito (nenhum achado bloqueia o lote — `SECURITY-REVIEW.md` Seção 1.11, "Veredito consolidado final do lote") | QA-DEBT-007 (média, `FE-M-09` sem validação `onBlur`, só "no submit" — submissão continua rejeitando dado inválido/parcial corretamente, não bloqueante); QA-DEBT-008 (baixa/média, canal Realtime cross-tab de `BE-M-07`/`FE-M-10` não implementado — resolve `G-TP-01`, não é dependência crítica para a própria ação do usuário); SEC-DEBT-007 / `BLOCKERS.md` Bloqueio 014 (Média — `apply_transaction_effect` exposta como RPC pública sem `SECURITY DEFINER`/`REVOKE`, herdado do legado, exploitabilidade autolimitada à própria conta do atacante via RLS incidental de `accounts`, dono da correção: backend) carregado como débito explícito, não resolvido — ver 7.3 | **Concluído em staging** (2026-09-03, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.4). Migrations do lote confirmadas já aplicadas (`supabase migration list --linked`, nenhuma pendência). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Pipeline de CI/CD automatizado segue **não operacional** (GitHub Actions Secrets ainda não configurados; `BLOCKERS.md` Bloqueio 004, Parcialmente resolvido). Achado não-bloqueante: 1 teste flaky de timing (`UnlockPage.test.tsx`), não reprodutível isoladamente nem em reexecução completa da suíte — registrado em `DEPLOY.md` §9.4 como observação para Frontend/QA. Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
 | Categorização | BE-M-05, FE-M-08 | 2026-09-03 | Aprovado com ressalva (1/2 Aprovado — BE-M-05; 1/2 Aprovado com ressalva — FE-M-08, `QA-REPORT.md` Seção 6.6) | Aprovado com débito (achado crítico `SEC-DEBT-008`/Bloqueio 015 encontrado, corrigido e verificado nesta mesma rodada — `SECURITY-REVIEW.md` Seção 1.12, "Veredito final do lote: Aprovado com débito") | QA-DEBT-009 (média, `FE-M-08` — modal de bloqueio de exclusão não distingue "orçamento vinculado" de "lançamento vinculado", mostra contagem/CTA de lançamentos mesmo quando o motivo real é orçamento; exclusão em si continua corretamente bloqueada, só a mensagem é imprecisa, não bloqueante); SEC-DEBT-009 (baixa, reprodução HTTP/`supabase-js`/navegador ponta a ponta do Bloqueio 015 ainda pendente de credencial acessível); SEC-DEBT-010 (baixa, `push_subscriptions` sem `withOwnerId` no Frontend, causa raiz já coberta pelo `DEFAULT` do banco) — ver 7.4. `BLOCKERS.md` Bloqueio 015 (achado sistêmico crítico, ausência de `user_id`/`DEFAULT auth.uid()` em toda tabela "ownable"): aberto, corrigido e fechado como **Resolvido** dentro desta mesma rodada, via `BE-M-14`/`FE-M-13` (novas, retroativas, Seção 3.1) — ver 7.4 | **Concluído em staging** (2026-09-03, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.5). Migration crítica `be_m14` (Bloqueio 015) reconfirmada já aplicada em produção (`supabase migration list --linked`), não reaplicada; build deployado já propaga a correção complementar `FE-M-13`. Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Pipeline de CI/CD automatizado segue **não operacional** (GitHub Actions Secrets ainda não configurados; `BLOCKERS.md` Bloqueio 004, Parcialmente resolvido). Achado agravado, não-bloqueante: `UnlockPage.test.tsx` (fora do escopo deste lote) flaky em 3/3 execuções completas da suíte nesta rodada, passa isolado — escalado a Frontend/QA em `DEPLOY.md` §9.5. Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
 | Orçamento | BE-M-08, FE-M-11 | 2026-09-03 | Aprovado (2/2, nenhuma ressalva individual — `QA-REPORT.md` Seção 7.6) | Aprovado, sem débito novo (`SECURITY-REVIEW.md` Seção 1.15, "Veredito do lote: Aprovado, sem débito novo") | QA-DEBT-010 (baixa, `aria-valuenow` > `aria-valuemax` em `ProgressBar.tsx` no estado de estouro >100%, dono frontend, sem urgência — não é achado de segurança, confirmado em `SECURITY-REVIEW.md` Seção 1.15 `finding-severity-classification`); nenhum débito de segurança novo — `SEC-DEBT-002`/Bloqueio 010 (mesma classe de risco de ownership de FK que originalmente tocava `budget`) já corrigido especificamente para este lote desde `BE-M-13` (lote "Autenticação & Segurança"), revalidado sem gap residual em `SECURITY-REVIEW.md` Seções 1.14 e 1.15 — ver 7.5 | **Já em produção**, fora de ordem em relação ao padrão dos 4 lotes anteriores — ver racional em 7.5. Código deste lote foi promovido a produção em 2026-09-03 como parte de uma promoção mais ampla, autorizada explicitamente pelo stakeholder e abrangendo todo o restante já implementado até o fim da Fase 2, **antes** da validação formal QA/DevSecOps por lote existir para "Orçamento" especificamente (`DEPLOY.md` §9.6/§9.7 — `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`, `mymoney-pink-phi.vercel.app`; `BLOCKERS.md` Bloqueio 016, item 1, registrou esse desvio de processo por transparência). Este registro de Seção 7 formaliza retroativamente a dupla aprovação QA+DevSecOps para este lote — não é o gatilho de um novo deploy (já realizado e confirmado `READY`/`200 OK`), e sim o fechamento do gate de processo que valida o que já está servindo em produção |
+| Lançamentos — Hierarquia & Atalhos (Fase 2.1) | BE-REF-02, FE-REF-02, FE-REF-03, QA-REF-02 | 2026-09-04 | Aprovado (3/3 sem ressalva individual — `QA-REPORT.md` Seção 10.6, "Veredito de lote: Aprovado") | Aprovado, sem débito novo (`SECURITY-REVIEW.md` Seção 1.18, "Veredito do lote: Aprovado, sem débito novo") | QA-DEBT-011 (baixa, recomendação de processo/tooling — smoke test manual real ainda não exercitado contra o Supabase linkado, e limitação pré-existente de replay local completo de migrations, `BLOCKERS.md` Bloqueio 011 — sem implicação de segurança, confirmado em `SECURITY-REVIEW.md` Seção 1.18; não é defeito funcional); nenhum débito de segurança novo — ver 7.6 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.8). Migration `be_ref_02` reconfirmada já aplicada (`supabase migration list --linked`, 39/39 remote=local), não reaplicada. Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Pipeline de CI/CD automatizado segue **não operacional** (GitHub Actions Secrets ainda não configurados; `BLOCKERS.md` Bloqueio 004, Parcialmente resolvido). 229/229 testes passando, nenhuma flakiness de `UnlockPage.test.tsx` observada nesta rodada. Deploy em produção: não realizado, pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
+| Categorização (Fase 2.1) | FE-REF-06, QA-REF-04 | 2026-09-04 | Aprovado (2/2 sem ressalva individual — `QA-REPORT.md` Seção 11.6, "Veredito de lote: Aprovado", Definition of Done Seção 11.7 100% marcada) | Aprovado com débito (`SECURITY-REVIEW.md` Seções 1.19/1.20, "Veredito do lote: Aprovado com débito") | SEC-DEBT-012 (baixa severidade, `category.color` usado como valor de CSS inline sem validação de formato — sem exploitabilidade prática hoje, nenhuma UI expõe campo para defini-lo, impacto sempre self-scoped por RLS mesmo num cenário futuro hipotético); nenhum débito de QA novo (`QA-REPORT.md` Seção 11.6, "nenhum débito técnico novo registrado") — ver 7.7 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.9). Sem migration própria (lote puramente frontend, confirmado via `supabase migration list --linked`). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Débito de segurança `SEC-DEBT-012` (baixa severidade) não bloqueou o deploy, conforme decisão já registrada pelo DevSecOps. Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
+| Orçamento (Fase 2.1) | FE-REF-07, QA-REF-05 | 2026-09-04 | Aprovado (2/2 sem ressalva individual — `QA-REPORT.md` Seção 12.6, "Veredito de lote (`EXECUTION-FLOW.md`, 'QA — uma vez por lote'): Aprovado", Definition of Done Seção 12.7 100% marcada) | Aprovado, sem débito de segurança (`SECURITY-REVIEW.md` Seção 1.22, "Veredito do lote: Aprovado, sem débito de segurança") | QA-DEBT-012 (baixa, contraste WCAG do texto de percentual do `ProgressBar` em estado `warning` sobre o novo fundo `warning-soft` do card — mede ≈2.86:1, abaixo de 4.5:1; confirmado por QA e reconfirmado de forma independente por DevSecOps como débito de token de design `--color-warning` pré-existente ao projeto inteiro — mesma combinação já falha hoje em `DashboardPage`, tela não tocada por este lote —, não introduzido nem agravado por `FE-REF-07`, e sem componente de segurança, `finding-severity-classification`, Seção 1.22); nenhum débito de segurança novo — ver 7.8 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.10). Sem migration própria (lote puramente frontend, confirmado via `supabase migration list --linked`, 40/40 remote=local, e `git status --porcelain supabase/migrations` sem arquivo novo). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. 259/259 testes passando nesta rodada (sem a flakiness isolada de `UnlockPage.test.tsx` observada por QA em execução paralela). Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
 
 ### 7.1 Racional de fechamento — Bloqueio 007 e Bloqueio 012 (não impedem o registro do lote)
 
@@ -1660,6 +1964,370 @@ visibilidade completa do uso real de `mymoney-lsm.vercel.app` — software-archi
 cto, conforme o próprio bloqueio já escala) segue `Aberto`, sem relação de conteúdo
 com este lote (item 4c acima).
 
+### 7.6 Racional de fechamento — lote "Lançamentos — Hierarquia & Atalhos" (Fase
+2.1), fix-loops internos de `BE-REF-02`/`FE-REF-02`/`FE-REF-03` e o débito de
+processo `QA-DEBT-011`
+
+Antes de registrar a linha do lote na Seção 7, apliquei o "Critério de Aprovação de
+Lote" (`tech-lead.md`) item a item, verificando eu mesmo cada evidência nos
+artefatos originais (não presumindo pelo resumo de nenhum agente) — mesmo rigor de
+7.1-7.5. Diferente dos 5 lotes anteriores, este é o primeiro do Pacote de
+Refinamento (Fase 2.1, subseções 3.4/4.4) a fechar, e o primeiro em que as próprias
+notas de conclusão das tarefas já registram múltiplas rodadas de fix-loop de
+qualidade internas (não achados de QA/DevSecOps) — ponto que exige racional
+próprio no item 6.
+
+1. **Toda tarefa do lote `Concluída` no `TASK.md`**: confirmado por leitura direta
+   da Seção 3.4 — `BE-REF-02`, `FE-REF-02`, `FE-REF-03` e `QA-REF-02`, todas com
+   status "Concluída — 2026-09-04." e nota de evidência própria (migration aplicada
+   em produção + teste SQL, componente+teste de componente, veredito de QA
+   respectivamente). Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas para toda tarefa**: Seção 10.6
+   ("Veredito de lote consolidado") registra `BE-REF-02` **Aprovado**, `FE-REF-02`
+   **Aprovado**, `FE-REF-03` **Aprovado**, `QA-REF-02` "Concluída (esta própria
+   rodada de validação)". Veredito de lote textual: "**Aprovado**" — nenhuma
+   ressalva individual, diferente de 3 dos 5 lotes anteriores. Passa.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito para o lote**: Seção 1.18,
+   `security-report-drafting` — texto literal "**Veredito do lote: Aprovado, sem
+   débito novo.**" Passa — segundo lote, depois de "Orçamento" (7.5), sem nenhum
+   débito de segurança novo no próprio fechamento.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: verifiquei os 19 bloqueios do
+   documento um a um pelo status final de cada um (não só pelos que citam o pacote
+   de refinamento nominalmente). Abertos hoje: Bloqueio 004 (secrets de CI/CD,
+   infraestrutura transversal, sem relação de conteúdo), Bloqueio 007 (credencial
+   S3 externa, idem), Bloqueio 009 (CORS de `auth-email-mfa`, função de Auth não
+   tocada por este lote), Bloqueio 012 (gaps de dump `baseline_legacy` para DR —
+   a mesma limitação de replay local é a causa raiz do item 2 de `QA-DEBT-011`
+   abaixo, débito de tooling já rastreado, não um bloqueio de conteúdo deste lote),
+   Bloqueio 013 (IDOR em `payment_methods.account_id` — pertence explicitamente ao
+   lote irmão "Formas de Pagamento Unificadas", confirmado por
+   `SECURITY-REVIEW.md` Seção 1.18 "o gate do Bloqueio 013/`ADR-016` Decisão 5
+   pertence ao lote irmão... confirmado não aplicável aqui"), Bloqueio 014
+   (`apply_transaction_effect` sem `SECURITY DEFINER`, achado do lote já fechado
+   "Ledger & Dashboard", função interna de saldo não relacionada a
+   `get_transaction_shortcuts()`), Bloqueio 016 item 1 (transparência de processo
+   sobre o deploy fora de ordem do lote "Orçamento", já fechado em 7.5 — não toca
+   este lote). Bloqueio 019 (bug real de hierarquia de categorias, descoberto e
+   corrigido na mesma sessão) já está **Resolvido**, e mesmo enquanto esteve em
+   investigação nunca disse respeito às tarefas deste lote (é sobre
+   `validate_category_hierarchy`, não sobre `get_transaction_shortcuts()`/item de
+   lista/`created_via_shortcut`) — os 2 achados colaterais que ele documenta (testes
+   pré-existentes de `be_m07_dashboard`/`be_m14` com fixture desatualizada) são
+   citados nas próprias notas de `BE-REF-02` como não relacionados a esta correção,
+   consistente com a leitura do próprio Bloqueio 019. Nenhum dos itens abertos
+   acima afeta `BE-REF-02`, `FE-REF-02`, `FE-REF-03` ou `QA-REF-02` por conteúdo —
+   confirmado também pelo texto literal de QA (Seção 10.6, "Nenhum `BLOCKERS.md`
+   `Aberto` nesta data toca `BE-REF-02`/`FE-REF-02`/`FE-REF-03` diretamente") e de
+   DevSecOps (Seção 1.18, "Nenhuma pré-condição de deploy pendente"). Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: `DIR-34`
+   (RPC como única fonte de verdade do ranking, nenhum `.sort()` no client) —
+   confirmado nas próprias notas de `FE-REF-03` ("nenhum cálculo/ranking local no
+   client") e reconfirmado por QA/DevSecOps de forma independente. `DIR-35`
+   (`created_via_shortcut` ortogonal a `source`) — confirmado, lançamento via
+   atalho continua `source='manual'`, `created_via_shortcut` só é enviado
+   explicitamente pelo fluxo de atalho. `DIR-38` (migration deste pacote só
+   aditiva) — confirmado: `CREATE FUNCTION get_transaction_shortcuts()` +
+   `ALTER TABLE transactions ADD COLUMN created_via_shortcut ... DEFAULT false`,
+   nenhum `ALTER COLUMN`/`DROP` sobre dado existente. `DIR-36` e `DIR-39` não se
+   aplicam a nenhuma das 4 tarefas deste lote (regem, respectivamente, a omissão
+   de `account_id` no payload e a feature flag de exposição do formulário
+   unificado — ambas de escopo exclusivo do lote irmão "Formas de Pagamento
+   Unificadas", que ainda não iniciou). **`DIR-37` merece nota explícita, não uma
+   passagem silenciosa**: a diretriz exige que toda superfície que exibe forma de
+   pagamento importe `derivePaymentMethodLabel()` — função que `FE-REF-04` (lote
+   irmão, "Não iniciada") ainda vai criar. `FE-REF-02` (linha 2 do item de lista) e
+   `FE-REF-03` (`ShortcutChip`, quando exibe forma de pagamento) hoje exibem o
+   rótulo pela via já existente antes deste pacote, não pela função ainda
+   inexistente — **isto não é uma violação silenciosa de `DIR-37`**: é exatamente
+   o gap que a própria Seção 4.4 já antecipou e documentou como dependência
+   explícita ("`FE-REF-05` ... `FE-REF-02` e `FE-REF-03` do outro lote, para
+   aplicar o rótulo nas superfícies que eles criaram") — a exceção já estava
+   registrada antes mesmo de `FE-REF-02`/`FE-REF-03` serem implementadas, não
+   depois. `FE-REF-05` (lote irmão, ainda "Não iniciada") é quem fecha essa
+   lacuna; até lá, o rótulo simples nestas duas superfícies é um estado
+   intermediário planejado, não um desvio a corrigir agora. Passa, com a exceção
+   de `DIR-37` já registrada na própria Seção 4.4 desde a origem.
+6. **Esforço real reconciliado com a estimativa original**: `BE-REF-02` (1.5 dia) +
+   `FE-REF-02` (0.75 dia) + `FE-REF-03` (1.5 dia) + `QA-REF-02` (1 dia) = 4.75 dias
+   ideais estimados (Seção 3.4). Nenhuma das 4 tarefas gerou entrada em
+   `BLOCKERS.md` do tipo "desvio grande de escopo/estimativa que exige
+   replanejamento", e todas fecharam na mesma data (2026-09-04) prevista pela
+   estimativa somada — sem estouro de calendário a registrar. **Ponto que merece
+   registro como aprendizado, sem reabrir a estimativa**: 3 das 4 tarefas passaram
+   por rodadas de fix-loop de revisão de qualidade *internas* (não geradas por QA/
+   DevSecOps, e sim auto-identificadas pela própria trilha antes da entrega) —
+   `BE-REF-02` teve 2 rodadas (achados 1-3 na tentativa 1/2: bug real de limite
+   superior de janela, lacuna de cobertura de teste, decisão semântica não
+   registrada; mais 2 achados residuais na tentativa 2/2: teste sem proteção
+   própria contra a correção do achado 1, e uma imprecisão cosmética de
+   comentário); `FE-REF-02` teve 1 achado corrigido (linha 1 também precisava
+   omissão condicional, não só a linha 2); `FE-REF-03` teve 1 rodada com 2 achados
+   aplicáveis (falta de `aria-label` acessível; corrida entre duas chamadas
+   assíncronas podendo renderizar chip sem nome). Todas as correções couberam
+   dentro da mesma sessão/data da estimativa original — não houve necessidade de
+   dia adicional —, mas o padrão (a tarefa de algoritmo mais complexa do lote,
+   `BE-REF-02`, foi também a que exigiu mais rodadas de autorrevisão) sugere que
+   estimativas futuras de RPCs com lógica de desempate/ranking não-trivial
+   poderiam reservar explicitamente uma margem de autorrevisão, em vez de tratar
+   o fix-loop como incerteza absorvida silenciosamente pela mesma estimativa de
+   implementação. Não gero `BLOCKERS.md` por isso — é aprendizado registrado aqui,
+   não um desvio que bloqueie ou reabra este fechamento.
+
+**Diferença em relação a 7.1-7.5**: é o primeiro lote fechado sem nenhuma ressalva
+de QA nem débito de segurança novo simultaneamente (só "Orçamento", 7.5, tinha
+essa combinação antes) — e o único, até aqui, cujo único débito registrado
+(`QA-DEBT-011`) é puramente de processo/tooling (ausência de smoke test manual
+real + limitação de replay local de migrations), sem nenhum componente funcional
+ou de segurança, confirmado explicitamente por ambos os agentes
+(`QA-REPORT.md` Seção 10.4, `SECURITY-REVIEW.md` Seção 1.18).
+
+**Nota sobre a coluna "Deploy"**: diferente dos lotes 1-4 (deploy em staging já
+realizado antes deste registro) e do lote 5 (deploy em produção já realizado fora
+de ordem antes deste registro), este é o primeiro lote do Pacote de Refinamento a
+fechar, e nenhum deploy — nem staging nem produção — foi realizado para ele até
+este momento. Este registro de Seção 7 é o que libera o DevOps para realizar o
+deploy deste lote como próximo passo do orquestrador; a execução do deploy em si
+está fora do meu escopo de decisão.
+
+### 7.7 Racional de fechamento — lote "Categorização (Fase 2.1)", débito de
+segurança `SEC-DEBT-012` e a decisão de UX sobre onde fica "Excluir categoria"
+
+Apliquei o "Critério de Aprovação de Lote" (`tech-lead.md`) item a item, verificando
+eu mesmo cada evidência nos artefatos originais (`TASK.md` Seção 3.4,
+`QA-REPORT.md` Seção 11, `SECURITY-REVIEW.md` Seções 1.19/1.20, `BLOCKERS.md`
+completo) — mesmo rigor de 7.1-7.6. Este é o segundo lote do Pacote de
+Refinamento (Fase 2.1) a fechar, e o primeiro cujo único débito registrado é de
+**segurança** (não de processo, como `QA-DEBT-011` em 7.6), o que exige nota
+própria no item 3.
+
+1. **Toda tarefa do lote `Concluída` no `TASK.md`**: confirmado por leitura direta
+   da Seção 3.4 (Frontend e QA) — `FE-REF-06` e `QA-REF-04`, ambas com status
+   "Concluída — 2026-09-04." e nota de evidência própria (componente
+   `CategoryCard.tsx` + `CategoriesPage.tsx` reescritos, com testes; veredito de
+   QA de lote, respectivamente). Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas para toda tarefa**: Seção 11.6
+   ("Veredito de lote consolidado") registra `FE-REF-06` **Aprovado** e
+   `QA-REF-04` "Concluída (esta própria rodada de validação)". Veredito de lote
+   textual: "**Aprovado**" — sem ressalva, nenhum bug de nenhuma severidade
+   encontrado, Definition of Done (Seção 11.7) 100% marcada. Passa.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito para o lote**: Seção 1.20,
+   texto literal "**Veredito do lote: Aprovado com débito**" (`SEC-DEBT-012`).
+   Confirmei o achado na origem (Seção 1.19, `static-security-analysis`):
+   `category.color` é consumido como valor de CSS inline (`CategoryCard.tsx`) sem
+   validação de formato — severidade **baixa**, e a própria auditoria de 1.20
+   reconfirma, sem repetir o SAST, que não há caminho de exploração hoje (nenhuma
+   UI expõe campo para o usuário definir `color` livremente; RLS mantém o dado
+   sempre self-scoped mesmo num cenário futuro em que essa UI passasse a existir).
+   Débito **não-bloqueante**, com dono (frontend) e critério implícito (corrigir
+   se/quando `color` passar a ser editável pelo usuário). Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: verifiquei os 19 bloqueios do
+   documento um a um pelo status final de cada um. Abertos hoje, sem relação de
+   conteúdo com `FE-REF-06`/`QA-REF-04`: Bloqueio 004 (secrets de CI/CD,
+   infraestrutura transversal), Bloqueio 007 (credencial S3 externa),
+   Bloqueio 009 (CORS de `auth-email-mfa`, função de Auth), Bloqueio 012 (gaps de
+   dump `baseline_legacy` para DR), Bloqueio 013 (IDOR em
+   `payment_methods.account_id`, lote irmão "Formas de Pagamento Unificadas"),
+   Bloqueio 014 (`apply_transaction_effect`, lote já fechado "Ledger &
+   Dashboard"), Bloqueio 016 item 1 (transparência de processo sobre o deploy
+   fora de ordem do lote "Orçamento", já fechado em 7.5), Bloqueio 017/018
+   (login/envio de e-mail de MFA, `auth-email-mfa`/`email.ts`/`AuthContext.tsx` —
+   nenhuma relação com categorias). Bloqueio 019 (bug real de hierarquia de
+   categorias, `validate_category_hierarchy()`) já está **Resolvido** desde
+   2026-09-04, e mesmo quando esteve aberto nunca disse respeito a `FE-REF-06`
+   (grade de cards/navegação para `S-CAT-01a`) — é sobre a regra de banco que
+   valida `parent_category_id`, camada que `FE-REF-06` não toca (não altera
+   criação/edição de categoria, só a apresentação da lista existente). Confirmado
+   também pelo texto literal de QA (Seção 11.6, "Nenhum `BLOCKERS.md` `Aberto`
+   nesta data toca `FE-REF-06` diretamente") e pela ausência de qualquer entrada
+   nova aberta por este lote em `BLOCKERS.md`. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: `DIR-34` a
+   `DIR-39` (Seção 1.8) regem exclusivamente os lotes irmãos "Lançamentos —
+   Hierarquia & Atalhos" e "Formas de Pagamento Unificadas" (`ADR-015`/`ADR-016`)
+   — não se aplicam a `FE-REF-06`/`QA-REF-04`, que não tocam atalhos nem forma de
+   pagamento. Diretrizes gerais relevantes a este lote (Seção 3.1, regra
+   anti-corte `min-w-0`/`truncate`; padrão de acessibilidade "clicável primário e
+   ação secundária como irmãos não-aninhados", já em vigor desde `UX-SPEC.md`
+   Seção 2.1 Padrão C): confirmadas cumpridas por leitura direta do código
+   (`CategoryCard.tsx`) e reconfirmadas de forma independente por QA (Seção 11.5 —
+   irmãos não-aninhados, `aria-label`/`aria-describedby`, ordem de tabulação,
+   alvo de toque ≥44×44px) e por DevSecOps (Seção 1.20, minimização de dado).
+   Nenhuma exceção precisou ser registrada. Passa.
+6. **Esforço real reconciliado com a estimativa original**: `FE-REF-06` (1.25 dia)
+   + `QA-REF-04` (0.5 dia) = 1.75 dia ideal estimado (Seção 3.4). Nenhuma das 2
+   tarefas gerou entrada em `BLOCKERS.md` do tipo "desvio grande de
+   escopo/estimativa que exige replanejamento"; ambas fecharam na mesma data
+   (2026-09-04) prevista pela estimativa somada — sem estouro de calendário.
+   Diferente de `FE-REF-02`/`FE-REF-03`/`BE-REF-02` (7.6), a nota de conclusão de
+   `FE-REF-06` registra só **uma** decisão de detalhe (não um fix-loop de bug) —
+   ver item abaixo — e a de `QA-REF-04` registra explicitamente "nenhum débito
+   técnico novo registrado — implementação e cobertura já estavam completas e
+   corretas no momento desta validação": a única tarefa deste pacote, até aqui,
+   sem nenhuma rodada de correção. Sem divergência a registrar como aprendizado
+   além do já observado em 7.6 para `BE-REF-02`.
+
+**Nota sobre a decisão de UX "onde fica Excluir categoria"**: `UX-SPEC.md`
+(bloco revisado de `S-CAT-01`/`S-CAT-01a`) desenha explicitamente só o ícone
+"Editar categoria" no cabeçalho do modal de subcategorias, sem desenhar onde fica
+"Excluir categoria" da categoria de topo-nível. Não tratei isso como lacuna
+estrutural a escalar ao Software Architect nem ao UX/UI: o próprio critério de
+aceite literal de `FE-REF-06` (Seção 3.4, RF-REF-05 AC4) já resolve a ambiguidade,
+exigindo apenas que a ação esteja "acessível a partir do card ou da visão
+expandida", sem fixar local único — é lacuna de **detalhe** de implementação,
+dentro da minha alçada. Frontend implementou como botão "Excluir categoria" ao
+lado de "Editar categoria", no topo do corpo de `S-CAT-01a` (mesmo padrão `ghost`
+já usado nas ações de subcategoria), reaproveitando o `ConfirmationDialog`/
+bloqueio de exclusão (RN-09) já existentes. QA confirmou essa leitura como
+"apenas confirmação de leitura já correta e já registrada por `FE-REF-06`", não
+uma reinterpretação. Mantenho essa decisão registrada aqui como fechamento formal
+do ponto — não reabre nem gera novo item em Seção 6, pois já não era uma lacuna em
+aberto no momento em que `FE-REF-06` foi implementada.
+
+**Diferença em relação a 7.1-7.6**: primeiro lote cujo único débito é puramente de
+**segurança de baixa severidade e sem exploitabilidade prática** (`SEC-DEBT-012`),
+sem nenhum débito de QA simultâneo — combinação inversa à de 7.6 (débito só de
+processo/tooling, sem componente de segurança). Também o primeiro lote, desde a
+criação desta Seção 7, cujo deploy (staging) ainda **não foi realizado** no
+momento do próprio registro de fechamento — diferente de todos os 6 lotes
+anteriores (1-4 e 6 já concluídos em staging antes do registro; 5 já em produção
+antes do registro) — este registro é o que libera o DevOps para realizar esse
+primeiro deploy deste lote, não a confirmação de um deploy já feito.
+
+### 7.8 Racional de fechamento — lote "Orçamento (Fase 2.1)", débito de QA
+`QA-DEBT-012` (contraste WCAG pré-existente) e o fix-loop de `FE-REF-07`
+
+Apliquei o "Critério de Aprovação de Lote" (`tech-lead.md`) item a item, verificando
+eu mesmo cada evidência nos artefatos originais (`TASK.md` Seção 3.4,
+`QA-REPORT.md` Seção 12, `SECURITY-REVIEW.md` Seções 1.21/1.22, `BLOCKERS.md`
+completo, 19 bloqueios) — mesmo rigor de 7.1-7.7. Este é o terceiro lote do Pacote
+de Refinamento (Fase 2.1) a fechar, e o único, até aqui, em que a própria tarefa de
+implementação (`FE-REF-07`) passou por fix-loop **e** o veredito de QA/DevSecOps
+resultante ainda assim registrou um débito de acessibilidade — combinação que não
+tinha ocorrido nos 2 lotes irmãos anteriores (7.6 teve fix-loop com débito só de
+processo; 7.7 não teve fix-loop, só débito de segurança) — por isso o item 5 e a
+nota final exigem racional próprio.
+
+1. **Toda tarefa do lote `Concluída` no `TASK.md`**: confirmado por leitura direta
+   da Seção 3.4 (Frontend e QA) — `FE-REF-07` e `QA-REF-05`, ambas com status
+   "Concluída — 2026-09-04." e nota de evidência própria (`BudgetCard.tsx` +
+   `BudgetPage.tsx` reescritos, com fix-loop de 2 achados reais + 1 menor,
+   corrigidos na mesma sessão; veredito de QA de lote, respectivamente). Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas para toda tarefa**: Seção 12.6
+   ("Veredito de lote consolidado") registra `FE-REF-07` **Aprovado** e
+   `QA-REF-05` "Concluída (esta própria rodada de validação)". Veredito de lote
+   textual: "**Aprovado**" — nenhuma ressalva individual, nenhum bug de severidade
+   alta/crítica, Definition of Done (Seção 12.7) 100% marcada. Confirmei também,
+   por leitura direta da Seção 12.2, que a verificação de QA não se limitou a
+   reexecutar o teste novo do fix-loop — rastreou a cadeia real de código
+   (`get_budget_status()` → `BudgetPage.tsx` → `BudgetCard.tsx`) para confirmar que
+   a correção do bug de fuso horário (Achado 1) é estrutural, não um remendo que só
+   engana a asserção. Passa.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito para o lote**: Seção 1.22,
+   texto literal "**Veredito do lote: Aprovado, sem débito de segurança.**" —
+   diferente de 7.7 (que teve débito de segurança novo, `SEC-DEBT-012` daquela
+   seção, não confundir com `QA-DEBT-012` desta), este lote não gerou nenhum
+   `SEC-DEBT-*` novo. DevSecOps avaliou explicitamente a implicação de segurança do
+   único achado de QA (`QA-DEBT-012`, contraste) e concluiu "nenhuma... não há
+   informação vazando nem sendo ocultada de forma que comprometa
+   confidencialidade, integridade ou disponibilidade" (Seção 1.22,
+   `finding-severity-classification`) — reclassificação já feita pelo agente
+   competente, não presumida por mim. Confirmei também, na mesma seção, que a
+   correção do fix-loop (Achado 1, `budgets.find` → `BudgetStatusItem`) foi
+   auditada especificamente quanto a não abrir caminho de edição/exclusão
+   cross-user — "a barreira de autorização real não é o client filtrar por
+   usuário, é a policy... recusar a linha no servidor" — e confirmada sem gap.
+   Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: verifiquei os 19 bloqueios do
+   documento um a um pelo status final de cada um (mesmo universo já verificado em
+   7.6/7.7, sem bloqueio novo aberto desde então) — nenhum cita
+   `BudgetCard`/`BudgetPage`/`ProgressBar`/`get_budget_status`/`budget.ts`, nem por
+   nome nem por conteúdo. Abertos hoje, todos sem relação com este lote: Bloqueio
+   004 (secrets de CI/CD, infraestrutura transversal), Bloqueio 007 (credencial S3
+   externa), Bloqueio 009 (CORS de `auth-email-mfa`, função de Auth), Bloqueio 012
+   (gaps de dump `baseline_legacy` para DR), Bloqueio 013 (IDOR em
+   `payment_methods.account_id`, lote irmão "Formas de Pagamento Unificadas"),
+   Bloqueio 016 item 1 (transparência de processo sobre o deploy fora de ordem do
+   lote "Orçamento" do MVP/Fase 2, já fechado em 7.5 — nome parecido, lote
+   diferente, não este "Orçamento (Fase 2.1)"), Bloqueio 018 (bypass temporário de
+   MFA por e-mail, `AuthContext.tsx`/`custom_access_token_hook`, sem relação com
+   orçamento). Confirmado também pelo texto literal de QA (Seção 12.6, "Nenhum
+   `BLOCKERS.md` `Aberto` nesta data toca `FE-REF-07` diretamente") e de DevSecOps
+   (Seção 1.22, "Nenhuma pré-condição de deploy pendente"). Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: `DIR-34` a
+   `DIR-39` (Seção 1.8) regem exclusivamente os lotes irmãos "Lançamentos —
+   Hierarquia & Atalhos" e "Formas de Pagamento Unificadas" — não se aplicam a
+   `FE-REF-07`/`QA-REF-05`. Diretrizes gerais relevantes (regra anti-corte
+   `min-w-0`/`truncate`, aplicada ao label do `ProgressBar` via nova prop
+   `detailTextClassName`; ausência de chamada de API nova): confirmadas cumpridas
+   por leitura direta e reconfirmadas de forma independente por QA (Seção 12.5) e
+   DevSecOps (Seção 1.22, `security-requirement-validation`). **`DIR-15` (WCAG 2.1
+   AA, incluindo contraste) merece nota explícita, não uma passagem silenciosa**:
+   o estado `warning` do `BudgetCard` hoje falha contraste (`QA-DEBT-012`,
+   ≈2.86:1, abaixo de 4.5:1) no texto de percentual do `ProgressBar` — é uma
+   exceção real a `DIR-15` na tela `S-BUD-01`, não uma leitura forçada para evitar
+   reprovar o lote. Trato como **exceção registrada**, não violação silenciosa,
+   pelos mesmos 3 motivos já usados para tratar débitos equivalentes em 7.1-7.4 (o
+   próprio texto do achado já qualifica seu escopo/severidade; QA e DevSecOps,
+   cada um dentro de sua própria autoridade, já avaliaram e classificaram o mesmo
+   fato antes de eu decidir; o achado tem dono, prazo sugerido e causa raiz
+   identificada — `--color-warning`, "próxima revisão de design tokens do
+   projeto") — mais um quarto motivo específico deste caso: `FE-REF-07` não
+   introduziu o token `--color-warning` nem a classe `text-warning` do
+   `ProgressBar` (ambos pré-existentes, herdados do MVP/`FE-M-01`/`FE-M-11`) — a
+   própria tarefa, dentro do seu escopo, corrigiu o contraste do texto que criou
+   (`detailText`, via `detailTextClassName`, confirmado 6.81:1/6.39:1, PASS) e
+   deixou intacto o texto de percentual que pertence a um componente
+   compartilhado usado por 3 telas (`BudgetPage`/`DashboardPage`/`GoalsPage`),
+   cuja correção unilateral dentro de `FE-REF-07` alteraria a aparência de telas
+   fora do escopo deste lote sem coordenação — decisão de detalhe correta, não uma
+   omissão. Passa, com a exceção de `DIR-15` já registrada como débito
+   (`QA-DEBT-012`), não como violação silenciosa.
+6. **Esforço real reconciliado com a estimativa original**: `FE-REF-07` (1 dia) +
+   `QA-REF-05` (0.5 dia) = 1.5 dia ideal estimado (Seção 3.4). Nenhuma das 2
+   tarefas gerou entrada em `BLOCKERS.md` do tipo "desvio grande de
+   escopo/estimativa que exige replanejamento"; ambas fecharam na mesma data
+   (2026-09-04) prevista pela estimativa somada — sem estouro de calendário.
+   **Ponto que merece registro como aprendizado, sem reabrir a estimativa** (mesmo
+   padrão já usado em 7.6 para o lote "Lançamentos — Hierarquia & Atalhos"):
+   `FE-REF-07` passou por 1 rodada de fix-loop de revisão de qualidade *interna*
+   (não gerada por QA/DevSecOps, auto-identificada pela própria trilha antes da
+   entrega) com 2 achados reais + 1 menor — **(1)** um bug funcional real (não
+   cosmético): dependência frágil de `budgets.find((b) => b.id ===
+   status.budget_id)` cruzando um resultado resolvido por fuso no **servidor**
+   (`get_budget_status()`) com uma listagem simples resolvida por fuso no
+   **dispositivo** (`listBudgets()`), que podia fazer a grade inteira renderizar 0
+   cards, em silêncio, perto da virada de mês para dispositivos a leste de
+   UTC-3 — corrigido eliminando por completo essa dependência cruzada, não com um
+   remendo local; **(2)** o próprio problema de contraste WCAG hoje registrado
+   como `QA-DEBT-012` (item 5, acima) foi primeiro auto-identificado e
+   parcialmente corrigido (`detailText`) dentro deste mesmo fix-loop, antes mesmo
+   de QA revisar. Diferente de `BE-REF-02` (7.6, tarefa de algoritmo/RPC complexa)
+   e de `FE-REF-02`/`FE-REF-03` (7.6, tarefas de UI com lógica de estado nova),
+   `FE-REF-07` é uma tarefa de apresentação (grade de cards) cujo bug real nasceu
+   de uma **interação entre duas fontes de dado já existentes** (uma resolvida no
+   servidor, outra no cliente) que a tarefa passou a cruzar pela primeira vez ao
+   reestruturar `openEditForm`/`confirmDelete` para operar sobre `status` em vez
+   de sobre a lista bruta — não da lógica nova em si. Isso sugere um padrão de
+   risco distinto do já registrado em 7.6: tarefas de refatoração de apresentação
+   que **trocam a fonte de dado** de um fluxo de edição/exclusão (de uma listagem
+   simples para um resultado de RPC com resolução de mês no servidor, ou
+   vice-versa) merecem atenção explícita a esse tipo de cruzamento de fuso/fonte
+   durante a implementação, não só durante a revisão — mesma classe de risco que
+   `CategoryCard`/`FE-REF-06` (7.7) não teve porque não trocou a fonte de dado do
+   fluxo de edição. Não gero `BLOCKERS.md` por isso — é aprendizado registrado
+   aqui, não um desvio que bloqueie ou reabra este fechamento; nenhuma das 2
+   tarefas deste lote levou mais do que o dia/meio-dia estimado, mesmo com o
+   fix-loop absorvido dentro da mesma sessão/data.
+
+**Diferença em relação a 7.1-7.7**: primeiro lote do Pacote de Refinamento cujo
+único débito registrado é de **QA/acessibilidade** (`QA-DEBT-012`), não de
+segurança (7.7) nem de processo/tooling (7.6) — e o primeiro, entre os 3 lotes do
+pacote já fechados, em que o próprio achado de acessibilidade nasce de um token de
+design pré-existente ao projeto inteiro, não de código introduzido por este lote,
+ainda que exposto por ele num local novo. Mesmo padrão de deploy pendente de 7.6/
+7.7: nenhum deploy — nem staging, nem produção — foi realizado para este lote até
+este registro; este registro de Seção 7 é o que libera o DevOps para realizar esse
+primeiro deploy, não a confirmação de um deploy já feito.
+
 ---
 
 ## Checklist de Pronto (auto-verificação do Tech Lead) — reabertura de 2026-09-02 (Bloqueio 003)
@@ -1704,3 +2372,49 @@ bloco Frontend/QA do MVP) **não são reabertas por mérito** — o Gate 3 origi
 (`CTO-REVIEW.md`) segue válido para elas. Não é considerado final até aprovação
 (Aprovado ou Aprovado com ressalvas) desta rodada pontual. Reprovação pontual reabre
 só a(s) tarefa(s)/risco(s) apontado(s) pelo CTO, não o documento inteiro.
+
+---
+
+## Checklist de Pronto — Adendo (Pacote de Refinamento, Fase 2.1) — 2026-09-04
+
+- [x] Toda tarefa tem dono/time responsável (Backend ou Frontend; QA cobre as 5 lotes)
+      — Seção 3.4, 18 tarefas novas (6 Backend, 7 Frontend, 5 QA)
+- [x] Toda tarefa tem critério de aceite testável, rastreado a AC de `PRD-TECNICO.md`
+      Adendo A, a comportamento de tela de `UX-SPEC.md`, ou a Decisão de `ADR-015`/
+      `ADR-016` — Seção 3.4
+- [x] Toda tarefa não-spike tem estimativa de esforço; nenhuma tarefa deste pacote
+      atende aos 4 critérios de `technical-spike-identification` (nota ao final da
+      Seção 2) — nenhuma marcada como spike, sem estimativa forçada em nenhum caso de
+      incerteza real (não havia)
+- [x] Toda dependência entre tarefas está mapeada, com o que pode rodar em paralelo
+      explícito — Seção 4.4, uma subseção por lote (5 lotes), incluindo a
+      **dependência mecânica e bloqueante exigida pelo CTO** (Bloqueio 013 Resolvido
+      → `BE-REF-06`), modelada como linha própria de dependência, não como nota de
+      rodapé
+- [x] Toda tarefa está associada a exatamente um lote, coerente com os bounded
+      contexts do `SDD.md` (ou o critério mais próximo documentado) — nenhum dos 5
+      lotes cruza fase; racional completo em Seção 6.3.1, incluindo a justificativa
+      explícita de por que os itens 2/3 e o item 4 não foram agrupados no mesmo lote
+      apesar de compartilharem bounded context/tela (`DET-10`)
+- [x] Toda diretriz de implementação relevante está traduzida em regra prática, não
+      só citação do ADR — Seção 1.8 (`DIR-34` a `DIR-39`), derivadas de `ADR-015`/
+      `ADR-016`
+- [x] Toda lacuna estrutural encontrada no `SDD.md` está sinalizada na Seção 6, nunca
+      decidida em silêncio — nenhuma lacuna estrutural nova encontrada (confirmação
+      explícita ao final da Seção 6.2); toda lacuna de detalhe tem a decisão
+      documentada (`DET-09` a `DET-11`); pendência de sincronização com UX/UI
+      registrada (`UX-02`, Seção 6.1.1)
+- [x] Nenhuma das 7 seções está vazia ou com placeholder (Seção 7 permanece vazia
+      para os 5 lotes novos, por definição — só é preenchida durante a execução)
+- [x] Rascunho de `.md/GUARDRAILS.md` avaliado (skill `guardrails-drafting`) —
+      **nenhuma regra nova proposta nesta rodada**, racional completo na "Nota de
+      Inclusão" no topo deste documento; `.md/GUARDRAILS.md` não é alterado
+
+**Esta inclusão do `TASK.md`** (Seção 1.8, Seção 2 nota, Seção 3.4, Seção 4.4, Seção
+5 — totais recalculados + risco 11, Seção 6.1.1 `UX-02`, Seção 6.2 `DET-09` a
+`DET-11`, Seção 6.3.1) **é um rascunho pronto para o Gate 3 desta rodada do CTO**
+(`capacity-and-timeline-validation` sobre os +15.5 dias ideais de esforço — Seção 5).
+Nenhuma tarefa já `Concluída` de MVP/Fase 2/Fase 3 é reaberta por mérito por esta
+inclusão. Não é considerado final até aprovação (Aprovado ou Aprovado com ressalvas)
+do CTO nesta rodada — reprovação pontual reabre só a(s) tarefa(s)/risco(s)
+apontado(s), não o pacote inteiro nem o restante do documento.

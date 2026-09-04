@@ -1561,6 +1561,46 @@ quem reportou.
   de abrir uma nova deliberação de risco — o precedente técnico e de negócio já foi
   fixado; detalhe completo e classificação de severidade em `SECURITY-REVIEW.md`
   Seção 1.8 (`SEC-DEBT-006`).
+- **Resolução**: verificação independente do DevSecOps (não aceita por presunção do
+  relato do Backend em `TASK.md` Seção 3.4, `BE-REF-01`) sobre a correção aplicada em
+  `supabase/migrations/20260904130000_be_ref_01_payment_methods_account_ownership.sql`
+  (par down em `supabase/migrations_down/`), em 4 camadas independentes:
+  1. **Leitura da migration** — confirma `and (account_id is null or exists (select 1
+     from public.accounts a where a.id = account_id and a.user_id = auth.uid()))`
+     acrescentada às duas policies `payment_methods_insert_own`/
+     `payment_methods_update_own`, exatamente a correção sugerida (mesmo padrão
+     `EXISTS` já usado ali para `credit_card_id`, `BE-F2-01`, e em `budget`/
+     `transactions`, `BE-M-13`).
+  2. **Consulta direta ao projeto real** (`supabase db query --linked` contra
+     `pg_policies`, não o arquivo local) — confirma que o `with_check` das duas
+     policies **em produção, agora**, já contém literalmente a cláusula `EXISTS`
+     de `account_id` lado a lado com a de `credit_card_id`; não é só o arquivo de
+     migration local, é o estado real do banco.
+  3. **`supabase migration list --linked`** — confirma `20260904130000` com
+     `local=remote`, junto de todas as migrations subsequentes do lote
+     (`20260904140000`/`150000`/`160000`), sem divergência.
+  4. **Execução direta do teste dedicado** (`supabase db query --linked --file
+     supabase/tests/be_ref_01_payment_methods_account_ownership.test.sql`, não a
+     transcrição do resultado relatado pelo Backend) — `PASS` ao vivo. Leitura do
+     próprio teste confirma que ele prova exatamente o cenário do achado original:
+     CASO 1 (`INSERT` de `payment_methods` própria referenciando `account_id` de
+     outro usuário — IDOR rejeitado), CASO 2 (fluxo legítimo — `INSERT` com
+     `account_id` próprio, sucesso), CASO 3 (`UPDATE` redirecionando `account_id`
+     próprio para o de outro usuário — rejeitado), CASO 4 (fluxo legítimo —
+     `UPDATE` para outra conta própria, sucesso), CASO 5 (não-regressão — cláusula
+     de `credit_card_id`/`BE-F2-01` preservada na policy). Cobertura fecha os 3
+     eixos exigidos: IDOR fechado, fluxo legítimo preservado, não-regressão da
+     checagem preexistente.
+  Nenhuma lacuna residual encontrada — a cláusula `app_email_mfa_verified` presente
+  nas policies é preexistente a esta correção (`BE-F2-01`, 2026-09-03) e hoje é um
+  no-op inofensivo (`ADR-014`/`custom_access_token_hook` emite sempre `'true'`), não
+  uma reintrodução de mecanismo removido. Gap original do Bloqueio 013 confirmado
+  fechado, em produção, por evidência direta (não por relato de terceiro).
+- **Status: Resolvido — 2026-09-04, por `devsecops`.** Libera a pré-condição de
+  `TASK.md` Seção 4.4/`BE-REF-06` (feature flag
+  `payment_method_unification_enabled` em produção) referente a este bloqueio —
+  a outra condição (`QA-REF-03` aprovado em `QA-REPORT.md`) permanece a verificar
+  em separado.
 
 ---
 
@@ -2372,3 +2412,65 @@ quem reportou.
   própria.
 - **Status**: **Resolvido — 2026-09-04.** Corrigido, testado (RED→GREEN) e
   aplicado em produção na mesma sessão em que foi reportado.
+- **Addendum — 2026-09-04 (BE-REF-03)**: o achado colateral item 2 acima
+  (`be_m14_user_id_default_auth_uid.test.sql` falhando por "conta nova não
+  ganha forma de pagamento própria") deixou de reproduzir a partir da migration
+  `20260904140000_be_ref_03_payment_methods_seed_all_accounts.sql` — efeito
+  colateral direto e esperado de `BE-REF-03` (RN-15/ADR-016 Decisão 2), que
+  estende o seed automático de formas de pagamento para toda conta ativa nova,
+  não só a 1ª. Confirmado por reexecução isolada do arquivo (`PASS`). Nenhuma
+  ação adicional necessária — registrado aqui só para rastreabilidade (não
+  reabre o bloqueio, já `Resolvido`). O achado colateral item 1
+  (`be_m07_dashboard.test.sql` CASO 2) permanece como estava, não relacionado
+  a este pacote.
+
+---
+
+## Bloqueio 020 — 2026-09-04
+
+- **Reportado por**: frontend (observação durante a revisão/verificação de
+  `FE-REF-04`, mesma rodada de fix-loop do Pacote de Refinamento)
+- **Escalado para**: backend (registrado como débito técnico; não bloqueia
+  nenhuma tarefa em andamento)
+- **Artefato/trecho afetado**: `public.transactions_block_inactive_account()`
+  (`supabase/schema-baseline-legacy.sql:1387`, trigger
+  `transactions_before_insert_block_inactive_account`, `BEFORE INSERT ON
+  transactions` — nunca `BEFORE UPDATE`, herdado do schema legado)
+- **Descrição**: `transactions_block_inactive_account` (RN-08 — rejeita
+  lançamento cuja `account_id`/`destination_account_id` aponta para uma conta
+  `is_active = false`) só existe como trigger `BEFORE INSERT`, nunca `BEFORE
+  UPDATE`. Isso já era uma lacuna pré-existente do schema legado (nenhum PATCH
+  de `transactions` jamais foi bloqueado por conta inativa, independentemente
+  de qual coluna mudasse), mas até `BE-REF-04` (fix-loop, achado M-1) era
+  pouco alcançável na prática — antes, editar um lançamento praticamente nunca
+  mudava `account_id`. A partir de `BE-REF-04`, o trigger
+  `transactions_default_account_from_payment_method` passou a também disparar
+  em `UPDATE` (quando `payment_method_id` muda), o que pode legitimamente
+  migrar `account_id` para uma conta diferente na edição — inclusive uma
+  conta inativa. **Mitigação já aplicada por `BE-REF-04` no mesmo fix-loop**:
+  a própria função de resolução agora checa se a conta RESOLVIDA por ela está
+  ativa (INSERT e UPDATE) e rejeita com erro explícito (RN-08) quando não
+  está — fecha a lacuna especificamente para o caminho que esse trigger novo
+  controla. **O que permanece em aberto**: qualquer outro `PATCH
+  /transactions` que altere `account_id`/`destination_account_id` por uma via
+  diferente da resolução automática (ex.: um client explícito enviando
+  `account_id` de uma conta que só foi inativada depois da criação do
+  lançamento) continua sem nenhum bloqueio de RN-08 em `UPDATE` — gap
+  estrutural do schema legado, não introduzido nem ampliado por nenhuma
+  tarefa deste pacote além do caminho já mitigado.
+- **Impacto se não resolvido**: baixo — RN-08 continua garantido no `INSERT`
+  (via o trigger legado, inalterado) e no caminho de resolução automática de
+  `account_id` (via a mitigação de `BE-REF-04`); só o caso residual (PATCH
+  explícito de `account_id`/`destination_account_id` para uma conta já
+  inativa, por um client hipotético que não seja o formulário unificado)
+  fica sem bloqueio — nenhum caller real do produto hoje faz isso.
+- **Sugestão**: quando alguém tocar `transactions_block_inactive_account`/RN-08
+  de novo, avaliar estender o trigger para também rodar `BEFORE UPDATE OF
+  account_id, destination_account_id` (coluna específica, não todo UPDATE —
+  evita mudar o comportamento de PATCHes que não tocam essas 2 colunas, ex.
+  "marcar como paga" via `status=cleared`), com a mesma função (genérica,
+  já funciona para INSERT e UPDATE sem alteração).
+- **Status**: Aberto — não bloqueante, débito técnico registrado para
+  transparência (mesmo padrão de registro de achado colateral já usado nos
+  Bloqueios 010/019). Nenhuma tarefa do `TASK.md` fica condicionada a este
+  item.

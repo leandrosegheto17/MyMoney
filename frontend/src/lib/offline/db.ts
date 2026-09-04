@@ -15,7 +15,15 @@ export type PendingTransactionStatus = "pending" | "syncing" | "error";
 export interface PendingTransaction {
   /** Chave local (uuid), nunca reaproveitada como id definitivo do lançamento — o servidor gera o id real na confirmação. */
   localId: string;
-  accountId: string;
+  /**
+   * Opcional desde `FE-REF-04` (RN-16/DIR-36, `ADR-016` Decisão 3): `S-TXN-02` não
+   * coleta mais conta — o servidor resolve `account_id` a partir de
+   * `paymentMethodId` na sincronização real (`sync.ts`, `toNewTransaction`), mesma
+   * regra do caminho online. Mantido no schema (não removido) só por compatibilidade
+   * com item já enfileirado localmente antes desta mudança (IndexedDB do dispositivo
+   * do usuário, fora do controle desta migration de código).
+   */
+  accountId?: string;
   paymentMethodId: string;
   categoryId: string;
   subcategoryId: string | null;

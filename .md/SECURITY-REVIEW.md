@@ -1386,6 +1386,7 @@ achado desta rodada tem relevância estratégica que exija nova sinalização.
 | SEC-DEBT-009 | Reprodução HTTP/`supabase-js`/navegador ponta a ponta da correção de `SEC-DEBT-008` ainda não executada, por falta de credencial acessível no ambiente (`VITE_SUPABASE_ANON_KEY`) — mesma limitação já registrada em `QA-REPORT.md` linha 177 | Baixa (evidência via Postgres real + RLS real já validou a causa raiz — ver racional em `BLOCKERS.md` Bloqueio 015, atualização devsecops) | Não | Assim que credencial acessível existir; item de fechamento do smoke test ao vivo, não de correção de causa raiz | qa / devsecops |
 | SEC-DEBT-010 | `frontend/src/lib/api/notifications.ts` (`createPushSubscription`) não usa `withOwnerId` — gap de defesa em profundidade isolado a `push_subscriptions` (tabela fora do escopo original do Bloqueio 015, adicionada só na camada de banco pelo Backend) | Baixa (causa raiz já corrigida na camada de banco — `DEFAULT auth.uid()` confirmado em `push_subscriptions`, suficiente por si só) | Não | Próximo toque em `notifications.ts`; recomendado por consistência, sem urgência dado que a camada de banco já cobre | frontend |
 | SEC-DEBT-011 | Bypass temporário do gate de MFA por e-mail (`custom_access_token_hook` sempre emite `app_email_mfa_verified=true`; `SKIP_EMAIL_MFA=true` no frontend) — remove o 2º fator de 12 tabelas de dado financeiro, mitigado por cadastro travado a 1 e-mail (`allowed_signup_emails`) e ausência de movimentação de dinheiro real neste MVP; agravado por `minimum_password_length=6`/`password_requirements=""` — `BLOCKERS.md` Bloqueio 018 (ver 1.16) | Média | Não (aprovado como risco temporário — ver 1.16) — reversão condicional, não bloqueio | O que vier primeiro: `auth-email-mfa` voltar a funcionar, ou **7 dias corridos** do deploy (extensão além disso exige nova confirmação explícita do stakeholder); política de senha fraca sem prazo fixo, mas recomendado corrigir junto | stakeholder/backend (reversão do bypass) / backend (política de senha) |
+| SEC-DEBT-012 | `categories.color` (coluna `text` livre, sem `CHECK` de formato) renderizado pela primeira vez como valor de CSS inline em `CategoryCard.tsx` (`style={{ backgroundColor: color }}`), sem validação de formato hexadecimal — hoje sem exploitabilidade prática (nenhuma UI expõe campo para o usuário definir essa cor; RLS impede leitura cross-tenant) | Baixa | Não | Antes de qualquer funcionalidade futura que exponha um campo de UI para definir `categories.color`/`accounts.color` livremente — adicionar validação de formato (regex/`CHECK` constraint); sem urgência hoje | frontend / backend |
 
 **Achado #3 (schema baseline não referenciado)** e **SEC-DEBT-005** (gaps
 remanescentes do mesmo achado, `BLOCKERS.md` Bloqueio 012) não entram na leitura
@@ -2235,3 +2236,691 @@ com signup travado, decisão técnica de segurança dentro da minha alçada), ma
 o CTO já tratou o gate de MFA como decisão arquitetural relevante o bastante
 para formalizar em ADR (`ADR-013`) — justifica visibilidade ativa, não só
 constar em log.
+
+---
+
+### 1.17 — `static-security-analysis` sobre o lote "Lançamentos — Hierarquia & Atalhos" (Fase 2.1) — 2026-09-04
+
+**Escopo desta rodada** (dispara em paralelo ao QA, que está validando `QA-REF-02`
+agora — não esperei o veredito dele, conforme `EXECUTION-FLOW.md`; as 5 skills de
+auditoria propriamente dita seguem condicionadas ao gate de QA, mesmo padrão de
+1.7/1.8/1.10/1.12/1.14): migration
+`supabase/migrations/20260904120000_be_ref_02_transaction_shortcuts.sql` (`BE-REF-02`
+— RPC `get_transaction_shortcuts()` + coluna `transactions.created_via_shortcut`),
+teste `supabase/tests/be_ref_02_transaction_shortcuts.test.sql`;
+`frontend/src/lib/api/shortcuts.ts`, `frontend/src/components/domain/ShortcutBar.tsx`,
+`ShortcutChip.tsx`, e as mudanças em `TransactionsPage.tsx`/`TransactionFormModal.tsx`
+(`FE-REF-02`/`FE-REF-03`). Cross-referenciado contra `SDD.md` Seção 7, `GUARDRAILS.md`
+(`G-04`, `G-19`), `ADR-015` e o schema real do projeto Supabase linkado.
+
+**Não repito aqui** a revisão de spec-compliance/qualidade já feita no fix-loop de
+`BE-REF-02`/`FE-REF-02`/`FE-REF-03` (`TASK.md` Seção 3.4) — meu foco é exclusivamente
+segurança, sobre o resultado já corrigido dessa rodada.
+
+#### Confirmação dos 4 pontos de atenção pedidos pelo orquestrador
+
+**1. Isolamento cross-user real (RLS de `transactions`/`categories`/`payment_methods`
+aplicada de fato, não só o filtro `WHERE user_id = auth.uid()` do corpo da função)**:
+confirmado suficiente. `get_transaction_shortcuts()` é `SQL`, `STABLE`, sem cláusula
+`SECURITY DEFINER` (roda `SECURITY INVOKER`, padrão implícito do Postgres para função
+sem essa cláusula — mesma convenção documentada em 1.10 para `get_month_transaction_count`/
+`get_income_expense_report`). Rodando como invocador, toda leitura de
+`public.transactions`/`public.categories` dentro do corpo da função passa pela RLS
+real da sessão que chama, **em cima** do filtro explícito `t.user_id = auth.uid()` —
+não em vez dele:
+- `transactions_select_own` (`20260827170841_baseline_legacy.sql:1620`) exige
+  `auth.uid() = user_id` + `app_email_mfa_verified = 'true'` — confirmado `ENABLE ROW
+  LEVEL SECURITY` na tabela (`:1601`).
+- `categories_select` (`:1560`) exige `(user_id = auth.uid() OR user_id IS NULL)` +
+  MFA — o `JOIN public.categories c ON c.id = cc.category_id` (usado só para o
+  desempate alfabético do nome) nunca pode expor categoria de outro usuário: `category_id`
+  já vem exclusivamente de `transactions` do próprio `auth.uid()` (a agregação anterior
+  já filtrou por isso), e por integridade referencial toda categoria referenciada por
+  uma transação própria só pode ser própria ou de sistema (`user_id IS NULL`) — nunca de
+  terceiro. Mesmo num cenário hipotético de dado corrompido, a RLS de `categories`
+  simplesmente removeria a linha do `JOIN` (inner join, sem match → categoria cai do
+  ranking), nunca vazaria dado de outro usuário.
+- Não há leitura de `payment_methods` nesta função — `payment_method_id` é lido
+  diretamente de `transactions` (já escopado por `auth.uid()`), não há `JOIN` contra a
+  tabela de formas de pagamento, então G-19 (ownership de FK cross-tabela) não se
+  aplica aqui por não haver essa referência cruzada nesta função especificamente.
+- Confirmado por teste automatizado real, não só leitura de código: CASO 5 de
+  `be_ref_02_transaction_shortcuts.test.sql` roda a RPC sob `v_attacker` (usuário
+  sintético que **nunca existe em `auth.users`**, mesmo padrão de isolamento já usado
+  em `BE-M-11`), contra uma massa de dados de `v_user` com 7 categorias na janela + 1
+  via fallback — resultado: `0 linhas`, provando ao mesmo tempo AC2 (usuário sem
+  histórico) e ausência de vazamento cross-user pela mesma chamada. `SET LOCAL ROLE
+  authenticated` + JWT simulado (não `postgres`/owner) — o teste roda sob o mesmo
+  papel restrito de produção, não sob um papel privilegiado que mascararia um gap de
+  RLS real.
+
+**2. Ausência de SQL dinâmico/injeção**: confirmado. A função é `language sql` com um
+único corpo estático (CTEs + `SELECT` final), sem `EXECUTE`, `format()`,
+concatenação de string ou qualquer construção de query em tempo de execução. Não há
+parâmetro de entrada nenhum (`get_transaction_shortcuts()` não recebe argumento) —
+não há superfície de injeção possível por falta de input do cliente para essa função
+especificamente.
+
+**3. Superfície de `GRANT`/`EXECUTE` segue o mesmo padrão das RPCs irmãs (não é uma
+repetição de `SEC-DEBT-007`/Bloqueio 014)**: confirmado, é o mesmo padrão, e por
+razão correta. Nenhuma das 3 migrations (`get_month_transaction_count`,
+`get_income_expense_report`, `get_transaction_shortcuts`) tem `GRANT`/`REVOKE`
+explícito — todas dependem do mesmo `ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN
+SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon"/"authenticated"/"service_role"`
+herdado do baseline (`20260827170841_baseline_legacy.sql:2117-2120`), que se aplica a
+toda função nova criada pelo mesmo role de deploy. A distinção que importa (e que já
+foi tracejada em 1.10, ao classificar `SEC-DEBT-007`) não é "tem `GRANT` amplo ou
+não" — é **se a função foi desenhada para exposição direta via RPC**:
+`get_transaction_shortcuts()` foi, desde o `ADR-015`, desenhada para ser chamada
+diretamente pelo Frontend (`ADR-015` Decisão 1: "SECURITY INVOKER... calculada sob
+demanda"), filtra por `auth.uid()` explicitamente no próprio corpo, e mesmo uma
+chamada `anon` (sem sessão, `auth.uid()` retorna `NULL`) resulta em `t.user_id =
+NULL`, que nunca é verdadeiro em SQL — retorna vazio, sem side-effect e sem
+exposição, reforçado pela RLS por baixo. Isto é o oposto do padrão que gerou
+`SEC-DEBT-007` (`apply_transaction_effect`, função **auxiliar interna de trigger**,
+nunca desenhada para chamada direta, sem filtro de `auth.uid()` próprio, que só
+"escapou" por herdar o `GRANT` sem ninguém ter revisado a superfície de exposição).
+Não é uma nova instância da mesma classe de achado — é o padrão correto já
+estabelecido pelas RPCs de dashboard, replicado corretamente aqui. **Não-achado.**
+
+**4. `created_via_shortcut` gravável pelo client — falsificação de proveniência é
+risco de segurança ou só um campo informativo?** Confirmado: **campo informativo,
+sem implicação de segurança — não-achado, nenhuma severidade inventada.**
+- `created_via_shortcut boolean NOT NULL DEFAULT false` (migration, linha 48-49) é uma
+  coluna comum de `transactions`, sujeita às mesmas policies `transactions_insert_own`/
+  `transactions_update_own` de qualquer outra coluna da tabela — o client só pode
+  gravá-la em linha que já é sua própria (`auth.uid() = user_id`), nunca na de
+  terceiro. Um usuário mal-intencionado poderia, no limite, enviar `created_via_shortcut:
+  true` num `POST /transactions` manual sem ter clicado em nenhum `ShortcutChip` — mas
+  isso só falsificaria **a própria** métrica de produto (M6, `RNF-12`), não altera
+  saldo, não contorna nenhuma policy de RLS, não interfere em `RN-16`/resolução de
+  `card_invoice_id`/`apply_transaction_effect`, e não tem relação nenhuma com a
+  barreira de confirmação humana de RNF-01/RNF-08 (que continua definida
+  exclusivamente sobre `source`, intocado por este ADR — confirmado por leitura do
+  `ADR-015` Decisão 2 e por grep: nenhuma consulta/policy/trigger no repositório lê
+  `created_via_shortcut` para decidir autorização, só o dashboard de métrica de
+  produto o consumiria).
+  - Comparação com o padrão real de "quebra de garantia de auditoria" que o projeto já
+    trata como achado (`SEC-DEBT-007`, `apply_transaction_effect`): lá, o vetor
+    permitia alterar `accounts.current_balance_cents` **sem criar `transactions`
+    correspondente**, quebrando o invariante central do produto sem deixar rastro.
+    Aqui, o pior caso é um bit de metadado de analytics levemente impreciso na própria
+    linha que o próprio usuário já tem direito de criar do jeito que quiser (o mesmo
+    usuário já pode hoje inventar `description`, `amount_cents` ou qualquer outro
+    campo de um lançamento manual falso — isso é comportamento aceito por design,
+    "dado é autoprocessamento do próprio titular", mesmo enquadramento já usado em
+    1.16/1.9/1.15). Não há garantia de auditoria/confiança estabelecida em nenhum
+    lugar do produto (`SDD.md`, `PRD-TECNICO.md`, `GUARDRAILS.md`) que dependa de
+    `created_via_shortcut` ser inviolável — RNF-12 só pede "mecanismo auditável para
+    medir M6", não "mecanismo à prova de adulteração pelo próprio titular do dado".
+
+#### Achados adicionais (fora dos 4 pontos pedidos)
+
+Nenhum. Verificações de rotina sem achado:
+- `search_path` fixado (`set search_path to 'public'`) na função nova, mesma boa
+  prática já usada nas RPCs irmãs.
+- `frontend/src/lib/api/shortcuts.ts`: sem lógica de ranking/ordenação duplicada
+  client-side (`DIR-34`), sem log de erro que vaze payload (falha tratada como "0
+  atalhos" silenciosamente, ver `TransactionsPage.tsx:88-89`).
+  Grep dirigido por `console.log`/`dangerouslySetInnerHTML`/`eval(`/`localStorage`/
+  `sessionStorage` em `shortcuts.ts`, `ShortcutBar.tsx`, `ShortcutChip.tsx`: nenhuma
+  ocorrência.
+- Migration é 100% aditiva (`ADD COLUMN ... DEFAULT false NOT NULL`, `CREATE OR
+  REPLACE FUNCTION`), com down migration correspondente
+  (`supabase/migrations_down/20260904120000_be_ref_02_transaction_shortcuts.down.sql`),
+  G-02/G-03 satisfeitos.
+- `npm audit --omit=dev` reexecutado nesta rodada (`0 vulnerabilities`). O diff atual
+  de `frontend/package.json`/`package-lock.json` adiciona 1 dependência nova
+  (`lucide-react@^1.41.0`), mas confirmado por grep que ela **não** é consumida por
+  nenhum dos 3 arquivos deste lote (`ShortcutBar.tsx`, `ShortcutChip.tsx`,
+  `shortcuts.ts`) — os únicos consumidores hoje são `AppLayout.tsx` e
+  `CategoriesPage.tsx`, fora do escopo `BE-REF-02`/`FE-REF-02`/`FE-REF-03`. Fica
+  fora do veredito deste lote especificamente; recomendo que a rodada de
+  `static-security-analysis` do lote que de fato introduz/consome `lucide-react`
+  (Dashboard `FE-REF-01` ou Categorização `FE-REF-06`, a confirmar por quem tocou o
+  arquivo primeiro) registre essa dependência nova explicitamente.
+
+#### Veredito
+
+**Veredito para o fechamento deste lote (só `static-security-analysis`,
+`EXECUTION-FLOW.md` — as 4 skills restantes seguem aguardando o veredito do QA sobre
+`QA-REF-02` especificamente): nenhum achado, nem novo débito.** `BE-REF-02`/
+`FE-REF-02`/`FE-REF-03` não introduzem gap de autorização, exposição de dado
+sensível, dependência vulnerável, nem repetem a classe de achado já registrada em
+`SEC-DEBT-007`/Bloqueio 014.
+
+**Checklist — rodada 1.17 (`static-security-analysis`, lote "Lançamentos —
+Hierarquia & Atalhos", em paralelo ao QA)**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto — nenhum achado novo
+- [x] Nenhum achado de compliance obrigatório (LGPD) pendente — não avaliado
+      formalmente nesta rodada (skill fora de escopo, aguarda gate de QA); nenhum
+      indício levantado durante o SAST
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado novo
+- [x] Nenhum requisito operacional novo para o DevOps surgiu desta rodada (Seção 4
+      já cobre o que é aplicável)
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável, nenhum
+      achado novo
+- [x] Os 4 pontos de atenção pedidos pelo orquestrador — todos confirmados (ver
+      acima): isolamento cross-user real via RLS (não só filtro de corpo de função);
+      ausência de SQL dinâmico; superfície de `GRANT` consistente com o padrão
+      correto das RPCs irmãs (não uma repetição de `SEC-DEBT-007`); `created_via_shortcut`
+      é campo informativo sem implicação de segurança
+
+**Veredito do lote (parcial, só `static-security-analysis`): Aprovado, sem
+ressalva.** Fica condicionado, como em toda rodada anterior deste padrão, à
+auditoria completa (as 4 skills restantes) assim que o QA aprovar (Aprovado/Aprovado
+com ressalvas) `BE-REF-02`/`FE-REF-02`/`FE-REF-03` em `QA-REPORT.md` (`QA-REF-02`).
+
+---
+
+### 1.18 — Auditoria completa (veredito final de lote) — "Lançamentos — Hierarquia & Atalhos" (Fase 2.1) — 2026-09-04
+
+**Gatilho**: `QA-REPORT.md` Seção 10 aprovou (Aprovado, sem ressalva bloqueante em
+nenhuma das 3 tarefas) `BE-REF-02`/`FE-REF-02`/`FE-REF-03` — o único achado da
+rodada de QA (`QA-DEBT-011`, ausência de credencial para smoke test de rede real +
+limitação de replay local de migrations) é de severidade Baixa e, por natureza, de
+processo/tooling, não de segurança (avaliado explicitamente abaixo,
+`finding-severity-classification`). Libera a auditoria completa de DevSecOps (as 4
+skills além de `static-security-analysis`, já rodada em 1.17, sobre o mesmo escopo:
+`supabase/migrations/20260904120000_be_ref_02_transaction_shortcuts.sql`,
+`supabase/tests/be_ref_02_transaction_shortcuts.test.sql`,
+`frontend/src/lib/api/shortcuts.ts`,
+`frontend/src/components/domain/ShortcutBar.tsx`/`ShortcutChip.tsx`,
+`frontend/src/pages/transactions/TransactionsPage.tsx`/`TransactionFormModal.tsx`).
+Esta rodada **não repete** o SAST de 1.17 — usa seus 4 achados/não-achados como
+insumo (isolamento cross-user real via RLS; ausência de SQL dinâmico;
+`created_via_shortcut` é campo informativo; superfície de `GRANT`/`EXECUTE`
+consistente com as RPCs irmãs, não é repetição de `SEC-DEBT-007`/Bloqueio 014) e
+acrescenta os 3 checks de auditoria propriamente dita mais a consolidação final.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + Seção A.7 (delta do Adendo A) + `GUARDRAILS.md`
+
+Verificação direta contra o código-fonte real e contra o que o próprio Software
+Architect já registrou em `SDD.md` Seção A.7 (item 3) e o CTO já confirmou em
+`CTO-REVIEW.md` "Gate 2 — Pós-SDD (Pacote de Refinamento)" (`risk-and-compliance-check`
+transversal) — não aceito nenhuma das duas afirmações às cegas, reverifico linha a
+linha contra a migration real:
+
+| Requisito (`SDD.md` Seção 7/A.7 / `GUARDRAILS.md`) | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| RLS `auth.uid() = user_id` em `transactions`/`categories` (`Autorização`; `G-04`) — nenhuma tabela nova exige policy nova (`SDD.md` A.7 confirma isso explicitamente) | `transactions_select_own`, `categories_select` | `20260827170841_baseline_legacy.sql:1601-1620` (`transactions`), `:1549-1560` (`categories`) — `ENABLE ROW LEVEL SECURITY` + `auth.uid() = user_id`/`(user_id = auth.uid() OR user_id IS NULL)` na cláusula `USING` | Passa — nenhuma tabela nova criada por este lote, confirmado que nenhuma policy precisou mudar |
+| `get_transaction_shortcuts()` é `SECURITY INVOKER`, filtra por `auth.uid()` no próprio corpo (`SDD.md` A.7, item 3, literal) | Leitura direta da função | `20260904120000_be_ref_02_transaction_shortcuts.sql:122-237` — sem cláusula `SECURITY DEFINER` (implícito INVOKER), `t.user_id = auth.uid()` nos 4 CTEs de agregação | Passa — reconfirma o que `SDD.md` A.7 já afirmava, por leitura de código, não por aceitar a afirmação do documento |
+| Gate de MFA por JWT claim `app_email_mfa_verified` nas tabelas que a função lê | `transactions_select_own`/`categories_select` | Mesma evidência da 1ª linha — ambas incluem `(auth.jwt() ->> 'app_email_mfa_verified') = 'true'`; a função em si não precisa checar isso explicitamente porque roda `SECURITY INVOKER` (a RLS por baixo já exige) | Passa |
+| `G-19` (ownership de FK entre tabelas ownable) | Não aplicável a este lote | `get_transaction_shortcuts()` não faz `JOIN` com nenhuma tabela ownable referenciada por FK de outra (o `JOIN categories` é só para nome de desempate, sobre `category_id` já escopado por `auth.uid()` na CTE anterior — ver 1.17, ponto 1); nenhuma tabela/coluna nova com FK para tabela ownable é criada | Não aplicável, sem gap |
+| `created_via_shortcut` não introduz mecanismo de bypass de RNF-01/RNF-08 (confirmação humana obrigatória) | Grep dirigido por leitura/uso da coluna em policy/trigger/RPC | Nenhuma policy, trigger ou função consome `created_via_shortcut` para decidir autorização — a barreira de RNF-01/RNF-08 segue definida exclusivamente sobre `transactions.source`, intocado por este lote (`ADR-015` Decisão 2, `DIR-35`) | Passa |
+| Migration aditiva + down migration (`G-02`/`G-03`) | `ALTER TABLE ... ADD COLUMN ... DEFAULT false NOT NULL`, `CREATE OR REPLACE FUNCTION` | `supabase/migrations_down/20260904120000_be_ref_02_transaction_shortcuts.down.sql` existe (`DROP COLUMN`/reversão da função) | Passa |
+| Pré-condição de deploy do Bloqueio 013 (`ADR-016` Decisão 5) se aplica a este lote? | Não | `TASK.md` Seção 4.4, "Lote: Lançamentos — Hierarquia & Atalhos" confirma explicitamente que este lote **não depende** do lote "Formas de Pagamento Unificadas" (bounded context diferente, `DET-10`); Bloqueio 013 é `payment_methods.account_id`, tabela não tocada por `BE-REF-02`/`FE-REF-02`/`FE-REF-03` | Não aplicável a este lote — confirmado, sem gap de sequenciamento |
+
+**Nenhum requisito de arquitetura de segurança da Seção 7/A.7 do `SDD.md` relevante
+a este lote está implementado de forma diferente do especificado.** Confirmo por
+leitura de código, não por aceitar a afirmação do Software Architect/CTO, o mesmo
+ponto que ambos já haviam registrado: nenhuma RLS nova, nenhuma criptografia nova,
+nenhum mecanismo de isolamento novo é necessário para este lote.
+
+#### `compliance-validation` — LGPD
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Dado pessoal/sensível novo | `created_via_shortcut boolean` é metadado de uso (ponto de entrada da captura manual), não dado financeiro/identificador novo; `get_transaction_shortcuts()` retorna só `(category_id, payment_method_id)` — dois UUIDs internos, sem PII | Passa — confirma `CTO-REVIEW.md` "Gate 2 — Pós-SDD", `risk-and-compliance-check` transversal ("Nenhum campo novo de dado sensível") |
+| Minimização | Nenhuma coluna além da estritamente necessária ao `ADR-015` | Passa |
+| Retenção/descarte (`ADR-011`) | `created_via_shortcut` segue o mesmo ciclo de vida de `transactions` (categoria "Ledger", retenção indefinida enquanto a conta estiver ativa, só descartada por exclusão de conta); `get_transaction_shortcuts()` não persiste nada, é leitura pura | Passa — nenhuma entidade nova sujeita a prazo de retenção diferente do já coberto |
+| Base legal/titular | Mesmo enquadramento já assentado pelo CTO (`CTO-REVIEW.md` linha 307, reconfirmado em 1.9/1.15): dado é autoprocessamento do próprio titular, sem segundo titular envolvido | Passa |
+| Direito ao esquecimento | Exclusão de conta (mecanismo formal do `ADR-011`, fora do escopo deste lote) remove `transactions` via `ON DELETE CASCADE` de `user_id`, arrastando `created_via_shortcut` junto — nenhum mecanismo novo necessário | Passa |
+| Payload de API não devolve campo além do documentado em `API-CONTRACT.yaml` | `API-CONTRACT.yaml` v0.18.0, linhas 432-442 (`Transaction.created_via_shortcut`), 1684-1694 (`/rpc/get_transaction_shortcuts`) — schemas batem 1:1 com a migration real | Passa |
+
+**Nenhum achado de compliance obrigatório (LGPD) não resolvido neste lote.**
+
+#### `sensitive-data-exposure-check`
+
+| Superfície | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Payload de API (`POST /rpc/get_transaction_shortcuts`, `POST`/`PATCH /transactions`) | Nenhum campo de segredo/token/dado de outro usuário no request ou response | `shortcuts.ts` (RPC sem parâmetro), `TransactionFormModal.tsx:150-159` (payload só com campos de domínio financeiro do próprio usuário) | Passa |
+| Mensagens de erro | Falha da RPC de atalhos tratada como "0 atalhos" silenciosamente, sem `Banner`/log (`TransactionsPage.tsx:88-89`); erro de submissão do formulário usa `cause.message` de `ApiError` — mesmo padrão já auditado em lotes anteriores (1.8/1.9/1.15), sem mudança introduzida aqui | `TransactionsPage.tsx`, `TransactionFormModal.tsx:183` | Passa |
+| Logs client-side | Nenhum `console.*` em `shortcuts.ts`/`ShortcutBar.tsx`/`ShortcutChip.tsx`; `TransactionsPage.tsx`/`TransactionFormModal.tsx` idem | Grep dirigido nesta rodada (`console.log`/`console.error`/`console.warn`) — zero ocorrências nos arquivos deste lote | Passa |
+| Armazenamento local (`localStorage`/`sessionStorage`/IndexedDB) | Nenhum uso nos arquivos deste lote além do já existente/auditado (`enqueueTransaction`/fila offline, pré-existente, fora do escopo desta mudança) | Grep dirigido — zero ocorrências novas | Passa |
+| Renderização de dado dinâmico (XSS) | `label`/`icon`/subcategoria renderizados via JSX puro em `ShortcutChip.tsx`/`TransactionsPage.tsx`, nenhum `dangerouslySetInnerHTML` | Leitura direta, já confirmado em 1.17 | Passa |
+| Segredos hardcoded | Nenhum token/chave/URL de serviço nos arquivos deste lote | Grep dirigido, reconfirmado nesta rodada | Passa |
+| `get_transaction_shortcuts()` — vazamento cross-tenant via agregação | Já confirmado em 1.17 e reconfirmado em `security-requirement-validation` acima (RLS real + CASO 5 do teste automatizado) | — | Passa |
+
+**Nenhum vazamento de dado sensível via API, log, armazenamento local ou
+renderização neste lote.**
+
+#### `finding-severity-classification` — achado de QA (`QA-DEBT-011`) tem implicação de segurança?
+
+Verificação pontual, mesmo padrão já aplicado em 1.13/1.15 para `QA-DEBT-009`/
+`QA-DEBT-010`: `QA-DEBT-011` (ausência de smoke test manual real contra o Supabase
+linkado + `supabase start` local falhando antes de `BE-REF-02` por limitação
+pré-existente de replay de migrations, `BLOCKERS.md` Bloqueio 011) é uma lacuna de
+**verificação/processo/tooling**, não um comportamento incorreto observado — não
+expõe dado de outro usuário, não permite bypass de autorização, não vaza segredo, e
+não é evidência de que a RLS/isolamento falhe (a suíde SQL de `BE-REF-02` já rodou
+com sucesso contra o projeto real via `supabase db query --linked`, `BEGIN`/
+`ROLLBACK`, confirmado em `TASK.md`/1.17 — o que faltou foi só a chamada de rede real
+ponta a ponta do clique no navegador, não a validação de segurança em si).
+**Confirmado: nenhuma implicação de segurança.** Permanece corretamente classificado
+como débito de processo/tooling sob responsabilidade compartilhada (Backend/DevOps
+para o item 1; ambiente do projeto como um todo para o item 2), não duplicado neste
+documento como achado de segurança.
+
+Nenhum achado novo de qualquer severidade nesta rodada.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+Consolidando o achado da análise estática (1.17 — nenhum achado novo, 4 pontos de
+atenção do orquestrador todos confirmados sem gap) com os 3 checks acima (nenhum
+achado novo de severidade alta/crítica, nenhum achado de compliance obrigatório,
+nenhum vazamento de dado sensível):
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado — nada fica pendente como
+  débito, não há gap a resolver.
+- **Exposição de dado sensível**: nenhum achado novo.
+- **Achado de QA (`QA-DEBT-011`)**: sem implicação de segurança, confirmado acima.
+- **Dependência nova (`lucide-react@^1.41.0`)**: já registrada em 1.17 como fora do
+  escopo deste lote especificamente (não consumida por nenhum dos 3 arquivos
+  auditados) — não repetido aqui, sem impacto no veredito deste lote.
+
+**Veredito do lote: Aprovado, sem débito novo.** As 3 tarefas (`BE-REF-02`,
+`FE-REF-02`, `FE-REF-03`) estão liberadas para o fechamento formal do lote pelo Tech
+Lead (`TASK.md` Seção 7) do ponto de vista de segurança — nenhum item em aberto
+específico deste lote. Nenhuma pré-condição de deploy pendente (o gate do Bloqueio
+013/`ADR-016` Decisão 5 pertence ao lote irmão "Formas de Pagamento Unificadas",
+confirmado não aplicável aqui).
+
+**Sinalização ao CTO (paralela, não pré-requisito)**: nenhuma nova — este lote não
+gera achado de relevância estratégica. As sinalizações já registradas na Seção 5
+permanecem válidas e não são reabertas por esta rodada.
+
+---
+
+### 1.19 — `static-security-analysis` (SAST + dependências) — "Categorização — Grade de Cards" (`FE-REF-06`, Fase 2.1) — em paralelo ao QA — 2026-09-04
+
+**Escopo desta rodada**: `frontend/src/components/domain/CategoryCard.tsx` (novo) e
+`frontend/src/pages/categories/CategoriesPage.tsx` (reescrito), mais os respectivos
+`CategoryCard.test.tsx`/`CategoriesPage.test.tsx`. Mudança puramente de apresentação
+— nenhum endpoint/RPC novo (`GET /categories` e `get_monthly_category_summary()`
+já existentes, reaproveitados sem alteração de contrato); confirmado por leitura de
+`TASK.md` Seção 3.4 (nota de evidência de `FE-REF-06`) e diff real. Rodada só de
+`static-security-analysis`, em paralelo ao QA (`QA-REF-04`) — não espera o veredito
+dele; as 4 skills de auditoria completa (`security-requirement-validation`,
+`compliance-validation`, `sensitive-data-exposure-check`,
+`finding-severity-classification`) ficam para quando o QA aprovar.
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| XSS via nome de categoria / interpolação insegura | Grep dirigido por `dangerouslySetInnerHTML`/`innerHTML`/`eval(`/`document.write` nos 2 arquivos + no componente base `Card` que `CategoryCard` envolve | Zero ocorrências; `name`/`icon`/total/contagem são todos filhos de JSX puro (`{name}`, `{formatCentsToBRL(...)}`, `{subcategoryCount} {subcategoryLabel}`) — React escapa por padrão | Passa |
+| Dependência nova em `package.json` | `git diff frontend/package.json` | `lucide-react@^1.41.0` é a única dependência nova no working tree, mas **não é consumida por nenhum dos 2 arquivos deste lote** (`grep` confirma uso só em `frontend/src/layout/AppLayout.tsx`, fora do escopo de `FE-REF-06`) — já registrada como tal em 1.17/1.18 (lote "Lançamentos"), não duplico o achado aqui. `npm audit --omit=dev` → **0 vulnerabilidades** | Passa — nenhuma dependência nova introduzida por este lote especificamente |
+| Informação sensível de outro usuário via `aria-label`/`aria-describedby`/props | Leitura direta de `CategoryCard.tsx` (`aria-label`, `aria-describedby` apontam só para `name`/total gasto/contagem de subcategorias, todos vindos de `GET /categories`/`get_monthly_category_summary()` já escopados por RLS `auth.uid() = user_id` — nenhuma categoria de outro usuário chega ao componente) | `CategoryCard.tsx:45-46,63,66`; RLS de `categories`/`get_monthly_category_summary()` já auditada em rodadas anteriores (1.9, 1.11, 1.12) | Passa |
+
+**Achado novo (baixa severidade, não bloqueante) — `SEC-DEBT-012`**: `category.color`
+é renderizado pela primeira vez no DOM nesta rodada, como valor de CSS inline
+(`style={color ? { backgroundColor: color } : undefined}`, `CategoryCard.tsx:54`) —
+a versão anterior da tela (lista em árvore) nunca usava esse campo. A coluna
+`categories.color` é `text` livre no schema, sem `CHECK` de formato (confirmado em
+`supabase/migrations/20260827170841_baseline_legacy.sql`), e hoje **não existe
+nenhum campo de UI para o usuário definir/alterar essa cor** (o modal de
+criar/editar categoria em `CategoriesPage.tsx` só expõe Nome/Tipo/Categoria pai) —
+ou seja, exploitabilidade prática hoje é próxima de zero (só categorias
+semeadas pelo sistema têm `color` preenchido, presumivelmente valores confiáveis).
+Ainda assim, é um gap real de defesa em profundidade: o `style` do React não
+executa JS a partir do valor (não é um vetor de XSS), mas aceita qualquer string
+como valor de propriedade CSS sem validação — se uma futura funcionalidade
+(picker de cor para categoria, ou escrita direta via PostgREST fora da UI atual)
+gravar um valor não-hexadecimal, ele chega ao DOM sem sanitização. Impacto,
+mesmo nesse cenário futuro, fica limitado ao próprio usuário (RLS impede que a
+`color` de outro usuário seja lida) — nunca cross-tenant.
+- **Severidade**: Baixa.
+- **Veredito**: Não bloqueia. Débito registrado — **SEC-DEBT-012**.
+- **Prazo/condição**: antes de qualquer funcionalidade futura que exponha um campo
+  de UI para o usuário definir `categories.color`/`accounts.color` livremente,
+  adicionar validação de formato (regex `^#[0-9a-fA-F]{6}$` no client e/ou `CHECK`
+  constraint no banco). Sem urgência hoje — nenhuma via de escrita real expõe o
+  campo a valor arbitrário do usuário.
+- **Escalar para**: `frontend`/`backend` (correção futura, condicional — não é
+  tarefa deste lote).
+
+**Nenhum outro achado.** Confirmo os 3 pontos de atenção pedidos para esta rodada:
+XSS — sem gap; dependência nova — fora do escopo deste lote (já registrada em
+1.17/1.18); dado sensível via `aria-*`/props — sem gap (só dado do próprio
+usuário, já escopado por RLS).
+
+**Checklist — rodada 1.19 (`static-security-analysis`, lote "Categorização — Grade
+de Cards", em paralelo ao QA)**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto — nenhum achado desta
+      severidade
+- [x] Nenhum achado de compliance obrigatório (LGPD) pendente — não avaliado
+      formalmente nesta rodada (skill fora de escopo, aguarda gate de QA); nenhum
+      indício levantado durante o SAST
+- [x] Achado de baixa/média severidade registrado como débito com prazo —
+      `SEC-DEBT-012` (ver acima)
+- [x] Nenhum requisito operacional novo para o DevOps surgiu desta rodada
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      `SEC-DEBT-012` é achado técnico de baixa severidade e exploitabilidade
+      próxima de zero, sem decisão de negócio envolvida
+
+**Veredito do lote (parcial, só `static-security-analysis`): Aprovado com
+débito** (`SEC-DEBT-012`, baixa severidade, não bloqueante). Fica condicionado,
+como em toda rodada anterior deste padrão, à auditoria completa (as 4 skills
+restantes) assim que o QA aprovar (Aprovado/Aprovado com ressalvas) `FE-REF-06`
+em `QA-REPORT.md` (`QA-REF-04`).
+
+---
+
+### 1.20 — Auditoria completa (veredito final de lote) — "Categorização — Grade de Cards" (`FE-REF-06`, Fase 2.1) — 2026-09-04
+
+**Gatilho**: `QA-REPORT.md` Seção 11 aprovou (Aprovado, sem ressalva) `FE-REF-06`/
+`QA-REF-04` — nenhum bug de nenhuma severidade, nenhum débito técnico novo de QA.
+Libera a auditoria completa de DevSecOps (as 4 skills além de
+`static-security-analysis`, já rodada em 1.19, sobre o mesmo escopo:
+`frontend/src/components/domain/CategoryCard.tsx`,
+`frontend/src/pages/categories/CategoriesPage.tsx`, testes correspondentes). Esta
+rodada **não repete** o SAST de 1.19 — usa seu resultado como insumo (sem XSS;
+`lucide-react` fora do escopo deste lote; sem dado sensível via `aria-*`/props;
+achado `SEC-DEBT-012` já registrado) e acrescenta os 3 checks de auditoria
+propriamente dita mais a consolidação final.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+Este lote não contém nenhuma migration — reaproveita 100% do que já está em
+produção (`categories`, `get_monthly_category_summary()`). Reverifico, por leitura
+direta do schema real (não por aceitar o que rodadas anteriores já haviam
+concluído), que nada relevante mudou:
+
+| Requisito (`SDD.md` Seção 7 / `GUARDRAILS.md`) | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| RLS `auth.uid() = user_id` (categoria própria) / `user_id IS NULL` (categoria de sistema) em `categories` (`Autorização`; `G-04`) | `categories_select`/`categories_insert_own`/`categories_update_own` | `supabase/migrations/20260827170841_baseline_legacy.sql:1556-1568` — todas as 3 policies exigem `user_id = auth.uid()` (ou `user_id IS NULL` só em `SELECT`, categoria de sistema) | Passa — nenhuma tabela/policy nova, nenhuma mudança |
+| Gate de MFA por JWT claim `app_email_mfa_verified` em `categories` | Mesma evidência acima | As 3 policies incluem `(auth.jwt() ->> 'app_email_mfa_verified') = 'true'` | Passa |
+| `get_monthly_category_summary()` é `SECURITY INVOKER`, filtra por `auth.uid()` no próprio corpo (mesmo padrão já exigido para `get_transaction_shortcuts()` em 1.18) | Leitura direta da função | `20260827170841_baseline_legacy.sql:622-644` — `LANGUAGE "sql" STABLE` sem `SECURITY DEFINER` (INVOKER implícito), `where t.user_id = auth.uid()` na CTE principal | Passa |
+| Trigger `categories_before_delete_block_linked` (RN-09) `SECURITY DEFINER` com `search_path` fixo (`G-19`) | Leitura direta da função (reconfirmação, não nova para este lote) | `categories_block_delete_when_linked()` — `SECURITY DEFINER`, correção de `BE-M-13`/Bloqueio 010 já auditada em rodadas anteriores; comportamento inalterado, `FE-REF-06` só reorganiza onde o botão "Excluir categoria" aparece na UI, não toca o trigger | Passa — sem regressão |
+| `G-19` (ownership de FK entre tabelas ownable) | Não aplicável | Nenhuma tabela/coluna nova criada por este lote — puramente front-end | Não aplicável |
+| Nenhuma migration nova (`G-02`/`G-03`) | `git diff --stat` do lote | Confirmado: só `.tsx`/`.test.tsx` modificados, nenhum arquivo em `supabase/migrations/` | Passa |
+
+**Nenhum requisito de arquitetura de segurança da Seção 7 do `SDD.md` relevante a
+este lote está implementado de forma diferente do especificado.** Confirmo, por
+leitura de código e não por aceitar a nota de evidência do Frontend às cegas, que
+nenhuma RLS nova, criptografia nova ou mecanismo de isolamento novo é necessário —
+o lote reaproveita integralmente o que já estava auditado.
+
+#### `compliance-validation` — LGPD
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Dado pessoal/sensível novo | Nenhum campo novo — `CategoryCard` só exibe `name`/`icon`/`color`/total gasto/contagem de subcategorias, todos já existentes; nenhuma coluna nova, nenhum dado de terceiro exposto | Passa |
+| Minimização | Nenhum dado além do estritamente necessário à exibição (mesmo conjunto de campos que a lista em árvore anterior já expunha, exceto `color`, que é decorativo — ver `SEC-DEBT-012`) | Passa |
+| Retenção/descarte (`ADR-011`) | Nenhuma entidade nova; `categories` segue o ciclo de vida já auditado (retenção enquanto a conta estiver ativa) | Passa |
+| Base legal/titular | Mesmo enquadramento já assentado em rodadas anteriores (autoprocessamento do próprio titular) | Passa |
+| Direito ao esquecimento | Sem mudança — mecanismo formal de exclusão de conta (`ADR-011`) intocado por este lote | Passa |
+| Payload de API não devolve campo além do documentado em `API-CONTRACT.yaml` | `API-CONTRACT.yaml` linhas 542-548 (`GET /categories` → `Category`), 1162-1185 (`POST /rpc/get_monthly_category_summary` → `category_id`/`category_name`/`kind`/`total_cents`) — schemas batem 1:1 com o que `CategoriesPage.tsx` consome (`types.ts`, `MonthlyCategorySummaryItem`) | Passa |
+
+**Nenhum achado de compliance obrigatório (LGPD) não resolvido neste lote.**
+
+#### `sensitive-data-exposure-check`
+
+| Superfície | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Payload de API (`GET /categories`, `POST /rpc/get_monthly_category_summary`) | Nenhum campo de segredo/token/dado de outro usuário no request ou response | Confirmado contra `API-CONTRACT.yaml` acima; ambas as chamadas são as mesmas já existentes, sem alteração de contrato | Passa |
+| Mensagens de erro | `loadError`/`saveError` usam `cause.message` de `ApiError` ou mensagem genérica fixa ("Não foi possível carregar as categorias.", "Não foi possível salvar a categoria — verifique a hierarquia (RN-09).") — mesmo padrão já auditado em lotes anteriores, sem mudança introduzida aqui | `CategoriesPage.tsx:57,141` | Passa |
+| Logs client-side | Nenhum `console.*` em `CategoryCard.tsx`/`CategoriesPage.tsx`/`lib/api/categories.ts`/`lib/api/dashboard.ts` | Grep dirigido (`console.log`/`console.error`/`console.warn`) — zero ocorrências | Passa |
+| Armazenamento local (`localStorage`/`sessionStorage`/IndexedDB) | Nenhum uso nos 4 arquivos deste lote | Grep dirigido — zero ocorrências | Passa |
+| Renderização de dado dinâmico (XSS) | Já confirmado em 1.19 — `name`/`icon`/total/contagem via JSX puro, sem `dangerouslySetInnerHTML` | — | Passa |
+| Segredos hardcoded | Nenhum token/chave/URL de serviço nos arquivos deste lote | Grep dirigido, reconfirmado nesta rodada | Passa |
+| `category.color` como valor de CSS inline sem validação de formato | Já confirmado em 1.19 (`SEC-DEBT-012`) — sem exploitabilidade prática hoje (nenhuma UI expõe campo para defini-lo), impacto sempre self-scoped por RLS mesmo num cenário futuro | — | Débito já registrado, não repetido |
+
+**Nenhum vazamento de dado sensível via API, log, armazenamento local ou
+renderização neste lote**, além do já registrado (`SEC-DEBT-012`, baixa
+severidade, sem exploitabilidade prática).
+
+#### `finding-severity-classification`
+
+`QA-REPORT.md` Seção 11.4/11.6 não registrou nenhum bug de nenhuma severidade
+nesta rodada — não há achado de QA para reclassificar quanto à implicação de
+segurança (diferente de `QA-DEBT-009`/`010`/`011` em rodadas anteriores). Reavalio
+`SEC-DEBT-012` (único achado deste lote, já classificado em 1.19): mantenho
+**Baixa** — não há fato novo que eleve a severidade (nenhuma UI expõe o campo
+`color` a valor arbitrário do usuário hoje; RLS impede vazamento cross-tenant
+mesmo num cenário futuro; `style` do React não executa código a partir do valor).
+**Confirmado: nenhum achado de severidade alta/crítica, nesta rodada nem
+herdado.**
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+Consolidando o achado da análise estática (1.19 — `SEC-DEBT-012`, baixa
+severidade, único achado) com os 3 checks acima (nenhum achado novo de
+severidade alta/crítica, nenhum achado de compliance obrigatório, nenhum
+vazamento de dado sensível além do já registrado):
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado — nada fica pendente como
+  débito, não há gap a resolver.
+- **Exposição de dado sensível**: nenhum achado novo além de `SEC-DEBT-012`
+  (já registrado, baixa severidade, sem exploitabilidade prática hoje).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — este
+  lote não introduz Edge Function, secret, configuração de rede/firewall nem
+  storage novo; Seção 4 já cobre o que é aplicável ao projeto.
+
+**Veredito do lote: Aprovado com débito** (`SEC-DEBT-012`, baixa severidade,
+não bloqueante, sem prazo urgente — condicionado a uma funcionalidade futura
+ainda não planejada). `FE-REF-06`/`QA-REF-04` estão liberadas para o fechamento
+formal do lote pelo Tech Lead (`TASK.md` Seção 7) do ponto de vista de
+segurança. Nenhuma pré-condição de deploy pendente.
+
+**Sinalização ao CTO (paralela, não pré-requisito)**: nenhuma nova — este lote
+não gera achado de relevância estratégica (severidade Baixa, sem decisão de
+negócio envolvida). As sinalizações já registradas na Seção 5 permanecem
+válidas e não são reabertas por esta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo —
+      `SEC-DEBT-012` (Seção 2)
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo exigido por este lote, Seção 4 já cobre o projeto
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      nenhum achado desta natureza
+
+---
+
+### 1.21 — `static-security-analysis` (SAST + dependências) — "Orçamento — Grade de Cards" (`FE-REF-07`, Fase 2.1) — em paralelo ao QA — 2026-09-04
+
+**Escopo desta rodada**: `frontend/src/components/domain/BudgetCard.tsx` (novo, +
+`BudgetCard.test.tsx`), `frontend/src/pages/budget/BudgetPage.tsx` (reescrito, +
+`BudgetPage.test.tsx`), `frontend/src/components/domain/ProgressBar.tsx` (mudança
+pequena aditiva — prop `detailTextClassName`, + `ProgressBar.test.tsx`),
+`frontend/src/index.css` (novo token `--color-danger-soft`). Mudança puramente de
+apresentação — nenhum endpoint/RPC novo (`getBudgetStatus()`/`listBudgets()`/
+`listCategories()` já existentes, reaproveitados sem alteração de contrato);
+confirmado por leitura de `TASK.md` Seção 3.4 (nota de evidência de `FE-REF-07`,
+incluindo o fix-loop) e diff real. Passou por 1 rodada de fix-loop corrigindo um
+bug funcional (dependência frágil de `budgets.find` removida) e um problema de
+contraste WCAG — ambos já corrigidos antes desta auditoria, revisados abaixo do
+ponto de vista de segurança (não repito a validação funcional/WCAG, já feita pelo
+próprio Frontend e será revisada pelo QA em `QA-REF-05`). Rodada só de
+`static-security-analysis`, em paralelo ao QA — não espera o veredito dele; as 4
+skills de auditoria completa (`security-requirement-validation`,
+`compliance-validation`, `sensitive-data-exposure-check`,
+`finding-severity-classification`) ficam para quando o QA aprovar.
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| XSS via nome de categoria não sanitizado | Grep dirigido por `dangerouslySetInnerHTML`/`innerHTML`/`eval(`/`document.write` nos 4 arquivos de produção do lote (`BudgetCard.tsx`, `BudgetPage.tsx`, `ProgressBar.tsx`, mais o `Card` base que `BudgetCard` envolve, já auditado em rodadas anteriores) | Zero ocorrências; `categoryName`/`label` chegam ao DOM só como filho de JSX puro (`{categoryName}`, `{label}`) ou como valor de atributo (`aria-label`, `title`) — React escapa ambos por padrão | Passa |
+| Informação sensível de outro usuário via props/`aria-*` | Leitura direta de `BudgetCard.tsx` (`aria-label="Editar orçamento de {categoryName}"`, `aria-describedby` aponta só para o bloco visível: categoria + `ProgressBar` com `spentCents`/`limitCents`/`pctSpent`) — todos os dados vêm de `getBudgetStatus()` (`get_budget_status`, RPC já auditada em rodadas anteriores como escopada por RLS `auth.uid() = user_id`, mesmo padrão de `categories`/`get_monthly_category_summary()` confirmado em 1.9/1.11/1.12/1.19) | `BudgetCard.tsx:79-80,84-89`; `frontend/src/lib/api/budget.ts:34-36` (`getBudgetStatus`); RLS de `budget` confirmada em `supabase/migrations/20260902100000_be_m01_budget_and_rn08_rn09_guards.sql:39-54` (`auth.uid() = user_id` nas 4 policies select/insert/update/delete) | Passa |
+| Correção do bug de `budgets.find` não introduziu caminho de edição/exclusão cross-user | Leitura de `BudgetPage.tsx` (`openEditForm`/`confirmDelete`/`requestDeleteFromForm`) confirmando que `editingBudget`/`deleteTarget` são 100% dirigidos por `BudgetStatusItem` (já escopado por RLS via `getBudgetStatus()`), e que `updateBudget(id, ...)`/`deleteBudget(id)` (`frontend/src/lib/api/budget.ts:24-31`) enviam só o `budget_id` — a barreira de autorização real não é o client filtrar por usuário, é a policy `budget_update_own`/`budget_delete_own` (`USING (auth.uid() = user_id ...)`) recusar a linha no servidor caso um `budget_id` de outro usuário chegasse ali (nenhuma via de UI hoje permite isso, mas mesmo que chegasse, a RLS barra) | `BudgetPage.tsx:96-105,133-151`; `frontend/src/lib/api/budget.ts:24-31`; RLS confirmada acima | Passa — a correção do fix-loop trocou a fonte do dado (`budgets.find` → `status` direto), não o mecanismo de autorização, que continua sendo a RLS do backend, não confiança no client |
+| Dependência nova em `package.json` | `git diff frontend/package.json` | `lucide-react@^1.41.0` é a única dependência nova no working tree, mas **não é consumida por nenhum dos 4 arquivos deste lote** (nenhum import em `BudgetCard.tsx`/`BudgetPage.tsx`/`ProgressBar.tsx`) — já registrada e endereçada (fora do escopo, uso real em `AppLayout.tsx`) em 1.17/1.18/1.19, não duplico o achado aqui. `npm audit --omit=dev` → **0 vulnerabilidades** | Passa — nenhuma dependência nova introduzida por este lote especificamente |
+| Novo token CSS (`--color-danger-soft`) | Leitura de `frontend/src/index.css:24-30` | Valor hexadecimal estático (`#f8e8e8`), sem interpolação de dado de usuário, sem `url()`/`expression()` — superfície de ataque nula | Passa |
+
+**Nenhum achado novo nesta rodada.** Confirmo os 3 pontos de atenção pedidos:
+XSS via nome de categoria — sem gap (React escapa por padrão, sem
+`dangerouslySetInnerHTML` em nenhum dos 4 arquivos); informação sensível de outro
+usuário via props/`aria-*` — sem gap (dado sempre pré-escopado por RLS antes de
+chegar ao componente); correção do bug de `budgets.find` — sem gap (nenhum novo
+caminho de edição/exclusão cross-user; RLS do backend continua sendo a barreira
+real de autorização, `updateBudget`/`deleteBudget` seguem operando só sobre
+`budget_id`, sem tentativa nem necessidade de o client provar ownership).
+
+**Checklist — rodada 1.21 (`static-security-analysis`, lote "Orçamento — Grade de
+Cards", em paralelo ao QA)**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto — nenhum achado nesta
+      rodada
+- [x] Nenhum achado de compliance obrigatório (LGPD) pendente — não avaliado
+      formalmente nesta rodada (skill fora de escopo, aguarda gate de QA);
+      nenhum indício levantado durante o SAST
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado nesta rodada
+- [x] Nenhum requisito operacional novo para o DevOps surgiu desta rodada
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito do lote (parcial, só `static-security-analysis`): Aprovado, sem
+débito.** Fica condicionado, como em toda rodada anterior deste padrão, à
+auditoria completa (as 4 skills restantes) assim que o QA aprovar (Aprovado/
+Aprovado com ressalvas) `FE-REF-07` em `QA-REPORT.md` (`QA-REF-05`).
+
+---
+
+### 1.22 — Auditoria completa (veredito final de lote) — "Orçamento — Grade de Cards" (`FE-REF-07`, Fase 2.1) — 2026-09-04
+
+**Gatilho**: `QA-REPORT.md` Seção 12.6 aprovou (Aprovado, sem ressalva) `FE-REF-07`/
+`QA-REF-05` — nenhum bug de severidade alta/crítica, 1 débito registrado
+(`QA-DEBT-012`, contraste WCAG do texto de percentual do `ProgressBar` no estado
+`warning`, problema de token de design pré-existente ao app inteiro, não
+introduzido por `FE-REF-07`, sem componente de segurança — carregado aqui só como
+contexto, não reclassificado). Libera a auditoria completa de DevSecOps (as 4
+skills além de `static-security-analysis`, já rodada em 1.21, sobre o mesmo
+escopo: `frontend/src/components/domain/BudgetCard.tsx`,
+`frontend/src/pages/budget/BudgetPage.tsx`,
+`frontend/src/components/domain/ProgressBar.tsx`, `frontend/src/index.css`, testes
+correspondentes). Esta rodada **não repete** o SAST de 1.21 — usa seu resultado
+como insumo (sem XSS; sem dado sensível via `aria-*`/props; correção do bug de
+`budgets.find` confirmada sem abrir caminho cross-user; `lucide-react` fora do
+escopo deste lote; nenhum achado de segurança) e acrescenta os 3 checks de
+auditoria propriamente dita mais a consolidação final.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+Este lote não contém nenhuma migration — reaproveita 100% do que já está em
+produção (`budget`, `get_budget_status()`, `categories`). Reverifico, por leitura
+direta do schema real (não por aceitar a nota de evidência do Frontend/QA às
+cegas), que nada relevante mudou:
+
+| Requisito (`SDD.md` Seção 7 / `GUARDRAILS.md`) | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| RLS `auth.uid() = user_id` nas 4 policies de `budget` (`Autorização`; `G-04`) | `budget_select_own`/`budget_insert_own`/`budget_update_own`/`budget_delete_own` | `supabase/migrations/20260902100000_be_m01_budget_and_rn08_rn09_guards.sql:39-54` — as 4 policies exigem `auth.uid() = user_id` | Passa — nenhuma tabela/policy nova, nenhuma mudança nesta rodada |
+| Gate de MFA por JWT claim `app_email_mfa_verified` em `budget` | Mesma evidência acima | As 4 policies incluem `(auth.jwt() ->> 'app_email_mfa_verified') = 'true'` | Passa |
+| `get_budget_status()` filtra por `auth.uid()` no próprio corpo, resolve mês corrente no servidor (não confia em fuso do client) | Leitura direta da função (`BE-M-08`) + rastreio já feito por QA na Seção 12.2 | `supabase/migrations/20260902100300_be_m08_budget_status.sql` — `STABLE`, filtra por usuário autenticado; `date_trunc('month', coalesce(p_month, (now() at time zone 'America/Sao_Paulo')::date))` | Passa |
+| `G-19` (ownership de FK `budget.category_id` → `categories`) — já corrigido em `BE-M-13`, não tocado por este lote | Leitura direta de `budget_insert_own`/`budget_update_own` | `supabase/migrations/20260903100000_be_m13_fk_ownership_and_security_definer_guards.sql:34-58` — `EXISTS (SELECT 1 FROM categories c WHERE c.id = category_id AND (c.user_id = auth.uid() OR c.user_id IS NULL))` nas 2 policies; `BudgetPage.tsx` sequer envia `category_id` em `updateBudget` (campo desabilitado na edição), então a superfície de ataque desta FK nem é exercitada pelo fluxo de edição do card | Passa |
+| Correção do fix-loop (Achado 1, `budgets.find` → `BudgetStatusItem`) não abriu caminho de edição/exclusão cross-user | Já auditado em 1.21 (ponto dedicado), reconfirmado aqui à luz da aprovação de QA — `updateBudget(editingBudget.budget_id, ...)`/`deleteBudget(deleteTarget.budget_id)` seguem operando só sobre `id` de `budget`, com a RLS acima como única barreira real | `BudgetPage.tsx:96-105,133-151`; `frontend/src/lib/api/budget.ts:24-31` | Passa |
+| Nenhuma migration nova (`G-01`/`G-02`/`G-03`) | `git diff --stat` do lote | Confirmado: só `.tsx`/`.test.tsx`/`index.css` modificados, nenhum arquivo em `supabase/migrations/` | Passa |
+| `G-05` a `G-18` (retenção Fase 3, vendor externo, Storage, backup, autenticação/PIN, HA/cache) | Leitura do escopo do lote | Nenhum desses guardrails toca renderização de card de orçamento — nenhum código de automação Fase 3, integração externa, Storage, backup, autenticação ou infraestrutura foi tocado | Não aplicável |
+
+**Nenhum requisito de arquitetura de segurança da Seção 7 do `SDD.md` relevante a
+este lote está implementado de forma diferente do especificado.** O card de
+orçamento é puramente derivado de uma RPC já auditada como corretamente escopada
+por RLS; a correção funcional do fix-loop reforçou (não enfraqueceu) essa
+dependência, eliminando um cruzamento client-side que não tinha relação com
+autorização real.
+
+#### `compliance-validation` — LGPD
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Dado pessoal/sensível novo | Nenhum campo novo — `BudgetCard` exibe `categoryName`/`spentCents`/`limitCents`/`pctSpent`/`alertLevel`, todos já existentes em `BudgetStatusItem` (`get_budget_status`, `BE-M-08`); nenhuma coluna nova, nenhum dado de terceiro | Passa |
+| Minimização | Nenhum dado além do estritamente necessário à exibição (mesmo conjunto de campos que a lista/`ProgressBar` solto anterior já expunha) | Passa |
+| Retenção/descarte (`ADR-011`) | Nenhuma entidade nova; `budget` é dado de planejamento (`SDD.md` Seção 7, tabela de retenção — "Ledger... e demais entidades de planejamento", retenção indefinida enquanto a conta estiver ativa, descarte só por exclusão de conta) — ciclo de vida já auditado, inalterado por este lote | Passa |
+| Base legal/titular | Mesmo enquadramento já assentado em rodadas anteriores (autoprocessamento do próprio titular, produto de usuário único) | Passa |
+| Direito ao esquecimento | Sem mudança — mecanismo formal de exclusão de conta (`ADR-011`) intocado por este lote; exclusão pontual de orçamento (`deleteBudget`) preserva o mesmo fluxo/`ConfirmationDialog` já existente, só reposicionado dentro de `S-BUD-02` | Passa |
+| Payload de API não devolve campo além do documentado em `API-CONTRACT.yaml` | `API-CONTRACT.yaml:343-354` (`Budget`), `1205-1237` (`POST /rpc/get_budget_status` → `budget_id`/`category_id`/`category_name`/`month`/`limit_cents`/`spent_cents`/`alert_threshold_pct`/`pct_spent`/`alert_level`) — schema bate 1:1 com o que `BudgetCard.tsx`/`BudgetPage.tsx` consomem, nenhum campo extra renderizado nem enviado | Passa |
+
+**Nenhum achado de compliance obrigatório (LGPD) não resolvido neste lote.**
+
+#### `sensitive-data-exposure-check`
+
+| Superfície | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Payload de API (`POST /rpc/get_budget_status`, `GET/POST/PATCH/DELETE /budget`) | Nenhum campo de segredo/token/dado de outro usuário no request ou response | Confirmado contra `API-CONTRACT.yaml` acima; as 6 chamadas usadas por `BudgetPage.tsx` são as mesmas já existentes, sem alteração de contrato (reconfirmado por `git diff HEAD -- .md/API-CONTRACT.yaml`, únicas mudanças da sessão são de `BE-REF-02`, lote diferente) | Passa |
+| Mensagens de erro | `loadError`/`saveError` usam `cause.message` de `ApiError` ou mensagem genérica fixa ("Não foi possível carregar os orçamentos.", "Não foi possível salvar o orçamento.", "Não foi possível remover.") — mesmo padrão já auditado em lotes anteriores, sem mudança introduzida aqui | `BudgetPage.tsx:75,126,148` | Passa |
+| Logs client-side | Nenhum `console.*` em `BudgetCard.tsx`/`BudgetPage.tsx`/`ProgressBar.tsx`/`lib/api/budget.ts` | Grep dirigido (`console.log`/`console.error`/`console.warn`) — zero ocorrências (já confirmado em 1.21, reconfirmado aqui) | Passa |
+| Armazenamento local (`localStorage`/`sessionStorage`/IndexedDB) | Nenhum uso nos 4 arquivos deste lote | Grep dirigido — zero ocorrências | Passa |
+| Renderização de dado dinâmico (XSS) | Já confirmado em 1.21 — `categoryName`/`label`/`detailText` via JSX puro, sem `dangerouslySetInnerHTML` | — | Passa |
+| Segredos hardcoded | Nenhum token/chave/URL de serviço nos arquivos deste lote; `--color-danger-soft` é hexadecimal estático | Grep dirigido, reconfirmado nesta rodada | Passa |
+| `aria-label`/`aria-describedby` do card não vaza dado de outro usuário | `BudgetCard.tsx:79-89` — só reflete `categoryName`/valores monetários já escopados por RLS via `getBudgetStatus()` | Já confirmado em 1.21 | Passa |
+
+**Nenhum vazamento de dado sensível via API, log, armazenamento local ou
+renderização neste lote.**
+
+#### `finding-severity-classification`
+
+`QA-REPORT.md` Seção 12.4/12.6 registrou 1 achado nesta rodada — `QA-DEBT-012`
+(contraste WCAG do texto de percentual do `ProgressBar` no estado `warning`,
+`text-warning` sobre `warning-soft` ≈2.86:1, FAIL). Avalio explicitamente a
+implicação de segurança deste achado, como exigido pelo meu escopo (toda vez que
+o QA registra um achado sobre um componente deste lote, mesmo não rotulado como
+segurança pelo próprio QA):
+
+- **Classificação de segurança**: nenhuma. É um problema de contraste de cor
+  (acessibilidade/WCAG), não uma falha de autorização, exposição de dado ou
+  qualquer categoria de achado deste agente — o texto em baixo contraste ainda
+  contém exatamente o mesmo dado (percentual) que o restante do card já exibe
+  com contraste adequado (`detailText` em `text-neutral-600`, 6.81:1/6.39:1,
+  achado da própria revisão de qualidade de `FE-REF-07`); não há informação
+  vazando nem sendo ocultada de forma que comprometa confidencialidade,
+  integridade ou disponibilidade.
+- **Causa raiz confirmada por QA como pré-existente** (`--color-warning`
+  insuficiente contra qualquer fundo claro do design system, não introduzido
+  nem agravado por `FE-REF-07`) — não gera novo débito de segurança
+  (`SEC-DEBT-*`), fica só como `QA-DEBT-012` no dono correto (design
+  tokens/Frontend), sem duplicação neste documento.
+
+**Confirmado: nenhum achado de severidade alta/crítica, nesta rodada nem
+herdado, em nenhum dos 4 arquivos do lote.**
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+Consolidando o achado da análise estática (1.21 — nenhum achado, único ponto de
+atenção sendo a confirmação de que `lucide-react` está fora de escopo) com os 3
+checks acima (nenhum achado novo de severidade alta/crítica, nenhum achado de
+compliance obrigatório, nenhum vazamento de dado sensível, `QA-DEBT-012`
+reclassificado como sem componente de segurança):
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado — nada fica pendente como
+  débito, não há gap a resolver.
+- **Exposição de dado sensível**: nenhum achado.
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — este
+  lote não introduz Edge Function, secret, configuração de rede/firewall nem
+  storage novo; Seção 4 já cobre o que é aplicável ao projeto.
+
+**Veredito do lote: Aprovado, sem débito de segurança.** `FE-REF-07`/`QA-REF-05`
+estão liberadas para o fechamento formal do lote pelo Tech Lead (`TASK.md` Seção
+7) do ponto de vista de segurança. `QA-DEBT-012` permanece como débito de UX/
+acessibilidade sob responsabilidade do Frontend (próxima revisão de design
+tokens), não um débito deste agente. Nenhuma pré-condição de deploy pendente.
+
+**Sinalização ao CTO (paralela, não pré-requisito)**: nenhuma nova — este lote
+não gera achado de relevância estratégica (nenhum achado de segurança, e
+`QA-DEBT-012` não tem componente de segurança nem decisão de negócio envolvida).
+As sinalizações já registradas na Seção 5 permanecem válidas e não são
+reabertas por esta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado de segurança nesta rodada (`QA-DEBT-012` é débito
+      de UX/acessibilidade, já registrado e detido pelo QA/Frontend, sem
+      componente de segurança)
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo exigido por este lote, Seção 4 já cobre o projeto
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      nenhum achado desta natureza

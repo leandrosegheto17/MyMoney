@@ -312,3 +312,328 @@ Checklist comparado item a item contra `CTO-REVIEW.md` Gate 1:
 
 **Resultado: sem divergência não resolvida em relação ao Gate 1.** `PRD.md` liberado
 para o Business Analyst em 2026-09-02.
+
+---
+
+# Adendo A — Pacote de Refinamento de Produção ("Fase 2.1 — Melhorias Contínuas")
+
+**Dono**: PM (Product Manager)
+**Data**: 2026-09-04
+**Natureza**: **adendo** ao `PRD.md` original — não reescreve nem invalida nenhuma
+seção anterior (Seções 1-7 acima seguem vigentes para MVP/Fase 2/Fase 3). Este
+adendo cobre uma rodada de escopo nova, levantada a partir de uso real do produto
+já em produção (`https://mymoney-lsm.vercel.app`), sem competir com o faseamento
+já aprovado — é trabalho de refinamento contínuo, não uma nova fase numerada do
+roadmap original.
+**Gate de entrada**: `CTO-REVIEW.md`, seção "Gate 1 — Pré-descoberta (Pacote de
+Refinamento: Dashboard/Lançamentos/Formas de Pagamento/Categorias/Orçamento) —
+2026-09-04", veredito **Aprovado com ressalvas**.
+**Fonte de negócio**: briefing verbatim do dono do produto (6 pontos de melhoria),
+avaliado pelo CTO no gate acima; referência visual externa
+(`github.com/leandrosegheto17/FinancialControl`) tratada como inspiração de
+layout, não escopo funcional.
+**Consumidor imediato**: `business-analyst` (aprofunda a partir da Seção A.5 e das
+perguntas da Seção A.7 deste adendo).
+
+As 5 ressalvas do Gate 1 desta rodada foram carregadas explicitamente:
+1. Itens 1, 2, 5, 6 tratados como refinamento visual de baixo risco, reaproveitando
+   as convenções de responsividade já formalizadas em `UX-SPEC.md` (2026-09-04) —
+   ver Seção A.4.
+2. Item 3: regra de negócio fechada com precisão testável nesta seção (Seção A.5) —
+   critério de "mais usadas recentemente", algoritmo de forma de pagamento
+   associada, desempate, pré-preenchimento e fallback de conta nova, todos
+   definidos abaixo.
+3. Item 4: definição de **produto** (regra de nomenclatura de exibição) fechada
+   nesta seção (Seção A.5) — a decisão de **arquitetura** (ADR completo) segue
+   pendente do Software Architect, com as 3 condições de aceite do Gate 1
+   preservadas como pré-condição de implementação (Seção A.6, risco A3).
+4. Nenhum gap de roster — nada a tratar neste documento.
+5. Priorização entre os 6 itens, não feita pelo dono do produto, levantada
+   explicitamente na Seção A.5 com framework RICE (mais de 5 itens concorrentes,
+   aciona `product-roadmap-prioritization` conforme `scope-prioritization`).
+
+## A.1 Problema e Contexto
+
+**Problema observável hoje, relatado a partir de uso real em produção** (não
+hipótese — o app já está em uso desde a entrega do MVP/Fase 2):
+
+1. O dashboard, no desktop, exige rolagem vertical excessiva porque o layout
+   empilha cards em coluna única, sem aproveitar a largura de tela disponível.
+2. Na lista de lançamentos, a hierarquia visual atual não destaca a informação
+   mais relevante para reconhecimento rápido (subcategoria); descrição e forma de
+   pagamento competem visualmente com ela, e a ausência de descrição é preenchida
+   com o texto redundante "(sem descrição)" em vez de simplesmente omitida.
+3. Lançar uma transação manualmente ainda exige preencher todos os campos do zero
+   a cada vez, mesmo quando a mesma subcategoria se repete com alta frequência
+   (ex.: "Uber", "Supermercado") — não há atalho para o caso comum.
+4. O formulário de lançamento exige escolher "conta" e "forma de pagamento" como
+   dois campos independentes, quando o vínculo entre eles já existe no modelo de
+   dados (`payment_methods.account_id`) — é uma pergunta redundante ao usuário.
+5. e 6. A visualização de Categorias e de Orçamento é uma lista expansível, que
+   exige clique adicional para ver o conteúdo de cada categoria/mês — ruim de usar
+   quando o usuário quer uma visão geral rápida.
+
+**Contexto herdado**: mesmo projeto pessoal, execução solo, usuário único, sem
+orçamento/prazo formal (`CTO-REVIEW.md` Gate 1 original e Gate 3, "Declaração de
+capacidade"). Este pacote **não é uma nova fase do roadmap original** — é
+manutenção evolutiva sobre MVP+Fase 2 já entregues, equivalente em natureza à
+repaginação visual já aprovada e implementada em 2026-09-04.
+
+**Hipótese de valor**: se o dashboard e a lista de lançamentos exigirem menos
+esforço de leitura/rolagem, se o lançamento manual mais comum (subcategoria
+recorrente) exigir só a digitação do valor, e se a escolha de conta deixar de ser
+um campo redundante, então o atrito diário de uso cai sem exigir nenhuma automação
+nova (voz/foto/importação, que seguem Fase 3) — porque o problema relatado aqui não
+é "falta de dado", é "esforço desnecessário para registrar/ler dado que o app já
+tem".
+
+## A.2 Público-Alvo
+
+Mesmo público do `PRD.md` original (Seção 2) — usuário único, o próprio dono do
+produto, agora **em uso real de produção**, não mais hipotético. Nenhuma mudança de
+público nesta rodada.
+
+## A.3 Objetivo de Sucesso
+
+Quatro métricas mensuráveis, cada uma amarrada a um subconjunto dos 6 itens.
+Nenhuma é "melhorar a experiência" sem meta — todas têm baseline (ou prazo
+explícito para levantar baseline) e meta numérica.
+
+| # | Métrica | Baseline | Meta | Quando medir |
+|---|---|---|---|---|
+| M3 (atrito de lançamento) | Nº de campos obrigatórios de preenchimento manual por lançamento | 4 (valor, subcategoria, forma de pagamento, conta) — descrição já é opcional hoje | Lançamento via atalho (item 3): 1 campo (valor). Lançamento fora do atalho: 2 campos (valor, forma de pagamento unificada — item 4 elimina "conta" como campo separado) | Imediatamente após deploy, por inspeção estática do formulário |
+| M4 (rolagem do dashboard desktop) | A levantar — altura de rolagem (px) da tela atual, viewport de referência 1440x900 (breakpoint `lg`, `UX-SPEC.md`). Dono: UX/UI. Prazo: antes do início da implementação do item 1 | Reduzir em ≥ 40% a altura de rolagem vertical no mesmo viewport, sem alterar o comportamento mobile (single-column, já formalizado) | Imediatamente após deploy, mesma metodologia do baseline |
+| M5 (redundância na lista de lançamentos) | 100% dos itens sem descrição hoje exibem o texto "(sem descrição)" | 0% dos itens exibem texto de preenchimento quando a descrição está vazia; hierarquia visual (subcategoria em destaque) aplicada a 100% dos itens | Imediatamente após deploy, inspeção visual/teste de snapshot |
+| M6 (adoção do atalho de lançamento rápido) | 0% (funcionalidade não existe hoje) | ≥ 50% dos lançamentos manuais do mês criados via atalho de subcategoria | 30 dias corridos após o deploy do item 3 — requer rastreamento de origem do lançamento, ver risco A6 |
+
+**Fora desta seção, por não ser objetivo de produto**: a correção do Bloqueio 013
+(IDOR em `payment_methods.account_id`) é pré-condição de segurança do item 4, não
+uma meta de produto — fica registrada como risco de dependência (Seção A.6),
+seguindo o mesmo padrão já usado no `PRD.md` original para NFRs de arquitetura.
+
+## A.4 Escopo desta Rodada (dentro / fora)
+
+### Dentro
+
+| Item | Descrição | Natureza |
+|---|---|---|
+| 1 | Dashboard: grid multi-coluna no desktop, sem quebrar a experiência mobile (single-column já formalizada) | Refinamento visual, baixo risco |
+| 2 | Lançamentos: subcategoria como destaque principal do item de lista; descrição e forma de pagamento como texto secundário; "(sem descrição)" nunca mais exibido quando o campo está vazio | Refinamento visual, baixo risco |
+| 3 | Atalhos de lançamento rápido: N subcategorias mais usadas recentemente como botões no topo da tela de lançamentos, pré-preenchendo o lançamento | Funcionalidade nova (regra de negócio fechada na Seção A.5) |
+| 4 | Unificar a escolha de "conta" + "forma de pagamento" em uma escolha só, com nomenclatura de exibição que desambigua quando há múltiplas contas | Simplificação de contrato de API/UI (regra de nomenclatura de produto fechada na Seção A.5; arquitetura e pré-condições — ADR, G-02, Bloqueio 013 — permanecem com o Software Architect/CTO, Seção A.6) |
+| 5 | Categorias: visualização em cards em vez de lista expansível | Refinamento visual, baixo risco |
+| 6 | Orçamento: visualização em cards em vez de lista expansível | Refinamento visual, baixo risco |
+
+Todos os 6 itens reutilizam as convenções de responsividade já formalizadas em
+`UX-SPEC.md` (2026-09-04, Seções 2.1/3.1.1) — nenhum padrão visual paralelo é
+criado nesta rodada.
+
+### Fora do escopo desta rodada (com justificativa)
+
+- **Customização manual dos atalhos de lançamento rápido** (fixar/remover um item
+  específico da lista): não solicitado pelo dono do produto; a lista é
+  100% automática por frequência de uso (Seção A.5). Corte: revisitar só se o
+  stakeholder pedir explicitamente após uso real do item 3 (ver pergunta A.7.3).
+- **Mudança de regra de cálculo de saldo, fechamento de fatura ou orçamento**: os 6
+  itens deste pacote são de apresentação/simplificação de formulário — nenhum
+  altera a lógica de negócio já implementada e testada em MVP/Fase 2.
+- **Redesign mobile completo**: mobile já foi formalizado na repaginação de
+  2026-09-04 (`UX-SPEC.md`); este pacote só introduz grid multi-coluna **no
+  desktop** para o dashboard (item 1) — os demais itens (2, 3, 5, 6) aplicam-se a
+  mobile e desktop igualmente, seguindo as convenções já existentes, sem redesenho
+  adicional de mobile.
+- **Novo tipo de conta ou de forma de pagamento**: fora de escopo; item 4 é
+  simplificação de contrato/exibição sobre o modelo já existente, não uma
+  expansão de tipos.
+- **Qualquer item além dos 6 relatados pelo dono do produto**: por definição de
+  escopo desta rodada — nenhuma iniciativa adicional foi incorporada por
+  iniciativa do PM.
+
+## A.5 Requisitos de Alto Nível Priorizados
+
+**Framework usado**: RICE (`product-roadmap-prioritization`, via
+`scope-prioritization`) — 6 itens concorrentes, acima do limiar de ~5 que aciona o
+framework completo. Mesma adaptação já usada no `PRD.md` original: *Reach* vira
+**frequência de uso esperada** (vezes/mês que o item entrega valor observável);
+*Effort* é estimativa relativa do PM (1 pequeno a 5 muito grande), não validada
+pela engenharia.
+
+`Score = (Frequência × Impacto × Confiança) / Esforço`. Impacto em escala
+3/2/1/0,5/0,25; Confiança em 100%/80%/50%/30% (50% usado quando a decisão depende
+de um Gate 2 de arquitetura ainda não concluído, mesmo critério já usado no `PRD.md`
+original para itens de Fase 3 pendentes de build-vs-buy).
+
+| Item | Freq./mês | Impacto | Confiança | Esforço | Score |
+|---|---|---|---|---|---|
+| 3 — Atalhos de lançamento rápido | 30 | 3 | 80% | 2 | 36,0 |
+| 1 — Dashboard grid desktop | 30 | 1 | 100% | 1 | 30,0 |
+| 2 — Hierarquia visual da lista | 30 | 1 | 100% | 1 | 30,0 |
+| 4 — Unificar conta + forma de pagamento | 30 | 2 | 50% | 3 | 10,0 |
+| 6 — Orçamento em cards | 6 | 1 | 100% | 2 | 3,0 |
+| 5 — Categorias em cards | 4 | 1 | 100% | 2 | 2,0 |
+
+**Leitura do resultado**: o item 3 tem o maior score — é, ao mesmo tempo, o mais
+alinhado ao objetivo-norte original ("reduzir ao mínimo o lançamento manual",
+sinalizado como não-vinculante pelo CTO no Gate 1) e o que o próprio score confirma
+como prioridade objetiva, não só intuição. Os itens 1 e 2 empatam logo atrás —
+ambos são puramente visuais, mesma natureza de risco, podem ser sequenciados em
+paralelo entre si e com o item 3 sem dependência cruzada. O item 4 fica
+deliberadamente abaixo mesmo tendo frequência de uso alta, porque **confiança
+50%** (decisão de arquitetura ainda não concluída) e **esforço 3** (toca contrato
+de API, possivelmente migração de dado real) — consistente com o sinal do CTO de
+que é "o item de maior risco/esforço" do pacote. Os itens 5 e 6 ficam por último
+por frequência de uso claramente menor (Categorias/Orçamento são consultados, não
+usados a cada lançamento).
+
+**Ordem de início de implementação (não é o mesmo que o score)**: itens 1, 2 e 3
+podem começar imediatamente após este adendo (nenhuma pré-condição de arquitetura
+pendente). Itens 5 e 6 seguem o mesmo racional. **O item 4 não pode iniciar
+implementação antes de 3 pré-condições estarem satisfeitas** (Seção A.6, risco
+A3) — isso vale independentemente do que o score RICE sugerisse, porque são
+condições de aceite fixadas pelo CTO no Gate 1, não uma preferência de
+sequenciamento do PM.
+
+### Regra de negócio fechada — Item 3 (Atalhos de Lançamento Rápido)
+
+Fechada pelo PM nesta rodada, conforme exigido pelo Gate 1 antes de o BA
+prosseguir:
+
+1. **Quantidade (N)**: 10 subcategorias, conforme sugestão original do dono do
+   produto — sem motivo identificado para reduzir. UX/UI decide, na especificação
+   de tela, quantas ficam visíveis sem rolagem horizontal por breakpoint (isso é
+   detalhe de layout, não de regra de negócio).
+2. **Janela de "recente"**: janela móvel de **90 dias corridos** a partir de hoje.
+   Justificativa: cobre um trimestre de uso (estabiliza a frequência sem deixar um
+   gasto isolado antigo dominar o ranking) e evita esvaziar a lista por sazonalidade
+   de curto prazo (ex.: um mês com poucos lançamentos).
+3. **Critério de ranking**: **frequência simples** (contagem de lançamentos por
+   subcategoria dentro da janela) — não recência ponderada. Justificativa:
+   "mais usadas recentemente" é satisfeito por uma janela recente + contagem simples;
+   um decaimento por recência adicionaria complexidade de implementação/teste sem
+   demanda explícita do dono do produto.
+4. **Desempate**: (i) subcategoria com lançamento mais recente dentro da janela
+   vence; (ii) se ainda empatado, ordem alfabética do nome da subcategoria
+   (determinístico, sem ambiguidade).
+5. **Fallback de janela curta (conta nova ou baixo volume)**: se menos de 10
+   subcategorias distintas tiverem uso nos últimos 90 dias, completar a lista com
+   as subcategorias mais frequentes de **todo o histórico** (fora da janela),
+   até atingir 10 ou esgotar as subcategorias já usadas alguma vez — o que vier
+   primeiro. Nunca preencher posições vazias com sugestões sem uso real (isso
+   seria "sugestão", escopo diferente de "mais usadas").
+6. **Conta zerada (zero lançamentos no histórico)**: a barra de atalhos é
+   **omitida** por completo; o formulário completo padrão continua disponível
+   normalmente. Não exibir placeholders vazios.
+7. **O que é pré-preenchido ao clicar**: subcategoria e a **forma de pagamento
+   mais associada** a essa subcategoria — calculada pelo mesmo critério do item
+   1-4 acima (frequência simples de forma de pagamento nos lançamentos dessa
+   subcategoria, na janela de 90 dias; empate por uso mais recente). Data
+   pré-preenchida = hoje. Descrição permanece vazia (não pré-preenchida, coerente
+   com item 2 — descrição é sempre opcional). O campo obrigatório restante para o
+   usuário é **somente o valor**. O tipo de lançamento (entrada/saída) depende de
+   confirmação de schema real — ver pergunta em aberto A.7.1.
+
+### Definição de produto fechada — Item 4 (Unificação Conta + Forma de Pagamento)
+
+Fechada pelo PM nesta rodada — **decisão de produto**, não de arquitetura. A
+decisão de arquitetura (ADR completo) e as 3 condições de aceite do Gate 1
+permanecem com o Software Architect/CTO (Seção A.6, risco A3):
+
+1. **Regra de nomenclatura de exibição quando há múltiplas contas do mesmo tipo**:
+   rótulo = `"{Forma de Pagamento} {Nome da Conta}"` (ex.: "Débito Nubank", "Pix
+   Itaú"), usando o nome que o próprio usuário já deu à conta ao cadastrá-la — não
+   o tipo de conta. Regra de ativação: o sufixo com o nome da conta só aparece
+   **quando existir mais de 1 conta ativa** no momento da exibição; com apenas 1
+   conta ativa (cenário dominante hoje, mesmo padrão do seed original de
+   `BE-M-02`/`BE-M-04`), o rótulo permanece simples ("Débito", "Pix"), sem
+   sufixo redundante.
+2. **O rótulo é calculado em tempo de exibição, não persistido/renomeado no banco.**
+   Decisão deliberada do PM para reduzir a necessidade de qualquer migração que
+   reorganize dado real já existente em `payment_methods` — evita acionar, por
+   este mecanismo específico, a condição G-02 fixada pelo CTO no Gate 1 (revisão
+   explícita antes de `ALTER`/reorganização de dado real). Isso não elimina a
+   condição G-02 do Gate 1 em geral: se o Software Architect, no ADR, optar por
+   qualquer estratégia que efetivamente altere/renomeie linhas já persistidas
+   (ex.: normalizar `payment_methods` por conta), essa decisão segue exigindo
+   revisão explícita do CTO — só não é a abordagem que o PM está definindo aqui
+   como default de produto.
+3. **Geração de novas linhas de `payment_methods` para contas adicionais**: ao
+   cadastrar uma 2ª conta ativa (ou seguintes), o sistema gera automaticamente as
+   4 formas de pagamento não-cartão (Pix, Débito, Boleto, Dinheiro) vinculadas a
+   essa conta — mesmo padrão de seed já usado para a 1ª conta (`BE-M-02`/`BE-M-04`),
+   estendido a toda conta nova. É criação aditiva de linha nova, não reorganização
+   de dado existente — não aciona G-02.
+4. **Campo removido do formulário de lançamento**: o seletor de "conta" deixa de
+   existir como campo independente; o usuário escolhe apenas a forma de pagamento
+   (já com o rótulo desambiguado acima), que resolve a conta implicitamente —
+   exatamente a simplificação de contrato apontada pelo CTO no Gate 1.
+5. **Formas de pagamento vinculadas a cartão de crédito** (`credit_card_id`, não
+   `account_id`) não são afetadas por esta regra — seguem o padrão de nomenclatura
+   já existente da Fase 2 (nome do cartão), fora do escopo deste item.
+
+## A.6 Premissas e Riscos de Produto
+
+| # | Premissa/Risco | Impacto se falsa/concretizado | Severidade | Dono | Prazo de validação |
+|---|---|---|---|---|---|
+| A1 | Volume médio real de lançamentos mensais do stakeholder segue não confirmado (mesmo gap do risco #1, Seção 6 do `PRD.md` original) | Dimensionamento de N=10 atalhos (item 3) e da meta M6 pode não corresponder ao volume real de uso | Média | PM (com o stakeholder) | Antes do BA detalhar o item 3 |
+| A2 | Não confirmado se `categories` expõe um indicador de tipo (receita/despesa) reutilizável para inferir automaticamente o tipo do lançamento pré-preenchido pelo atalho (item 3) — `SDD.md` Seção 5 não documenta essa coluna | Sem essa confirmação, o BA não tem critério de aceite objetivo para o campo "tipo" no pré-preenchimento do atalho | Média | Business Analyst (com Software Architect, contra o schema real) | Antes de fechar o RF do item 3 |
+| A3 | Item 4 depende de 3 pré-condições fixadas pelo CTO no Gate 1: (a) ADR completo do Software Architect revisado no Gate 2 (`architecture-decision-review`); (b) qualquer reorganização de dado real em `payment_methods` só com revisão explícita do CTO (G-02); (c) `BLOCKERS.md` Bloqueio 013 (IDOR em `payment_methods.account_id`) fechado antes ou junto da implementação | Enquanto uma das 3 não for satisfeita, nenhuma tarefa de implementação do item 4 pode entrar no `TASK.md` | Alta | Software Architect (ADR) + Backend/DevSecOps (Bloqueio 013) + CTO (Gate 2) | Antes de qualquer tarefa de implementação do item 4 ser criada |
+| A4 | Baseline real de rolagem vertical do dashboard (M4) ainda não medido | Sem essa medição, a meta de redução de ≥ 40% não pode ser verificada objetivamente após o deploy | Baixa | UX/UI | Antes do início da implementação do item 1 |
+| A5 | A decisão de produto deste adendo (rótulo de forma de pagamento calculado em exibição, não persistido) reduz a necessidade de acionar G-02 para este mecanismo específico, mas não a elimina caso o Software Architect adote, no ADR, uma estratégia que reorganize dado já persistido | Se o ADR optar por reorganizar dado real sem essa revisão, viola G-02 já fixado pelo CTO | Média | Software Architect (declarar a abordagem no ADR) + CTO (revisar se envolver dado real) | Gate 2 |
+| A6 | Medir M6 (adoção do atalho) pode exigir um novo campo/flag de origem do lançamento em `transactions`, não previsto no modelo atual | Sem esse campo, M6 não é mensurável de forma automatizada | Baixa | Business Analyst (com Software Architect) | Antes de fechar o RF do item 3 |
+| A7 | Cards de Categorias/Orçamento (itens 5/6) assumem volume pequeno de dados (12 categorias seed, usuário único); se o stakeholder já tiver criado muitas subcategorias customizadas, o layout pode exigir paginação/scroll interno não previsto | Card pode ficar poluído/ilegível se o volume real for maior que o assumido | Baixa | UX/UI (confirmar volume real de categorias/subcategorias em produção antes de desenhar) | Antes do início da implementação dos itens 5/6 |
+
+## A.7 Perguntas em Aberto para o Business Analyst
+
+1. Confirmar, contra o schema real (`categories`), se existe indicador de tipo
+   (receita/despesa) reutilizável para o pré-preenchimento automático do tipo de
+   lançamento no atalho (item 3) — ver risco A2.
+2. Levantar com o stakeholder o volume médio real de lançamentos mensais (gap
+   herdado da Seção 6/7 do `PRD.md` original, ainda não fechado) — necessário para
+   validar se N=10 atalhos é dimensionamento realista (risco A1).
+3. Confirmar com o stakeholder se deseja alguma personalização manual dos atalhos
+   (fixar/remover um item específico) nesta rodada, ou se aceita a lista 100%
+   automática por frequência, como assumido pelo PM (ver Seção A.4, "Fora do
+   escopo").
+4. Detalhar o fluxo de UX exato do clique no atalho (ex.: foco automático no campo
+   valor, teclado numérico já aberto em mobile) — cabe ao BA levantar a expectativa
+   do stakeholder e ao UX/UI especificar a tela.
+5. Confirmar com o stakeholder a nomenclatura de exibição para "Dinheiro" quando
+   vinculado a uma conta do tipo carteira (ex.: "Dinheiro Carteira" pode soar
+   redundante) — pode exigir exceção pontual à regra geral do item 4 (Seção A.5).
+6. Confirmar a necessidade de um novo campo/flag em `transactions` para rastrear
+   lançamentos originados via atalho, necessário para medir M6 — ver risco A6.
+7. Levantar com o stakeholder quais dados devem aparecer no card de Categoria e no
+   card de Orçamento sem exigir clique adicional (ex.: total gasto no mês, número
+   de subcategorias, % do orçamento consumido).
+
+---
+
+### Stakeholder Alignment Check (Adendo A)
+
+Checklist comparado item a item contra `CTO-REVIEW.md`, "Gate 1 — Pré-descoberta
+(Pacote de Refinamento...) — 2026-09-04":
+
+- **Objetivo de negócio**: mesma linha do objetivo original ("reduzir ao mínimo o
+  lançamento manual... dando visibilidade"), agora informado por uso real — sem
+  divergência, o próprio Gate 1 já confirmou isso.
+- **Escopo**: os 6 itens deste adendo correspondem exatamente aos 6 itens avaliados
+  no Gate 1; nenhum item adicional foi incorporado por iniciativa do PM.
+- **Item 3**: a regra de negócio fechada na Seção A.5 (N=10, janela de 90 dias,
+  frequência simples, desempate, pré-preenchimento, fallback de conta nova) atende
+  à ressalva 2 do Gate 1 — sem divergência.
+- **Item 4**: a definição de **produto** fechada na Seção A.5 (regra de
+  nomenclatura, rótulo calculado em exibição) atende à parte de produto da
+  ressalva 3 do Gate 1. As 3 condições de aceite fixadas pelo CTO (ADR/Gate 2,
+  G-02, Bloqueio 013) **não são resolvidas por este documento** — permanecem
+  registradas como pré-condição de implementação (risco A3), não como decisão do
+  PM. A decisão de rótulo calculado em exibição foi desenhada precisamente para
+  reduzir a necessidade de acionar G-02, não para contorná-lo ou decidir por ele.
+- **Priorização**: levantada explicitamente nesta rodada (RICE, Seção A.5),
+  atendendo à ressalva 5 do Gate 1 — dono do produto não havia priorizado os 6
+  itens entre si.
+- **Gap de roster**: nenhum papel novo identificado, consistente com a observação
+  do Gate 1.
+
+**Resultado: sem divergência não resolvida em relação ao Gate 1 desta rodada.**
+Nenhum conflito a escalar ao CTO via `stakeholder-alignment-check`. Adendo A do
+`PRD.md` liberado para o Business Analyst em 2026-09-04.

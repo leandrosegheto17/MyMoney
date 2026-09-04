@@ -547,3 +547,386 @@ silenciosamente.
 - [x] Nenhuma das 7 seções está vazia ou com placeholder
 
 **PRD-TECNICO.md pronto — liberado para o Software Architect.**
+
+---
+
+# Adendo A ao PRD-TECNICO.md — Pacote de Refinamento de Produção (Fase 2.1 —
+Melhorias Contínuas)
+
+**Dono**: Business Analyst
+**Data**: 2026-09-04
+**Gate de entrada**: `PRD.md`, Adendo A (liberado pelo PM em 2026-09-04,
+`stakeholder-alignment-check` do Adendo A sem divergência); `CTO-REVIEW.md`, "Gate 1 —
+Pré-descoberta (Pacote de Refinamento...) — 2026-09-04", veredito **Aprovado com
+ressalvas**.
+**Fonte**: `PRD.md` Adendo A (Seções A.1-A.7) + `CTO-REVIEW.md` (Gate 1 desta rodada)
++ `SDD.md` Seção 5 (modelo de dados vigente) + `API-CONTRACT.yaml` (schema real) +
+`AUDITORIA-BE-M-00.md` (evidência de schema) + `BLOCKERS.md` Bloqueio 013 +
+`GUARDRAILS.md` G-02.
+**Consumidor imediato**: `software-architect` (base de arquitetura para o `SDD.md`
+delta deste pacote); contexto para `tech-lead` e `cto` (Gate 2 desta rodada).
+
+**Natureza deste adendo**: aditivo ao `PRD-TECNICO.md` original — as Seções 1-7 acima
+permanecem vigentes e não são reescritas. Este adendo cobre exclusivamente os 6 itens
+do Pacote de Refinamento (Dashboard, Lançamentos ×2, Formas de Pagamento, Categorias,
+Orçamento), seguindo a mesma estrutura fixa de 7 seções, prefixadas `A.1`-`A.7` para
+não colidir com a numeração original.
+
+**Convenção de IDs deste adendo**: `RF-REF-NN` (requisitos funcionais dos 6 itens do
+pacote), `RNF-NN` (não-funcionais, numeração contínua a partir de RNF-09), `RN-NN`
+(regras de negócio, numeração contínua a partir de RN-11), `FL-NN` (fluxos,
+numeração contínua a partir de FL-05), `AMB-NN` (interpretações registradas,
+numeração contínua a partir de AMB-10). Nenhuma integração externa nova (Seção A.5.2).
+
+**Nota de escopo herdado**: nenhuma decisão de arquitetura é tomada aqui. Em
+particular, o item 4 (RF-REF-04) está descrito funcionalmente para o Software
+Architect desenhar a solução, mas sua implementação permanece bloqueada até que as 3
+pré-condições fixadas pelo CTO no Gate 1 desta rodada estejam satisfeitas (ver
+A.5.1 e A.6.1, risco A3) — isso não é decidido nem alterado por este documento.
+
+---
+
+## A.1 Requisitos Funcionais
+
+### RF-REF-01 — Dashboard: Grid Multi-Coluna no Desktop (Item 1)
+Reorganiza a apresentação de dado já existente (RF-MVP-05, RF-MVP-06, RF-MVP-07
+quando aplicável) — não introduz novo dado nem novo cálculo.
+
+- **AC1**: Quando o dashboard é renderizado em largura de tela igual ou maior que o
+  breakpoint desktop já formalizado em `UX-SPEC.md`, o sistema deve distribuir o
+  conteúdo do dashboard em múltiplas colunas, sem alterar nenhum dado exibido.
+- **AC2**: Enquanto a largura da tela estiver abaixo do breakpoint desktop, o sistema
+  deve manter o layout single-column mobile já formalizado, sem nenhuma mudança de
+  comportamento (RNF-10).
+- **AC3**: Quando o dashboard é renderizado no viewport de referência 1440×900
+  (breakpoint `lg`), o sistema deve reduzir a altura de rolagem vertical total em
+  pelo menos 40% em relação ao baseline medido antes do deploy — meta M4, herdada do
+  `PRD.md` Adendo A.3.
+- **AC4**: Se o baseline de rolagem (M4) ainda não tiver sido medido pelo UX/UI antes
+  do início da implementação, então a implementação deste requisito não deve
+  iniciar (dependência A4, Seção A.5.1/A.6.1).
+- **Não decidido aqui**: número exato de colunas, breakpoints intermediários e regras
+  de quebra de card são decisão do UX/UI, reaproveitando as convenções já
+  formalizadas em `UX-SPEC.md` Seções 2.1/3.1.1 (RNF-11).
+
+### RF-REF-02 — Lançamentos: Hierarquia Visual do Item de Lista (Item 2)
+Ver RN-17, RN-18.
+
+- **AC1**: O sistema deve exibir, para cada item da lista de lançamentos, o nome da
+  subcategoria (valor de `category_id` do lançamento, ver AMB-11) como elemento de
+  maior destaque visual do item.
+- **AC2**: O sistema deve exibir a descrição do lançamento (quando preenchida) e o
+  nome da forma de pagamento como texto secundário, visualmente subordinado à
+  subcategoria (RN-18).
+- **AC3**: Se a descrição do lançamento estiver vazia (nula ou string vazia), então o
+  sistema não deve exibir nenhum texto de preenchimento (ex.: "(sem descrição)") — o
+  campo de descrição deve ser omitido inteiramente do item de lista (RN-17).
+- **AC4**: O sistema deve preservar, sem alteração, todo o restante do comportamento
+  já existente do item de lista (valor, indicador visual de entrada/saída, data,
+  filtros) — este requisito é exclusivamente de reorganização de hierarquia visual.
+
+### RF-REF-03 — Atalhos de Lançamento Rápido (Item 3)
+Depende de RF-MVP-02, RF-MVP-03, RF-MVP-04 (Seção A.5.1). Regra de negócio: RN-12
+(ranking), RN-13 (pré-preenchimento).
+
+- **AC1**: Enquanto o usuário tiver pelo menos 1 lançamento em todo o histórico, o
+  sistema deve exibir, no topo da tela de lançamentos, uma barra com até 10 botões de
+  atalho, um por subcategoria, calculados conforme RN-12.
+- **AC2**: Se o usuário não tiver nenhum lançamento em todo o histórico, então o
+  sistema não deve exibir a barra de atalhos, mantendo somente o formulário completo
+  padrão disponível (RN-12, regra 6).
+- **AC3**: Quando o usuário clica em um atalho de subcategoria, o sistema deve abrir
+  o formulário de lançamento com os campos subcategoria, forma de pagamento, tipo
+  (entrada/saída) e data pré-preenchidos conforme RN-13, deixando a descrição vazia e
+  o valor em branco.
+- **AC4**: Quando o formulário é aberto a partir de um atalho, o sistema deve
+  posicionar o foco de edição automaticamente no campo valor, permitindo que o
+  usuário complete o lançamento digitando apenas o valor (AMB-12).
+- **AC5**: O sistema deve permitir que o usuário edite qualquer campo pré-preenchido
+  pelo atalho antes de confirmar o lançamento, sem obrigar o uso do valor sugerido
+  (mesmo princípio de revisão inline de FL-04 do documento original).
+- **AC6**: Quando o usuário submete um lançamento originado de um atalho com todos os
+  campos válidos, o sistema deve persisti-lo seguindo o mesmo comportamento de
+  RF-MVP-04 (AC1, AC3), e deve registrar de forma auditável que a origem foi "atalho"
+  — mecanismo exato de rastreamento não decidido aqui (RNF-12), necessário para medir
+  M6.
+- **AC7**: Se, na janela de 90 dias corridos, existirem menos de 10 subcategorias
+  distintas usadas, então o sistema deve completar a lista com as subcategorias mais
+  frequentes de todo o histórico (fora da janela), até atingir 10 ou esgotar as
+  subcategorias já usadas alguma vez — o que ocorrer primeiro (RN-12, regra 5) —
+  nunca preenchendo posições vazias com sugestões sem uso real.
+- **AC8**: O sistema deve recalcular a lista de atalhos toda vez que a tela de
+  lançamentos for carregada, refletindo o uso real mais recente do usuário (não é
+  lista fixa/cacheada indefinidamente).
+
+### RF-REF-04 — Unificação de Conta + Forma de Pagamento no Formulário de Lançamento
+(Item 4)
+**Pré-condição de implementação (não decidida aqui, herdada do Gate 1 desta rodada —
+`PRD.md` Adendo A, risco A3)**: nenhuma tarefa de implementação deste requisito entra
+em `TASK.md` antes de (a) ADR completo do Software Architect revisado no Gate 2; (b)
+conformidade com G-02 (`GUARDRAILS.md`) caso qualquer reorganização de dado real seja
+necessária; (c) `BLOCKERS.md` Bloqueio 013 fechado. Este RF descreve o comportamento
+funcional esperado para o Software Architect desenhar a solução — não autoriza início
+de implementação antes das 3 condições.
+
+- **AC1**: O sistema deve remover o campo "conta" como seleção independente do
+  formulário de lançamento manual (RF-MVP-04) — o usuário seleciona apenas a forma de
+  pagamento (RN-16).
+- **AC2**: Quando o usuário seleciona uma forma de pagamento no formulário de
+  lançamento, o sistema deve resolver implicitamente a conta associada (via vínculo
+  já existente `payment_methods.account_id`/`credit_card_id`, `SDD.md` Seção 5.1),
+  sem exigir nenhuma seleção adicional do usuário.
+- **AC3**: O sistema deve exibir o rótulo de cada forma de pagamento não vinculada a
+  cartão de crédito conforme RN-14 — com sufixo do nome da conta apenas quando houver
+  mais de 1 conta ativa no momento da exibição.
+- **AC4**: Quando o usuário cadastra uma nova conta ativa (2ª ou seguinte), o sistema
+  deve gerar automaticamente as 4 formas de pagamento não-cartão (Pix, Débito,
+  Boleto, Dinheiro) vinculadas a essa conta, conforme RN-15.
+- **AC5**: O sistema deve manter, sem alteração, o comportamento já existente de
+  formas de pagamento vinculadas a cartão de crédito (nome do cartão, geração
+  automática ao cadastrar o cartão) — RN-14, exceção 1.
+- **AC6**: O sistema deve aplicar o rótulo desambiguado (RN-14) de forma consistente
+  em toda superfície onde a forma de pagamento é exibida (formulário de lançamento,
+  lista de lançamentos, filtros, atalhos do item 3) — RNF-13.
+
+### RF-REF-05 — Categorias: Visualização em Cards (Item 5)
+Ver AMB-15.
+
+- **AC1**: O sistema deve exibir a listagem de categorias como uma grade de cards, um
+  card por categoria de topo-nível, em vez de lista expansível.
+- **AC2**: Cada card deve exibir, sem exigir clique adicional: nome da categoria,
+  ícone/cor (se cadastrados), total gasto no mês corrente somando os lançamentos de
+  saída vinculados à categoria e suas subcategorias (reaproveita o cálculo já
+  existente de RF-MVP-06), e o número de subcategorias cadastradas.
+- **AC3**: Quando o usuário clica em um card, o sistema deve expandir ou navegar para
+  a visão detalhada das subcategorias daquela categoria (equivalente ao comportamento
+  de expansão já existente, preservado).
+- **AC4**: O sistema deve preservar as ações de edição/exclusão de categoria/
+  subcategoria já existentes (RF-MVP-03), acessíveis a partir do card ou da visão
+  expandida.
+
+### RF-REF-06 — Orçamento: Visualização em Cards (Item 6)
+Ver AMB-15.
+
+- **AC1**: O sistema deve exibir a listagem de orçamentos do mês corrente como uma
+  grade de cards, um card por categoria orçada, em vez de lista expansível.
+- **AC2**: Cada card deve exibir, sem exigir clique adicional: nome da categoria,
+  valor gasto no mês vs. teto definido (RF-MVP-07), percentual consumido, e o
+  indicador de alerta já existente (RN-04: normal / aproximando do teto / estourado).
+- **AC3**: Quando uma categoria orçada atingir ou ultrapassar o limiar de alerta
+  (RN-04), o sistema deve destacar visualmente o card correspondente (mesma
+  semântica de severidade de RF-MVP-07 AC3/AC4, aplicada ao novo formato de card).
+- **AC4**: Se uma categoria não tiver orçamento definido para o mês corrente, então o
+  sistema não deve exibir um card vazio para ela — cards existem apenas para
+  categorias com orçamento efetivamente definido (mesmo comportamento do MVP,
+  apenas reformatado).
+
+---
+
+## A.2 Requisitos Não-Funcionais
+
+#### RNF-10 — Preservação de Comportamento Mobile (Item 1)
+O sistema deve preservar integralmente o layout single-column mobile já formalizado
+em `UX-SPEC.md`, sem nenhuma alteração de comportamento abaixo do breakpoint desktop,
+ao introduzir o grid multi-coluna do dashboard (RF-REF-01).
+
+#### RNF-11 — Reaproveitamento de Convenções de Responsividade
+Os itens 1, 2, 5 e 6 devem reaproveitar as convenções de responsividade já
+formalizadas em `UX-SPEC.md` (Seções 2.1/3.1.1) — nenhum padrão visual paralelo é
+criado nesta rodada (herdado da ressalva 1 do Gate 1 desta rodada). Especificação
+exata de grid/breakpoint por tela é decisão de UX/UI, não decidida aqui.
+
+#### RNF-12 — Rastreabilidade de Origem do Lançamento via Atalho (mecanismo NÃO
+decidido aqui)
+Necessário para medir M6 (`PRD.md` Adendo A.3). O sistema deve manter, de forma
+auditável, o registro de que um lançamento específico foi originado via atalho de
+subcategoria (RF-REF-03) em vez do formulário completo. O mecanismo exato (extensão
+do enum `transactions.source`, novo campo booleano, ou outro) é decisão do Software
+Architect no `SDD.md` delta — não decidida aqui (mesma disciplina de RNF-05/RNF-06 do
+documento original).
+
+#### RNF-13 — Consistência do Rótulo Desambiguado de Forma de Pagamento
+O rótulo calculado conforme RN-14 deve ser aplicado de forma idêntica em toda
+superfície da aplicação que exibe forma de pagamento (formulário de lançamento,
+lista de lançamentos, filtros, atalhos, relatórios existentes) — nenhuma superfície
+deve exibir um rótulo divergente para a mesma forma de pagamento no mesmo momento.
+
+#### RNF-14 — Desempenho da Consulta de "Mais Usadas" (meta técnica NÃO decidida
+aqui)
+O cálculo de RN-12/RN-13 não deve degradar perceptivelmente o carregamento da tela de
+lançamentos. Meta numérica de latência é decisão do Software Architect, consistente
+com o mesmo padrão de delegação já usado em RNF-04 do documento original.
+
+---
+
+## A.3 Regras de Negócio
+
+| ID | Regra | Racional | Exceção |
+|---|---|---|---|
+| RN-12 | Atalho de lançamento: até 10 subcategorias, ranqueadas por frequência simples (contagem de lançamentos) numa janela móvel de 90 dias corridos; se houver menos de 10 subcategorias distintas na janela, completar com as mais frequentes de todo o histórico até atingir 10 ou esgotar; se o usuário não tiver nenhum lançamento no histórico (não uma conta específica com saldo zero — esclarecimento do BA), a barra de atalhos é omitida por completo | Fechada pelo PM (`PRD.md` Adendo A.5) como pré-condição do Gate 1 antes do detalhamento técnico — janela de 90 dias cobre um trimestre e estabiliza a frequência sem deixar gasto isolado antigo dominar nem esvaziar a lista por sazonalidade de curto prazo; frequência simples evita complexidade de decaimento por recência sem demanda explícita do dono do produto | Desempate: (i) subcategoria com lançamento mais recente na janela vence; (ii) se ainda empatado, ordem alfabética do nome — determinístico, sem ambiguidade. Nunca preencher posições vazias com sugestões sem uso real (RN-12 regra 5) |
+| RN-13 | Pré-preenchimento do atalho: subcategoria (a clicada) + forma de pagamento mais associada a essa subcategoria (mesmo critério de RN-12 — frequência simples na janela de 90 dias, empate por uso mais recente) + tipo de lançamento herdado de `categories.kind` da subcategoria (income/expense, confirmado no schema real, resolve pergunta A.7.1) + data = hoje; descrição permanece vazia | Reduz o lançamento via atalho ao mínimo funcional possível — o único campo que exige digitação manual é o valor (meta M3, `PRD.md` Adendo A.3); todo o resto é inferido do padrão de uso já observado ou do próprio cadastro de categoria | Se a subcategoria nunca tiver sido usada com nenhuma forma de pagamento (situação não esperada em uso normal, dado que só entra no atalho quem já tem lançamento na janela ou no histórico), o formulário abre com forma de pagamento em branco, exigindo seleção manual |
+| RN-14 | Rótulo de exibição de forma de pagamento não vinculada a cartão = `"{Forma de Pagamento} {Nome da Conta}"` quando houver mais de 1 conta ativa; `"{Forma de Pagamento}"` simples quando houver só 1 conta ativa; calculado em tempo de exibição, nunca persistido/renomeado no banco | Fechada pelo PM (`PRD.md` Adendo A.5, item 4) como definição de produto — reduz pergunta redundante ao usuário sem exigir migração de dado real, evitando acionar G-02 por este mecanismo específico | (1) Formas de pagamento vinculadas a cartão de crédito (`credit_card_id`) não seguem esta regra — mantêm o nome do cartão, padrão já existente da Fase 2. (2) "Dinheiro" vinculado a conta tipo carteira segue a regra geral sem exceção pontual — decisão do BA por falta de evidência confirmada de fricção real (AMB-13) |
+| RN-15 | Ao cadastrar uma conta ativa adicional (2ª ou seguinte), o sistema gera automaticamente as 4 formas de pagamento não-cartão (Pix, Débito, Boleto, Dinheiro) vinculadas a essa conta | Mesmo padrão de seed já usado para a 1ª conta (`BE-M-02`/`BE-M-04`), estendido a toda conta nova — evita que o usuário precise cadastrar manualmente formas de pagamento óbvias para cada conta | Cartão de crédito não é gerado automaticamente ao criar conta — continua exigindo cadastro explícito de cartão (RF-F2-01), que já gera sua própria forma de pagamento "crédito" vinculada |
+| RN-16 | O campo "conta" deixa de existir como seleção independente no formulário de lançamento; a forma de pagamento resolve a conta implicitamente | Simplificação de contrato apontada pelo CTO no Gate 1 — o vínculo forma de pagamento↔conta já existe no modelo de dados (`payment_methods.account_id`), perguntar os dois campos é redundante | Nenhuma — vale para todo fluxo de criação/edição de lançamento manual, incluindo o atalho do item 3 (RF-REF-03) |
+| RN-17 | O texto de preenchimento "(sem descrição)" nunca é exibido; quando a descrição do lançamento está vazia, o campo é omitido inteiramente do item de lista | Texto redundante identificado como problema real de UX em produção (`PRD.md` Adendo A.1, item 2) — omitir é mais limpo que preencher com texto que não carrega informação | Nenhuma — regra vale para toda superfície que hoje exibe descrição de lançamento |
+| RN-18 | A subcategoria (valor de `category_id` do lançamento) é o elemento de maior destaque visual em qualquer listagem de lançamentos; descrição e forma de pagamento são sempre secundárias | Reconhecimento rápido do lançamento depende mais da classificação (subcategoria) do que da descrição livre ou da forma de pagamento, conforme problema relatado em uso real (`PRD.md` Adendo A.1, item 2) | Nenhuma identificada |
+
+---
+
+## A.4 Fluxos de Usuário/Processo
+
+### FL-06 — Lançamento Manual com Atalho de Subcategoria e Forma de Pagamento
+Unificada (Itens 2, 3, 4)
+
+Estende o campo de seleção inicial de FL-01 do documento original; a persistência,
+atualização de saldo e atualização de dashboard (continuação de FL-01) permanecem
+válidas sem alteração.
+
+```mermaid
+flowchart TD
+    A[Usuário abre a tela de Lançamentos] --> B{Usuário tem pelo menos 1 lançamento no histórico?}
+    B -- Não --> C[Barra de atalhos omitida - RN-12 regra 6]
+    B -- Sim --> D[Sistema calcula até 10 atalhos de subcategoria - RN-12]
+    C --> E["Usuário abre Novo Lançamento - formulário completo"]
+    D --> F{Usuário clica em um atalho ou abre o formulário completo?}
+    F -- Formulário completo --> E
+    F -- Atalho --> G[Sistema pré-preenche subcategoria, forma de pagamento, tipo e data - RN-13]
+    G --> H[Foco automático no campo valor - RF-REF-03 AC4]
+    H --> I[Usuário digita o valor - único campo obrigatório restante]
+    E --> J[Usuário preenche subcategoria, forma de pagamento unificada, valor, data, descrição opcional - RN-16]
+    I --> K{Usuário confirma ou edita algum campo pré-preenchido antes?}
+    K -- Edita --> I
+    K -- Confirma --> L[Sistema persiste o lançamento - reaproveita RF-MVP-04 AC1]
+    J --> M{Todos os campos obrigatórios preenchidos?}
+    M -- Não --> N[Sistema exibe erro nos campos ausentes] --> J
+    M -- Sim --> L
+    L --> O[Sistema registra a origem do lançamento - atalho ou formulário completo - RNF-12]
+    O --> P[Sistema atualiza saldo da conta associada e o dashboard - continuação de FL-01]
+```
+
+### FL-07 — Cadastro de Conta Nova e Geração Automática de Formas de Pagamento
+(Item 4)
+
+```mermaid
+flowchart TD
+    A[Usuário cadastra uma nova conta] --> B[Sistema persiste a conta - RF-MVP-01]
+    B --> C{É a 1ª conta ativa do usuário?}
+    C -- Sim --> D["Sistema segue o seed padrão já existente - Pix/Debito/Boleto/Dinheiro vinculados a esta conta - BE-M-02/BE-M-04"]
+    C -- Não --> E[Sistema gera automaticamente Pix/Debito/Boleto/Dinheiro vinculados a nova conta - RN-15]
+    D --> F[Sistema recalcula rotulos de exibicao de todas as formas de pagamento nao-cartao - RN-14]
+    E --> F
+    F --> G{Mais de 1 conta ativa agora?}
+    G -- Sim --> H["Rotulos passam a exibir sufixo com nome da conta - ex. Debito Nubank"]
+    G -- Não --> I["Rotulos permanecem simples - ex. Debito"]
+```
+
+---
+
+## A.5 Dependências entre Requisitos e Integrações Externas
+
+### A.5.1 Dependências internas (o que bloqueia o quê)
+
+| Requisito | Depende de | Motivo |
+|---|---|---|
+| RF-REF-01 (Dashboard grid desktop) | RF-MVP-05, RF-MVP-06, RF-MVP-07 (dado já exibido) + medição de baseline M4 (UX/UI, risco A4) | Reorganiza apresentação de dado já existente; não pode ser considerado pronto sem baseline medido para verificar a meta de redução de 40% |
+| RF-REF-02 (Hierarquia visual da lista) | RF-MVP-04 (lançamentos), RF-MVP-03 (categorias/subcategorias) | Precisa que o dado de subcategoria já exista para poder destacá-lo |
+| RF-REF-03 (Atalhos de lançamento rápido) | RF-MVP-02, RF-MVP-03, RF-MVP-04 (histórico) | Ranking de RN-12/RN-13 é calculado sobre lançamentos e formas de pagamento já existentes |
+| RF-REF-03 | RNF-12 (mecanismo de rastreamento de origem, não decidido aqui) | M6 não é mensurável sem esse mecanismo — Software Architect decide no `SDD.md` delta |
+| RF-REF-04 (Unificação conta + forma de pagamento) | RF-MVP-01, RF-MVP-02 (vínculo `payment_methods.account_id` já existente, `SDD.md` Seção 5.1) | Reaproveita vínculo de dado já modelado, não cria relação nova |
+| RF-REF-04 | 3 pré-condições do Gate 1 desta rodada (ADR do Software Architect no Gate 2; conformidade G-02; `BLOCKERS.md` Bloqueio 013 fechado) | Fixadas pelo CTO como bloqueantes de implementação — carregadas adiante, não decididas aqui (`PRD.md` Adendo A, risco A3) |
+| RF-REF-05 / RF-REF-06 (Categorias/Orçamento em cards) | RF-MVP-03, RF-MVP-04 (Categorias); RF-MVP-07 (Orçamento) | Reorganiza apresentação de dado/cálculo já existente, sem novo cálculo de backend |
+
+**Dependência avaliada explicitamente entre item 3 e item 4** (RF-REF-03 vs.
+RF-REF-04): **RF-REF-03 NÃO depende funcionalmente de RF-REF-04 para operar.** O
+pré-preenchimento de RN-13 usa `payment_method_id` diretamente, que já resolve a
+conta via FK existente desde o modelo atual (`SDD.md` Seção 5.1,
+`payment_methods.account_id`), independentemente de o campo "conta" ainda existir ou
+não como seleção separada no formulário. RF-REF-03 pode ser implementado e entregue
+antes de RF-REF-04 — inclusive porque RF-REF-04 tem 3 pré-condições bloqueantes que
+RF-REF-03 não tem, e o próprio RICE do `PRD.md` Adendo A.5 confirma que o item 3 pode
+iniciar imediatamente enquanto o item 4 não pode. Existe, porém, **acoplamento de
+componente de UI, não bloqueante**: RF-REF-03 reaproveita o mesmo formulário de
+lançamento manual que RF-REF-04 altera (remoção do campo conta) — uma vez que o item
+4 for implementado, o formulário pré-preenchido pelo atalho herda automaticamente a
+UI unificada, sem exigir reimplementação do item 3. O mesmo acoplamento não-bloqueante
+existe entre RF-REF-02 e RF-REF-04 (a lista de lançamentos exibe o rótulo de forma de
+pagamento, que passa a usar RN-14 assim que o item 4 for implementado, sem exigir
+mudança na lógica de RF-REF-02 em si). Recomendação ao Tech Lead: sequenciar RF-REF-04
+depois de RF-REF-02/RF-REF-03 apenas por causa das pré-condições de Gate 2 — não por
+dependência funcional real entre os itens.
+
+### A.5.2 Integrações externas necessárias
+
+**Nenhuma integração externa nova identificada neste pacote.** Os 6 itens reaproveitam
+integralmente a infraestrutura já existente (Supabase Postgres/PostgREST/RLS, sem
+STT/OCR/Open Finance/parser externo) — consistente com a natureza de refinamento
+visual/simplificação de contrato interno desta rodada, não uma nova frente de
+automação (Fase 3). Confirma a expectativa registrada no `PRD.md` Adendo A.
+
+---
+
+## A.6 Premissas e Riscos Resolvidos
+
+### A.6.1 Premissas/riscos herdados do `PRD.md` Adendo A.6 — status após checagem do BA
+
+| # | Premissa/Risco (`PRD.md` Adendo A.6) | Status | Evidência/Racional da checagem |
+|---|---|---|---|
+| A1 | Volume médio real de lançamentos mensais ainda não confirmado | **Não pode ser validado nem refutado nesta rodada** (mesmo gap do risco #1 original), mas **deixou de bloquear o item 3** | Sem acesso direto ao stakeholder nem à base de produção nesta rodada. Mitigação: o PM já fixou N=10 independentemente do volume real (`PRD.md` Adendo A.5, "sem motivo identificado para reduzir"). Recomendação ao PM: levantar operacionalmente o volume real a partir da base de produção (produto já em uso) antes de avaliar M6 |
+| A2 | `categories` expõe indicador de tipo reutilizável para o pré-preenchimento de tipo no atalho | **Resolvido — confirmado com evidência direta** | `API-CONTRACT.yaml` (`Category.kind`, enum `[income, expense]`) e `AUDITORIA-BE-M-00.md` ("Enums confirmados: category_kind (income/expense)") confirmam a coluna já existente. RN-13 usa `categories.kind` da subcategoria selecionada — resolve integralmente a pergunta A.7.1 |
+| A3 | 3 pré-condições do item 4 (ADR Gate 2, G-02, Bloqueio 013) | **Fora do escopo de resolução do BA — corretamente delegado** | Mesma lógica do documento original: BA carrega a exigência adiante (RF-REF-04, A.5.1) sem decidir arquitetura nem fechar o bloqueio — responsabilidade do Software Architect/CTO/Backend/DevSecOps |
+| A4 | Baseline de rolagem do dashboard (M4) não medido | **Fora do escopo de resolução do BA — dono é UX/UI** | Carregado adiante como dependência de RF-REF-01 (A.5.1); BA não tem ferramenta de medição de UI nesta rodada |
+| A5 | Rótulo calculado em exibição reduz mas não elimina a necessidade de G-02 | **Confirmado, carregado adiante sem alteração** | RN-14 já registra a mesma ressalva do `PRD.md` Adendo A — se o Software Architect optar, no ADR, por reorganizar dado persistido, continua exigindo revisão explícita do CTO |
+| A6 | Campo/flag de origem do lançamento (`transactions`) pode ser necessário para medir M6 | **Necessidade confirmada pelo BA; mecanismo delegado ao Software Architect** | RF-REF-03 AC6 e RNF-12 registram a necessidade funcional sem decidir a coluna/enum exato — mesma disciplina de RNF-05/06 do documento original |
+| A7 | Volume de categorias/subcategorias pode exigir paginação nos cards | **Parcialmente validado** | `AUDITORIA-BE-M-00.md` confirma 12 categorias de topo-nível seedadas (2026-09-02); volume real de subcategorias customizadas em produção (2026-09-04) não é consultável pelo BA nesta rodada — recomendação ao UX/UI mantida (mesmo dono já registrado no `PRD.md`) |
+
+### A.6.2 Perguntas do `PRD.md` Adendo A.7 — status de resolução
+
+| # | Pergunta | Como foi resolvida | Referência |
+|---|---|---|---|
+| 1 | `categories` expõe indicador de tipo reutilizável para o pré-preenchimento do atalho? | Sim, confirmado — `categories.kind` (income/expense) já existe no schema real | RN-13, risco A2 |
+| 2 | Volume médio real de lançamentos mensais | Não estimado nesta rodada; N=10 já fixado pelo PM independentemente do volume; recomendação de levantamento operacional a partir da base de produção real registrada como pendência do PM | Risco A1 |
+| 3 | Personalização manual dos atalhos | Já fechada pelo PM antes da elicitação do BA — fora de escopo desta rodada; nenhuma interpretação adicional necessária | `PRD.md` Adendo A.4 |
+| 4 | Fluxo exato de UX do clique no atalho | Foco automático no campo valor definido como requisito funcional (RF-REF-03 AC4); teclado numérico mobile e detalhamento de pixel delegados ao UX/UI | RF-REF-03 AC4, AMB-12 |
+| 5 | Nomenclatura de "Dinheiro" vinculado a carteira | Regra geral (RN-14) aplicada sem exceção pontual — decisão do BA por falta de evidência de fricção real confirmada | RN-14, AMB-13 |
+| 6 | Necessidade de novo campo/flag para M6 | Confirmada a necessidade; mecanismo exato delegado ao Software Architect | RF-REF-03 AC6, RNF-12 |
+| 7 | Dados dos cards de Categoria/Orçamento | Definidos com base em dado já calculado pelo MVP (sem novo cálculo de backend) | RF-REF-05 AC2, RF-REF-06 AC2, AMB-15 |
+
+---
+
+## A.7 Interpretações Registradas
+
+| ID | Ambiguidade original | Interpretação escolhida | Racional | Risco residual |
+|---|---|---|---|---|
+| AMB-11 | Escopo de "subcategoria" referenciada nos itens 2 e 3 — é o próprio valor de `transactions.category_id` (nó folha selecionado pelo `CategoryPicker` de 2 níveis) | Interpretado como o valor efetivamente armazenado em `category_id`, que corresponde ao nível mais granular escolhido pelo usuário no cadastro | O modelo de categorias (`SDD.md`/`API-CONTRACT.yaml`) confirma hierarquia de até 1 nível e um único campo `category_id` em `transactions` — não há campo separado "categoria" vs. "subcategoria"; usar o próprio valor já armazenado é a leitura mais direta e sem custo de nova consulta | Baixo — se o usuário categorizar um lançamento direto numa categoria de topo-nível (sem subcategoria), o destaque/atalho trata essa categoria-raiz do mesmo jeito; nenhuma indicação no `PRD.md` de tratamento diferente |
+| AMB-12 | Fluxo exato de UX do clique no atalho (pergunta A.7.4) | Foco automático no campo valor definido como requisito funcional mínimo (RF-REF-03 AC4); tipo de teclado mobile e demais detalhes de pixel delegados ao UX/UI | Atende diretamente à meta M3 (1 campo obrigatório = valor) sem inventar decisão de layout que não é papel do BA | Baixo — UX/UI pode refinar a interação exata (ex.: modal vs. navegação de tela) sem contradizer o requisito funcional aqui fixado |
+| AMB-13 | Nomenclatura de "Dinheiro" vinculado a conta tipo carteira pode soar redundante (pergunta A.7.5) | Regra geral de RN-14 aplicada uniformemente, sem exceção pontual para esta combinação | O próprio PM registrou a redundância como hipótese ("pode soar redundante"), não como reclamação confirmada; introduzir exceção sem evidência de fricção real adicionaria regra especial não solicitada, contrariando o princípio de simplicidade do item 4 | Médio-baixo — se o stakeholder confirmar a redundância após uso real, revisitar como ajuste pontual de nomenclatura (mudança de detalhe, não de escopo) |
+| AMB-14 | Critério de ranking do atalho (item 3) aplica-se a subcategorias de qualquer `kind` (entrada e saída) sem distinção | Ranking por frequência simples conta todos os lançamentos, independentemente de `kind` | `PRD.md` Adendo A.5 não distingue entrada/saída ao definir "10 subcategorias mais usadas"; tratar de forma unificada é a leitura mais direta do texto, e o tipo já é resolvido automaticamente por `categories.kind` no pré-preenchimento (RN-13), sem exigir lógica adicional de filtragem | Baixo — se o stakeholder usar majoritariamente subcategorias de despesa, o ranking naturalmente refletirá isso sem necessidade de regra separada |
+| AMB-15 | Dados exibidos no card de Categoria/Orçamento sem clique adicional (pergunta A.7.7) | Card de Categoria: nome, ícone/cor, total gasto no mês corrente, número de subcategorias. Card de Orçamento: categoria, gasto vs. teto, % consumido, indicador de alerta (RN-04) | Reaproveita integralmente dado/cálculo já existente do MVP (RF-MVP-06, RF-MVP-07, RN-04) sem introduzir cálculo novo de backend — consistente com a natureza "puramente apresentação" que o CTO confirmou para os itens 5/6 no Gate 1 desta rodada | Baixo — se o stakeholder esperar um campo adicional específico (ex.: comparação com mês anterior), é ajuste de detalhe de card a levantar após uso real, não mudança de escopo |
+
+**Nenhuma das ambiguidades acima tocou escopo ou objetivo de negócio do `PRD.md`** —
+todas são interpretação de detalhe de requisitos já fechados pelo PM neste Adendo A.
+**Nenhum escalonamento para o PM foi necessário nesta rodada.** Se o Software
+Architect ou o CTO discordarem de alguma interpretação por entenderem que ela toca
+escopo/objetivo de negócio (em especial AMB-13), o encaminhamento correto é reportar
+em `BLOCKERS.md` como bloqueio ao BA, não reinterpretar silenciosamente — mesmo
+princípio já fixado no documento original.
+
+---
+
+## Checklist de Pronto — Adendo A (auto-verificação do BA)
+
+- [x] Todo requisito funcional tem critério de aceite testável (EARS) — Seção A.1
+      (6 requisitos, 34 critérios de aceite no total)
+- [x] Toda regra de negócio tem racional declarado — Seção A.3 (RN-12 a RN-18, 7
+      regras novas)
+- [x] Todo fluxo de usuário/processo relevante tem pontos de decisão e caminhos
+      alternativos mapeados — Seção A.4 (FL-06, FL-07, ambos com múltiplos `{decisão}`)
+- [x] Toda dependência entre requisitos nomeia o que bloqueia o quê; toda integração
+      externa está nomeada (nenhuma nova) — Seção A.5
+- [x] Toda premissa/risco herdado do PM (`PRD.md` Adendo A.6, A1-A7) foi validado ou
+      refutado com evidência citada — Seção A.6.1 (7/7 itens com veredito explícito)
+- [x] Toda ambiguidade resolvida pelo BA está registrada na Seção A.7, com a
+      interpretação escolhida e o porquê — 5 interpretações (AMB-11 a AMB-15)
+- [x] Nenhuma das 7 seções deste adendo está vazia ou com placeholder
+
+**Adendo A ao PRD-TECNICO.md pronto — liberado para o Software Architect.**

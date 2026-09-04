@@ -42,6 +42,18 @@ describe("toNewTransaction (mapeamento fila local -> POST /transactions, API-CON
       toNewTransaction({ ...DRAFT, subcategoryId: "subcat-1", type: "entrada", localId: "y", status: "pending", createdAt: 0, updatedAt: 0 }),
     ).toMatchObject({ kind: "income", category_id: "subcat-1" });
   });
+
+  it("FE-REF-04/RN-16/DIR-36: sem accountId no item enfileirado (formulário atual não coleta mais conta), o payload omite account_id — servidor resolve via payment_method_id", () => {
+    const { accountId: _accountId, ...draftWithoutAccount } = DRAFT;
+    void _accountId;
+    const payload = toNewTransaction({ ...draftWithoutAccount, localId: "z", status: "pending", createdAt: 0, updatedAt: 0 });
+    expect(payload).not.toHaveProperty("account_id");
+  });
+
+  it("item antigo enfileirado ainda com accountId (antes desta mudança): payload inclui account_id, sem quebrar compatibilidade retroativa", () => {
+    const payload = toNewTransaction({ ...DRAFT, localId: "w", status: "pending", createdAt: 0, updatedAt: 0 });
+    expect(payload).toMatchObject({ account_id: "acc-1" });
+  });
 });
 
 describe("syncPendingTransactions — FE-M-03 fechada (BE-M-06 publicado em API-CONTRACT.yaml)", () => {

@@ -1,14 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { Home, FileText, Target, MoreHorizontal } from "lucide-react";
+import type { ComponentType } from "react";
 import { ToastProvider } from "../components/base/Toast";
 import { OfflineSyncBadge } from "../components/domain/OfflineSyncBadge";
 import { NotificationBell } from "../components/domain/NotificationBell";
 import { DESKTOP_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 
-const MOBILE_DESTINATIONS = [
-  { to: "/", label: "Dashboard", icon: "🏠" },
-  { to: "/lancamentos", label: "Lançamentos", icon: "📄" },
-  { to: "/orcamento", label: "Orçamento", icon: "🎯" },
-  { to: "/configuracoes", label: "Mais", icon: "⋯" },
+// Ícones line-style (biblioteca `lucide-react`, grade 24px) — UX-SPEC.md Seção 3.1,
+// token "Ícones": substitui os emoji usados anteriormente na navegação inferior
+// mobile (🏠📄🎯⋯), mantendo a mesma semântica por destino.
+const MOBILE_DESTINATIONS: Array<{ to: string; label: string; Icon: ComponentType<{ size?: number; "aria-hidden"?: boolean }> }> = [
+  { to: "/", label: "Dashboard", Icon: Home },
+  { to: "/lancamentos", label: "Lançamentos", Icon: FileText },
+  { to: "/orcamento", label: "Orçamento", Icon: Target },
+  { to: "/configuracoes", label: "Mais", Icon: MoreHorizontal },
 ];
 
 const DESKTOP_DESTINATIONS = [
@@ -30,7 +35,7 @@ const DESKTOP_DESTINATIONS = [
 function navLinkClass({ isActive }: { isActive: boolean }): string {
   return [
     "flex min-h-11 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary",
-    isActive ? "bg-blue-50 text-primary" : "text-neutral-600 hover:bg-neutral-100",
+    isActive ? "bg-primary-soft text-primary" : "text-neutral-600 hover:bg-neutral-100",
   ].join(" ");
 }
 
@@ -99,7 +104,7 @@ export function AppLayout() {
                     ].join(" ")
                   }
                 >
-                  <span aria-hidden="true">{destination.icon}</span>
+                  <destination.Icon size={22} aria-hidden />
                   {destination.label}
                 </NavLink>
               ))}

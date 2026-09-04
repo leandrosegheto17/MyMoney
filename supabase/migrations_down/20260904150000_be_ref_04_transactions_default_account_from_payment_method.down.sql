@@ -1,0 +1,5 @@
+-- Rollback manual de 20260904150000_be_ref_04_transactions_default_account_from_payment_method.sql
+
+drop trigger if exists transactions_before_insert_account_from_payment_method on public.transactions;
+drop trigger if exists transactions_before_update_account_from_payment_method on public.transactions;
+drop function if exists public.transactions_default_account_from_payment_method();

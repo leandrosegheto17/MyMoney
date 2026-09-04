@@ -149,14 +149,16 @@ export function FixedBillsPage() {
             const isOverdue = Boolean(status?.is_overdue) && !isPaid;
             return (
               <li key={bill.id}>
-                <Card className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="font-medium text-neutral-900">{bill.description}</p>
+                <Card className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-neutral-900" title={bill.description}>
+                      {bill.description}
+                    </p>
                     <p className="text-sm text-neutral-500">
                       Vence dia {bill.due_day} · {formatCentsToBRL(bill.amount_cents)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     {isPaid && <Badge tone="income" icon="✓">Paga</Badge>}
                     {isOverdue && <Badge tone="danger" icon="⛔">Vencida</Badge>}
                     {!isPaid && !isOverdue && <Badge tone="neutral">Pendente</Badge>}
@@ -176,27 +178,43 @@ export function FixedBillsPage() {
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title="Nova conta fixa">
         <div className="flex flex-col gap-4">
           {saveError && <Alert variant="danger">{saveError}</Alert>}
-          <Input label="Descrição" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} error={formErrors.description} />
-          <CurrencyInput label="Valor" required valueCents={form.amountCents} onValueChange={(cents) => setForm({ ...form, amountCents: cents })} error={formErrors.amount} />
-          <CategoryPicker
-            categories={categories.map((c) => ({ id: c.id, name: c.name, parentId: c.parent_category_id }))}
-            value={{ categoryId: form.categoryId, subcategoryId: form.subcategoryId }}
-            onChange={(value) => setForm({ ...form, categoryId: value.categoryId, subcategoryId: value.subcategoryId })}
-            error={formErrors.category}
-            required
-          />
-          <Select label="Conta" required placeholder="Selecione" options={accounts.map((a) => ({ value: a.id, label: a.name }))} value={form.accountId} onChange={(event) => setForm({ ...form, accountId: event.target.value })} error={formErrors.account} />
-          <Select
-            label="Forma de pagamento"
-            required
-            placeholder="Selecione"
-            options={paymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
-            value={form.paymentMethodId}
-            onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })}
-            error={formErrors.paymentMethod}
-          />
-          <Input label="Dia de vencimento" required type="number" min={1} max={31} value={form.dueDay} onChange={(event) => setForm({ ...form, dueDay: event.target.value })} error={formErrors.dueDay} />
-          <Input label="Avisar com quantos dias de antecedência" type="number" min={0} max={30} value={form.alertDaysBefore} onChange={(event) => setForm({ ...form, alertDaysBefore: event.target.value })} helperText="Padrão: 3 dias (RN-05). Pode sobrescrever o limiar padrão desta conta fixa individualmente." />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="min-w-0 md:col-span-2">
+              <Input label="Descrição" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} error={formErrors.description} />
+            </div>
+            <div className="min-w-0">
+              <CurrencyInput label="Valor" required valueCents={form.amountCents} onValueChange={(cents) => setForm({ ...form, amountCents: cents })} error={formErrors.amount} />
+            </div>
+            <div className="min-w-0">
+              <Input label="Dia de vencimento" required type="number" min={1} max={31} value={form.dueDay} onChange={(event) => setForm({ ...form, dueDay: event.target.value })} error={formErrors.dueDay} />
+            </div>
+            <div className="min-w-0 md:col-span-2">
+              <CategoryPicker
+                categories={categories.map((c) => ({ id: c.id, name: c.name, parentId: c.parent_category_id }))}
+                value={{ categoryId: form.categoryId, subcategoryId: form.subcategoryId }}
+                onChange={(value) => setForm({ ...form, categoryId: value.categoryId, subcategoryId: value.subcategoryId })}
+                error={formErrors.category}
+                required
+              />
+            </div>
+            <div className="min-w-0">
+              <Select label="Conta" required placeholder="Selecione" options={accounts.map((a) => ({ value: a.id, label: a.name }))} value={form.accountId} onChange={(event) => setForm({ ...form, accountId: event.target.value })} error={formErrors.account} />
+            </div>
+            <div className="min-w-0">
+              <Select
+                label="Forma de pagamento"
+                required
+                placeholder="Selecione"
+                options={paymentMethods.map((pm) => ({ value: pm.id, label: pm.name }))}
+                value={form.paymentMethodId}
+                onChange={(event) => setForm({ ...form, paymentMethodId: event.target.value })}
+                error={formErrors.paymentMethod}
+              />
+            </div>
+            <div className="min-w-0 md:col-span-2">
+              <Input label="Avisar com quantos dias de antecedência" type="number" min={0} max={30} value={form.alertDaysBefore} onChange={(event) => setForm({ ...form, alertDaysBefore: event.target.value })} helperText="Padrão: 3 dias (RN-05). Pode sobrescrever o limiar padrão desta conta fixa individualmente." />
+            </div>
+          </div>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setIsFormOpen(false)} disabled={isSaving}>
               Cancelar

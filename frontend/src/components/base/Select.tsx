@@ -39,7 +39,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
         aria-describedby={error ? errorId : helperText ? helperId : undefined}
         defaultValue={rest.value === undefined && rest.defaultValue === undefined ? "" : undefined}
         className={[
-          "min-h-11 rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
+          "min-h-11 w-full rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
           "focus-visible:outline-2 focus-visible:outline-primary",
           error ? "border-danger" : "border-neutral-300",
           "disabled:bg-neutral-100 disabled:text-neutral-400",

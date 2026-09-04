@@ -7,6 +7,16 @@ export interface ProgressBarProps {
   alertLevel: BudgetAlertLevel;
   /** Texto secundário opcional (ex.: "R$ 820,00 de R$ 1.000,00"). */
   detailText?: string;
+  /**
+   * Override de classe de cor do `detailText` — `text-neutral-500` (padrão) foi
+   * calibrado para ≥4.5:1 só sobre `color.surface` (`UX-SPEC.md` Seção 5, tabela de
+   * contraste). Quando o `ProgressBar` é renderizado sobre um fundo diferente (ex.:
+   * `BudgetCard` em alerta/estouro, que muda o fundo do card para a cor de
+   * severidade), o consumidor deve passar uma classe recalculada para aquele fundo
+   * específico, em vez de herdar `text-neutral-500` (que pode cair abaixo de
+   * 4.5:1 sobre fundos coloridos, achado de revisão de qualidade 2026-09-04).
+   */
+  detailTextClassName?: string;
 }
 
 const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; textClass: string }> = {
@@ -21,16 +31,18 @@ const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; t
  * WCAG (Seção 5): `role="progressbar"` com valores numéricos; ícone + texto sempre
  * junto da cor, nunca só a barra colorida sozinha comunica o estado.
  */
-export function ProgressBar({ label, pctSpent, alertLevel, detailText }: ProgressBarProps) {
+export function ProgressBar({ label, pctSpent, alertLevel, detailText, detailTextClassName = "text-neutral-500" }: ProgressBarProps) {
   const config = LEVEL_CONFIG[alertLevel];
   const roundedPct = Math.round(pctSpent);
   const clampedWidth = Math.min(100, Math.max(0, pctSpent));
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-neutral-800">{label}</span>
-        <span className={["font-medium", config.textClass].join(" ")}>
+    <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex min-w-0 items-center justify-between gap-2 text-sm">
+        <span className="min-w-0 flex-1 truncate font-medium text-neutral-800" title={label}>
+          {label}
+        </span>
+        <span className={["shrink-0 font-medium", config.textClass].join(" ")}>
           {config.icon && <span aria-hidden="true">{config.icon} </span>}
           {roundedPct}%{alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
         </span>
@@ -45,7 +57,7 @@ export function ProgressBar({ label, pctSpent, alertLevel, detailText }: Progres
       >
         <div className={["h-full rounded-full transition-all duration-200", config.barClass].join(" ")} style={{ width: `${clampedWidth}%` }} />
       </div>
-      {detailText && <p className="text-xs text-neutral-500">{detailText}</p>}
+      {detailText && <p className={["text-xs", detailTextClassName].join(" ")}>{detailText}</p>}
     </div>
   );
 }

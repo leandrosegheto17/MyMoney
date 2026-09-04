@@ -73,7 +73,7 @@ export function CategoryPicker({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row">
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <FieldLabel htmlFor={categoryFieldId} required={required}>
           {categoryLabel}
         </FieldLabel>
@@ -85,7 +85,7 @@ export function CategoryPicker({
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={error ? errorId : undefined}
           className={[
-            "min-h-11 rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
+            "min-h-11 w-full rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
             "focus-visible:outline-2 focus-visible:outline-primary",
             error ? "border-danger" : "border-neutral-300",
           ].join(" ")}
@@ -99,7 +99,7 @@ export function CategoryPicker({
         </select>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
         <FieldLabel htmlFor={subcategoryFieldId}>{subcategoryLabel}</FieldLabel>
         <select
           id={subcategoryFieldId}
@@ -107,7 +107,7 @@ export function CategoryPicker({
           onChange={(event) => handleSubcategoryChange(event.target.value)}
           disabled={!value.categoryId || subcategories.length === 0}
           className={[
-            "min-h-11 rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
+            "min-h-11 w-full rounded-md border bg-white px-3 py-2 text-base text-neutral-900",
             "focus-visible:outline-2 focus-visible:outline-primary border-neutral-300",
             "disabled:bg-neutral-100 disabled:text-neutral-400",
           ].join(" ")}

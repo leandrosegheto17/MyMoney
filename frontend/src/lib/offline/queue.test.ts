@@ -46,4 +46,21 @@ describe("offline queue (Dexie/IndexedDB — DIR-11)", () => {
     await removePendingTransaction(record.localId);
     expect(await countPendingTransactions()).toBe(0);
   });
+
+  it("FE-REF-04/RN-16: enfileira sem accountId (campo 'Conta' não existe mais no formulário)", async () => {
+    const draftWithoutAccount = {
+      paymentMethodId: DRAFT.paymentMethodId,
+      categoryId: DRAFT.categoryId,
+      subcategoryId: DRAFT.subcategoryId,
+      amountCents: DRAFT.amountCents,
+      type: DRAFT.type,
+      description: DRAFT.description,
+      date: DRAFT.date,
+    };
+    const record = await enqueueTransaction(draftWithoutAccount);
+    expect(record.accountId).toBeUndefined();
+
+    const stored = await offlineDb.pendingTransactions.get(record.localId);
+    expect(stored?.accountId).toBeUndefined();
+  });
 });

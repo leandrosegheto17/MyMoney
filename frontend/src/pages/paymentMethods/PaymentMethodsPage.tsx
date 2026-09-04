@@ -113,10 +113,12 @@ export function PaymentMethodsPage() {
         <ul className="flex flex-col gap-3">
           {methods.map((method) => (
             <li key={method.id}>
-              <Card className="flex items-center justify-between gap-4">
-                <div>
+              <Card className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-neutral-900">{method.name}</p>
+                    <p className="truncate font-medium text-neutral-900" title={method.name}>
+                      {method.name}
+                    </p>
                     {method.is_system_default && <Badge tone="primary">Padrão</Badge>}
                   </div>
                   <p className="text-sm text-neutral-500">{TYPE_LABELS[method.type]}</p>

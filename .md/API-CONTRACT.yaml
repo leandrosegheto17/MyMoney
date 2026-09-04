@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.17.0"
+  version: "0.19.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -358,7 +358,22 @@ components:
       properties:
         id: { type: string, format: uuid, readOnly: true }
         user_id: { type: string, format: uuid, readOnly: true }
-        account_id: { type: string, format: uuid }
+        account_id:
+          type: string
+          format: uuid
+          description: >-
+            **Novo — BE-REF-04 (RN-16, ADR-016 Decisão 3/6).** Opcional no
+            payload quando payment_method_id é enviado e kind != transfer —
+            resolvido automaticamente pelo servidor (trigger
+            transactions_default_account_from_payment_method): forma
+            não-cartão resolve para a conta vinculada de payment_method_id;
+            forma type=credit_card resolve para a conta ativa mais antiga do
+            usuário (comportamento já observado hoje, preservado). Continua
+            **obrigatório** quando kind=transfer (transferência não usa
+            payment_method_id, fora de escopo de RF-REF-04). Enviar
+            explicitamente continua aceito e nunca é sobrescrito pelo
+            servidor (RecurringTemplate/InstallmentPurchase/FixedBill, Fase 2,
+            continuam enviando sempre explícito, inalterados).
         destination_account_id: { type: string, format: uuid, nullable: true, description: "obrigatório e diferente de account_id quando kind=transfer" }
         payment_method_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
         category_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
@@ -429,9 +444,28 @@ components:
           enum: [manual, audio, ocr, import, openfinance]
           default: manual
           description: "MVP só usa 'manual'; demais valores reservados para Fase 3."
+        created_via_shortcut:
+          type: boolean
+          default: false
+          description: >-
+            **Novo — BE-REF-02 (RNF-12, ADR-015 Decisão 2).** true quando o
+            lançamento foi criado a partir de um clique em `ShortcutChip`
+            (RF-REF-03 AC6); false para lançamento via formulário completo
+            (default) e para todo lançamento pré-existente. Ortogonal a
+            `source` (DIR-35) — nunca inferir um campo a partir do outro:
+            `source` é o canal de captura (manual/áudio/foto/importação/
+            OpenFinance), `created_via_shortcut` é o ponto de entrada dentro
+            da captura manual. Client envia `true` explicitamente só nesse
+            fluxo; omitido, persiste `false`.
         created_at: { type: string, format: date-time, readOnly: true }
         updated_at: { type: string, format: date-time, readOnly: true }
-      required: [account_id, kind, amount_cents, transaction_date]
+      required: [kind, amount_cents, transaction_date]
+      description: >-
+        account_id sai de `required` a partir de BE-REF-04 (era
+        `[account_id, kind, amount_cents, transaction_date]`) — ver descrição
+        do campo `account_id` acima para a condição exata (obrigatório só
+        quando kind=transfer; nos demais casos, obrigatório enviar
+        payment_method_id em vez disso, resolvido server-side).
 
 paths:
   /accounts:
@@ -1076,7 +1110,15 @@ paths:
           description: "Criado — accounts.current_balance_cents já reflete o efeito (trigger transactions_maintain_account_balance / apply_transaction_effect, testado em BE-M-00)"
           content: { application/json: { schema: { $ref: "#/components/schemas/Transaction" } } }
         "400":
-          description: "Campo obrigatório ausente — nada é persistido parcialmente (RF-MVP-04 AC2)"
+          description: >-
+            Campo obrigatório ausente — nada é persistido parcialmente
+            (RF-MVP-04 AC2). **Novo — BE-REF-04.** Também retornado quando
+            account_id é omitido e payment_method_id referenciado não
+            pertence ao usuário autenticado (checagem própria do trigger
+            transactions_default_account_from_payment_method, independente de
+            RLS — ADR-016 Decisão 3/5), e quando account_id é omitido com
+            kind=transfer ou payment_method_id ausente (o trigger não atua
+            nesses casos, account_id continua NOT NULL na tabela).
           content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
         "403":
           description: >-
@@ -1222,6 +1264,45 @@ paths:
                     alert_threshold_pct: { type: integer }
                     pct_spent: { type: number, format: double }
                     alert_level: { type: string, enum: [none, warning, exceeded] }
+
+  /rpc/get_transaction_shortcuts:
+    post:
+      summary: "Até 10 atalhos de subcategoria para lançamento rápido, ranqueados por uso (RF-REF-03 AC1, AC2, AC7, AC8; RN-12; RN-13)"
+      tags: [Lançamentos]
+      description: >-
+        **Nova — BE-REF-02**, migration
+        `20260904120000_be_ref_02_transaction_shortcuts.sql` (`ADR-015`
+        Decisão 1). Sem parâmetros — sempre calculada sobre `auth.uid()` e a
+        data corrente. Algoritmo (DIR-34 — única fonte de verdade, nenhum
+        client duplica esta lógica): agrega lançamentos do usuário dos
+        últimos 90 dias corridos por `category_id` (frequência + data mais
+        recente); se houver menos de 10 subcategorias distintas na janela,
+        completa com o histórico completo (excluindo as já selecionadas) até
+        atingir 10 ou esgotar — grupo "janela" sempre antes do grupo
+        "histórico", nunca re-ranqueado por cima dele. Desempate dentro de
+        cada grupo: frequência desc., data mais recente desc., nome da
+        subcategoria asc. Para cada subcategoria selecionada, resolve
+        `payment_method_id` pelo mesmo critério (janela, com fallback ao
+        histórico completo); `null` só quando a subcategoria nunca teve
+        nenhum lançamento com forma de pagamento associada (RN-13, exceção).
+        Retorna array vazio quando o usuário não tem nenhum lançamento no
+        histórico (AC2) — o Frontend usa isso diretamente para omitir a
+        barra de atalhos, sem chamada adicional. Chamada a cada carregamento
+        da tela de lançamentos (AC8), sem cache client-side entre navegações.
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: {} } } }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 10
+                items:
+                  type: object
+                  properties:
+                    category_id: { type: string, format: uuid }
+                    payment_method_id: { type: string, format: uuid, nullable: true, description: "null quando a subcategoria nunca teve lançamento com forma de pagamento associada (RN-13, exceção)." }
 
   /backup-export:
     post:
@@ -1625,3 +1706,44 @@ x-changelog:
       income_expense_report.test.sql). Sem tabela nova, sem Edge Function
       (DIR-33 não se aplica). Sem breaking change nos endpoints já
       publicados.
+  - version: "0.18.0"
+    date: "2026-09-04"
+    change: >-
+      Adiciona /rpc/get_transaction_shortcuts (BE-REF-02, RF-REF-03 AC1, AC2,
+      AC7, AC8; RN-12; RN-13; ADR-015) e o campo Transaction.created_via_shortcut
+      (RNF-12, ADR-015 Decisão 2). RPC única fonte de verdade do algoritmo de
+      ranking/desempate (DIR-34) — janela de 90 dias + fallback ao histórico
+      completo quando há menos de 10 subcategorias distintas na janela,
+      desempate por recência e ordem alfabética; payment_method_id resolvido
+      pelo mesmo critério de janela+fallback por subcategoria, null só quando
+      a subcategoria nunca teve forma de pagamento associada. Teste
+      automatizado (supabase/tests/be_ref_02_transaction_shortcuts.test.sql)
+      cobre ranking simples, fallback (AC7), os 2 critérios de desempate,
+      resolução/exceção de payment_method_id (RN-13) e isolamento cross-user.
+      created_via_shortcut é ortogonal a source (DIR-35) — nunca inferir um a
+      partir do outro. Sem breaking change nos endpoints já publicados.
+  - version: "0.19.0"
+    date: "2026-09-04"
+    change: >-
+      Transaction.account_id sai de `required` em POST/PATCH /transactions
+      (BE-REF-04, RF-REF-04 AC1/AC2/AC5; RN-16; DIR-36; ADR-016 Decisão 3/6):
+      opcional no payload quando payment_method_id é enviado e kind !=
+      transfer — resolvido server-side pelo novo trigger
+      transactions_default_account_from_payment_method (forma não-cartão:
+      conta vinculada de payment_method_id; forma type=credit_card: conta
+      ativa mais antiga do usuário, comportamento já observado hoje,
+      preservado — Opção D). Continua obrigatório quando kind=transfer.
+      Enviar account_id explicitamente continua aceito e NUNCA é sobrescrito
+      pelo servidor (o trigger só atua quando NEW.account_id IS NULL) —
+      RecurringTemplate/InstallmentPurchase/FixedBill (Fase 2) continuam
+      enviando sempre explícito, inalterados, não acionam o trigger novo.
+      Novo 400 em POST/PATCH /transactions quando payment_method_id não
+      pertence ao usuário autenticado e account_id foi omitido (checagem
+      própria do trigger, independente de RLS, defesa em profundidade —
+      ADR-016 Decisão 5). Sem interferência com a resolução de
+      card_invoice_id (RN-01/RF-F2-05, ADR-016 Decisão 7) — mecanismos
+      totalmente independentes, cobertura de não-regressão em
+      supabase/tests/be_ref_04_transactions_default_account.test.sql. Sem
+      breaking change nos endpoints já publicados — client que já envia
+      account_id explicitamente (comportamento anterior) continua
+      funcionando sem nenhuma mudança.

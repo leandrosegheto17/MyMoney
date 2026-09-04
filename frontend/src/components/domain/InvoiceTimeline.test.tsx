@@ -35,7 +35,7 @@ describe("InvoiceTimeline — S-CARD-03 (FE-F2-02, DIR-13)", () => {
   it("total da fatura soma só os lançamentos daquela competência (card_invoice_id)", () => {
     const invoices = [invoice(currentCompetencia, "aberta")];
     const transactions = [
-      { id: "t1", user_id: "u1", account_id: "a1", destination_account_id: null, payment_method_id: "pm1", category_id: "c1", kind: "expense" as const, amount_cents: 5000, description: "Mercado", transaction_date: "2026-09-02", status: "cleared" as const, source: "manual" as const, card_invoice_id: `inv-${currentCompetencia}`, recurring_rule_id: null, installment_plan_id: null, installment_number: null, fixed_bill_id: null, created_at: "x", updated_at: "x" },
+      { id: "t1", user_id: "u1", account_id: "a1", destination_account_id: null, payment_method_id: "pm1", category_id: "c1", kind: "expense" as const, amount_cents: 5000, description: "Mercado", transaction_date: "2026-09-02", status: "cleared" as const, source: "manual" as const, card_invoice_id: `inv-${currentCompetencia}`, recurring_rule_id: null, installment_plan_id: null, installment_number: null, fixed_bill_id: null, created_via_shortcut: false, created_at: "x", updated_at: "x" },
     ];
     render(<InvoiceTimeline invoices={invoices} transactions={transactions} categoryNameById={{}} />);
     expect(screen.getByText("Total: R$ 50,00")).toBeInTheDocument();

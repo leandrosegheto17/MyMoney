@@ -98,12 +98,55 @@ export interface Transaction {
   installment_number: number | null;
   /** Fase 2 (BE-F2-06) — resolvido pelo servidor, readOnly. Preenchido só em lançamento "previsto" de conta fixa. */
   fixed_bill_id: string | null;
+  /**
+   * Fase 2.1 (`BE-REF-02`, `ADR-015` Decisão 2) — `default false`. Ortogonal a `source`
+   * (DIR-35): nunca usar uma coluna para inferir a outra. `true` só quando o lançamento
+   * se originou de um clique em `ShortcutChip` (RF-REF-03 AC6), client envia isso
+   * explicitamente no `INSERT`; omitido, persiste `false`. Publicado em
+   * `API-CONTRACT.yaml` v0.18.0 (`BE-REF-02`, `Transaction.created_via_shortcut`).
+   */
+  created_via_shortcut: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export type NewTransaction = Pick<Transaction, "account_id" | "kind" | "amount_cents" | "transaction_date"> &
-  Partial<Pick<Transaction, "destination_account_id" | "payment_method_id" | "category_id" | "description" | "source">>;
+/**
+ * `account_id` opcional (DIR-36, `ADR-016` Decisão 3/6, `BE-REF-04`): quando o client
+ * envia `payment_method_id` e `kind != transfer`, o servidor resolve `account_id`
+ * implicitamente via o trigger `transactions_default_account_from_payment_method`
+ * (conta vinculada à forma de pagamento, ou a conta ativa mais antiga do usuário
+ * quando a forma é cartão de crédito). Continua obrigatório enviar `account_id`
+ * explícito quando `kind = transfer` — fora de escopo de `RF-REF-04`/`S-TXN-02`
+ * (nenhum fluxo desta base de código cria `kind=transfer` hoje).
+ *
+ * Conferido campo a campo contra `API-CONTRACT.yaml` v0.19.0 (`BE-REF-04` publicado):
+ * `Transaction.required` mudou de `[account_id, kind, amount_cents, transaction_date]`
+ * para `[kind, amount_cents, transaction_date]` — idêntico a este tipo. Migration real:
+ * `supabase/migrations/20260904150000_be_ref_04_transactions_default_account_from_payment_method.sql`.
+ * Novo `400` documentado (também tratado, sem código específico — `lib/api/errors.ts`
+ * já mapeia todo `status 400` para `kind: "validation"`, mesmo tratamento genérico
+ * usado por todo `400`/`409` do formulário): `account_id` omitido com
+ * `payment_method_id` que não pertence ao usuário autenticado (checagem própria do
+ * trigger, independente de RLS), e `account_id` omitido com `kind=transfer` ou sem
+ * `payment_method_id` (trigger não atua, coluna continua `NOT NULL`).
+ *
+ * **Achado de qualidade (fix-loop tentativa 1/2, `FE-REF-04`, corrigido)**: `account_id`
+ * é tipado aqui como `string | null` (não só `string | undefined`) porque **editar** um
+ * lançamento (`PATCH`) exige enviar `account_id: null` **explicitamente** — nunca
+ * omitir a chave — para que o trigger volte a resolver a conta a partir da forma de
+ * pagamento potencialmente trocada na edição. Diferença de semântica entre `POST` e
+ * `PATCH` no PostgREST: no `INSERT`, coluna ausente do payload já vira `NULL` (por
+ * isso a criação pode simplesmente omitir `account_id`); no `UPDATE`, coluna ausente
+ * do payload **preserva o valor antigo** da linha — omitir na edição faria
+ * `NEW.account_id` continuar não-nulo (o valor resolvido na criação), o `WHEN
+ * (NEW.account_id IS NULL)` do trigger nunca dispararia, e o lançamento continuaria
+ * debitando a conta antiga mesmo com a forma de pagamento trocada para uma vinculada a
+ * outra conta — bug real encontrado em revisão, corrigido em `TransactionFormModal`.
+ */
+export type NewTransaction = Pick<Transaction, "kind" | "amount_cents" | "transaction_date"> &
+  Partial<Pick<Transaction, "destination_account_id" | "payment_method_id" | "category_id" | "description" | "source" | "created_via_shortcut">> & {
+    account_id?: string | null;
+  };
 
 export interface MonthProvision {
   current_total_balance_cents: number;
@@ -351,4 +394,20 @@ export interface IncomeExpenseReportItem {
   month: string;
   income_cents: number;
   expense_cents: number;
+}
+
+// ============================================================================
+// Fase 2.1 — Lançamentos: Hierarquia & Atalhos (BE-REF-02, ADR-015)
+// ============================================================================
+
+/**
+ * Linha retornada por `get_transaction_shortcuts()` (RF-REF-03, `ADR-015` Decisão 1,
+ * `API-CONTRACT.yaml` v0.18.0) — já ordenada pelo desempate de RN-12 no servidor
+ * (grupo janela/histórico, frequência desc., recência desc., nome asc.); o client
+ * nunca reordena (DIR-34). `payment_method_id` é `null` quando a subcategoria nunca
+ * teve lançamento com nenhuma forma de pagamento (RN-13, exceção).
+ */
+export interface TransactionShortcut {
+  category_id: string;
+  payment_method_id: string | null;
 }

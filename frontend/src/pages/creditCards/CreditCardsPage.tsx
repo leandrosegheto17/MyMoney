@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, Button, Card, EmptyState, Modal, Skeleton } from "../../components/base";
 import { Input } from "../../components/base";
 import { useToast } from "../../components/base/Toast";
+import { CurrencyInput } from "../../components/domain/CurrencyInput";
 import { InvoiceTimeline } from "../../components/domain/InvoiceTimeline";
 import { createCreditCard, getCreditCardsAvailableLimit, listCreditCards, listInvoicesByCard, updateCreditCard } from "../../lib/api/creditCards";
 import { listCategories } from "../../lib/api/categories";
@@ -165,9 +166,15 @@ export function CreditCardsPage() {
             const limit = limits.find((l) => l.credit_card_id === card.id);
             return (
               <li key={card.id}>
-                <Card className="flex items-center justify-between gap-4">
-                  <button type="button" onClick={() => void openDetail(card)} className="flex-1 text-left focus-visible:outline-2 focus-visible:outline-primary">
-                    <p className="font-medium text-neutral-900">{card.name}</p>
+                <Card className="flex flex-wrap items-center justify-between gap-4">
+                  <button
+                    type="button"
+                    onClick={() => void openDetail(card)}
+                    className="min-w-0 flex-1 text-left focus-visible:outline-2 focus-visible:outline-primary"
+                  >
+                    <p className="truncate font-medium text-neutral-900" title={card.name}>
+                      {card.name}
+                    </p>
                     <p className="text-sm text-neutral-500">
                       Fecha dia {card.closing_day} · Vence dia {card.due_day}
                     </p>
@@ -191,14 +198,11 @@ export function CreditCardsPage() {
         <div className="flex flex-col gap-4">
           {saveError && <Alert variant="danger">{saveError}</Alert>}
           <Input label="Nome" required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} error={formErrors.name} />
-          <Input
+          <CurrencyInput
             label="Limite (R$)"
             required
-            type="number"
-            min={0}
-            step="0.01"
-            value={form.limitCents ? (form.limitCents / 100).toString() : ""}
-            onChange={(event) => setForm({ ...form, limitCents: Math.round(Number(event.target.value || 0) * 100) })}
+            valueCents={form.limitCents}
+            onValueChange={(cents) => setForm({ ...form, limitCents: cents })}
             error={formErrors.limit}
           />
           <Input

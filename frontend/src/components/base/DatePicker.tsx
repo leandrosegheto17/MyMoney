@@ -38,7 +38,7 @@ export const DatePicker = forwardRef<HTMLInputElement, DatePickerProps>(function
         aria-invalid={Boolean(error) || undefined}
         aria-describedby={error ? errorId : helperText ? helperId : undefined}
         className={[
-          "min-h-11 rounded-md border px-3 py-2 text-base text-neutral-900",
+          "min-h-11 w-full rounded-md border px-3 py-2 text-base text-neutral-900",
           "focus-visible:outline-2 focus-visible:outline-primary",
           error ? "border-danger" : "border-neutral-300",
           className,

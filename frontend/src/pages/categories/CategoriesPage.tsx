@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Badge, Button, Card, ConfirmationDialog, EmptyState, Input, Modal, Select, Skeleton } from "../../components/base";
+import { Alert, Button, ConfirmationDialog, EmptyState, Input, Modal, Select } from "../../components/base";
 import { useToast } from "../../components/base/Toast";
+import { CategoryCard } from "../../components/domain/CategoryCard";
 import { createCategory, deleteCategory, listCategories, listTransactionsByCategory, updateCategory } from "../../lib/api/categories";
+import { getMonthlyCategorySummary } from "../../lib/api/dashboard";
 import { ApiError } from "../../lib/api/errors";
-import type { Category, CategoryKind } from "../../lib/api/types";
+import type { Category, CategoryKind, MonthlyCategorySummaryItem } from "../../lib/api/types";
+
+/** Grade de cards de resumo — UX-SPEC.md Seção 2.1 (Padrão C) e 6.3 (1 → 2 → 3 → 4 colunas). */
+const CARD_GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+const SKELETON_CARD_COUNT = 6;
 
 const KIND_LABELS: Record<CategoryKind, string> = { income: "Entrada", expense: "Saída" };
 const KIND_OPTIONS = (Object.entries(KIND_LABELS) as [CategoryKind, string][]).map(([value, label]) => ({ value, label }));
@@ -12,13 +18,19 @@ const KIND_OPTIONS = (Object.entries(KIND_LABELS) as [CategoryKind, string][]).m
 type FormState = { id: string | null; name: string; kind: CategoryKind | ""; parentCategoryId: string };
 const EMPTY_FORM: FormState = { id: null, name: "", kind: "", parentCategoryId: "" };
 
-/** S-CAT-01/02/03 — UX-SPEC.md Padrão A ("árvore, categoria com subcategorias recolhíveis") + bloqueio de exclusão (RN-09). */
+/**
+ * S-CAT-01/02/03 — UX-SPEC.md Seção 2.2 (revisado 2026-09-04, RF-REF-05): grade de
+ * `CategoryCard` (Padrão C) substitui a lista em árvore recolhível. Clique no corpo
+ * do card abre `S-CAT-01a` (subcategorias, reaproveita `Modal`/`BottomSheet`); ícone
+ * "Editar" do card é atalho direto para `S-CAT-02` sem passar pelo modal. Bloqueio de
+ * exclusão (RN-09) inalterado.
+ */
 export function CategoriesPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [categories, setCategories] = useState<Category[] | null>(null);
+  const [categorySummary, setCategorySummary] = useState<MonthlyCategorySummaryItem[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -30,10 +42,17 @@ export function CategoriesPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [blockedDelete, setBlockedDelete] = useState<{ category: Category; count: number } | null>(null);
 
+  /** `S-CAT-01a` — categoria de topo-nível cujas subcategorias estão em exibição no Modal/BottomSheet. */
+  const [subcategoriesModalCategory, setSubcategoriesModalCategory] = useState<Category | null>(null);
+
   async function load() {
     setLoadError(null);
     try {
-      setCategories(await listCategories());
+      // `getMonthlyCategorySummary()` já é consumida pelo Dashboard (RF-MVP-06) —
+      // reaproveitada aqui sem nenhuma chamada de API nova (RF-REF-05 AC2).
+      const [categoriesResult, summaryResult] = await Promise.all([listCategories(), getMonthlyCategorySummary()]);
+      setCategories(categoriesResult);
+      setCategorySummary(summaryResult);
     } catch (cause) {
       setLoadError(cause instanceof ApiError ? cause.message : "Não foi possível carregar as categorias.");
     }
@@ -55,14 +74,19 @@ export function CategoriesPage() {
     return map;
   }, [categories]);
 
-  function toggleExpanded(id: string) {
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
+  /** Total gasto no mês por categoria de topo-nível — saídas da própria categoria + suas subcategorias, mesmo cálculo de RF-MVP-06 (RF-REF-05 AC2). */
+  const totalSpentByRoot = useMemo(() => {
+    const categoryById = new Map((categories ?? []).map((category) => [category.id, category]));
+    const totals = new Map<string, number>();
+    for (const item of categorySummary ?? []) {
+      if (item.kind !== "expense") continue;
+      const category = categoryById.get(item.category_id);
+      if (!category) continue;
+      const rootId = category.parent_category_id ?? category.id;
+      totals.set(rootId, (totals.get(rootId) ?? 0) + item.total_cents);
+    }
+    return totals;
+  }, [categories, categorySummary]);
 
   function openNewForm(parentCategoryId = "") {
     setForm({ ...EMPTY_FORM, parentCategoryId });
@@ -76,6 +100,22 @@ export function CategoriesPage() {
     setFormErrors({});
     setSaveError(null);
     setIsFormOpen(true);
+  }
+
+  /** Abre `S-CAT-02` a partir de dentro de `S-CAT-01a` — um modal ativo por vez (fecha o de subcategorias primeiro). */
+  function openEditFormFromSubcategoriesModal(category: Category) {
+    setSubcategoriesModalCategory(null);
+    openEditForm(category);
+  }
+
+  function openNewSubcategoryForm(parentCategoryId: string) {
+    setSubcategoriesModalCategory(null);
+    openNewForm(parentCategoryId);
+  }
+
+  function requestDeleteFromSubcategoriesModal(category: Category) {
+    setSubcategoriesModalCategory(null);
+    setDeleteTarget(category);
   }
 
   async function handleSubmit() {
@@ -125,6 +165,8 @@ export function CategoriesPage() {
     }
   }
 
+  const subcategoriesInModal = subcategoriesModalCategory ? subcategoriesByParent.get(subcategoriesModalCategory.id) ?? [] : [];
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -133,71 +175,81 @@ export function CategoriesPage() {
       </div>
 
       {loadError && <Alert variant="danger">{loadError}</Alert>}
-      {!categories && !loadError && <Skeleton lines={5} aria-label="Carregando categorias" />}
+      {!categories && !loadError && (
+        <div role="status" aria-label="Carregando categorias" className={CARD_GRID_CLASSES}>
+          {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+            <div key={index} className="h-32 animate-pulse rounded-lg bg-neutral-200" />
+          ))}
+        </div>
+      )}
       {categories && categories.length === 0 && (
         <EmptyState title="Nenhuma categoria cadastrada ainda" action={<Button onClick={() => openNewForm()}>Cadastrar</Button>} />
       )}
 
       {categories && rootCategories.length > 0 && (
-        <ul className="flex flex-col gap-3">
-          {rootCategories.map((category) => {
-            const subcategories = subcategoriesByParent.get(category.id) ?? [];
-            const isExpanded = expanded.has(category.id);
-            return (
-              <li key={category.id}>
-                <Card>
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                      {subcategories.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => toggleExpanded(category.id)}
-                          aria-expanded={isExpanded}
-                          aria-label={isExpanded ? `Recolher ${category.name}` : `Expandir ${category.name}`}
-                          className="min-h-11 min-w-11 rounded-md text-neutral-500 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary"
-                        >
-                          {isExpanded ? "▾" : "▸"}
-                        </button>
-                      )}
-                      <p className="font-medium text-neutral-900">{category.name}</p>
-                      <Badge tone={category.kind === "income" ? "income" : "expense"}>{KIND_LABELS[category.kind]}</Badge>
-                      {category.is_system_default && <Badge tone="neutral">Padrão</Badge>}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" onClick={() => openNewForm(category.id)}>
-                        + Subcategoria
-                      </Button>
-                      <Button variant="ghost" onClick={() => openEditForm(category)}>
+        <div className={CARD_GRID_CLASSES}>
+          {rootCategories.map((category) => (
+            <CategoryCard
+              key={category.id}
+              name={category.name}
+              icon={category.icon}
+              color={category.color}
+              totalSpentCents={totalSpentByRoot.get(category.id) ?? 0}
+              subcategoryCount={(subcategoriesByParent.get(category.id) ?? []).length}
+              onOpenSubcategories={() => setSubcategoriesModalCategory(category)}
+              onEdit={() => openEditForm(category)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* S-CAT-01a — UX-SPEC.md Seção 2.2 (bloco "S-CAT-01 revisado"): reaproveita Modal/BottomSheet, lista de subcategorias com ações Editar/Excluir. */}
+      <Modal
+        isOpen={subcategoriesModalCategory !== null}
+        onClose={() => setSubcategoriesModalCategory(null)}
+        title={subcategoriesModalCategory ? `${subcategoriesModalCategory.name} — subcategorias` : ""}
+      >
+        {subcategoriesModalCategory && (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap justify-end gap-2">
+              <Button variant="ghost" onClick={() => openEditFormFromSubcategoriesModal(subcategoriesModalCategory)}>
+                Editar categoria
+              </Button>
+              <Button variant="ghost" onClick={() => requestDeleteFromSubcategoriesModal(subcategoriesModalCategory)}>
+                Excluir categoria
+              </Button>
+            </div>
+
+            {subcategoriesInModal.length === 0 ? (
+              <p className="text-sm text-neutral-500">Nenhuma subcategoria cadastrada ainda.</p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {subcategoriesInModal.map((sub) => (
+                  <li key={sub.id} className="flex flex-wrap items-center justify-between gap-4">
+                    <p className="min-w-0 flex-1 truncate text-sm text-neutral-700" title={sub.name}>
+                      {sub.name}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="ghost" onClick={() => openEditFormFromSubcategoriesModal(sub)}>
                         Editar
                       </Button>
-                      <Button variant="ghost" onClick={() => setDeleteTarget(category)}>
+                      <Button variant="ghost" onClick={() => requestDeleteFromSubcategoriesModal(sub)}>
                         Excluir
                       </Button>
                     </div>
-                  </div>
-                  {isExpanded && subcategories.length > 0 && (
-                    <ul className="ml-8 mt-3 flex flex-col gap-2 border-l border-neutral-200 pl-4">
-                      {subcategories.map((sub) => (
-                        <li key={sub.id} className="flex items-center justify-between gap-4">
-                          <p className="text-sm text-neutral-700">{sub.name}</p>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" onClick={() => openEditForm(sub)}>
-                              Editar
-                            </Button>
-                            <Button variant="ghost" onClick={() => setDeleteTarget(sub)}>
-                              Excluir
-                            </Button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <div>
+              <Button variant="secondary" onClick={() => openNewSubcategoryForm(subcategoriesModalCategory.id)}>
+                + Nova subcategoria
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={form.id ? "Editar categoria" : "Nova categoria"}>
         <div className="flex flex-col gap-4">

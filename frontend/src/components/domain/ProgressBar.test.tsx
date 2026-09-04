@@ -27,4 +27,12 @@ describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () 
     const fill = track.firstElementChild as HTMLElement;
     expect(fill.style.width).toBe("100%");
   });
+
+  it("detailText usa text-neutral-500 por padrão, mas aceita override de classe (detailTextClassName) para consumidores que mudam o fundo — achado de qualidade WCAG do BudgetCard", () => {
+    const { rerender } = render(<ProgressBar label="Casa" pctSpent={50} alertLevel="none" detailText="R$ 500,00 de R$ 1.000,00" />);
+    expect(screen.getByText("R$ 500,00 de R$ 1.000,00").className).toContain("text-neutral-500");
+
+    rerender(<ProgressBar label="Casa" pctSpent={50} alertLevel="none" detailText="R$ 500,00 de R$ 1.000,00" detailTextClassName="text-neutral-600" />);
+    expect(screen.getByText("R$ 500,00 de R$ 1.000,00").className).toContain("text-neutral-600");
+  });
 });

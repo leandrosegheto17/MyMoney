@@ -1,6 +1,15 @@
 -- BE-M-02 — Teste de seed automático das 4 formas de pagamento padrão na
 -- primeira conta ativa do usuário, e de que elas não são editáveis/excluíveis.
 --
+-- Nota (atualização BE-REF-03, 2026-09-04): as asserções de CASO 1/2 foram
+-- reescritas para escopar por account_id em vez de "total de is_system_default
+-- para o usuário" — o usuário fixture (public.profiles LIMIT 1) é um usuário
+-- REAL de produção que já pode ter outras contas/payment_methods próprias, e
+-- desde BE-REF-03 (RN-15) toda conta ativa nova (inclusive as deste teste)
+-- dispara o seed, não só a 1ª — um COUNT não escopado por conta ficaria
+-- contaminado por dado real pré-existente e por double-count entre as 2 contas
+-- de teste, quebrando o teste independentemente de qualquer regressão real.
+--
 -- Execução: supabase db query --linked --file supabase/tests/be_m02_payment_methods_defaults.test.sql
 -- BEGIN;...ROLLBACK; — nenhuma linha real alterada.
 
@@ -27,40 +36,49 @@ BEGIN
 
   SELECT count(*) INTO v_count_defaults
   FROM public.payment_methods
-  WHERE user_id = v_user_id AND is_system_default = true;
+  WHERE account_id = v_acc1 AND is_system_default = true;
 
   IF v_count_defaults <> 4 THEN
     RAISE EXCEPTION 'CASO 1 FALHOU: esperado 4 formas padrão semeadas, obtido %', v_count_defaults;
   END IF;
 
-  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = v_user_id AND type = 'pix' AND is_system_default) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE account_id = v_acc1 AND type = 'pix' AND is_system_default) THEN
     RAISE EXCEPTION 'CASO 1b FALHOU: forma padrão pix não encontrada';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = v_user_id AND type = 'debit_card' AND is_system_default) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE account_id = v_acc1 AND type = 'debit_card' AND is_system_default) THEN
     RAISE EXCEPTION 'CASO 1c FALHOU: forma padrão debit_card não encontrada';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = v_user_id AND type = 'boleto' AND is_system_default) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE account_id = v_acc1 AND type = 'boleto' AND is_system_default) THEN
     RAISE EXCEPTION 'CASO 1d FALHOU: forma padrão boleto não encontrada';
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = v_user_id AND type = 'cash' AND is_system_default) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.payment_methods WHERE account_id = v_acc1 AND type = 'cash' AND is_system_default) THEN
     RAISE EXCEPTION 'CASO 1e FALHOU: forma padrão cash não encontrada';
   END IF;
   -- "crédito" não é semeado no MVP (achado da auditoria — depende de BE-F2-01).
-  IF EXISTS (SELECT 1 FROM public.payment_methods WHERE user_id = v_user_id AND type = 'credit_card' AND is_system_default) THEN
+  IF EXISTS (SELECT 1 FROM public.payment_methods WHERE account_id = v_acc1 AND type = 'credit_card' AND is_system_default) THEN
     RAISE EXCEPTION 'CASO 1f FALHOU: crédito não deveria ser semeado no MVP';
   END IF;
 
-  -- CASO 2: segunda conta do mesmo usuário NÃO duplica o seed (idempotência).
+  -- CASO 2: segunda conta do mesmo usuário TAMBÉM recebe suas próprias 4 formas
+  -- padrão, vinculadas a ELA (não à 1ª conta) — comportamento alterado por
+  -- BE-REF-03/RN-15/ADR-016 Decisão 2 (antes desta mudança, só a 1ª conta era
+  -- semeada; cobertura dedicada de não-regressão da 1ª conta +
+  -- multi-conta/idempotência em supabase/tests/be_ref_03_payment_methods_seed_all_accounts.test.sql).
   INSERT INTO public.accounts (user_id, name, type, currency, initial_balance_cents)
   VALUES (v_user_id, 'TEST_ACC_PM2', 'savings', 'BRL', 1000)
   RETURNING id INTO v_acc2;
 
   SELECT count(*) INTO v_count_defaults
   FROM public.payment_methods
-  WHERE user_id = v_user_id AND is_system_default = true;
+  WHERE account_id = v_acc2 AND is_system_default = true;
 
   IF v_count_defaults <> 4 THEN
-    RAISE EXCEPTION 'CASO 2 FALHOU: segunda conta não deveria re-semear; esperado 4, obtido %', v_count_defaults;
+    RAISE EXCEPTION 'CASO 2 FALHOU: segunda conta deveria receber suas próprias 4 formas padrão (BE-REF-03), obtido %', v_count_defaults;
+  END IF;
+
+  -- 1ª conta não foi afetada pelo seed da 2ª (linhas continuam vinculadas à 1ª).
+  IF (SELECT count(*) FROM public.payment_methods WHERE account_id = v_acc1 AND is_system_default = true) <> 4 THEN
+    RAISE EXCEPTION 'CASO 2b FALHOU: seed da 2ª conta não deveria alterar a contagem da 1ª';
   END IF;
 
   -- CASO 3: forma padrão não pode ser editada (RLS bloqueia via authenticated,

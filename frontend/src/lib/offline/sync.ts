@@ -11,10 +11,16 @@ import type { NewTransaction } from "../api/types";
  */
 export type TransactionSyncClient = (transaction: PendingTransaction) => Promise<{ ok: true } | { ok: false; error: string }>;
 
-/** `PendingTransaction` (fila local, `db.ts`) → `NewTransaction` (`POST /transactions`, `API-CONTRACT.yaml`). */
+/**
+ * `PendingTransaction` (fila local, `db.ts`) → `NewTransaction` (`POST /transactions`,
+ * `API-CONTRACT.yaml`). RN-16/DIR-36 (`ADR-016` Decisão 3, `FE-REF-04`): `account_id`
+ * só é incluído no payload se o item enfileirado já carregava um (item antigo, de
+ * antes desta mudança) — itens novos (enfileirados pelo formulário atual, que não
+ * coleta mais conta) nunca têm `accountId`, e o servidor resolve `account_id` a
+ * partir de `payment_method_id`, mesma regra já aplicada ao caminho online.
+ */
 export function toNewTransaction(pending: PendingTransaction): NewTransaction {
   return {
-    account_id: pending.accountId,
     kind: pending.type === "entrada" ? "income" : "expense",
     amount_cents: pending.amountCents,
     transaction_date: pending.date,
@@ -24,6 +30,7 @@ export function toNewTransaction(pending: PendingTransaction): NewTransaction {
     category_id: pending.subcategoryId || pending.categoryId || undefined,
     description: pending.description || undefined,
     source: "manual",
+    ...(pending.accountId ? { account_id: pending.accountId } : {}),
   };
 }
 
