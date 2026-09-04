@@ -26,3 +26,6 @@ supabase/.temp/
 *.log
 .DS_Store
 Thumbs.db
+
+# Worktrees temporários de subagentes (isolamento de sessão, nunca commitar)
+.claude/worktrees/

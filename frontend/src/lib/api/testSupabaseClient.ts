@@ -14,12 +14,28 @@ export interface FakeResult<T = unknown> {
   status?: number;
 }
 
+/** Usuário autenticado padrão devolvido por `auth.getUser()` — sobrescrever com `setAuthUser`/`setAuthGetUserError`. */
+const DEFAULT_TEST_USER_ID = "test-user-id";
+
 export function createFakeSupabaseClient() {
   let nextResult: FakeResult = { data: null, error: null, status: 200 };
   const calls: { table: string; method: string; args: unknown[] }[] = [];
+  let authUser: { id: string } | null = { id: DEFAULT_TEST_USER_ID };
+  let authGetUserError: { message: string; name?: string } | null = null;
 
   function queueResult<T>(result: FakeResult<T>) {
     nextResult = result;
+  }
+
+  /** Configura o usuário que `auth.getUser()` (`withOwnerId`, Bloqueio 015) deve devolver na próxima chamada. */
+  function setAuthUser(user: { id: string } | null) {
+    authUser = user;
+    authGetUserError = null;
+  }
+
+  /** Simula `auth.getUser()` falhando (ex.: sessão expirada) — `withOwnerId` deve lançar `ApiError kind:"forbidden"`. */
+  function setAuthGetUserError(error: { message: string; name?: string } | null) {
+    authGetUserError = error;
   }
 
   function makeBuilder(table: string) {
@@ -42,7 +58,15 @@ export function createFakeSupabaseClient() {
       calls.push({ table: fn, method: "rpc", args: [args] });
       return { then: (resolve: (value: FakeResult) => void) => resolve(nextResult) };
     }),
+    auth: {
+      getUser: vi.fn(async () => {
+        if (authGetUserError) {
+          return { data: { user: null }, error: authGetUserError };
+        }
+        return { data: { user: authUser }, error: null };
+      }),
+    },
   };
 
-  return { client, queueResult, calls };
+  return { client, queueResult, calls, setAuthUser, setAuthGetUserError };
 }

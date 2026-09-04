@@ -21,3 +21,14 @@ export function getSupabaseUrl(): string {
 export function getSupabaseAnonKey(): string {
   return readEnv("VITE_SUPABASE_ANON_KEY");
 }
+
+/**
+ * Chave pública VAPID de Web Push (`DEPLOY.md`: `VITE_VAPID_PUBLIC_KEY`, configurada
+ * no painel Vercel por ambiente; par gerado pelo Backend em `BE-F2-09`). **Não lança**
+ * se ausente (diferente de `readEnv`) — DIR-14/`NotificationCenter` é sempre o canal
+ * primário de aviso, independente de push estar configurado; a UI degrada oferecendo
+ * só o histórico in-app, nunca bloqueia o app por falta desta variável opcional.
+ */
+export function getVapidPublicKey(): string | null {
+  return (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? null;
+}

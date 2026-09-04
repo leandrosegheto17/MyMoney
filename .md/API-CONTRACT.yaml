@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.7.0"
+  version: "0.17.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -94,8 +94,9 @@ components:
           description: >-
             true para as 4 formas padrão (Pix/Débito/Boleto/Dinheiro) semeadas
             automaticamente na 1ª conta do usuário (BE-M-02) — não editável/excluível
-            (PATCH/DELETE retornam 403 via RLS). "Crédito" não é semeado no MVP,
-            só passa a existir junto de um CreditCard real (Fase 2, BE-F2-01).
+            (PATCH/DELETE retornam 403 via RLS). "Crédito" (type=credit_card) é
+            sempre false — é gerada 1 por CreditCard cadastrado (BE-F2-01), objeto
+            gerenciado pelo próprio usuário, não um valor fixo do sistema.
         created_at: { type: string, format: date-time, readOnly: true }
         updated_at: { type: string, format: date-time, readOnly: true }
       required: [type, name]
@@ -114,6 +115,230 @@ components:
         created_at: { type: string, format: date-time, readOnly: true }
         updated_at: { type: string, format: date-time, readOnly: true }
       required: [name, kind]
+
+    CreditCard:
+      type: object
+      description: >-
+        RF-F2-01 (BE-F2-01). Ao criar um cartão, o sistema gera automaticamente
+        (trigger `credit_cards_after_insert_seed_payment_method`) um `PaymentMethod`
+        com `type=credit_card` e `credit_card_id` apontando para este cartão — o
+        client não precisa (e não deve) criar esse PaymentMethod manualmente.
+        Limite disponível: ver `GET /rpc/get_credit_cards_available_limit`
+        (BE-F2-02, RN-06). Faturas: ver `GET /invoices` (BE-F2-02).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        name: { type: string, description: "apelido do cartão, ex. \"Nubank\" — também usado como name do PaymentMethod derivado" }
+        limit_cents: { type: integer, format: int64, minimum: 1 }
+        closing_day: { type: integer, minimum: 1, maximum: 31 }
+        due_day: { type: integer, minimum: 1, maximum: 31 }
+        is_active: { type: boolean, default: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [name, limit_cents, closing_day, due_day]
+
+    Invoice:
+      type: object
+      description: >-
+        RF-F2-05/BE-F2-02. Somente leitura na prática: `status` só é escrito
+        pelo job periódico `close_due_invoices` (SECURITY DEFINER) — não há
+        policy de UPDATE/DELETE para `authenticated`, PATCH/DELETE retornam
+        404/403 (RLS nega, PostgREST não encontra linha para o client). O
+        client nunca cria fatura diretamente: `credit_card_invoice_id` de cada
+        `Transaction` é resolvido automaticamente pelo servidor no momento do
+        lançamento (RN-01).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        credit_card_id: { type: string, format: uuid }
+        competencia: { type: string, format: date, description: "sempre o 1º dia do mês da fatura, ex. 2026-09-01" }
+        status:
+          type: string
+          enum: [aberta, fechada]
+          readOnly: true
+          description: "aberta = ainda recebe lançamento; fechada = ciclo encerrado (RF-F2-05 AC3). Não confundir com fatura paga — não há esse estado no modelo (ver RN-06)."
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+
+    RecurringTemplate:
+      type: object
+      description: >-
+        RF-F2-02 (BE-F2-03). Gera automaticamente 1 Transaction por competência
+        (job diário, idempotente) enquanto start_date <= hoje <= (end_date ou
+        infinito). "end_date" é como o client encerra a recorrência (RF-F2-02
+        AC2) — nunca DELETE se quiser preservar o histórico visível na própria
+        entidade; DELETE também é permitido (RN-07 garante que os lançamentos
+        já gerados não são apagados, só perdem o vínculo — recurring_rule_id
+        vira NULL). **BE-F2-04**: `amount_cents` é só o valor ORIGINAL (desde
+        `start_date`) e é **imutável após a criação** — PATCH tentando mudá-lo
+        retorna 400 (trigger rejeita). Reajuste prospectivo é sempre via
+        `POST /recurring_template_adjustments`, nunca via PATCH aqui.
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        description: { type: string }
+        amount_cents: { type: integer, format: int64, minimum: 1, description: "imutável após a criação (BE-F2-04) — ver RecurringTemplateAdjustment para reajuste" }
+        category_id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        payment_method_id: { type: string, format: uuid }
+        day_of_month: { type: integer, minimum: 1, maximum: 31, description: "clampado ao último dia do mês quando o mês tiver menos dias (ex. 31 em abril gera dia 30)" }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date, nullable: true, description: "RF-F2-02 AC2 — null = recorrência sem fim definido" }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [description, amount_cents, category_id, account_id, payment_method_id, day_of_month, start_date]
+
+    RecurringTemplateAdjustment:
+      type: object
+      description: >-
+        RF-F2-03/RN-02 (BE-F2-04). 1 linha = "a partir desta competência, o
+        valor deste RecurringTemplate passa a ser este" — histórico completo,
+        nunca sobrescreve linha anterior. `effective_from` não pode ser
+        anterior ao mês corrente (400 — reajuste é sempre prospectivo, nunca
+        retroativo a lançamento já gerado). Só 1 reajuste por (template,
+        competência) — usar PATCH/DELETE no próprio reajuste para corrigir um
+        já cadastrado antes de valer.
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        recurring_template_id: { type: string, format: uuid }
+        effective_from: { type: string, format: date, description: "sempre o 1º dia do mês de competência; mínimo o mês corrente" }
+        amount_cents: { type: integer, format: int64, minimum: 1 }
+        created_at: { type: string, format: date-time, readOnly: true }
+      required: [recurring_template_id, effective_from, amount_cents]
+
+    InstallmentPurchase:
+      type: object
+      description: >-
+        RF-F2-04 (BE-F2-05). Gera automaticamente 1 Transaction por fatura
+        (mesmo job diário de RecurringTemplate, reaproveitado — Recorrência e
+        Parcelamento são o mesmo bounded context) até completar
+        installments_count parcelas, cada parcela na competência calculada
+        por RN-01 (mesma função de BE-F2-02) a partir de purchase_date + N
+        meses. `total_amount_cents` é sempre o valor TOTAL da compra — se o
+        usuário digitar "por parcela", o client multiplica por
+        installments_count antes de enviar (mesmo racional de
+        RecurringTemplate.amount_cents, evita 2 campos mutuamente
+        exclusivos). `payment_method_id` precisa ser uma forma type=credit_card
+        (400 caso contrário). `total_amount_cents`/`installments_count`/
+        `purchase_date`/`payment_method_id` ficam **imutáveis assim que a 1ª
+        parcela já foi gerada** (400 numa tentativa de PATCH desses 4 campos)
+        — description/category_id/account_id continuam sempre editáveis. Ver
+        `GET /rpc/get_installment_purchases_progress` para "parcela X de N"
+        (AC2).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        description: { type: string }
+        total_amount_cents: { type: integer, format: int64, minimum: 1 }
+        installments_count: { type: integer, minimum: 2 }
+        category_id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        payment_method_id: { type: string, format: uuid, description: "deve referenciar uma forma de pagamento type=credit_card" }
+        purchase_date: { type: string, format: date }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [description, total_amount_cents, installments_count, category_id, account_id, payment_method_id, purchase_date]
+
+    FixedBill:
+      type: object
+      description: >-
+        RF-F2-06 (BE-F2-06). Gera automaticamente 1 Transaction "previsto"
+        (status=pending) por competência, assim que o mês começa — não
+        espera o due_day chegar, é uma previsão (dá margem para RF-F2-07,
+        aviso 3 dias antes, ainda não implementado). "Marcar como paga"
+        (AC2) não é um endpoint próprio: é PATCH
+        `/transactions?id=eq.{transaction_id}` com `{"status":"cleared"}` na
+        Transaction gerada — já funciona com o contrato existente, sem campo
+        novo (o saldo já reflete o lançamento desde a criação,
+        independente do status). "end_date" encerra sem excluir, mesmo
+        padrão de RecurringTemplate/InstallmentPurchase.
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        description: { type: string }
+        amount_cents: { type: integer, format: int64, minimum: 1 }
+        category_id: { type: string, format: uuid }
+        account_id: { type: string, format: uuid }
+        payment_method_id: { type: string, format: uuid }
+        due_day: { type: integer, minimum: 1, maximum: 31, description: "clampado ao último dia do mês quando o mês tiver menos dias" }
+        alert_days_before: { type: integer, minimum: 0, maximum: 30, default: 3, description: "RN-05 (BE-F2-07) — dias corridos de antecedência do aviso de vencimento, configurável por conta fixa" }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date, nullable: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [description, amount_cents, category_id, account_id, payment_method_id, due_day, start_date]
+
+    PushSubscription:
+      type: object
+      description: >-
+        RF-F2-09 (BE-F2-09). 1 linha por dispositivo/navegador inscrito em
+        Web Push (resultado de `PushManager.subscribe()` no client). Sem
+        gate de MFA — inscrever/desinscrever push é ação de baixo risco, não
+        é dado financeiro.
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        endpoint: { type: string, description: "URL do push service, única por inscrição" }
+        p256dh: { type: string }
+        auth_key: { type: string }
+        user_agent: { type: string, nullable: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+      required: [endpoint, p256dh, auth_key]
+
+    Notification:
+      type: object
+      description: >-
+        RF-F2-09 AC2 (BE-F2-09). Histórico de notificação, consultável no
+        app independente de o push ter sido entregue (DIR-14). Só
+        `notify_user()` (SECURITY DEFINER) cria — POST direto não é
+        permitido (403/404, sem policy de INSERT para authenticated). PATCH
+        só serve pra marcar como lida (`read_at`).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        type: { type: string, enum: [budget_alert, fixed_bill_due], readOnly: true }
+        message: { type: string, readOnly: true }
+        related_entity_type: { type: string, nullable: true, readOnly: true, description: "'budget_warning'/'budget_exceeded' ou 'fixed_bill'" }
+        related_entity_id: { type: string, format: uuid, nullable: true, readOnly: true }
+        read_at: { type: string, format: date-time, nullable: true, description: "único campo escrevível pelo client — marcar como lida" }
+        created_at: { type: string, format: date-time, readOnly: true }
+
+    Goal:
+      type: object
+      description: >-
+        RF-F2-08 (BE-F2-08). Meta de economia com aportes vinculados
+        (Contribution). Progresso (valor atual/percentual) não é campo desta
+        entidade — é sempre calculado ao vivo por
+        `POST /rpc/get_goals_progress` (nunca uma coluna cacheada aqui, ver
+        essa RPC). "is_active" permite arquivar/pausar sem excluir (decisão
+        física do Backend — RF-F2-08 AC2 fala em "meta ativa").
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        name: { type: string }
+        target_amount_cents: { type: integer, format: int64, minimum: 1 }
+        target_date: { type: string, format: date, nullable: true }
+        is_active: { type: boolean, default: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [name, target_amount_cents]
+
+    Contribution:
+      type: object
+      description: >-
+        RF-F2-08 AC1 (BE-F2-08). Aporte vinculado a uma Goal (valor, data).
+        Não é uma Transaction — não afeta saldo de conta nem aparece no
+        ledger (decisão física do Backend, alinhada a UX-FL-15/S-GOAL-03,
+        que trata "registrar aporte" como ação própria da tela de metas).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        goal_id: { type: string, format: uuid }
+        user_id: { type: string, format: uuid, readOnly: true }
+        amount_cents: { type: integer, format: int64, minimum: 1 }
+        contribution_date: { type: string, format: date, description: "default: hoje" }
+        created_at: { type: string, format: date-time, readOnly: true }
+      required: [goal_id, amount_cents]
 
     Budget:
       type: object
@@ -137,6 +362,53 @@ components:
         destination_account_id: { type: string, format: uuid, nullable: true, description: "obrigatório e diferente de account_id quando kind=transfer" }
         payment_method_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
         category_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando kind != transfer" }
+        card_invoice_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F2-02.** Resolvido automaticamente pelo servidor quando
+            payment_method_id aponta para uma forma de pagamento type=credit_card
+            (RN-01/RF-F2-05 AC2) — nunca aceito do client, mesmo padrão de
+            "status". NULL quando o meio de pagamento não é cartão.
+        recurring_rule_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F2-03.** Preenchido só nos lançamentos gerados
+            automaticamente por generate_recurring_transactions (RF-F2-02
+            AC1) — nunca aceito do client (lançamento manual normal via POST
+            sempre tem este campo NULL). Vira NULL se o RecurringTemplate de
+            origem for excluído (RN-07: o lançamento em si nunca é apagado).
+        installment_plan_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F2-05.** Preenchido só nas parcelas geradas
+            automaticamente por generate_installment_transactions (RF-F2-04
+            AC1) — nunca aceito do client. Vira NULL se o InstallmentPurchase
+            de origem for excluído (RN-07, mesmo padrão de recurring_rule_id).
+        installment_number:
+          type: integer
+          nullable: true
+          readOnly: true
+          description: "Novo — BE-F2-05. 1-indexed; junto com installments_count do InstallmentPurchase referenciado, forma o \"parcela X de N\" (RF-F2-04 AC2)."
+        fixed_bill_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F2-06.** Preenchido só nos lançamentos "previsto"
+            gerados automaticamente por generate_fixed_bill_transactions
+            (RF-F2-06 AC1) — nunca aceito do client. "Marcar como paga" é
+            PATCH desta MESMA Transaction (status=cleared), não um campo
+            aqui. Vira NULL se a FixedBill de origem for excluída (RN-07).
         kind: { type: string, enum: [income, expense, transfer] }
         amount_cents: { type: integer, format: int64, minimum: 1 }
         description: { type: string, nullable: true }
@@ -341,6 +613,440 @@ paths:
       tags: [Orçamento]
       parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
       responses: { "200": { description: OK } }
+
+  /credit_cards:
+    get:
+      summary: Listar cartões de crédito do usuário (RF-F2-01)
+      tags: [Cartão & Fatura]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CreditCard" } } } }
+    post:
+      summary: Cadastrar cartão de crédito (RF-F2-01 AC1) — dispara a criação automática da forma de pagamento "crédito" vinculada
+      tags: [Cartão & Fatura]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/CreditCard" } } }
+      responses:
+        "201":
+          description: Criado — buscar `GET /payment_methods?credit_card_id=eq.{id}` para obter a forma de pagamento derivada
+          content: { application/json: { schema: { $ref: "#/components/schemas/CreditCard" } } }
+        "400": { description: "limit_cents <= 0, ou closing_day/due_day fora do intervalo 1-31 (CHECK constraint)" }
+
+  /credit_cards?id=eq.{id}:
+    patch:
+      summary: Editar cartão (limite, dia de fechamento/vencimento, nome)
+      tags: [Cartão & Fatura]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Excluir cartão
+      tags: [Cartão & Fatura]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: "Excluído — a forma de pagamento derivada é removida em cascata (payment_methods_credit_card_id_fkey ON DELETE CASCADE)" }
+        "409":
+          description: >-
+            Existe lançamento usando a forma de pagamento derivada deste cartão —
+            o CASCADE em payment_methods esbarra na FK RESTRICT de
+            transactions.payment_method_id, abortando o DELETE (nenhuma RN nova
+            necessária, mesma proteção implícita já em vigor para payment_methods).
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /invoices:
+    get:
+      summary: Listar faturas do usuário (RF-F2-05) — competência atual + 2 futuras por cartão, mais o que já existir de anteriores
+      tags: [Cartão & Fatura]
+      parameters:
+        - in: query
+          name: credit_card_id
+          schema: { type: string, example: "eq.<uuid>" }
+        - in: query
+          name: order
+          schema: { type: string, example: "competencia.asc" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Invoice" } } } }
+
+  /rpc/get_credit_cards_available_limit:
+    post:
+      summary: Limite disponível por cartão do usuário (RN-06) — soma toda despesa já lançada em fatura aberta ou fechada, não só a corrente
+      tags: [Cartão & Fatura]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    credit_card_id: { type: string, format: uuid }
+                    name: { type: string }
+                    limit_cents: { type: integer, format: int64 }
+                    committed_cents: { type: integer, format: int64, description: "soma de amount_cents de despesas em faturas aberta+fechada" }
+                    available_cents: { type: integer, format: int64, description: "limit_cents - committed_cents" }
+
+  /recurring_templates:
+    get:
+      summary: Listar templates de recorrência do usuário (RF-F2-02)
+      tags: [Recorrência & Parcelamento]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/RecurringTemplate" } } } }
+    post:
+      summary: Cadastrar gasto recorrente (RF-F2-02 AC1) — passa a gerar 1 lançamento por competência automaticamente, a partir de start_date
+      tags: [Recorrência & Parcelamento]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/RecurringTemplate" } } }
+      responses:
+        "201": { description: Criado }
+        "403":
+          description: "category_id/account_id/payment_method_id não pertence ao usuário autenticado (nem categoria de sistema) — rejeitado pela policy (EXISTS de ownership de FK, mesmo padrão de BE-M-13/BE-F2-01)."
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /recurring_templates?id=eq.{id}:
+    patch:
+      summary: Editar template (valor, dia do mês, categoria/conta/forma) ou encerrar (end_date) — RF-F2-02 AC2
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Excluir template — lançamentos já gerados são preservados (RN-07, recurring_rule_id vira NULL)
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /recurring_template_adjustments:
+    get:
+      summary: Listar histórico de reajuste de um template (RF-F2-03)
+      tags: [Recorrência & Parcelamento]
+      parameters:
+        - in: query
+          name: recurring_template_id
+          schema: { type: string, example: "eq.<uuid>" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/RecurringTemplateAdjustment" } } } }
+    post:
+      summary: Cadastrar reajuste (RF-F2-03 AC1/AC2) — Front deve confirmar explicitamente com o usuário "a partir de qual competência" ANTES de enviar (AC1); cancelar a confirmação = simplesmente não enviar (AC3)
+      tags: [Recorrência & Parcelamento]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/RecurringTemplateAdjustment" } } }
+      responses:
+        "201": { description: Criado }
+        "400":
+          description: "effective_from anterior ao mês corrente (reajuste retroativo, RN-02) — trigger rejeita, não é CHECK constraint (depende de current_date)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "403":
+          description: "recurring_template_id não pertence ao usuário autenticado — rejeitado pela policy (EXISTS de ownership de FK)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409": { description: "Já existe reajuste para esse (template, competência) — usar PATCH em vez de POST" }
+
+  /recurring_template_adjustments?id=eq.{id}:
+    patch:
+      summary: Editar um reajuste já cadastrado (ex. corrigir valor ou competência antes de valer)
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Remover um reajuste (nunca apaga lançamento já gerado — reajuste é só metadado de vigência futura)
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /installment_purchases:
+    get:
+      summary: Listar compras parceladas do usuário (RF-F2-04)
+      tags: [Recorrência & Parcelamento]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/InstallmentPurchase" } } } }
+    post:
+      summary: Cadastrar compra parcelada (RF-F2-04 AC1) — passa a gerar 1 parcela por fatura até completar installments_count
+      tags: [Recorrência & Parcelamento]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/InstallmentPurchase" } } }
+      responses:
+        "201": { description: Criado }
+        "400": { description: "payment_method_id não é type=credit_card (RF-F2-04) — trigger rejeita" }
+        "403":
+          description: "category_id/account_id/payment_method_id não pertence ao usuário autenticado (nem categoria de sistema) — rejeitado pela policy (EXISTS de ownership de FK)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /installment_purchases?id=eq.{id}:
+    patch:
+      summary: Editar descrição/categoria/conta do plano — total/nº de parcelas/data da compra/forma de pagamento ficam imutáveis assim que a 1ª parcela já foi gerada
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: OK }
+        "400": { description: "Tentativa de mudar total_amount_cents/installments_count/purchase_date/payment_method_id depois que a 1ª parcela já foi gerada" }
+    delete:
+      summary: Excluir o plano — parcelas já geradas são preservadas (RN-07, installment_plan_id vira NULL)
+      tags: [Recorrência & Parcelamento]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /rpc/get_installment_purchases_progress:
+    post:
+      summary: "\"Parcela X de N\" por compra parcelada do usuário (RF-F2-04 AC2)"
+      tags: [Recorrência & Parcelamento]
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    installment_purchase_id: { type: string, format: uuid }
+                    description: { type: string }
+                    installments_count: { type: integer }
+                    generated_count: { type: integer, description: "quantas parcelas já foram lançadas" }
+                    remaining_count: { type: integer, description: "installments_count - generated_count" }
+
+  /fixed_bills:
+    get:
+      summary: Listar contas fixas do usuário (RF-F2-06)
+      tags: [Contas Fixas]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/FixedBill" } } } }
+    post:
+      summary: Cadastrar conta fixa (RF-F2-06 AC1) — passa a gerar 1 lançamento previsto (pending) por competência, assim que o mês começa
+      tags: [Contas Fixas]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/FixedBill" } } }
+      responses:
+        "201": { description: Criado }
+        "403":
+          description: "category_id/account_id/payment_method_id não pertence ao usuário autenticado (nem categoria de sistema) — rejeitado pela policy (EXISTS de ownership de FK)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /fixed_bills?id=eq.{id}:
+    patch:
+      summary: Editar conta fixa (valor, dia de vencimento, categoria/conta/forma) ou encerrar (end_date)
+      tags: [Contas Fixas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Excluir conta fixa — lançamentos já gerados são preservados (RN-07, fixed_bill_id vira NULL)
+      tags: [Contas Fixas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /rpc/get_fixed_bills_status:
+    post:
+      summary: Status da competência corrente por conta fixa, incluindo "vencida" (RF-F2-06/RF-F2-07 AC2)
+      tags: [Contas Fixas]
+      description: >-
+        **BE-F2-07.** `is_overdue` deriva de `status=pending` + `transaction_date`
+        no passado — sem estado novo no modelo. Achado de desenho: o job legado
+        `fn_clear_due_transactions` (a cada 15min) foi ajustado para NÃO
+        promover lançamento de conta fixa pending->cleared automaticamente
+        (só continua fazendo isso para lançamento comum), preservando a
+        distinção entre "vencida" (ainda pending, passou do vencimento) e
+        "paga" (cleared, ação explícita do usuário via PATCH /transactions).
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    fixed_bill_id: { type: string, format: uuid }
+                    description: { type: string }
+                    amount_cents: { type: integer, format: int64 }
+                    due_day: { type: integer }
+                    current_transaction_id: { type: string, format: uuid, nullable: true }
+                    current_due_date: { type: string, format: date, nullable: true }
+                    current_status: { type: string, enum: [pending, cleared, reconciled], nullable: true }
+                    is_overdue: { type: boolean }
+
+  /push_subscriptions:
+    get:
+      summary: Listar inscrições de push do usuário (para UI de "dispositivos conectados", se necessário)
+      tags: [Notificações & Configurações]
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/PushSubscription" } } } }
+    post:
+      summary: Registrar inscrição de push (resultado de PushManager.subscribe() no client)
+      tags: [Notificações & Configurações]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/PushSubscription" } } }
+      responses:
+        "201": { description: Criada }
+
+  /push_subscriptions?id=eq.{id}:
+    delete:
+      summary: Remover inscrição de push (ex. usuário desativou notificações neste dispositivo)
+      tags: [Notificações & Configurações]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /notifications:
+    get:
+      summary: Listar histórico de notificações do usuário, mais recentes primeiro (RF-F2-09 AC2)
+      tags: [Notificações & Configurações]
+      parameters:
+        - in: query
+          name: order
+          schema: { type: string, example: "created_at.desc" }
+        - in: query
+          name: read_at
+          schema: { type: string, example: "is.null" }
+          description: "Filtrar só não lidas: ?read_at=is.null"
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Notification" } } } }
+
+  /notifications?id=eq.{id}:
+    patch:
+      summary: Marcar notificação como lida
+      tags: [Notificações & Configurações]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        content: { application/json: { schema: { type: object, properties: { read_at: { type: string, format: date-time } } } } }
+      responses: { "200": { description: OK } }
+
+  /goals:
+    get:
+      summary: Listar metas do usuário (RF-F2-08)
+      tags: [Metas]
+      parameters:
+        - in: query
+          name: is_active
+          schema: { type: string, example: "eq.true" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Goal" } } } }
+    post:
+      summary: Cadastrar meta (RF-F2-08 AC1)
+      tags: [Metas]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Goal" } } }
+      responses:
+        "201": { description: Criado }
+        "400": { description: "target_amount_cents <= 0 (CHECK constraint)" }
+
+  /goals?id=eq.{id}:
+    patch:
+      summary: Editar meta (nome, valor-alvo, prazo) ou arquivar (is_active=false)
+      tags: [Metas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: Excluir meta — aportes vinculados são removidos em cascata (contributions.goal_id ON DELETE CASCADE, não é um Transaction do ledger)
+      tags: [Metas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /rpc/get_goals_progress:
+    post:
+      summary: Progresso (valor atual + percentual) de cada meta do usuário (RF-F2-08 AC1-2)
+      tags: [Metas]
+      description: >-
+        **BE-F2-08.** `current_amount_cents`/`pct_progress` são sempre
+        calculados ao vivo somando `contributions.amount_cents` — nunca uma
+        coluna cacheada em Goal — "recalculado a cada aporte vinculado" por
+        construção (critério de aceite literal). `pct_progress` pode passar
+        de 100 quando a meta é superada, sem clamp.
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    goal_id: { type: string, format: uuid }
+                    name: { type: string }
+                    target_amount_cents: { type: integer, format: int64 }
+                    target_date: { type: string, format: date, nullable: true }
+                    is_active: { type: boolean }
+                    current_amount_cents: { type: integer, format: int64 }
+                    pct_progress: { type: number, description: "arredondado a 2 casas decimais; sem teto em 100" }
+
+  /contributions:
+    get:
+      summary: Listar aportes do usuário, mais recentes primeiro (S-GOAL-03/04)
+      tags: [Metas]
+      parameters:
+        - in: query
+          name: goal_id
+          schema: { type: string, example: "eq.<uuid>" }
+        - in: query
+          name: order
+          schema: { type: string, example: "contribution_date.desc" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/Contribution" } } } }
+    post:
+      summary: Registrar aporte vinculado a uma meta (RF-F2-08 AC1) — dispara o recálculo de progresso (ao vivo, ver /rpc/get_goals_progress)
+      tags: [Metas]
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/Contribution" } } }
+      responses:
+        "201": { description: Criado }
+        "400": { description: "amount_cents <= 0 (CHECK constraint)" }
+        "403":
+          description: "goal_id não pertence ao usuário autenticado — rejeitado pela policy contributions_insert_own (EXISTS de ownership de FK, G-19)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /contributions?id=eq.{id}:
+    delete:
+      summary: Remover aporte — progresso é recalculado imediatamente (ao vivo)
+      tags: [Metas]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /rpc/get_income_expense_report:
+    post:
+      summary: Relatório comparativo entradas x saídas, últimos 6 meses com dado disponível (RF-F2-10 AC1-2)
+      tags: [Relatórios]
+      description: >-
+        **BE-F2-10.** Janela fixa (mês corrente + 5 anteriores,
+        America/Sao_Paulo). Só retorna mês com ao menos 1 lançamento
+        `kind != transfer` — nunca uma linha "zero fabricado" para mês sem
+        dado (AC2); com menos de 6 meses de histórico, a resposta traz só os
+        meses efetivamente disponíveis (nº de linhas < 6).
+      requestBody:
+        required: false
+        content: { application/json: { schema: { type: object } } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    month: { type: string, format: date, description: "sempre o 1º dia do mês" }
+                    income_cents: { type: integer, format: int64 }
+                    expense_cents: { type: integer, format: int64 }
 
   /transactions:
     get:
@@ -780,3 +1486,141 @@ x-changelog:
       vínculo cross-tenant corretamente. Nenhuma mudança de schema de request/
       response, só de comportamento de rejeição — não é breaking change para
       quem já trata 4xx genericamente.
+  - version: "0.8.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /credit_cards (BE-F2-01, RF-F2-01 AC1) — cadastro de cartão de
+      crédito dispara automaticamente a criação da forma de pagamento "crédito"
+      vinculada (payment_methods.credit_card_id, coluna antecipada desde a Fase 1,
+      FK adicionada nesta migration). Extensão transparente de escopo: como
+      credit_card_id passou a apontar para uma tabela "ownable" nova,
+      payment_methods_insert_own/_update_own também passam a validar ownership de
+      credit_card_id (mesmo padrão EXISTS de BE-M-13/Bloqueio 010), para não reabrir
+      a mesma classe de IDOR corrigida naquela tarefa. Nota de descrição atualizada
+      em PaymentMethod.is_system_default (não é mais "não semeado no MVP" — agora
+      existe, sempre false). Fechamento de fatura e limite disponível (RN-06) ficam
+      para BE-F2-02, ainda não publicados.
+  - version: "0.9.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /invoices e /rpc/get_credit_cards_available_limit (BE-F2-02,
+      RF-F2-05 AC2/AC3, RN-01, RN-06). `Transaction.card_invoice_id` passa a ser
+      resolvido automaticamente pelo servidor (readOnly) quando o meio de
+      pagamento é um cartão de crédito — "lançamento pós-fechamento entra na
+      próxima fatura, nunca na já fechada" é garantido de forma síncrona no
+      próprio INSERT/UPDATE de /transactions, não depende de nenhum job
+      assíncrono. `Invoice.status` também é readOnly — só muda via job
+      periódico (Edge Function invoice-close, diária), PATCH/DELETE em
+      /invoices não têm efeito (RLS sem policy de escrita para authenticated
+      além do INSERT interno). Sem breaking change nos endpoints já publicados.
+  - version: "0.10.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /recurring_templates (BE-F2-03, RF-F2-02 AC1/AC2, RN-07).
+      Job diário (Edge Function recurring-generate) gera 1 Transaction por
+      competência para todo template ativo, idempotente — `Transaction.
+      recurring_rule_id` passa a ser resolvido pelo servidor (readOnly) só
+      nos lançamentos gerados assim, nunca aceito do client em POST manual.
+      Encerrar recorrência é PATCH `end_date` (AC2); excluir o template
+      (DELETE) preserva os lançamentos já gerados, só desfaz o vínculo
+      (RN-07, recurring_rule_id vira NULL — FK ON DELETE SET NULL, nunca
+      CASCADE). "Reajuste com histórico" (RF-F2-03) ainda não publicado —
+      fica para BE-F2-04. Sem breaking change nos endpoints já publicados.
+  - version: "0.11.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /recurring_template_adjustments (BE-F2-04, RF-F2-03 AC1-3,
+      RN-02). `RecurringTemplate.amount_cents` passa a ser **imutável após a
+      criação** (PATCH tentando mudá-lo agora retorna 400) — todo reajuste
+      passa exclusivamente por POST /recurring_template_adjustments, sempre
+      prospectivo (effective_from < mês corrente também retorna 400). O job
+      diário de geração (recurring-generate, BE-F2-03) passa a resolver o
+      valor vigente a cada competência pelo histórico de reajuste, não mais
+      lendo amount_cents bruto — comportamento novo, mas nenhum endpoint
+      antigo muda de contrato. Breaking change pontual: clientes que
+      dependiam de PATCH /recurring_templates com amount_cents pra reajustar
+      (nenhum ainda, FE-F2-04 não implementado) precisam migrar para o novo
+      endpoint.
+  - version: "0.12.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /installment_purchases e /rpc/get_installment_purchases_progress
+      (BE-F2-05, RF-F2-04 AC1/AC2, RN-07). `Transaction.installment_plan_id`/
+      `installment_number` passam a ser resolvidos pelo servidor (readOnly),
+      preenchidos só nas parcelas geradas automaticamente. Reaproveita o
+      mesmo job diário de RecurringTemplate (recurring-generate, BE-F2-03) —
+      Recorrência e Parcelamento são o mesmo bounded context/Lote neste
+      projeto; nenhum secret/cron novo. `total_amount_cents`/
+      `installments_count`/`purchase_date`/`payment_method_id` ficam
+      imutáveis assim que a 1ª parcela já foi gerada (mesmo racional de
+      RecurringTemplate.amount_cents em BE-F2-04, agora estendido a 4 campos
+      por integridade de sequência). Sem breaking change nos endpoints já
+      publicados.
+  - version: "0.13.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /fixed_bills (BE-F2-06, RF-F2-06 AC1). `Transaction.
+      fixed_bill_id` passa a ser resolvido pelo servidor (readOnly), gerado
+      diariamente (Edge Function fixed-bill-generate, cron próprio — Contas
+      Fixas é um Lote/bounded context separado de Recorrência & Parcelamento
+      neste projeto, não reaproveita recurring-generate) assim que a
+      competência começa, com status inicial "pending" (previsto). Achado de
+      desenho documentado: AC2 ("marcar como paga") não precisa de endpoint
+      novo — já é PATCH /transactions?id=eq.{id} com status=cleared na
+      própria Transaction gerada, contrato já existente desde o MVP. Sem
+      breaking change nos endpoints já publicados.
+  - version: "0.14.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /push_subscriptions e /notifications (BE-F2-09, RF-F2-09
+      AC1/AC2, RF-MVP-07/RN-04). Feita fora de ordem em relação ao TASK.md
+      (antes de BE-F2-07, ainda não publicado) porque RF-F2-07 depende
+      explicitamente de RF-F2-09 na tabela de dependências do
+      PRD-TECNICO.md — publicar aviso de conta fixa sem esta infraestrutura
+      reimplementaria disparo por conta própria, violando o próprio AC1
+      desta tarefa ("sem duplicar lógica de disparo"). `notify_user()` é o
+      único ponto de disparo (persiste em /notifications + aciona Web Push
+      via Edge Function push-dispatch); client nunca insere notificação
+      diretamente (403/404 em POST /notifications). Nenhum endpoint antigo
+      muda de contrato.
+  - version: "0.15.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona FixedBill.alert_days_before (RN-05, BE-F2-07) e
+      /rpc/get_fixed_bills_status ("vencida", RF-F2-06/RF-F2-07 AC2).
+      Achado de desenho: fn_clear_due_transactions (job legado a cada 15min)
+      deixou de promover lançamento de conta fixa pending->cleared
+      automaticamente — só continua fazendo isso para lançamento comum —
+      preservando "vencida" (pending após o vencimento) como distinto de
+      "paga" (cleared por ação explícita, PATCH /transactions já existente).
+      Sem endpoint novo de disparo — check_fixed_bill_due_alerts (RN-05/AC1)
+      reaproveita 100% a infraestrutura de /notifications publicada em
+      0.14.0 (BE-F2-09). Sem breaking change nos endpoints já publicados.
+  - version: "0.16.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /goals, /contributions e /rpc/get_goals_progress (BE-F2-08,
+      RF-F2-08 AC1-2). Achado de desenho: Contribution NÃO é um Transaction
+      — SDD.md Seção 5.2 não lista coluna antecipatória em `transactions`
+      para essa entidade (diferente de RecurringTemplate/InstallmentPurchase/
+      Invoice/FixedBill), e UX-FL-15/S-GOAL-03 trata "registrar aporte" como
+      ação própria da tela de metas — aporte não afeta saldo de conta nem
+      aparece no ledger. Progresso (`current_amount_cents`/`pct_progress`)
+      nunca é uma coluna cacheada em Goal — get_goals_progress soma
+      contributions ao vivo a cada chamada, satisfazendo por construção o
+      critério de aceite literal ("progresso é recalculado a cada aporte
+      vinculado"), sem clamp em 100% quando a meta é superada. `contributions
+      .goal_id` valida ownership via EXISTS na policy de INSERT/UPDATE desde
+      a criação (G-19/GUARDRAILS.md). Sem breaking change nos endpoints já
+      publicados.
+  - version: "0.17.0"
+    date: "2026-09-03"
+    change: >-
+      Adiciona /rpc/get_income_expense_report (BE-F2-10, RF-F2-10 AC1-2).
+      Janela fixa de 6 meses (mês corrente + 5 anteriores, America/Sao_Paulo);
+      só retorna mês com ao menos 1 lançamento kind != transfer — nenhuma
+      linha "zero fabricado" é gerada para mês sem dado (AC2), por construção
+      do GROUP BY (prova estrutural, coberta em supabase/tests/be_f2_10_
+      income_expense_report.test.sql). Sem tabela nova, sem Edge Function
+      (DIR-33 não se aplica). Sem breaking change nos endpoints já
+      publicados.

@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "../supabase/client";
-import { unwrap } from "./request";
+import { unwrap, withOwnerId } from "./request";
 import type { Account, NewAccount } from "./types";
 
 /** `GET /accounts` — `API-CONTRACT.yaml`. Por padrão lista todas (ativas + inativas); a tela decide o filtro. */
@@ -11,9 +11,12 @@ export async function listAccounts(options?: { onlyActive?: boolean }): Promise<
   return unwrap(query);
 }
 
-/** `POST /accounts` — dispara seed das 4 formas de pagamento padrão se for a 1ª conta ativa (BE-M-02). */
+/**
+ * `POST /accounts` — dispara seed das 4 formas de pagamento padrão se for a 1ª conta ativa (BE-M-02).
+ * `user_id` explícito na sessão ativa (defesa em profundidade, Bloqueio 015/`SEC-DEBT-008`).
+ */
 export async function createAccount(input: NewAccount): Promise<Account> {
-  return unwrap(getSupabaseClient().from("accounts").insert(input).select().single());
+  return unwrap(getSupabaseClient().from("accounts").insert(await withOwnerId(input)).select().single());
 }
 
 /** `PATCH /accounts?id=eq.{id}` — editar nome/saldo inicial recalcula saldo consolidado (RF-MVP-01 AC3). */

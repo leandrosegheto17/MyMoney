@@ -12,6 +12,7 @@ const { ApiError } = await import("./errors");
 describe("transactions API client (BE-M-06, API-CONTRACT.yaml /transactions)", () => {
   beforeEach(() => {
     fake.calls.length = 0;
+    fake.setAuthUser({ id: "test-user-id" });
   });
 
   it("createTransaction: POST /transactions bem-sucedido retorna o lançamento criado com saldo já refletido (DIR-12)", async () => {
@@ -45,6 +46,31 @@ describe("transactions API client (BE-M-06, API-CONTRACT.yaml /transactions)", (
 
     expect(result).toEqual(created);
     expect(fake.client.from).toHaveBeenCalledWith("transactions");
+  });
+
+  it("createTransaction: inclui user_id explícito da sessão ativa no payload do INSERT (Bloqueio 015, SEC-DEBT-008, defesa em profundidade)", async () => {
+    fake.queueResult({ data: { id: "txn-1" }, error: null, status: 201 });
+    fake.setAuthUser({ id: "user-abc" });
+
+    await createTransaction({
+      account_id: "acc-1",
+      kind: "expense",
+      amount_cents: 4500,
+      transaction_date: "2026-09-03",
+    });
+
+    const insertCall = fake.calls.find((call) => call.table === "transactions" && call.method === "insert");
+    expect(insertCall?.args[0]).toMatchObject({ account_id: "acc-1", user_id: "user-abc" });
+  });
+
+  it("createTransaction: sessão inválida (auth.getUser sem usuário) lança ApiError kind 'forbidden' antes de qualquer INSERT", async () => {
+    fake.setAuthUser(null);
+
+    await expect(
+      createTransaction({ account_id: "acc-1", kind: "expense", amount_cents: 100, transaction_date: "2026-09-03" }),
+    ).rejects.toMatchObject({ kind: "forbidden" } satisfies Partial<InstanceType<typeof ApiError>>);
+
+    expect(fake.calls.some((call) => call.table === "transactions" && call.method === "insert")).toBe(false);
   });
 
   it("createTransaction: 409 (conta inativa/CHECK) lança ApiError kind 'conflict', nada é assumido persistido", async () => {

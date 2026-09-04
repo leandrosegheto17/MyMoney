@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "../supabase/client";
-import { unwrap } from "./request";
+import { unwrap, withOwnerId } from "./request";
 import type { Budget, BudgetStatusItem, NewBudget } from "./types";
 
 /** Primeiro dia do mês (formato `YYYY-MM-01`) — convenção de `Budget.month` no contrato. */
@@ -12,9 +12,12 @@ export async function listBudgets(month: string = monthKey()): Promise<Budget[]>
   return unwrap(getSupabaseClient().from("budget").select("*").eq("month", month));
 }
 
-/** `POST /budget` — 409 se já existir orçamento para categoria/mês (usar `updateBudget` em vez disso). */
+/**
+ * `POST /budget` — 409 se já existir orçamento para categoria/mês (usar `updateBudget` em vez disso).
+ * `user_id` explícito na sessão ativa (defesa em profundidade, Bloqueio 015/`SEC-DEBT-008`).
+ */
 export async function createBudget(input: NewBudget): Promise<Budget> {
-  return unwrap(getSupabaseClient().from("budget").insert(input).select().single());
+  return unwrap(getSupabaseClient().from("budget").insert(await withOwnerId(input)).select().single());
 }
 
 /** `PATCH /budget?id=eq.{id}` */

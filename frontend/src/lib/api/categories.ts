@@ -1,5 +1,5 @@
 import { getSupabaseClient } from "../supabase/client";
-import { unwrap } from "./request";
+import { unwrap, withOwnerId } from "./request";
 import type { Category, NewCategory, Transaction } from "./types";
 
 /** `GET /categories` — categorias padrão do sistema (`user_id = null`) + do usuário. */
@@ -7,9 +7,12 @@ export async function listCategories(): Promise<Category[]> {
   return unwrap(getSupabaseClient().from("categories").select("*").order("name", { ascending: true }));
 }
 
-/** `POST /categories` — 409 se hierarquia inválida (`validate_category_hierarchy`). */
+/**
+ * `POST /categories` — 409 se hierarquia inválida (`validate_category_hierarchy`).
+ * `user_id` explícito na sessão ativa (defesa em profundidade, Bloqueio 015/`SEC-DEBT-008`).
+ */
 export async function createCategory(input: NewCategory): Promise<Category> {
-  return unwrap(getSupabaseClient().from("categories").insert(input).select().single());
+  return unwrap(getSupabaseClient().from("categories").insert(await withOwnerId(input)).select().single());
 }
 
 /** `PATCH /categories?id=eq.{id}` */

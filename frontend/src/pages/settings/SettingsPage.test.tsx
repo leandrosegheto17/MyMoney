@@ -64,3 +64,22 @@ describe("SettingsPage — S-SET-01 (RF-MVP-08 AC3)", () => {
     });
   });
 });
+
+describe("SettingsPage — S-SET-02/03 (FE-F2-09)", () => {
+  it("toggle de push desabilitado quando o navegador não suporta Service Worker/Push (jsdom)", async () => {
+    renderPage();
+    const toggle = await screen.findByLabelText("Notificações push neste dispositivo");
+    expect(toggle).toBeDisabled();
+    expect(screen.getByText("Não disponível neste navegador.")).toBeInTheDocument();
+  });
+
+  it("Central de notificações continua sendo o canal primário, independente de push (DIR-14)", async () => {
+    renderPage();
+    expect(await screen.findByText(/Central de notificações \(sino no topo\) sempre mostra o histórico completo/)).toBeInTheDocument();
+  });
+
+  it("S-SET-03: documenta o achado de que não há preferência de usuário persistida para limiar padrão global", async () => {
+    renderPage();
+    expect(await screen.findByText(/não expõem uma tabela de preferências de usuário/)).toBeInTheDocument();
+  });
+});

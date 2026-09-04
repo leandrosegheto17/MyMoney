@@ -14,6 +14,12 @@ import { TransactionsPage } from "../pages/transactions/TransactionsPage";
 import { DashboardPage } from "../pages/dashboard/DashboardPage";
 import { BudgetPage } from "../pages/budget/BudgetPage";
 import { SettingsPage } from "../pages/settings/SettingsPage";
+import { CreditCardsPage } from "../pages/creditCards/CreditCardsPage";
+import { InstallmentsPage } from "../pages/installments/InstallmentsPage";
+import { RecurringPage } from "../pages/recurring/RecurringPage";
+import { FixedBillsPage } from "../pages/fixedBills/FixedBillsPage";
+import { GoalsPage } from "../pages/goals/GoalsPage";
+import { IncomeExpenseReportPage } from "../pages/reports/IncomeExpenseReportPage";
 
 /**
  * FE-M-00 (fundação) + FE-M-04/05 em diante: `AuthProvider`/`AuthGate` decidem qual
@@ -44,6 +50,12 @@ export const router = createBrowserRouter([
               { path: "formas-pagamento", element: <PaymentMethodsPage /> },
               { path: "categorias", element: <CategoriesPage /> },
               { path: "orcamento", element: <BudgetPage /> },
+              { path: "cartoes", element: <CreditCardsPage /> },
+              { path: "parcelamentos", element: <InstallmentsPage /> },
+              { path: "recorrencias", element: <RecurringPage /> },
+              { path: "contas-fixas", element: <FixedBillsPage /> },
+              { path: "metas", element: <GoalsPage /> },
+              { path: "relatorios/entradas-saidas", element: <IncomeExpenseReportPage /> },
               { path: "configuracoes", element: <SettingsPage /> },
               { path: "home", element: <HomePage /> },
               { path: "*", element: <NotFoundPage /> },

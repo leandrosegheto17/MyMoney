@@ -56,12 +56,24 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
     expect(await screen.findByRole("heading", { name: "Entrar no MyMoney" })).toBeInTheDocument();
   });
 
-  it("com sessão mas sem MFA de e-mail verificado, mostra o passo de verificação", async () => {
+  // BYPASS TEMPORÁRIO (2026-09-04, BLOCKERS.md Bloqueio 018): SKIP_EMAIL_MFA
+  // em AuthContext.tsx pula este estágio enquanto auth-email-mfa está com
+  // falha de conectividade não resolvida. Reativar este teste junto com a
+  // reversão da flag.
+  it.skip("com sessão mas sem MFA de e-mail verificado, mostra o passo de verificação", async () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
     sessionMocks.isEmailMfaVerified.mockReturnValue(false);
     pinMocks.hasPinConfigured.mockResolvedValue(false);
     renderApp();
     expect(await screen.findByRole("heading", { name: "Confirme seu e-mail" })).toBeInTheDocument();
+  });
+
+  it("BYPASS TEMPORÁRIO: com sessão e sem MFA verificado, pula direto pra PIN/desbloqueio (Bloqueio 018)", async () => {
+    sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
+    sessionMocks.isEmailMfaVerified.mockReturnValue(false);
+    pinMocks.hasPinConfigured.mockResolvedValue(false);
+    renderApp();
+    expect(await screen.findByRole("heading", { name: "Configure um PIN" })).toBeInTheDocument();
   });
 
   it("com MFA verificado mas sem PIN configurado no dispositivo, mostra o setup de PIN (S-AUTH-04)", async () => {

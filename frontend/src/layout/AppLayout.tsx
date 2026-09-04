@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { ToastProvider } from "../components/base/Toast";
 import { OfflineSyncBadge } from "../components/domain/OfflineSyncBadge";
+import { NotificationBell } from "../components/domain/NotificationBell";
 import { DESKTOP_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 
 const MOBILE_DESTINATIONS = [
@@ -17,6 +18,12 @@ const DESKTOP_DESTINATIONS = [
   { to: "/formas-pagamento", label: "Formas de Pagamento" },
   { to: "/categorias", label: "Categorias" },
   { to: "/orcamento", label: "Orçamento" },
+  { to: "/cartoes", label: "Cartões" },
+  { to: "/parcelamentos", label: "Parcelamentos" },
+  { to: "/recorrencias", label: "Recorrências" },
+  { to: "/contas-fixas", label: "Contas Fixas" },
+  { to: "/metas", label: "Metas" },
+  { to: "/relatorios/entradas-saidas", label: "Relatórios" },
   { to: "/configuracoes", label: "Configurações" },
 ];
 
@@ -31,8 +38,8 @@ function navLinkClass({ isActive }: { isActive: boolean }): string {
  * App shell (FE-M-00) + navegação (UX-SPEC.md Seção 6.2): "Mobile (< 1024px): barra
  * de navegação inferior fixa com 5 destinos... Desktop (≥ 1024px): barra lateral fixa
  * com todos os domínios, barra superior com `NotificationBell`, `OfflineSyncBadge` e
- * ação '+ Novo lançamento'." `NotificationBell` é `FE-F2-07` (Fase 2, fora deste
- * escopo) — omitido aqui sem quebrar a barra superior.
+ * ação '+ Novo lançamento'." `NotificationBell` (`FE-F2-07`) montado na barra
+ * superior, visível em toda tela autenticada (mobile e desktop).
  */
 export function AppLayout() {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -62,6 +69,7 @@ export function AppLayout() {
             {!isDesktop && <span className="text-lg font-semibold text-primary">MyMoney</span>}
             <div className="ml-auto flex items-center gap-3">
               <OfflineSyncBadge />
+              <NotificationBell />
               {isDesktop && (
                 <NavLink to="/lancamentos" className="min-h-11 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-hover">
                   + Novo lançamento

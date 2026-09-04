@@ -19,6 +19,17 @@ import { hasPinConfigured } from "./pin";
  */
 export type AuthStage = "loading" | "signed-out" | "needs-mfa" | "needs-pin-setup" | "locked" | "unlocked";
 
+/**
+ * BYPASS TEMPORÁRIO (2026-09-04, pedido explícito do stakeholder, ver
+ * `BLOCKERS.md` Bloqueio 018): `auth-email-mfa` está com uma falha de
+ * conectividade não resolvida, bloqueando 100% dos logins. Login segue com
+ * 1 fator só (e-mail/senha) até o 2º fator ser corrigido. O backend
+ * (`custom_access_token_hook`, migration `20260904090000`) já emite
+ * `app_email_mfa_verified=true` sempre, então esta flag só evita mostrar a
+ * tela de MFA — reverter junto com a migration down correspondente.
+ */
+const SKIP_EMAIL_MFA = true;
+
 interface AuthContextValue {
   stage: AuthStage;
   session: Session | null;
@@ -59,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ? "loading"
     : !session
       ? "signed-out"
-      : !isEmailMfaVerified(session)
+      : !SKIP_EMAIL_MFA && !isEmailMfaVerified(session)
         ? "needs-mfa"
         : !pinConfigured
           ? "needs-pin-setup"
