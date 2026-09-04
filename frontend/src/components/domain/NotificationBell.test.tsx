@@ -75,4 +75,20 @@ describe("NotificationBell + NotificationCenter — S-NOT-01/02 (FE-F2-07, DIR-1
 
     expect(await screen.findByText("Tela de contas fixas")).toBeInTheDocument();
   });
+
+  it("estado de carregamento: mostra Skeleton enquanto listNotifications está pendente (QA-F2-02)", async () => {
+    notificationsMocks.countUnreadNotifications.mockResolvedValue(0);
+    notificationsMocks.listNotifications.mockReturnValue(new Promise(() => {}));
+    renderAt("/");
+    await userEvent.click(await screen.findByLabelText("Notificações"));
+    expect(await screen.findByRole("status", { name: "Carregando notificações" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra mensagem quando listNotifications falha (QA-F2-02)", async () => {
+    notificationsMocks.countUnreadNotifications.mockResolvedValue(0);
+    notificationsMocks.listNotifications.mockRejectedValue(new Error("falhou"));
+    renderAt("/");
+    await userEvent.click(await screen.findByLabelText("Notificações"));
+    expect(await screen.findByText("Não foi possível carregar as notificações.")).toBeInTheDocument();
+  });
 });

@@ -100,4 +100,16 @@ describe("CreditCardsPage — S-CARD-01/02/03 (FE-F2-01/02)", () => {
 
     await waitFor(() => expect(creditCardsMocks.createCreditCard).toHaveBeenCalledWith(expect.objectContaining({ name: "Nubank", closing_day: 10, due_day: 17 })));
   });
+
+  it("estado de carregamento: mostra Skeleton enquanto listCreditCards está pendente (QA-F2-02)", async () => {
+    creditCardsMocks.listCreditCards.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(await screen.findByRole("status", { name: "Carregando cartões" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra Alert quando listCreditCards falha (QA-F2-02)", async () => {
+    creditCardsMocks.listCreditCards.mockRejectedValue(new Error("falhou"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar os cartões.");
+  });
 });

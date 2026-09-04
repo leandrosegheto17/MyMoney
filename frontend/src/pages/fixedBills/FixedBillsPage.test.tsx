@@ -93,4 +93,23 @@ describe("FixedBillsPage — S-FIX-01/02/03 (FE-F2-05)", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Marcar como paga" }));
     await waitFor(() => expect(fixedBillsMocks.markFixedBillTransactionAsPaid).toHaveBeenCalledWith("t1"));
   });
+
+  it("estado vazio: sem contas fixas, mostra EmptyState (QA-F2-02)", async () => {
+    fixedBillsMocks.listFixedBills.mockResolvedValue([]);
+    fixedBillsMocks.getFixedBillsStatus.mockResolvedValue([]);
+    renderPage();
+    expect(await screen.findByText("Nenhuma conta fixa cadastrada ainda")).toBeInTheDocument();
+  });
+
+  it("estado de carregamento: mostra Skeleton enquanto listFixedBills está pendente (QA-F2-02)", async () => {
+    fixedBillsMocks.listFixedBills.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(await screen.findByRole("status", { name: "Carregando contas fixas" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra Alert quando listFixedBills falha (QA-F2-02)", async () => {
+    fixedBillsMocks.listFixedBills.mockRejectedValue(new Error("falhou"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as contas fixas.");
+  });
 });

@@ -1,7 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 import { LoginPage } from "../../pages/auth/LoginPage";
-import { EmailMfaStep } from "../../pages/auth/EmailMfaStep";
 import { PinSetupPage } from "../../pages/auth/PinSetupPage";
 import { UnlockPage } from "../../pages/auth/UnlockPage";
 
@@ -9,6 +8,7 @@ import { UnlockPage } from "../../pages/auth/UnlockPage";
  * Gate de roteamento (UX-FL-10) — decide qual tela mostrar conforme o estágio de
  * `useAuth()`, sem exigir que cada rota individual reimplemente essa checagem.
  * Só renderiza `<Outlet />` (o app autenticado de fato) quando `stage === "unlocked"`.
+ * Fluxo: Login → Senha → PIN (sem 2º fator por e-mail, ADR-014).
  */
 export function AuthGate() {
   const { stage } = useAuth();
@@ -22,8 +22,6 @@ export function AuthGate() {
       );
     case "signed-out":
       return <LoginPage />;
-    case "needs-mfa":
-      return <EmailMfaStep />;
     case "needs-pin-setup":
       return <PinSetupPage />;
     case "locked":

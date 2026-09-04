@@ -2267,7 +2267,39 @@ quem reportou.
 - **Ação de contenção tomada, dentro da minha autoridade**: nenhum
   `vercel deploy --prod` foi executado. Nenhuma mudança adicional feita em
   `frontend/`, `AuthContext.tsx` ou nas migrations — só leitura/verificação.
-- **Status desta atualização**: Aberto — bloqueia especificamente o deploy em
-  produção deste bypass até `QA-REPORT.md` registrar uma rodada (Aprovado ou
-  Aprovado com ressalvas) cobrindo esta mudança. Não bloqueia nenhum outro
-  trabalho não relacionado.
+- **Status desta atualização (histórico, superado pela atualização final abaixo)**:
+  Aberto — bloqueava especificamente o deploy em produção deste bypass até
+  `QA-REPORT.md` registrar uma rodada cobrindo esta mudança.
+
+- **Atualização final — 2026-09-04 (decisão definitiva do stakeholder, fora da
+  cadeia formal de agentes)**: em vez de destravar o item pendente acima
+  (rodada de QA sobre o bypass) para restaurar o 2º fator por e-mail, o
+  stakeholder decidiu **remover definitivamente o MFA por e-mail da
+  arquitetura**, encerrando este bloqueio pela raiz em vez de contorná-lo.
+  Decisão formalizada em `adr/014-remocao-definitiva-do-segundo-fator-por-email.md`
+  — não é mais "bypass temporário sob risco com prazo de reversão"
+  (`SEC-DEBT-011`), é a arquitetura definitiva do produto.
+
+  O que muda em relação ao estado anterior deste bloqueio:
+  1. `custom_access_token_hook` continua emitindo `app_email_mfa_verified=true`
+     sempre — mas agora por decisão de arquitetura, não como bypass temporário
+     (nenhuma nova migration de comportamento necessária; a migration
+     `20260904090000` já implementa o estado final desejado).
+  2. Frontend: estágio `needs-mfa`, tela `EmailMfaStep.tsx` e módulo
+     `emailMfa.ts` **removidos do código** (não apenas pulados por flag) —
+     `AuthContext.tsx`/`AuthGate.tsx` simplificados, `SKIP_EMAIL_MFA` removida
+     por não fazer mais sentido (não há mais estágio para pular).
+  3. `auth-email-mfa` (Edge Function) e `email_mfa_challenges` (tabela) ficam
+     órfãos no projeto Supabase — não removidos fisicamente nesta rodada
+     (baixo risco, sem urgência; limpeza opcional futura).
+  4. A pendência de rodada de QA sobre o bypass (item anterior desta entrada)
+     **deixa de se aplicar** — não há mais um "bypass" a validar
+     funcionalmente, o fluxo Login → Senha → PIN é o comportamento definitivo
+     coberto pelos testes normais de `AuthGate.test.tsx`.
+  5. `SECURITY-REVIEW.md` `SEC-DEBT-011` encerrado (ver atualização própria
+     naquele documento) — a "condição de reversão por prazo" não se aplica
+     mais, foi substituída por decisão definitiva.
+- **Status**: **Resolvido — 2026-09-04**, definitivamente, por decisão do
+  stakeholder formalizada em `ADR-014`. Este bloqueio não reabre — qualquer
+  reconsideração futura do 2º fator (ex.: se o produto ganhar mais
+  titulares/dinheiro real) exige um novo ADR, não a reversão deste.

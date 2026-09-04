@@ -1542,7 +1542,23 @@ mundo — este achado reduz defesa em profundidade, não quebra função nenhuma
   (`supabase/migrations_down/20260904090000_temp_bypass_email_mfa_gate.down.sql`)
   e reverter `SKIP_EMAIL_MFA` no mesmo deploy — nunca um sem o outro, ficariam
   inconsistentes (frontend exigindo MFA que o backend não valida, ou vice-versa).
-- **Política de senha do Supabase Auth** (achado agravante de `SEC-DEBT-011`):
+  - **Atualização — 2026-09-04, encerramento de `SEC-DEBT-011`**: as condições de
+    reversão acima (prazo de 7 dias, causa raiz resolvida) **não se aplicam
+    mais** — o stakeholder decidiu remover o 2º fator por e-mail definitivamente
+    da arquitetura, não restaurá-lo, formalizado em
+    `adr/014-remocao-definitiva-do-segundo-fator-por-email.md` e em
+    `BLOCKERS.md` Bloqueio 018 (atualização final). `custom_access_token_hook`
+    segue emitindo `app_email_mfa_verified=true` sempre, agora como
+    comportamento definitivo (não bypass sob prazo); o código morto do lado do
+    frontend (`EmailMfaStep.tsx`, `emailMfa.ts`, estágio `needs-mfa`) foi
+    removido, não só desativado por flag. **`SEC-DEBT-011` está encerrado** — o
+    risco residual de autenticação de fator único passa a ser risco aceito de
+    arquitetura (documentado no ADR-014, não mais um débito com prazo de
+    reversão). O item de política de senha fraca abaixo continua válido e
+    aberto por conta própria (não dependia do MFA para ser relevante).
+- **Política de senha do Supabase Auth** (achado agravante, originalmente
+  levantado junto de `SEC-DEBT-011`, permanece aberto independentemente do
+  encerramento acima):
   `minimum_password_length = 6`/`password_requirements = ""` em
   `supabase/config.toml` — recomendo aumentar para ao menos 8 caracteres com
   `lower_upper_letters_digits` assim que uma janela de manutenção permitir

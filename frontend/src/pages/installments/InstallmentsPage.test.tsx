@@ -65,4 +65,16 @@ describe("InstallmentsPage — S-INST-01/02 (FE-F2-03)", () => {
     renderPage();
     expect(await screen.findByText("Nenhuma compra parcelada ainda")).toBeInTheDocument();
   });
+
+  it("estado de carregamento: mostra Skeleton enquanto listInstallmentPurchases está pendente (QA-F2-02)", async () => {
+    recurringMocks.listInstallmentPurchases.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(await screen.findByRole("status", { name: "Carregando compras parceladas" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra Alert quando listInstallmentPurchases falha (QA-F2-02)", async () => {
+    recurringMocks.listInstallmentPurchases.mockRejectedValue(new Error("falhou"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as compras parceladas.");
+  });
 });

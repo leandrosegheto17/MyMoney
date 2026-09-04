@@ -6,7 +6,6 @@ import type { Session } from "@supabase/supabase-js";
 const sessionMocks = vi.hoisted(() => ({
   getCurrentSession: vi.fn(),
   onAuthStateChange: vi.fn(),
-  isEmailMfaVerified: vi.fn(),
 }));
 vi.mock("./session", () => sessionMocks);
 
@@ -44,7 +43,6 @@ const FAKE_SESSION = { access_token: "a.b.c", user: { email: "user@example.com" 
 beforeEach(() => {
   sessionMocks.getCurrentSession.mockReset();
   sessionMocks.onAuthStateChange.mockReset().mockReturnValue(() => {});
-  sessionMocks.isEmailMfaVerified.mockReset();
   pinMocks.hasPinConfigured.mockReset();
 });
 
@@ -56,29 +54,8 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
     expect(await screen.findByRole("heading", { name: "Entrar no MyMoney" })).toBeInTheDocument();
   });
 
-  // BYPASS TEMPORÁRIO (2026-09-04, BLOCKERS.md Bloqueio 018): SKIP_EMAIL_MFA
-  // em AuthContext.tsx pula este estágio enquanto auth-email-mfa está com
-  // falha de conectividade não resolvida. Reativar este teste junto com a
-  // reversão da flag.
-  it.skip("com sessão mas sem MFA de e-mail verificado, mostra o passo de verificação", async () => {
+  it("com sessão mas sem PIN configurado no dispositivo, mostra o setup de PIN (S-AUTH-04)", async () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
-    sessionMocks.isEmailMfaVerified.mockReturnValue(false);
-    pinMocks.hasPinConfigured.mockResolvedValue(false);
-    renderApp();
-    expect(await screen.findByRole("heading", { name: "Confirme seu e-mail" })).toBeInTheDocument();
-  });
-
-  it("BYPASS TEMPORÁRIO: com sessão e sem MFA verificado, pula direto pra PIN/desbloqueio (Bloqueio 018)", async () => {
-    sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
-    sessionMocks.isEmailMfaVerified.mockReturnValue(false);
-    pinMocks.hasPinConfigured.mockResolvedValue(false);
-    renderApp();
-    expect(await screen.findByRole("heading", { name: "Configure um PIN" })).toBeInTheDocument();
-  });
-
-  it("com MFA verificado mas sem PIN configurado no dispositivo, mostra o setup de PIN (S-AUTH-04)", async () => {
-    sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
-    sessionMocks.isEmailMfaVerified.mockReturnValue(true);
     pinMocks.hasPinConfigured.mockResolvedValue(false);
     renderApp();
     expect(await screen.findByRole("heading", { name: "Configure um PIN" })).toBeInTheDocument();
@@ -86,7 +63,6 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
 
   it("com PIN configurado e app ainda não desbloqueado nesta sessão, mostra o desbloqueio (S-AUTH-03)", async () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
-    sessionMocks.isEmailMfaVerified.mockReturnValue(true);
     pinMocks.hasPinConfigured.mockResolvedValue(true);
     renderApp();
     expect(await screen.findByText("🔒 Desbloqueie o app")).toBeInTheDocument();
@@ -94,7 +70,6 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
 
   it("só renderiza o conteúdo autenticado quando totalmente desbloqueado", async () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
-    sessionMocks.isEmailMfaVerified.mockReturnValue(true);
     pinMocks.hasPinConfigured.mockResolvedValue(true);
     renderApp();
     await screen.findByText("🔒 Desbloqueie o app");

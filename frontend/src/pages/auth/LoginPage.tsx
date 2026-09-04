@@ -28,7 +28,7 @@ export function LoginPage() {
       if (mode === "password") {
         await signInWithPassword(email, password);
         // Sessão emitida → `AuthProvider` (`onAuthStateChange`) reage sozinho e avança
-        // o estágio para "needs-mfa"/"locked"/etc.; nenhuma navegação manual aqui.
+        // o estágio para "needs-pin-setup"/"locked"/etc.; nenhuma navegação manual aqui.
       } else {
         await sendMagicLink(email);
         setInfo("Link mágico enviado. Verifique seu e-mail para continuar.");

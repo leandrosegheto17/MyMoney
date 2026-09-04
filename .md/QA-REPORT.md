@@ -1281,6 +1281,57 @@ novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada.
 
 ---
 
+## 9. Rodada 2026-09-04 — QA-M-02, QA-F2-01, QA-F2-02 (fechamento dos 3 itens de QA pendentes fora da Fase 3)
+
+**Contexto**: última pendência de produto fora da Fase 3 — todas as tarefas de
+implementação de MVP/Fase 2 já estavam `Concluída`; só faltavam os 3 itens de QA
+descritos abaixo.
+
+**QA-M-02** (RN-08/RN-09 + reforço de RLS de BE-M-11) — **Aprovado**. Novo
+`supabase/tests/qa_m02_rn08_rn09_and_rls_reinforcement.test.sql`, 19 casos,
+rodado ao vivo contra o projeto real via `supabase db query --linked`
+(`BEGIN`/`ROLLBACK`, nenhuma linha real alterada): RN-08 (DELETE físico de
+conta com lançamento vinculado rejeitado; inativação permitida), RN-09 (DELETE
+de categoria rejeitado tanto por lançamento quanto por orçamento vinculado;
+controle negativo confirma que categoria sem vínculo continua excluível
+normalmente), e extensão da suíte de RLS cross-user de `BE-M-11` às 9 tabelas
+de Fase 2 que não existiam quando aquela suíte foi escrita. Todos os 19 casos
+`PASS`.
+
+**QA-F2-01** (RN-01/02/06/07) — **Aprovado, sem teste novo por decisão
+consciente**. Achado da auditoria: as 4 regras já tinham cobertura real e
+rigorosa, escrita pelo Backend como parte de `BE-F2-02/03/04/05` (mesmo padrão
+RED→GREEN do resto do projeto) — `be_f2_02_invoices.test.sql` (RN-01/RN-06),
+`be_f2_04_recurring_template_adjustments.test.sql` (RN-02),
+`be_f2_03_recurring_templates.test.sql` +
+`be_f2_05_installment_purchases.test.sql` (RN-07). Escrever um teste QA
+paralelo pra regra já coberta seria duplicação sem valor novo (mesmo
+princípio de "reuso sobre duplicação" já aplicado no código). Em vez disso,
+os 5 arquivos foram re-executados ao vivo contra o projeto real nesta rodada
+— `PASS` em todos, confirmando que a cobertura existente segue válida
+(regressão, não achado novo).
+
+**QA-F2-02** (regressão E2E de UX-FL-02/03/12-17) — **Aprovado**. Este
+projeto não tem Playwright/navegador real configurado — "ponta a ponta" segue
+o padrão já estabelecido em todo o projeto (RTL + API mockada na fronteira).
+Auditoria dos 4 estados de tela (vazio/carregando/erro/sucesso) por fluxo
+encontrou lacunas reais — a maioria das páginas de Fase 2 nunca tinha teste
+de estado de carregamento nem de erro — e fechou todas: `CreditCardsPage`,
+`InstallmentsPage`, `RecurringPage` (também ganhou o vazio, que faltava por
+completo), `FixedBillsPage` (idem), `GoalsPage`,
+`IncomeExpenseReportPage` (carregando), `NotificationBell`/`NotificationCenter`
+(carregando + erro — incluída porque UX-FL-16 também é fluxo de Fase 2, mesmo
+não sendo CRUD). 16 casos novos, todos `PASS`.
+
+**Regressão completa**: `npx vitest run` (frontend) — **210/210 passando**
+(era 194 antes desta rodada), `tsc --noEmit` limpo. Nenhum bug encontrado,
+nenhum débito novo registrado — as 3 tarefas fecham sem ressalva.
+
+**`TASK.md`**: `QA-M-02`, `QA-F2-01`, `QA-F2-02` marcadas `Concluída` com o
+detalhe completo desta rodada.
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -1293,3 +1344,4 @@ novo a `tech-lead`/`BLOCKERS.md` é gerado por esta rodada.
 | 2026-09-03 (veredito de lote) | Lote "Categorização": BE-M-05, FE-M-08 (2) | **Aprovado com ressalva** (lote) — Aprovado (1/2 — BE-M-05), Aprovado com ressalva (1/2 — FE-M-08, mensagem de bloqueio de exclusão imprecisa quando o motivo real é orçamento vinculado, não lançamento) | 0 | QA-DEBT-009 (média, modal de RN-09 não distingue bloqueio por orçamento vinculado de bloqueio por lançamento vinculado) |
 | 2026-09-03 (veredito de lote) | Lote "Orçamento": BE-M-08, FE-M-11 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma ressalva individual | 0 | QA-DEBT-010 (baixa, `aria-valuenow` > `aria-valuemax` em `ProgressBar.tsx` no estado de estouro) |
 | 2026-09-04 (revisão pontual, não é lote) | Bypass temporário de MFA por e-mail — `BLOCKERS.md` Bloqueio 018 (`custom_access_token_hook`, `AuthContext.tsx`/`SKIP_EMAIL_MFA`) | **Aprovado** (revisão pontual) — evidência real de suíte automatizada + SQL direto contra o banco real + teste real de rollback + verificação de regressão de 1º fator/PIN/desbloqueio | 0 | Nenhum novo (`SEC-DEBT-011` já cobre o risco de segurança, referenciado não duplicado) |
+| 2026-09-04 | QA-M-02, QA-F2-01, QA-F2-02 (3) | **Aprovado** (3/3), nenhuma ressalva | 0 | Nenhum novo |

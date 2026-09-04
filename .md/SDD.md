@@ -349,7 +349,7 @@ implementação, dentro do princípio de migration aditiva (ADR-012).
 | **Transaction** (Lançamento) | `transactions` | data, valor, tipo, descrição, status, `source` (default `'manual'`; enum já cobre voz/foto/importação/open finance), `confirmed_at`, mais `recurring_rule_id`, `installment_plan_id`, `card_invoice_id`, `import_staging_id`, `external_ref`, `attachment_id` (colunas nullable que já antecipam entidades da Seção 5.2) | Adotada como está; colunas antecipatórias reaproveitadas, não redesenhadas — ver "Migrations Evolutivas" abaixo |
 | **Profile** (Perfil do usuário) | `profiles` | `id` (= `auth.users.id`), dado de PIN (via RPCs `set_pin`/`verify_pin`) | **Entidade nova nesta versão do `SDD.md`** — não estava modelada antes; existe 1 registro real (o próprio stakeholder). Populada automaticamente pelo trigger `handle_new_user()` em `auth.users` (ver ADR-012, avaliação de efeito colateral) |
 | **WebAuthnCredential** (Credencial WebAuthn) | `webauthn_credentials` | `credential_id`, `public_key`, `sign_count`, `device_label` | **Entidade nova nesta versão** — adotada como a tabela real de `BE-M-09` (ver ADR-013), não recriada |
-| **EmailMfaChallenge** (Desafio de MFA por e-mail) | `email_mfa_challenges` | dado de desafio/verificação associado ao gate de MFA via JWT claim | **Entidade nova nesta versão** — suporta o gate de MFA já implementado (ver ADR-013 e Seção 7) |
+| **EmailMfaChallenge** (Desafio de MFA por e-mail) | `email_mfa_challenges` | dado de desafio/verificação associado ao gate de MFA via JWT claim | **Órfã (ADR-014)** — o gate de MFA por e-mail foi removido definitivamente do fluxo de autenticação; tabela mantida sem uso ativo, sem risco associado (ver Seção 7) |
 
 ### 5.2 Entidades ainda ausentes (plano de evolução aditivo dentro de `public`)
 
@@ -479,15 +479,14 @@ de aceite nº 4; ver ADR-012 e ADR-013 para o detalhe completo da auditoria.**
 - **WebAuthn já implementado**: a tabela `public.webauthn_credentials`
   (`credential_id`, `public_key`, `sign_count`, `device_label`) é adotada como a
   tabela real de `BE-M-09`, não recriada (ADR-013).
-- **Camada de MFA adicional já implementada, mais sofisticada que o desenho original
-  do ADR-005**: um Auth Hook (`custom_access_token_hook`) injeta o claim
-  `app_email_mfa_verified` no JWT de sessão, apoiado pela tabela
-  `public.email_mfa_challenges`. Esse claim é usado como gate extra de RLS em 4 das 7
-  tabelas de dado (ver "Autorização" abaixo). **Adotado como está** (ADR-013), como
-  camada adicional de defesa em profundidade — não substitui, complementa o
-  WebAuthn/PIN local. **Condição de aceite**: confirmar, antes de depender disso em
-  produção, que o Auth Hook está de fato habilitado nas configurações de Auth do
-  projeto Supabase (a existência da função não prova ativação).
+- **Sem 2º fator por e-mail (ADR-014, supersede a parte do ADR-013 que adotava o gate
+  de MFA)**: o Auth Hook (`custom_access_token_hook`) e a tabela
+  `public.email_mfa_challenges` existem no schema (herdados da implementação
+  reaproveitada), mas o hook emite `app_email_mfa_verified=true` sempre, de forma
+  definitiva — decisão do stakeholder, não bypass temporário. A Edge Function
+  `auth-email-mfa` não é mais invocada pelo app. Fluxo de autenticação final:
+  **Login (e-mail/senha) → Senha → PIN/biometria** (sem passo intermediário de
+  verificação por e-mail).
 - **PIN local — pendência de auditoria não resolvida nesta rodada**: existem RPCs
   reais `set_pin`/`verify_pin` cujo corpo interno não foi inspecionado por `SPK-001`.
   Se `verify_pin` for o mecanismo *primário* de desbloqueio e exigir chamada de rede,
@@ -520,10 +519,14 @@ aceite nº 4.**
   convenção do projeto daqui em diante**; substitui a convenção `owner_id` que este
   documento assumira sem inspeção na versão anterior (nenhuma tabela precisa ser
   renomeada — a intenção do `SDD.md` que muda, não o banco).
-- **Gate adicional de MFA**: `accounts`, `categories`, `payment_methods` e
-  `transactions` exigem, além de `auth.uid() = user_id`, o claim
-  `(auth.jwt() ->> 'app_email_mfa_verified') = 'true'` em toda policy — já
-  implementado, adotado como está (ver "Autenticação" acima e ADR-013).
+- **Claim de MFA sempre-verdadeiro, sem gate real (ADR-014)**: `accounts`,
+  `categories`, `payment_methods`, `transactions` e as demais tabelas que copiaram o
+  mesmo padrão em Fase 2 ainda checam `(auth.jwt() ->> 'app_email_mfa_verified') =
+  'true'` em suas policies, mas o hook que emite esse claim (ver "Autenticação" acima)
+  sempre o define como `'true'` — a cláusula é tecnicamente redundante, mantida por
+  não representar risco (nunca bloqueia acesso legítimo) nem justificar o esforço de
+  reescrever as policies das 12 tabelas envolvidas. Remoção da cláusula é limpeza
+  opcional futura, não uma pendência de segurança.
 - Edge Functions que executam tarefas de sistema (geração de recorrência,
   fechamento de fatura, notificações) operam com role de serviço restrita a essas
   operações específicas, nunca exposta ao cliente, sempre escopadas ao `user_id`

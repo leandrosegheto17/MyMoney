@@ -4,11 +4,10 @@ import { ApiError, networkApiError } from "../api/errors";
 
 /**
  * Camada de sessão do Supabase Auth (S-AUTH-01) — `API-CONTRACT.yaml`: "todo
- * endpoint... exige header `Authorization: Bearer <JWT de sessão>`". Este módulo só
- * cobre a autenticação de 1º fator (e-mail/senha, link mágico); o 2º fator
- * (`app_email_mfa_verified`) é `emailMfa.ts`, e o desbloqueio local (PIN/WebAuthn,
- * 100% offline, DIR-16) é `pin.ts`/`webauthn.ts` — os três nunca se confundem
- * (DIR-19/G-07: desbloqueio local nunca substitui JWT de sessão válido).
+ * endpoint... exige header `Authorization: Bearer <JWT de sessão>`". Este módulo cobre
+ * e-mail/senha e link mágico; o desbloqueio local (PIN/WebAuthn, 100% offline, DIR-16)
+ * é `pin.ts`/`webauthn.ts` — os dois nunca se confundem (DIR-19/G-07: desbloqueio
+ * local nunca substitui JWT de sessão válido). Sem 2º fator por e-mail (ADR-014).
  */
 
 function toAuthApiError(cause: unknown): ApiError {
@@ -55,27 +54,9 @@ export async function getCurrentSession(): Promise<Session | null> {
   return data.session;
 }
 
-/** Força a renovação do JWT — necessário depois de `emailMfa.verifyEmailMfaCode` para o client passar a carregar `app_email_mfa_verified=true` (`custom_access_token_hook`, ADR-013). */
-export async function refreshSession(): Promise<Session | null> {
-  const { data, error } = await getSupabaseClient().auth.refreshSession();
-  if (error) throw toAuthApiError(error);
-  return data.session;
-}
-
 export function onAuthStateChange(callback: (session: Session | null) => void): () => void {
   const {
     data: { subscription },
   } = getSupabaseClient().auth.onAuthStateChange((_event, session) => callback(session));
   return () => subscription.unsubscribe();
-}
-
-/** Claim custom emitido por `custom_access_token_hook` (ADR-013) — gate de MFA das 4 tabelas sensíveis. */
-export function isEmailMfaVerified(session: Session | null): boolean {
-  if (!session) return false;
-  try {
-    const payload = JSON.parse(atob(session.access_token.split(".")[1] ?? ""));
-    return payload.app_email_mfa_verified === true || payload.app_email_mfa_verified === "true";
-  } catch {
-    return false;
-  }
 }

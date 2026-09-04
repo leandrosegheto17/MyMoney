@@ -23,4 +23,10 @@ describe("IncomeExpenseReportPage — S-REP-01 (FE-F2-08)", () => {
     render(<IncomeExpenseReportPage />);
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
+
+  it("estado de carregamento: mostra Skeleton enquanto a RPC está pendente (QA-F2-02)", async () => {
+    reportsMocks.getIncomeExpenseReport.mockReturnValue(new Promise(() => {}));
+    render(<IncomeExpenseReportPage />);
+    expect(await screen.findByRole("status", { name: "Carregando relatório" })).toBeInTheDocument();
+  });
 });

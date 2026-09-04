@@ -1297,7 +1297,8 @@ paths:
 
   /auth-email-mfa:
     post:
-      summary: "Segundo fator de login por e-mail, em 2 passos (RF-MVP-08, camada adicional de segurança — BE-M-09)"
+      deprecated: true
+      summary: "DESCONTINUADO (ADR-014, 2026-09-04) — segundo fator de login por e-mail, em 2 passos. Não invocado pelo app; endpoint órfão, mantido só como registro histórico do contrato."
       tags: [Autenticação]
       servers:
         - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1

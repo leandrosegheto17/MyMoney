@@ -1,34 +1,25 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { getCurrentSession, isEmailMfaVerified, onAuthStateChange, signOut as supabaseSignOut } from "./session";
+import { getCurrentSession, onAuthStateChange, signOut as supabaseSignOut } from "./session";
 import { hasPinConfigured } from "./pin";
 
 /**
  * Máquina de estado de autenticação/desbloqueio (UX-FL-10) — deriva o "estágio" atual
- * a partir de 3 fontes independentes, nunca um único booleano:
- * 1. Sessão Supabase Auth (1º fator, e-mail/senha ou link mágico);
- * 2. Claim `app_email_mfa_verified` do JWT (2º fator, `auth-email-mfa`, `custom_access_token_hook`);
- * 3. PIN local configurado neste dispositivo (`pin.ts`, IndexedDB) + `unlocked` (estado
+ * a partir de 2 fontes independentes, nunca um único booleano:
+ * 1. Sessão Supabase Auth (e-mail/senha ou link mágico);
+ * 2. PIN local configurado neste dispositivo (`pin.ts`, IndexedDB) + `unlocked` (estado
  *    em memória, nunca persistido — resetado a cada carregamento de página, DIR-16:
  *    "toda abertura/retomada do app" exige novo desbloqueio).
+ *
+ * Sem 2º fator por e-mail (ADR-014 — decisão definitiva do stakeholder, supersede a
+ * adoção do gate de MFA feita em ADR-013): o fluxo é Login → Senha → PIN, ponto.
  *
  * DIR-19/G-07: `unlocked` (estágio "unlocked") nunca substitui `session` — as duas
  * são independentes; uma chamada de API sem `session` válida falha por RLS
  * independentemente do valor de `unlocked`.
  */
-export type AuthStage = "loading" | "signed-out" | "needs-mfa" | "needs-pin-setup" | "locked" | "unlocked";
-
-/**
- * BYPASS TEMPORÁRIO (2026-09-04, pedido explícito do stakeholder, ver
- * `BLOCKERS.md` Bloqueio 018): `auth-email-mfa` está com uma falha de
- * conectividade não resolvida, bloqueando 100% dos logins. Login segue com
- * 1 fator só (e-mail/senha) até o 2º fator ser corrigido. O backend
- * (`custom_access_token_hook`, migration `20260904090000`) já emite
- * `app_email_mfa_verified=true` sempre, então esta flag só evita mostrar a
- * tela de MFA — reverter junto com a migration down correspondente.
- */
-const SKIP_EMAIL_MFA = true;
+export type AuthStage = "loading" | "signed-out" | "needs-pin-setup" | "locked" | "unlocked";
 
 interface AuthContextValue {
   stage: AuthStage;
@@ -70,13 +61,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ? "loading"
     : !session
       ? "signed-out"
-      : !SKIP_EMAIL_MFA && !isEmailMfaVerified(session)
-        ? "needs-mfa"
-        : !pinConfigured
-          ? "needs-pin-setup"
-          : !unlocked
-            ? "locked"
-            : "unlocked";
+      : !pinConfigured
+        ? "needs-pin-setup"
+        : !unlocked
+          ? "locked"
+          : "unlocked";
 
   const value: AuthContextValue = {
     stage,

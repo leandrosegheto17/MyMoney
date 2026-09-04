@@ -79,4 +79,16 @@ describe("GoalsPage — S-GOAL-01/02/03/04 (FE-F2-06)", () => {
     await waitFor(() => expect(goalsMocks.createContribution).toHaveBeenCalledWith(expect.objectContaining({ goal_id: "g1", amount_cents: 100000 })));
     expect(await screen.findByText("40% da meta")).toBeInTheDocument();
   });
+
+  it("estado de carregamento: mostra Skeleton enquanto listGoals está pendente (QA-F2-02)", async () => {
+    goalsMocks.listGoals.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(await screen.findByRole("status", { name: "Carregando metas" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra Alert quando listGoals falha (QA-F2-02)", async () => {
+    goalsMocks.listGoals.mockRejectedValue(new Error("falhou"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as metas.");
+  });
 });

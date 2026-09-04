@@ -54,6 +54,15 @@ mapeada).
 > deste `UX-SPEC.md`. "S-AUTH-02" está formalizada nesta atualização (Seção 2.2),
 > preenchendo o gap. Nenhuma outra tela é afetada por esta reabertura.
 
+> **Nota de descontinuação (2026-09-04, `adr/014-remocao-definitiva-do-segundo-fator-por-email.md`)**:
+> S-AUTH-02 (verificação por e-mail, 2º fator) foi **removida definitivamente** do
+> fluxo — decisão do stakeholder, não uma reversão temporária. O fluxo de login
+> passa a ser S-AUTH-01 → S-AUTH-04 (setup PIN, 1ª vez)/S-AUTH-03 (desbloqueio,
+> demais vezes), sem passo intermediário de verificação por e-mail. O wireframe e
+> as referências a S-AUTH-02 abaixo (Seções 2.2, 4.2, 5, 6.3, 7.1) são mantidos
+> como registro histórico do que foi especificado, não como tela ativa — nenhuma
+> implementação deve renderizá-la.
+
 ### 1.2 Fluxos de CRUD estrutural (mapeados pelo UX/UI, sem diagrama próprio no BA por serem simples, mas com tela obrigatória)
 
 | Fluxo UX | Descrição | Telas | Requisitos | Fase |
@@ -62,7 +71,7 @@ mapeada).
 | UX-FL-07 | Cadastro/gestão de formas de pagamento | S-PAY-01 → S-PAY-02 (customizada) | RF-MVP-02 | MVP |
 | UX-FL-08 | Cadastro/gestão de categorias/subcategorias | S-CAT-01 → S-CAT-02 (novo/editar) → S-CAT-03 (bloqueio de exclusão com sugestão de reclassificação) | RF-MVP-03, RN-09 | MVP |
 | UX-FL-09 | Definição de orçamento por categoria | S-BUD-01 → S-BUD-02 (definir teto) → alerta inline (80%/100%+) | RF-MVP-07, RN-04 | MVP |
-| UX-FL-10 | Login e desbloqueio seguro | S-AUTH-01 (login) → **S-AUTH-02 (verificação por e-mail, 2º fator — nova, ver nota abaixo)** → S-AUTH-04 (setup PIN, 1ª vez) → S-AUTH-03 (desbloqueio local, toda abertura/retomada do app) → S-AUTH-05 (bloqueio temporário) → S-SET-01 (logout explícito) | RF-MVP-08 | MVP |
+| UX-FL-10 | Login e desbloqueio seguro | S-AUTH-01 (login) → ~~S-AUTH-02 (verificação por e-mail)~~ **removida, ADR-014** → S-AUTH-04 (setup PIN, 1ª vez) → S-AUTH-03 (desbloqueio local, toda abertura/retomada do app) → S-AUTH-05 (bloqueio temporário) → S-SET-01 (logout explícito) | RF-MVP-08 | MVP |
 | UX-FL-11 | Onboarding de primeiro acesso | S-ONB-01 (boas-vindas + 1ª conta) → S-ONB-02 (revisão da taxonomia padrão) → S-DASH-01 | RF-MVP-01, RF-MVP-03, RN-09 | MVP |
 | UX-FL-12 | Cadastro de cartão + compra parcelada | S-CARD-01 → S-CARD-02 (novo cartão) → S-INST-01 (nova compra parcelada) → S-INST-02 (progresso de parcelas) | RF-F2-01, RF-F2-04 | Fase 2 |
 | UX-FL-13 | Recorrência: criação e encerramento | S-REC-01 → S-REC-02 (novo template) / S-REC-04 (encerrar, preserva histórico RN-07) | RF-F2-02, RN-07 | Fase 2 |

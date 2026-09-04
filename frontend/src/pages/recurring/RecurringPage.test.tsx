@@ -105,4 +105,22 @@ describe("RecurringPage — S-REC-01/02/03/04 (FE-F2-04)", () => {
     await waitFor(() => expect(recurringMocks.updateRecurringTemplate).toHaveBeenCalledWith("rt-1", expect.objectContaining({ end_date: expect.any(String) })));
     expect(recurringMocks.deleteRecurringTemplate).not.toHaveBeenCalled();
   });
+
+  it("estado vazio: sem recorrências, mostra EmptyState (QA-F2-02)", async () => {
+    recurringMocks.listRecurringTemplates.mockResolvedValue([]);
+    renderPage();
+    expect(await screen.findByText("Nenhuma recorrência cadastrada ainda")).toBeInTheDocument();
+  });
+
+  it("estado de carregamento: mostra Skeleton enquanto listRecurringTemplates está pendente (QA-F2-02)", async () => {
+    recurringMocks.listRecurringTemplates.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(await screen.findByRole("status", { name: "Carregando recorrências" })).toBeInTheDocument();
+  });
+
+  it("estado de erro: mostra Alert quando listRecurringTemplates falha (QA-F2-02)", async () => {
+    recurringMocks.listRecurringTemplates.mockRejectedValue(new Error("falhou"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar as recorrências.");
+  });
 });
