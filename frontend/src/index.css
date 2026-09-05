@@ -1,64 +1,149 @@
 @import "tailwindcss";
 
 /*
- * Tokens visuais — UX-SPEC.md Seção 3.1.
- * A escala de espaçamento (4/8/12/16/24/32/48) e a escala tipográfica
- * (xs12/sm14/base16/lg18/xl20/2xl24/3xl30) já correspondem exatamente à escala
- * padrão do Tailwind v4 (`p-1..p-12`, `text-xs..text-3xl`) — não precisam de
- * override. Cores, radius e elevação são específicos do produto e definidos abaixo.
+ * Fontes self-hosted (`@fontsource/*`) — UX-SPEC.md Seção 3.0/3.1, `adr/019-...md`.
+ * Não usa `<link>` para Google Fonts CDN: os pacotes ficam no bundle da aplicação,
+ * o que preserva o cache do service worker (`vite-plugin-pwa`) e a confiabilidade
+ * offline (ADR-003/RNF-04) sem depender de rede de terceiro. `font-display: swap`
+ * já vem configurado por padrão em todo arquivo `@fontsource/*` (DIR-43).
+ * `Public Sans` — corpo/UI, pesos 400/500/600/700 (FE-RS-01).
+ * `Newsreader` — só consumida pelo primitivo `Num` (`components/base/Num.tsx`,
+ * FE-RS-02) e pelo logo "MyMoney"/h1 (Lote 1+): peso 500 roman + itálico.
+ */
+@import "@fontsource/public-sans/400.css";
+@import "@fontsource/public-sans/500.css";
+@import "@fontsource/public-sans/600.css";
+@import "@fontsource/public-sans/700.css";
+@import "@fontsource/newsreader/500.css";
+@import "@fontsource/newsreader/500-italic.css";
+
+/*
+ * Tokens visuais v2.0 — UX-SPEC.md Seção 3.0/3.1 (Redesign Visual "MyMoney v2.0",
+ * Lote 0, FE-RS-01). SUBSTITUI integralmente o bloco anterior (paleta índigo/slate
+ * da repaginada de 2026-09-04) — decisão explícita de RF-RS-00 AC1, não uma
+ * extensão. Mesmos NOMES de variável de sempre (`--color-primary`, `--color-income`,
+ * `--color-expense`, `--color-warning`, `--color-danger`, `--color-neutral-*`,
+ * `--color-surface*`, `--radius-*`, `--shadow-elevation-*`, `--font-sans`) — só os
+ * VALORES mudam, mesmo mecanismo já validado em produção pela repaginada anterior
+ * (ADR-017: zero arquivo de componente precisa ser tocado só por causa da troca de
+ * valor, já que todo componente referencia o nome semântico da variável, nunca um
+ * hex literal). `--font-serif` é o único nome de variável genuinamente novo neste
+ * bloco — aditivo, não renomeia nada existente (consumido só pelo novo primitivo
+ * `Num`, FE-RS-02, e futuramente pela nova navegação, FE-RS-03).
  */
 @theme {
-  /* Paleta índigo — UX-SPEC.md Seção 3.1, atualização 2026-09-04 (repaginada visual).
-     Substitui a paleta azul original (`#2563eb`); `-soft` é o fundo suave usado em
-     estado ativo/selecionado sem depender de preencher a área toda de cor sólida
-     (ex. item ativo da navegação, `AppLayout.tsx`). */
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-soft: #eef2ff;
-  --color-income: #16a34a;
-  --color-income-soft: #dcfce7;
-  --color-expense: #dc2626;
-  --color-expense-soft: #fee2e2;
-  --color-warning: #d97706;
-  --color-warning-soft: #fef3c7;
-  --color-danger: #b91c1c;
-  /* `danger-soft` [novo, 2026-09-04, achado 3 de qualidade sobre FE-REF-07] —
-     equivalente a `--color-danger` a 10% de opacidade sobre `color.surface`
-     (#ffffff), pré-calculado como cor sólida (mesma convenção de `-soft` das
-     demais famílias acima) em vez de depender de `rgba()`/`color-mix()` inline no
-     componente. */
-  --color-danger-soft: #f8e8e8;
+  /* Paleta verde/terracota sobre creme — UX-SPEC Seção 3.1. `accent`/`income` são
+     tokens de nomes distintos que deliberadamente compartilham o mesmo valor
+     (`adr/019-...md` Parte 1: "escolha de valor, não de estrutura") — mantido
+     aqui como `--color-primary`/`--color-income` (nomes já existentes, sem
+     rename) para não exigir tocar nenhum componente que já usa `bg-primary`/
+     `text-income`/etc. `-soft` é o fundo suave de estado (chip ativo, ícone de
+     alerta) — usado por `Alert`/`Badge`/`Button`/`OfflineSyncBadge` (FE-RS-14). */
+  --color-primary: #2f6b4f;
+  --color-primary-hover: #244f3b;
+  --color-primary-soft: #e7eee8;
+  --color-income: #2f6b4f;
+  --color-income-soft: #e7eee8;
+  --color-expense: #b4483a;
+  --color-expense-soft: #f5e7e1;
+  --color-warning: #b9862f;
+  --color-warning-soft: #f5ebda;
+  /* `--color-danger` (estouro de orçamento, distinto de `expense`) — finalizado
+     nesta rodada mesmo sem exemplo visual nos 8 artboards (UX-SPEC Seção 3.1: "RN
+     de estouro de orçamento >100% continua existindo no produto"). Contraste sobre
+     `--color-surface-alt`: 9,03:1 (folga ampla, AAA). `-soft`, também ausente do
+     mockup, é calculada com a mesma fórmula (10% de opacidade sobre
+     `color.surface`/#ffffff, pré-calculada como cor sólida) já usada em produção
+     para a família `danger` antes desta rodada — decisão de valor dentro da
+     autoridade normal de implementação do `frontend` (não uma decisão de
+     arquitetura/estrutura), documentada aqui para visibilidade do `ux-ui`/Tech
+     Lead, não escalada via `BLOCKERS.md` (FE-RS-14 só escalaria se este token
+     ficasse ausente, o que não é o caso). */
+  --color-danger: #752f26;
+  --color-danger-soft: #f1eae9;
+  /* `-hover` do `danger` — FE-RS-14 (`Button` variante `destructive`, `hover:bg-red-800`
+     na paleta antiga). Escurecida pela mesma proporção já usada por
+     `--color-primary-hover` em relação a `--color-primary` (~80% do valor original
+     por canal) — mesma convenção, decisão de valor dentro da autoridade normal de
+     implementação do `frontend`, não uma decisão de arquitetura nova. */
+  --color-danger-hover: #5e261e;
 
-  /* Escala neutra "slate" (levemente azulada) — UX-SPEC 3.1, troca deliberada em
-     relação à escala cinza-puro original. */
-  --color-neutral-50: #f8fafc;
-  --color-neutral-100: #f1f5f9;
-  --color-neutral-200: #e2e8f0;
-  --color-neutral-300: #cbd5e1;
-  --color-neutral-400: #94a3b8;
-  --color-neutral-500: #64748b;
-  --color-neutral-600: #475569;
-  --color-neutral-700: #334155;
-  --color-neutral-800: #1e293b;
-  --color-neutral-900: #0f172a;
+  /* Escala neutra recolorida para a família verde/terracota sobre creme — mesma
+     operação já validada em produção pela repaginada de 2026-09-04 (trocar a
+     rampa neutra inteira sem tocar nenhum componente, já que todos referenciam
+     `neutral-NNN`, nunca um hex literal). 5 pontos-âncora batem exatamente com a
+     tabela da UX-SPEC Seção 3.1: `neutral-50` = `--bg` (#FAF8F3), `neutral-200` =
+     `--border` (#EDE8DD), `neutral-400` = `--text-3` (#9A9C93, restrito a uso
+     decorativo/não-textual — UX-SPEC Seção 5), `neutral-600` = `--text-2`
+     (#6B6F68, texto secundário com informação real), `neutral-900` = `--text`
+     (#1F2420). Os demais níveis (100/300/700/800) são interpolados entre esses
+     âncoras preservando a mesma progressão relativa de luminância da rampa
+     anterior — nenhum deles é literal da UX-SPEC (que não define uma escala de 9
+     níveis), decisão de implementação do `frontend` dentro da mesma classe de
+     "não decidido aqui" já delegada pelo `ux-ui`/`ADR-017`.
+     `neutral-500` é a EXCEÇÃO a essa regra de interpolação pura — correção de
+     `QA-BUG-001` (`QA-REPORT.md` Seção 14.4): o valor original interpolado
+     (`#83857D`) preservava a progressão relativa de luminância da rampa antiga,
+     mas media só 3,74:1/3,52:1 contra `--surface`/`--bg`, abaixo do limiar AA de
+     4,5:1 exigido para texto real (`text-neutral-500` é consumido como texto
+     informacional em ~29 arquivos de produção — `FieldChrome`, `EmptyState`, KPIs
+     do Dashboard, linha secundária de Lançamentos, etc.). Recalibrado para
+     `#6E726B` priorizando contraste mínimo (4,90:1 sobre `--surface`, 4,62:1 sobre
+     `--bg` — fórmula de luminância relativa WCAG, sRGB→linear, calculada de forma
+     independente) sobre a progressão relativa de luminância — ainda estritamente
+     mais claro que `neutral-600` (`#6B6F68`) para preservar a ordem monotônica da
+     rampa, mas necessariamente muito próximo dele: a faixa de luminância que
+     satisfaz simultaneamente "mais clara que 600" e "≥4,5:1 sobre um fundo
+     `--bg` de #FAF8F3" é estreita, dado que o próprio `neutral-600` já opera perto
+     do piso (4,83:1). Não é um débito — é a consequência aritmética do requisito
+     de contraste combinado com os pontos-âncora fixos de `UX-SPEC.md`. */
+  --color-neutral-50: #faf8f3;
+  --color-neutral-100: #f5f2eb;
+  --color-neutral-200: #ede8dd;
+  --color-neutral-300: #d9d4c7;
+  --color-neutral-400: #9a9c93;
+  --color-neutral-500: #6e726b;
+  --color-neutral-600: #6b6f68;
+  --color-neutral-700: #4b4e48;
+  --color-neutral-800: #33362f;
+  --color-neutral-900: #1f2420;
 
   --color-surface: #ffffff;
-  --color-surface-alt: var(--color-neutral-50);
+  /* `--color-surface-alt` já cumpria o papel de "fundo de página" antes desta
+     rodada (`body { background-color: var(--color-surface-alt) }` abaixo) — é o
+     mesmo token semântico que a UX-SPEC chama de `--bg` (creme quente #FAF8F3),
+     preservado com o nome já existente. */
+  --color-surface-alt: #faf8f3;
 
-  /* radius — UX-SPEC 3.1: sm 4 / md 8 / lg 16 / xl 20 [novo nível] / full (pill).
-     `xl` reservado ao card de saldo consolidado do dashboard (S-DASH-01). */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  /* radius — UX-SPEC 3.1: 3 níveis (`r-sm`/`r-md`/`r-lg`), substituindo os 4
+     níveis anteriores (`sm`/`md`/`lg`/`xl`). Nenhum componente hoje usa
+     `rounded-xl` (grep confirmado) — remover o 4º nível não quebra nada. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
 
-  /* elevation — nunca mais de 2 níveis simultâneos na mesma tela (UX-SPEC 3.1).
-     `lg` [novo nível] reservado ao card de saldo consolidado (S-DASH-01), único uso. */
-  --shadow-elevation-sm: 0 1px 2px 0 rgb(17 24 39 / 0.06), 0 1px 3px 0 rgb(17 24 39 / 0.08);
-  --shadow-elevation-md: 0 4px 6px -1px rgb(17 24 39 / 0.1), 0 8px 16px -4px rgb(17 24 39 / 0.12);
-  --shadow-elevation-lg: 0 10px 15px -3px rgb(17 24 39 / 0.12), 0 18px 32px -8px rgb(17 24 39 / 0.16);
+  /* elevação — UX-SPEC 3.1: no máximo 2 níveis simultâneos por tela (`shadow-sm`
+     para card padrão, `shadow-md` só para o card de saldo consolidado do
+     Dashboard). `shadow-elevation-lg` é preservado (nenhum componente o consome
+     hoje, grep confirmado) só para não remover uma variável que algum lote futuro
+     do Grupo B possa precisar — recolorida para a mesma base neutra (`--text`)
+     por consistência, sem uso real ainda. */
+  --shadow-elevation-sm: 0 1px 2px 0 rgba(31, 36, 32, 0.05);
+  /* Corrigido para bater literalmente com `UX-SPEC.md` Seção 3.1
+     (`--shadow-md: 0 6px 20px rgba(31,36,32,.06)`, sem spread-radius) —
+     `QA-DEBT-014` (`QA-REPORT.md` Seção 14.4), corrigido oportunisticamente junto
+     de `QA-BUG-001` no mesmo arquivo. O valor anterior incluía um 4º parâmetro
+     `-2px` que não existe no literal publicado (efeito visual sutil: sombra
+     ligeiramente mais contida que o especificado). */
+  --shadow-elevation-md: 0 6px 20px rgba(31, 36, 32, 0.06);
+  --shadow-elevation-lg: 0 10px 15px -3px rgba(31, 36, 32, 0.12), 0 18px 32px -8px rgba(31, 36, 32, 0.16);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* tipografia — UX-SPEC 3.1: `Public Sans` é a fonte base do `body` inteiro
+     (substitui `Inter`, que nunca chegou a ser carregada de fato — `adr/019-...md`).
+     `--font-serif` (`Newsreader`) é aditiva, só para o primitivo `Num` (FE-RS-02)
+     e a navegação (FE-RS-03/Lote 1+). */
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
 }
 
 :root {

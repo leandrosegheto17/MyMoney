@@ -33,6 +33,16 @@ describe("OfflineSyncBadge", () => {
     expect(await screen.findByText(/2 lançamentos/)).toBeInTheDocument();
   });
 
+  it("uses the design-system warn-soft token for the pending badge, never the raw Tailwind ramp (FE-RS-14, UX-03 Achado 1)", async () => {
+    await enqueueTransaction(DRAFT);
+    render(<OfflineSyncBadge />);
+
+    const badge = await screen.findByRole("button", { name: /lançamento/ });
+    expect(badge.className).toContain("bg-warning-soft");
+    expect(badge.className).not.toMatch(/bg-amber-\d{2,3}/);
+    expect(badge.className).not.toMatch(/hover:bg-amber-\d{2,3}/);
+  });
+
   it("reveals the detail of pending items when tapped", async () => {
     await enqueueTransaction(DRAFT);
     render(<OfflineSyncBadge />);

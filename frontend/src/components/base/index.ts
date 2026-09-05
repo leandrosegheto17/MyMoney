@@ -12,3 +12,4 @@ export * from "./Tabs";
 export * from "./FilterBar";
 export * from "./ConfirmationDialog";
 export * from "./DatePicker";
+export * from "./Num";

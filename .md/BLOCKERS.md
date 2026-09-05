@@ -2474,3 +2474,485 @@ quem reportou.
   transparência (mesmo padrão de registro de achado colateral já usado nos
   Bloqueios 010/019). Nenhuma tarefa do `TASK.md` fica condicionada a este
   item.
+
+---
+
+## Bloqueio 021 — 2026-09-04
+
+- **Reportado por**: pm (durante a produção do `PRD.md`, Adendo B — Redesign
+  Visual "MyMoney v2.0")
+- **Escalado para**: cto
+- **Artefato/trecho afetado**: `PRD.md`, Adendo B, Seções B.4/B.5/B.6 (riscos
+  B6.8 e B6.12); `CTO-REVIEW.md`, "Gate 1 (Nova Iniciativa — Redesign Visual
+  'MyMoney v2.0') — 2026-09-04", subseção "Risco de escopo — redesign das 4
+  telas de uma vez é o tamanho certo?"
+- **Descrição**: o `PRD.md` original deste adendo (primeira versão, produzida
+  ainda em 2026-09-04) delimitava o escopo do redesign às 4 telas com mockup de
+  referência (Dashboard, Lançamentos, Contas & Cartões, Categorias) — o mesmo
+  dimensionamento ("4 telas × 2 breakpoints") sobre o qual o Gate 1 desta
+  iniciativa construiu sua análise de risco de execução (aplicando a
+  "Declaração de capacidade" — execução solo/serial — já fixada desde o Gate 3
+  original) e recomendou faseamento explícito. Recebi, através do agente
+  orquestrador, uma correção direta do stakeholder: o redesign **não se limita**
+  às 4 telas com mockup — estende-se a **todo o projeto** (todas as telas
+  listadas em `UX-SPEC.md` Seção 2.2). Os 8 artboards passam a ter papel duplo:
+  especificação direta das 4 telas que retratam, e fundação de design system a
+  ser extrapolada pelo `ux-ui` para as demais ~9 domínios de tela do produto
+  (Autenticação/Onboarding, Orçamento, Formas de Pagamento, Cartão & Fatura
+  detalhado, Recorrência/Parcelamento/Contas Fixas/Metas, Notificações,
+  Relatórios/Exportação, Captura Automatizada, Configurações). Isso muda a
+  magnitude da variável ("tamanho do redesign") que o Gate 1 usou como base do
+  seu julgamento de risco — não é um detalhe de conteúdo, é uma mudança de
+  escala do próprio objeto avaliado. Por guardrail deste papel ("nunca decidir
+  sozinho que um conflito percebido com o Gate 1 não deve ser um problema"), não
+  presumo que o veredito "Aprovado com ressalvas" do Gate 1 cobre
+  automaticamente esse novo dimensionamento — incorporei a correção ao `PRD.md`
+  (Seções B.4/B.5 reescritas, riscos B6.8/B6.11/B6.12 adicionados/atualizados),
+  mas registro esta divergência formalmente em vez de decidir por conta própria
+  que ela "não deve ser um problema".
+- **Impacto se não resolvido**: nenhum bloqueio à liberação deste adendo para o
+  `business-analyst` quanto aos Lotes 0-4 (dentro do que o Gate 1 já avaliou) —
+  o objetivo de negócio, a natureza de camada de apresentação, a confirmação de
+  "Mobile" como breakpoint responsivo e a lógica de faseamento por lote não são
+  afetados por este bloqueio. O impacto real, se não resolvido, é o Tech Lead
+  comprometer estimativa de prazo agregado para os Lotes 5-13 (Grupo B,
+  extrapolado) em `TASK.md` sem que o CTO tenha revisado se a "Declaração de
+  capacidade" (execução solo/serial, somatório de esforço) permanece uma base de
+  julgamento suficiente para um escopo ~3x maior do que o avaliado no Gate 1, ou
+  se isso deveria mudar a recomendação de faseamento/priorização em algum
+  aspecto adicional.
+- **Sugestão (opcional)**: um pulso de capacidade pontual — no mesmo espírito do
+  já feito no Gate 3 original ("Declaração de capacidade") — confirmando (a) se
+  a mesma lógica de execução solo/serial se aplica sem ressalva adicional a 14
+  lotes, e (b) se o CTO concorda com a classificação Now/Next/Later proposta
+  pelo PM para o Grupo B (Seção B.5), ou se recomenda reordenar algo por risco
+  não capturado pela matriz do PM. Não exige reabertura do Gate 1 inteiro nem
+  do `PRD.md` além do que já foi ajustado.
+- **Resolução (CTO)**: pulso de capacidade/prazo pontual, não um novo Gate —
+  parecer completo registrado como nota de acompanhamento em `CTO-REVIEW.md`,
+  seção "Gate 1 (Nova Iniciativa — Redesign Visual 'MyMoney v2.0')" (não reabre
+  o Gate, não substitui o veredito já dado). Resumo executável abaixo; detalhe
+  completo no `CTO-REVIEW.md`.
+
+  **1. Viabilidade do escopo de 14 lotes, dado o histórico solo/serial.**
+  Reafirmo, sem exceção, a "Declaração de capacidade" fixada desde o Gate 3
+  original (execução solo, papéis são organização de escopo, não pools
+  concorrentes — esforço decorrido tende ao somatório, não ao caminho
+  crítico). Nada na natureza do trabalho muda essa lógica ao passar de 5 para
+  14 lotes. **Não reprovo o escopo ampliado** — segue sem existir restrição de
+  prazo/orçamento declarada contra a qual medir incompatibilidade (mesmo
+  raciocínio do Gate 3 original: a pergunta "é viável?" não tem alvo externo a
+  violar). Mas **recuso-me a validar, mesmo implicitamente, uma extrapolação
+  aritmética ingênua do histórico** (~15,5 dias / 5 lotes ≈ 3,1 dias/lote × 14
+  ≈ ~43 dias) — essa conta subestima estruturalmente o Grupo B, por três
+  motivos que formalizo aqui como fato assumido para todo planejamento
+  seguinte (já parcialmente sinalizados pelo próprio PM em B6.8/B6.11 do
+  `PRD.md`, Adendo B):
+    a. Os 5 lotes da Fase 2.1 eram ajuste pontual sobre padrão de UI **já
+       conhecido e estável** — refinamento, não fundação. O Grupo B depende de
+       uma extrapolação de design system ainda **não validada** (Lote 0
+       aplicado, na prática, só às 4 telas de referência direta do Grupo A)
+       para domínios de natureza bem diferente das quatro telas com mockup —
+       formulário isolado pré-sessão (Auth), tabela de fatura, fluxo de
+       captura por voz/foto — carga de **decisão de design**, não só de
+       implementação, ausente no histórico usado como comparação.
+    b. Os lotes do Grupo B não são unidades de tamanho comparável entre si nem
+       aos 5 lotes da Fase 2.1: o Lote 9 agrega 4 sub-domínios (Recorrência/
+       Parcelamento/Contas Fixas/Metas), o Lote 12 agrega 9 telas (S-CAP-01 a
+       09, `PRD.md` Seção B.4). Tratar "14 lotes" como unidades equivalentes
+       para fins de razão histórica é uma imprecisão que cabe ao Tech Lead
+       corrigir na decomposição real do `TASK.md` — não algo que eu deva
+       presumir já corrigido neste pulso.
+    c. O próprio `PRD.md` (Seção B.5, nota sobre o Grupo B) já delega ao
+       `ux-ui`/Tech Lead liberdade de subdividir/reagrupar os Lotes 5-13 sem
+       reabrir o PRD — "14" é indicativo, não a unidade real de esforço que
+       valerá no `TASK.md`.
+
+     **Conclusão desta seção**: o escopo é viável no sentido de "nada aqui
+     justifica vetar o prosseguimento", mas eu **não endosso 43 dias (nem
+     qualquer outro número derivado por extrapolação linear do histórico)**
+     como expectativa realista de prazo agregado. A única estimativa
+     confiável para os Lotes 5-13 é a que o Tech Lead produzir depois de
+     decompor o `TASK.md` com dados reais — não antes. **Condição que fixo,
+     vinculante para o Tech Lead** (o BA/PM seguem livres para avançar,
+     conforme item 3 abaixo): a estimativa agregada dos Lotes 5-13 só pode ser
+     comprometida em `TASK.md` depois que pelo menos o Lote 0 e um lote do
+     Grupo A tiverem sido executados e validados em produção, usando a
+     velocidade real observada (dias efetivamente gastos, não estimados) como
+     calibração — em vez de repetir a mesma dinâmica de estimativa
+     apriorística que já se mostrou, historicamente, sujeita a revisão neste
+     projeto (`SPK-001`, `ADR-004`→`ADR-009`, Bloqueio 003).
+
+  **2. Nível de detalhe do Grupo B.** Recomendo detalhamento **mais leve e
+  incremental, lote a lote** — não o mesmo nível de profundidade do Grupo A.
+  Razões: (i) o Grupo A tem mockup real como fonte da verdade — detalhamento
+  completo agora tem baixo risco de retrabalho; (ii) o Grupo B depende de uma
+  extrapolação do design system ainda não consolidada nem validada em
+  produção (risco B6.11) — detalhar RN/RF completos para ~9 domínios antes
+  disso arrisca detalhamento descartável se a extrapolação mudar depois do
+  Lote 0/primeiros lotes do Grupo A; (iii) reagrupamento dos Lotes 5-13 já é
+  esperado e explicitamente delegado ao `ux-ui`/Tech Lead (`PRD.md` Seção
+  B.5) — detalhar tela a tela agora, antes desse reagrupamento acontecer, é
+  gasto de um recurso também solo/serial (o próprio BA) em trabalho sujeito a
+  descarte. **Recomendação concreta**: `PRD-TECNICO.md` cobre o Grupo A com
+  detalhamento padrão completo (RN/RF por tela, mapeado ao mockup); cobre o
+  Grupo B em nível de **inventário + restrições conhecidas** por domínio
+  (telas envolvidas, riscos já nomeados — RNF-01/confirmação humana para o
+  Lote 12, `InvoiceTimeline` para o Lote 8 — e dependências de dado/regra
+  herdadas), sem detalhamento de RN/RF tela a tela. O detalhamento fino de
+  cada lote do Grupo B ocorre lote a lote, pouco antes de cada lote iniciar
+  execução — mesmo padrão incremental que a Seção B.5 do `PRD.md` já adotou
+  para a própria priorização (matriz completa só para o Grupo A, qualitativa
+  por domínio para o Grupo B). Concordo com a classificação Now/Next/Later
+  proposta pelo PM para o Grupo B (`PRD.md` Seção B.5) — nenhuma reordenação
+  por risco não capturado: a cautela adicional do Lote 12 (RNF-01) e o
+  adiamento do Lote 8 (`InvoiceTimeline`) para depois de o padrão de "tela com
+  lógica de negócio sensível" já ter sido validado no Lote 3 são exatamente o
+  tipo de sequenciamento que eu teria recomendado.
+
+  **3. BA pode prosseguir agora.** Sim — com o `PRD-TECNICO.md` cobrindo o
+  Grupo A (Lotes 0-4) em detalhamento padrão completo, imediatamente. Para o
+  Grupo B, o levantamento desta rodada deve ser de **natureza/conteúdo**
+  (inventário, riscos, dependências ao nível de domínio, conforme item 2
+  acima) — não uma rodada de descoberta técnica completa e separada, com
+  marco/data própria no pipeline. **Não é necessário abrir uma segunda rodada
+  formal de descoberta isolada para o Grupo B** — o próprio mecanismo de
+  detalhamento incremental lote a lote (já em uso na priorização da Seção B.5)
+  resolve isso sem processo adicional: o BA registra agora o que já é
+  conhecido em nível de domínio, e o aprofundamento técnico de cada domínio do
+  Grupo B acontece junto com `ux-ui`/Tech Lead, pouco antes de cada lote
+  específico iniciar — como parte do fluxo normal de execução lote a lote, não
+  como marco formal adicional do pipeline.
+
+  Nenhuma destas três respostas altera o veredito já dado no Gate 1
+  ("Aprovado com ressalvas") nem exige reabertura do `PRD.md`/Adendo B —
+  são orientação de processo para a execução, no mesmo espírito das
+  ressalvas não-bloqueantes já registradas nos Gates 1-3 originais.
+- **Status**: **Resolvido — 2026-09-04, por `cto`.** Libera o `business-analyst`
+  para prosseguir com o `PRD-TECNICO.md` do Grupo A em detalhamento completo e
+  do Grupo B em nível de inventário/restrições (item 2/3 acima), sem qualquer
+  pausa. Segue vinculante ao `Tech Lead`: nenhuma estimativa agregada de prazo
+  para os Lotes 5-13 em `TASK.md` antes de o Lote 0 + um lote do Grupo A
+  estarem executados e validados em produção (item 1 acima) — essa condição
+  substitui, para este bloqueio, a pendência genérica "aguardando resposta do
+  CTO" registrada na abertura.
+
+---
+
+## Bloqueio 022 — 2026-09-04
+
+- **Reportado por**: ux-ui
+- **Escalado para**: software-architect
+- **Artefato/trecho afetado**: `SDD.md` Adendo B, `adr/017-arquitetura-tecnica-design-system-tokens-tailwind-biblioteca-componentes-compartilhada.md`
+  (Decision Outcome + racional "Ponto único de mudança já existe e já foi
+  validado em produção real")
+- **Descrição**: acesso visual real aos 8 artboards do canvas Claude Design
+  ("MyMoney v2.0 — Mockups") foi providenciado após a publicação inicial desta
+  rodada de `UX-SPEC.md` (arquivos `.dc.html` estáticos, lidos diretamente). Os
+  8 arquivos confirmam um bloco `:root` **idêntico entre si** (design system
+  real e consistente, não mockups desalinhados) — mas **completamente
+  diferente** do conjunto de tokens já vigente em produção
+  (`frontend/src/index.css`), tanto em paleta quanto em tipografia:
+
+  | Token | Produção atual (`frontend/src/index.css`) | Mockup "v2.0" (8 artboards, idêntico em todos) |
+  |---|---|---|
+  | accent/primary | `#4f46e5` (índigo) | `#2F6B4F` (verde escuro) |
+  | income | `#16a34a` (verde, token próprio) | `#2F6B4F` — **mesmo valor do accent**, sem token de "income" separado |
+  | expense | `#dc2626` (vermelho vivo) | `#B4483A` (terracota) |
+  | danger (estouro de orçamento, distinto de expense) | `#b91c1c` (token próprio) | **Nenhum token `--danger` existe no `:root` do mockup** — não há exemplo de orçamento >100% em nenhum dos 8 artboards (o mais alto mostrado é 87%, ainda na faixa de alerta) |
+  | background | `#f8fafc` (cinza-azulado frio) | `#FAF8F3` (creme quente) |
+  | fonte | Inter apenas (sans-serif única) | **Duas famílias**: `Newsreader` (serif, itálico no logo "MyMoney", peso 500 em títulos `h1`/saldo, e aplicada a **todo valor monetário/numérico** via classe utilitária `.num` com `font-variant-numeric: tabular-nums`) + `Public Sans` (corpo/UI, sans-serif) |
+  | radius | `sm 4px / md 8px / lg 16px / xl 20px` (4 níveis, `xl` reservado só ao card de saldo) | `--r-sm:8px; --r-md:12px; --r-lg:20px` no desktop (3 níveis); nos 4 artboards mobile, só `--r-md:12px` é declarado em geral, e `DashboardMobile.dc.html` declara `--r-lg:18px` (não 20px) especificamente para o card de saldo — radius do card-herói é sutilmente menor no mobile |
+  | sombras | `rgb(17 24 39 / ...)` (neutro puro) | `rgba(31,36,32,...)` — mais suave/quente, mesma estrutura de 2 níveis (`shadow-sm`/`shadow-md`) |
+
+  O precedente que a Decision Outcome do ADR-017 usa para justificar "nenhuma
+  reestruturação necessária, ponto único de mudança já validado" é a repaginada
+  visual de 2026-09-04 — uma troca de **valores dentro do mesmo conjunto de
+  nomes de variável e da mesma família tipográfica única (Inter)**, sem adição
+  de fonte nova, sem adição de classe utilitária de aplicação seletiva por tipo
+  de conteúdo (número vs. texto). O que os 8 artboards mostram é
+  qualitativamente maior: substituição completa de paleta **e** introdução de
+  uma segunda família tipográfica aplicada seletivamente (números/títulos em
+  serif, resto em sans), via uma classe (`.num`) que precisaria ser adicionada
+  manualmente a todo elemento que hoje renderiza valor monetário/numérico em
+  dezenas de componentes já implementados (`CurrencyInput`, `DonutChart`,
+  `BarChart`, todo item de lista, todo card de saldo/KPI) — isso não é "editar
+  um bloco `@theme` e pronto", é tocar `className`/JSX de cada um desses
+  componentes para aplicar a nova classe seletivamente. Carregamento de uma
+  segunda fonte via Google Fonts (`Newsreader`) também introduz uma
+  requisição/dependência de rede nova que a troca de 2026-09-04 (só Inter,
+  já carregada) não tinha.
+- **Pergunta explícita, não decidida por mim**: a introdução de uma segunda
+  família tipográfica (serif para números/títulos, aplicada seletivamente via
+  classe) e a substituição completa de paleta (incluindo a fusão semântica de
+  `income`=`accent` e a ausência de um token `--danger` distinto de
+  `--expense`) ainda se sustentam como "substituição de token em bloco, zero
+  mudança de componente" — o precedente que a Decision Outcome do ADR-017 usa
+  como base para preservar a estrutura vigente sem reestruturação (Opção 1) —
+  ou isso exige reabrir o ADR-017 para avaliar impacto real em componentes que
+  hoje usam classe/família de fonte fixa (`font-family:'Public Sans', ui-sans-serif...`
+  aplicado globalmente ao `body`, sem exceção por tipo de conteúdo)? Não decido
+  isso — é avaliação de arquitetura, do dono do ADR-017.
+- **Impacto se não resolvido**: `UX-SPEC.md` Seção 3.0/3.1 (Lote 0) pode
+  publicar os tokens/tipografia **como documentação fiel do que os mockups
+  mostram** (meu papel de extração), mas não pode afirmar, por conta própria,
+  que a estrutura de ADR-017 (sem pacote/monorepo/Storybook) continua
+  suficiente para sustentar essa extensão de escopo — se a resposta for "sim,
+  reabrir o ADR", isso muda o esforço de implementação do Lote 0 estimado pelo
+  Tech Lead (toque em `className` de dezenas de componentes já implementados,
+  não só edição de `index.css`) e pode reabrir a decisão "sem Storybook" (mais
+  superfícies visuais = mais valor num catálogo isolado).
+- **Sugestão (opcional)**: se o Software Architect confirmar que o precedente
+  ainda se sustenta (aplicar `.num` seletivamente é, na prática, equivalente em
+  esforço a uma troca de bloco `@theme`), registrar essa confirmação como nota
+  explícita no próprio ADR-017 ou em adendo técnico, para que o Tech Lead não
+  precise re-derivar essa análise ao estimar o Lote 0. Se a resposta for "não
+  se sustenta", recomendo avaliar especificamente se a introdução de um token
+  `--danger` distinto de `--expense` é necessária antes do Lote 0 ser
+  considerado completo (ver também Bloqueio 023, item sobre estado de orçamento
+  estourado ausente do mockup).
+- **Resolução (Software Architect)**: confirmado — a tipografia numérica
+  seletiva **não** se enquadra no precedente "zero mudança de componente" do
+  ADR-017. Registrado formalmente em
+  `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`
+  (Status: Accepted; não supersede o ADR-017 — a Decision Outcome da Opção 1
+  permanece válida, este ADR só delimita o alcance de uma afirmação específica
+  do seu racional e acrescenta a sub-decisão de tipografia numérica). Inspeção
+  real do código confirmou dois motivos concretos: (1) nenhuma infraestrutura
+  de web font existe hoje no projeto (`Inter` declarada mas nunca carregada);
+  (2) `formatCentsToBRL()` é consumida por interpolação direta em 17
+  arquivos/25+ pontos de chamada, vários concatenando número e texto
+  não-numérico no mesmo nó (ex. `BudgetCard.tsx`, prop `detailText: string`).
+  Decisão: introduzir um **primitivo `Num`** (`components/base/Num.tsx`) no
+  Lote 0, mesma disciplina dos outros 14 componentes-base — migração dos 17
+  arquivos/25+ pontos de chamada já existentes é **incremental, lote a lote**
+  (mesmo desacoplamento token global vs. composição já validado pelo
+  ADR-018), nunca atômica no Lote 0. Fonte via pacote self-hosted
+  (`@fontsource/public-sans`, `@fontsource/newsreader`), não Google Fonts CDN
+  — preserva o cache do service worker do PWA e a confiabilidade offline
+  (ADR-003/RNF-04). Quanto à Parte 1 (paleta): confirmado que `--color-danger`
+  pode continuar existindo como token declarado mesmo sem exemplo visual nos
+  mockups, e que `income`=`accent` é escolha de valor, não de estrutura —
+  nenhuma das duas exige revisão de arquitetura, ambas ficam a cargo do
+  `ux-ui` como conteúdo de design system.
+- **Status**: **Resolvido — 2026-09-04, por `software-architect`, via
+  `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`.**
+  `UX-SPEC.md` Seção 3.0 (fundação do Lote 0), Seção 3.1 (token `typography`)
+  e Seção 3.2 (especificação do componente `Num`) atualizadas para refletir a
+  resolução — nenhuma menção a classe `.num` solta permanece como decisão
+  ativa. Plano de migração incremental incorporado aos blocos "Redesign
+  visual v2.0" dos Lotes 1-4 (Seção 2.2).
+
+- **Resolução (software-architect, 2026-09-04)**: inspecionei o código real de
+  `frontend/src/` (não decidi no abstrato) antes de responder. Achados
+  concretos:
+  1. **A paleta de cor continua cabendo integralmente na premissa do
+     ADR-017.** `--color-primary`, `--color-income`, `--color-expense`, escala
+     neutra, radius e sombra do mockup usam exatamente os mesmos nomes de
+     variável já declarados em `frontend/src/index.css`, só com valores novos
+     — mesmo padrão do precedente de 2026-09-04, zero toque em
+     `className`/JSX confirmado por inspeção. As duas particularidades da
+     tabela (ausência de exemplo de `--danger` nos artboards; `income` com o
+     mesmo valor de `accent`) são decisões de **conteúdo** do design system
+     (`--danger` pode continuar declarado mesmo sem exemplo visual nos 8
+     mockups; `income`=`accent` é coincidência de valor, não fusão estrutural
+     de token) — cabem ao `ux-ui` decidir como valor final em `UX-SPEC.md`
+     Seção 3, não exigem revisão de arquitetura. **Esta parte do bloqueio está
+     resolvida sem tocar o ADR-017.**
+  2. **A tipografia numérica seletiva NÃO cabe na mesma premissa — confirmado
+     com evidência concreta, não hipótese.** `formatCentsToBRL()`
+     (`frontend/src/lib/currency.ts`) é consumida por interpolação direta em
+     **17 arquivos, 25+ pontos de chamada**, vários deles com o número
+     concatenado no mesmo nó de texto que texto não-numérico (ex.
+     `BudgetCard.tsx:88` — dois valores e a palavra "de" dentro de uma única
+     `string` passada como prop `detailText` a outro componente;
+     `DashboardPage.tsx`/`TransactionsPage.tsx`/`OfflineSyncBadge.tsx` — seta
+     "↑"/"↓" e valor no mesmo nó; `DonutChart.tsx:93` — moeda e percentual no
+     mesmo nó, dentro de SVG/HTML híbrido). Aplicar `.num` seletivamente exige
+     separar o número em nó/elemento próprio — em pelo menos um caso real
+     (`BudgetCard`), isso é fisicamente impossível sem mudar o contrato do
+     componente (prop `string` → `ReactNode`/props tipadas), não uma edição de
+     classe. Além disso, **nenhuma infraestrutura real de web font existe
+     hoje** — "Inter" está só declarada em `--font-sans`, nunca carregada via
+     `@font-face`/`<link>`/pacote (`frontend/index.html` e
+     `frontend/package.json` confirmam isso); introduzir `Public Sans` +
+     `Newsreader` liga, pela primeira vez, um mecanismo real de carregamento
+     de fonte, com custo de rede/bundle que hoje é zero.
+  3. **Decisão**: registrado em `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`
+     (novo — **não** supersede o ADR-017, mesmo padrão já usado entre
+     ADR-005/ADR-010: a Decision Outcome da Opção 1 do ADR-017 — preservar
+     estrutura vigente, sem pacote/monorepo/Storybook — permanece válida sem
+     alteração; ADR-019 delimita o alcance da afirmação "zero mudança de
+     componente" e acrescenta a sub-decisão de tipografia numérica, que o
+     ADR-017 nunca cobriu). Mecanismo escolhido: introduzir um primitivo
+     compartilhado `Num` em `components/base/` no próprio Lote 0 (mesma
+     disciplina de teste dos outros 14 componentes-base), com migração dos
+     17 arquivos/25+ pontos de chamada existentes feita **incrementalmente,
+     lote a lote** — o mesmo desacoplamento "camada global introduzida uma
+     vez, consumo migrado lote a lote" já validado pelo ADR-018 para
+     composição de tela, aplicado agora à tipografia numérica. Nenhum PR do
+     Lote 0 precisa tocar telas do Grupo B ainda não planejadas. Fonte
+     self-hosted (`@fontsource/*`), não Google Fonts CDN, para preservar
+     RNF-04/ADR-003 (offline-first via `vite-plugin-pwa` já existente).
+     `SDD.md` Adendo B Seção B.4 (índice de ADRs), B.6.1 (2 riscos novos:
+     tipografia numérica e carregamento de fonte) e B.6.2 (1 dívida técnica
+     nova: pontos de chamada ainda não migrados) atualizados — nenhuma outra
+     seção do `SDD.md` foi reaberta, conforme guardrail de não refazer o
+     documento inteiro por um ponto pontual.
+- **Status**: **Resolvido — 2026-09-04, por `software-architect`.** Tech Lead
+  pode estimar o Lote 0 incluindo a introdução do primitivo `Num` + fontes
+  self-hosted como escopo próprio (não "zero custo adicional" como o ADR-017
+  presumia antes desta correção), e cada lote subsequente do Grupo A/Grupo B
+  inclui, em seu próprio escopo, a migração dos pontos de chamada de número
+  daquela tela específica (lista completa de arquivos/pontos de chamada no
+  ADR-019, Context, para referência do Tech Lead). `UX-SPEC.md` pode publicar
+  `--color-danger`/`income` como decisão de conteúdo (ponto 1) e a API visual
+  do `.num`/`Num` como consumidor do ADR-019 (ponto 2).
+
+---
+
+## Bloqueio 023 — 2026-09-04
+
+- **Reportado por**: ux-ui
+- **Escalado para**: business-analyst
+- **Artefato/trecho afetado**: `PRD-TECNICO.md` Adendo A (RN-18, RF-REF-02,
+  RF-REF-03, RF-REF-05) + `PRD-TECNICO.md` Adendo B (RF-RS-02 AC2/AC3, RF-RS-04
+  AC2, RN-20 — "RN-01 a RN-18 não são reabertas")
+- **Descrição**: leitura direta dos 8 artboards (`.dc.html`, agora disponíveis)
+  revela três pontos onde o conteúdo real do mockup diverge de comportamento
+  já fixado e explicitamente protegido de reabertura por RN-20:
+  1. **Hierarquia do item de lançamento (RN-18)**: em `Lancamentos.dc.html`,
+     `LancamentosMobile.dc.html` e no bloco "Últimos lançamentos" de
+     `Main.dc.html`/`DashboardMobile.dc.html`, todo item de lista mostra a
+     **descrição/nome do estabelecimento como linha 1** (maior destaque, ex.
+     "Supermercado Pão de Açúcar", `font-size:14px`) e **"Categoria · Forma de
+     pagamento" como linha 2** (secundário, `font-size:12px`,
+     `color:var(--text-3)`, ex. "Alimentação · Cartão Nubank") — exatamente o
+     oposto de RN-18 ("subcategoria é o elemento de maior destaque visual...
+     descrição e forma de pagamento são sempre secundárias"), que RF-RS-02 AC2
+     já pedia para ser preservado explicitamente ao seguir o mockup.
+  2. **`ShortcutBar`/`ShortcutChip` (RF-REF-03) ausente**: nenhum dos dois
+     artboards de Lançamentos mostra a barra de atalhos de subcategoria — RF-RS-02
+     AC1 esperava que o mockup incluísse "o componente `ShortcutChip`/`ShortcutBar`
+     já especificado".
+  3. **Categorias em lista-árvore, não em grade de cards (RF-REF-05)**:
+     `Categorias.dc.html`/`CategoriasMobile.dc.html` mostram categoria +
+     subcategorias indentadas em duas colunas (Despesas/Receitas, desktop) ou
+     abas segmentadas (mobile) — o **padrão de lista expansível que RF-REF-05
+     substituiu** pela grade de `CategoryCard` (Padrão C) desde o Pacote de
+     Refinamento, já em produção. Nenhum card, nenhuma contagem de
+     subcategorias, nenhum total-por-categoria-de-topo-nível como elemento
+     único de card — é literalmente o layout anterior ao Pacote de
+     Refinamento.
+  Hipótese não confirmada (não decidida por mim): os 8 artboards podem ter
+  sido produzidos com base num conceito de produto anterior/genérico, sem
+  levar em conta as decisões do Pacote de Refinamento (RN-12 a RN-18,
+  Fase 2.1) — o que explicaria os três pontos acima de uma vez, já que todos
+  regridem para um estado anterior a essas regras, não introduzem um novo
+  comportamento coerente. Alternativa também possível: o stakeholder pode
+  querer genuinamente simplificar/reverter parte do Pacote de Refinamento como
+  parte do redesign v2.0. Não posso distinguir essas duas hipóteses sem
+  confirmação — por isso escalo em vez de decidir.
+- **Impacto se não resolvido**: `UX-SPEC.md` Seção 2.2 (Lotes 2 e 4) precisa de
+  uma posição para publicar o mapeamento mockup→implementação. Adotei, como
+  posição-padrão/fallback explícito (não uma decisão definitiva, reversível
+  assim que a BA/PM responder), a leitura mais conservadora já prevista pelo
+  próprio texto de RF-RS-02 AC2/AC3/RF-RS-04 AC2 e por RN-20: **RN-18,
+  RF-REF-03 e RF-REF-05 permanecem exatamente como já fixados** — a camada
+  visual v2.0 (tokens/tipografia/espaçamento) é aplicada sobre a
+  hierarquia/componentes já existentes, tratando os três pontos acima como
+  simplificação não-literal do mockup para fins de ilustração, não como
+  instrução de reabrir RN-18/RF-REF-03/RF-REF-05. Se a BA/PM confirmar que os
+  mockups devem ser seguidos literalmente nesses três pontos, isso vira RF
+  novo nomeado em rodada própria (RN-19), com reestimativa do Tech Lead — não
+  uma reinterpretação silenciosa minha.
+- **Sugestão (opcional)**: confirmar com o stakeholder (via PM) se os 8
+  artboards refletem uma intenção deliberada de simplificar/reverter parte do
+  Pacote de Refinamento, ou se são material de referência genérico que não
+  tentou incorporar essas três regras — e, nesse segundo caso, tratar os três
+  pontos como não-literais para efeito de implementação do Grupo A, exatamente
+  como o fallback já adotado nesta rodada de `UX-SPEC.md`.
+- **Status**: Aberto — aguardando resposta do `business-analyst`/PM. Não
+  bloqueia a estimativa do Tech Lead sobre os Lotes 2 e 4 (fallback já
+  registrado e aplicado em `UX-SPEC.md`), mas qualquer implementação real
+  desses dois lotes deve aguardar confirmação antes de decidir definitivamente
+  qual hierarquia/padrão de layout é o alvo final.
+
+- **Resolução (business-analyst, 2026-09-04)**: analisados os 3 pontos individualmente
+  contra `PRD.md` Adendo A/B, `PRD-TECNICO.md` Adendo A/B e `CTO-REVIEW.md` Gate 1
+  desta iniciativa. **Nenhum dos 3 é mudança de comportamento decidida pelo
+  stakeholder — os 3 são tratados como (b), mockup desatualizado/incompleto**, sem
+  necessidade de escalar ao PM, pelas razões abaixo (comuns aos 3 pontos, detalhadas
+  ponto a ponto):
+
+  **Racional agregado (por que decidi sozinho, sem escalar ao PM)**: os 3 pontos
+  regridem, em conjunto, para o mesmo estado — o padrão vigente **antes** do Pacote de
+  Refinamento (Fase 2.1). Nenhum dos 3 introduz um comportamento novo e coerente com
+  uma intenção de produto deliberada; todos apenas revertem uma decisão já fixada e
+  testada em produção. Isso é muito mais consistente com a hipótese "os 8 artboards
+  foram produzidos com base num conceito de produto anterior/genérico, sem levar em
+  conta o Pacote de Refinamento" do que com "o stakeholder quer reverter 3 decisões de
+  UX independentes ao mesmo tempo, sem qualquer registro dessa intenção em `PRD.md`
+  Adendo B ou em `CTO-REVIEW.md` Gate 1 desta iniciativa". Nem o PRD.md Adendo B (que
+  define o objetivo desta iniciativa exclusivamente como "elevar qualidade visual e
+  consistência de design system") nem o Gate 1 do CTO mencionam, em nenhum momento,
+  intenção de reabrir RN-18, RF-REF-03 ou RF-REF-05. Confirma-se, portanto, o
+  guardrail RN-19/RN-20 (`PRD-TECNICO.md` Adendo B, Seção B.3): redesign é camada de
+  apresentação, sem motivo de negócio para reabrir regra já fixada. Como isso é
+  interpretação de **fidelidade do mockup a um requisito já aceito** (não uma decisão
+  sobre "o que é o produto"), está dentro da minha autoridade de BA resolver
+  diretamente (guardrail do agente `business-analyst`), sem inventar motivo de negócio
+  novo — a decisão em todos os 3 casos é **preservar o comportamento já fixado**,
+  reconduzindo a divergência para o `ux-ui` tratar como composição visual, não como
+  reabertura de regra.
+
+  1. **Hierarquia da lista de lançamentos (RN-18)**: decisão **(b)** — mockup
+     desatualizado/incompleto. RN-18 prevalece (subcategoria como elemento de maior
+     destaque; descrição e forma de pagamento secundárias). RN-18 tem racional de
+     negócio concreto e verificável (problema real de reconhecimento relatado em uso
+     de produção, `PRD.md` Adendo A.1, item 2), validado pelo PM antes do Pacote de
+     Refinamento — reverter reintroduziria um problema já corrigido sem nenhuma
+     evidência de intenção deliberada. O fallback conservador já aplicado pelo
+     `ux-ui` em `UX-SPEC.md` está confirmado como definitivo, não apenas temporário.
+  2. **`ShortcutBar`/`ShortcutChip` (RF-REF-03) ausente do mockup de Lançamentos**:
+     decisão **(b)** — lacuna do material de referência, não instrução de remoção.
+     RF-REF-03 é funcionalidade já especificada e presumivelmente implementada
+     (Pacote de Refinamento), com meta de produto própria (M6) e regras de negócio
+     próprias (RN-12/RN-13) — nenhuma evidência de que o stakeholder pediu sua
+     remoção. `RF-RS-02` AC1 já antecipava a presença do componente como requisito,
+     não como algo condicionado ao mockup literal.
+  3. **Categorias em lista-árvore vs. grade de cards (RF-REF-05)**: decisão **(b)** —
+     mockup desatualizado/incompleto. A grade de `CategoryCard` (Padrão C) prevalece.
+     Mesmo racional agregado acima — reverter para lista-árvore não tem justificativa
+     de negócio nova registrada em nenhum artefato desta iniciativa.
+
+  **Emenda formalizada em `PRD-TECNICO.md` Adendo B** (dono do documento — feita
+  diretamente, sem necessidade de aprovação de outro agente para esta classe de
+  decisão):
+  - `RF-RS-02` AC1 reforçado: `ShortcutBar`/`ShortcutChip` obrigatório no Lote 2
+    mesmo que os artboards não o exibam literalmente.
+  - `RF-RS-02` AC2 reforçado: se o artboard retratar ordem diferente da hierarquia de
+    RN-18, RN-18 prevalece sobre a leitura literal do artboard.
+  - `RF-RS-04` AC1 reforçado: se o artboard retratar lista-árvore em vez de grade de
+    cards, o Padrão C (RF-REF-05) prevalece.
+  - Seção B.7 (Interpretações Registradas) recebeu 3 novas entradas —
+    **AMB-18** (hierarquia RN-18), **AMB-19** (`ShortcutBar` ausente) e **AMB-20**
+    (árvore vs. cards) — cada uma com a interpretação escolhida, racional e risco
+    residual, seguindo o mesmo padrão de AMB-16/AMB-17. Checklist de Pronto do
+    Adendo B atualizado de "2 interpretações" para "5 interpretações (AMB-16 a
+    AMB-20)".
+
+  **Risco residual explícito, carregado adiante** (idêntico nos 3 pontos): se o
+  stakeholder de fato tiver a intenção deliberada de reverter/simplificar RN-18,
+  RF-REF-03 ou RF-REF-05 como parte do redesign v2.0 — intenção que não está
+  registrada em nenhum artefato hoje —, esta decisão precisa ser revertida, e os
+  Lotes 2/4 precisarão ser reestimados pelo Tech Lead nos pontos afetados. Não decido
+  isso por presunção: se qualquer agente (Software Architect, `ux-ui`, Tech Lead,
+  CTO) tiver evidência concreta em contrário, o encaminhamento correto é abrir novo
+  `BLOCKERS.md` ao `business-analyst`/PM, não reinterpretar silenciosamente.
+- **Status**: **Resolvido — 2026-09-04, por `business-analyst`.** `UX-SPEC.md` Seção
+  2.2 (Lotes 2 e 4) pode remover a marcação de "fallback reversível" e tratar RN-18,
+  RF-REF-03 e RF-REF-05 como alvo final confirmado — nenhuma escalação ao PM foi
+  necessária (ambiguidade de fidelidade de mockup a requisito já aceito, não de
+  escopo/objetivo de negócio). Libera o `ux-ui`/Tech Lead para planejar a execução
+  real dos Lotes 2 e 4 sem ressalva quanto a esses 3 pontos.

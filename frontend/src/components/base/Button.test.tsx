@@ -39,4 +39,11 @@ describe("Button", () => {
     render(<Button variant="destructive">Excluir</Button>);
     expect(screen.getByRole("button", { name: "Excluir" })).toHaveClass("bg-danger");
   });
+
+  it("uses the design-system danger token for the destructive variant's hover, never the raw Tailwind ramp (FE-RS-14, UX-03 Achado 1)", () => {
+    render(<Button variant="destructive">Excluir</Button>);
+    const button = screen.getByRole("button", { name: "Excluir" });
+    expect(button.className).toContain("hover:bg-danger-hover");
+    expect(button.className).not.toContain("hover:bg-red-800");
+  });
 });

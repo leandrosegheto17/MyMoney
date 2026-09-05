@@ -1,28 +1,42 @@
 # GUARDRAILS.md
 
-**Status**: **Aprovado, com 1 regra nova em proposta.** G-01 a G-18 foram aprovados
-pelo CTO via `guardrails-governance` no Gate 3 (`PIPELINE-CONVENTIONS.md` §5) —
-2026-09-02, **com G-01 e G-02 reabertos, reescritos e reaprovados em 2026-09-02**
-(mesma data), em consequência do fechamento do Bloqueio 003 (`ADR-012`/`ADR-013`,
-supersede `ADR-001` — ver `CTO-REVIEW.md`, "Gate 2 (Reaberto por Bloqueio 003)" e
-"Fechamento do Gate 2 Reaberto"). **G-01 a G-18 estão todos Aprovados e em vigor,
-sem ressalva de rótulo pendente** (rótulo de G-01/G-02 corrigido em 2026-09-03 —
-`SECURITY-REVIEW.md` `SEC-DEBT-004` — para refletir a aprovação real, já
-confirmada em `CTO-REVIEW.md` linha 986/1072). G-03/G-04 tiveram correção pontual
-de referência de schema/coluna (`mymoney`→`public`, `owner_id`→`user_id`), sem
-alterar o que a regra exige. **G-19 (Seção 8, Autorização de Referência Cruzada
-entre Tabelas Ownable) é proposta nova, submetida ao CTO em 2026-09-03,
-aguardando aprovação** — origem em `SECURITY-REVIEW.md` `SEC-DEBT-002`,
+**Status**: **Aprovado, com 1 regra nova em proposta (G-19).** G-01 a G-18 foram
+aprovados pelo CTO via `guardrails-governance` no Gate 3 (`PIPELINE-CONVENTIONS.md`
+§5) — 2026-09-02, **com G-01 e G-02 reabertos, reescritos e reaprovados em
+2026-09-02** (mesma data), em consequência do fechamento do Bloqueio 003
+(`ADR-012`/`ADR-013`, supersede `ADR-001` — ver `CTO-REVIEW.md`, "Gate 2 (Reaberto
+por Bloqueio 003)" e "Fechamento do Gate 2 Reaberto"). **G-01 a G-18 estão todos
+Aprovados e em vigor, sem ressalva de rótulo pendente** (rótulo de G-01/G-02
+corrigido em 2026-09-03 — `SECURITY-REVIEW.md` `SEC-DEBT-004` — para refletir a
+aprovação real, já confirmada em `CTO-REVIEW.md` linha 986/1072). G-03/G-04 tiveram
+correção pontual de referência de schema/coluna (`mymoney`→`public`,
+`owner_id`→`user_id`), sem alterar o que a regra exige. **G-19 (Seção 8, Autorização
+de Referência Cruzada entre Tabelas Ownable) é proposta nova, submetida ao CTO em
+2026-09-03, aguardando aprovação** — origem em `SECURITY-REVIEW.md` `SEC-DEBT-002`,
 `BLOCKERS.md` Bloqueio 010, `CTO-REVIEW.md` "Revisão de Segurança do Lote MVP".
+**G-20 e G-21 (Seção 9, Redesign Visual — Camada de Apresentação e Fronteira de
+PR) foram aprovados pelo CTO em 2026-09-04**, sem diluição de texto — ver
+`CTO-REVIEW.md`, "Gate 3 (Redesign Visual 'MyMoney v2.0', Grupo A — Lotes 0-4)",
+subseção `guardrails-governance` — origem em `PRD-TECNICO.md`/`SDD.md` Adendo B
+(RN-19/RN-20/RNF-15, `ADR-018`) e em `CTO-REVIEW.md`, "Gate 2 (Redesign Visual
+'MyMoney v2.0', Adendo B)", ressalva 2. O mesmo parecer registra uma condição de
+governança de acompanhamento (não uma terceira regra formal): qualquer
+enfraquecimento/remoção futura de `TASK.md` `DIR-42` (proibição de feature flag
+para este redesign) deve ser escalado ao CTO antes de aplicado, tratado com o mesmo
+rigor de uma mudança de `GUARDRAILS.md` mesmo permanecendo formalmente em
+`TASK.md` — ver `CTO-REVIEW.md`, mesma seção, subseção "Avaliação da
+não-formalização da proibição de feature flag como guardrail (`DET-16`)".
 Ver `CTO-REVIEW.md`, Gate 3 original, subseção `guardrails-governance`, para o
 parecer completo regra a regra da aprovação inicial (G-01 a G-18), e a nova seção
 "Gate 3 (Reaberto por Bloqueio 003)" para o parecer da reescrita de G-01/G-02.
 **Data da proposta inicial**: 2026-09-02. **Data da aprovação inicial**: 2026-09-02.
 **Data da proposta de reabertura (G-01/G-02)**: 2026-09-02. **Data da aprovação da
 reabertura (G-01/G-02)**: 2026-09-02. **Data da proposta de G-19**: 2026-09-03.
-**Data da aprovação de G-19**: pendente.
+**Data da aprovação de G-19**: pendente. **Data da proposta de G-20/G-21**:
+2026-09-04. **Data da aprovação de G-20/G-21**: 2026-09-04.
 **Proposto por**: tech-lead. **Aprovado por**: cto (aprovação inicial e aprovação da
-reabertura de G-01/G-02; G-19 pendente de veredito).
+reabertura de G-01/G-02; G-20/G-21 aprovados em 2026-09-04; G-19 pendente de
+veredito).
 
 Regras inegociáveis do projeto MyMoney. Toda regra abaixo atende aos 4 critérios de
 `guardrails-drafting`: é inegociável (não uma preferência de estilo), tem origem
@@ -245,6 +259,67 @@ cross-usuário por natureza.
   é `SECURITY DEFINER` — checável por leitura direta da migration/policy/trigger,
   mesmo padrão de verificabilidade já usado em G-04/G-05.
 
+## 9. Redesign Visual — Camada de Apresentação e Fronteira de PR
+
+**Nova seção — 2026-09-04, proposta pelo Tech Lead junto do `TASK.md` (Adendo,
+Redesign Visual "MyMoney v2.0"); aprovada pelo CTO em 2026-09-04, sem diluição
+(`CTO-REVIEW.md`, "Gate 3 (Redesign Visual 'MyMoney v2.0', Grupo A — Lotes 0-4)").**
+As 2 regras abaixo formalizam, com verificação objetiva por diff, guardrails que já
+existiam como princípio narrativo em `PRD-TECNICO.md`/`SDD.md` Adendo B e como
+recomendação explícita do Software Architect/CTO — mesmo padrão de origem já usado
+por `G-06`/`G-13` (achado que já era princípio do `SDD.md`, formalizado aqui como
+regra de código verificável).
+
+**G-20 [APROVADO — CTO, "Gate 3 (Redesign Visual 'MyMoney v2.0', Grupo A — Lotes
+0-4)", 2026-09-04]** — Nenhum PR do Redesign Visual
+"MyMoney v2.0" (Lote 0 a Lote 13, `TASK.md` Seção 3.5/3.6) introduz mudança de regra
+de negócio, modelo de dado (tabela/coluna/RLS/Edge Function) ou contrato de API
+(`API-CONTRACT.yaml`). Qualquer divergência de comportamento encontrada durante a
+extração de mockup ou a extrapolação do Grupo B vira requisito funcional nomeado em
+rodada própria (`PRD-TECNICO.md`), nunca implementado silenciosamente como "parte do
+redesign".
+- **Origem**: RN-19, RN-20, RNF-15 (`PRD-TECNICO.md` Adendo B); `SDD.md` Adendo B,
+  Seção B.5/B.7 ("nenhuma mudança de modelo de dados/segurança nesta rodada");
+  `CTO-REVIEW.md`, "Gate 1 (Nova Iniciativa — Redesign Visual 'MyMoney v2.0')"
+  (condição de aceite 1, "Escopo declarado como camada de apresentação... qualquer
+  mudança de regra de negócio/comportamento... precisa ser nomeada como requisito
+  funcional novo").
+- **Verificação objetiva**: o diff de todo PR deste redesign não toca
+  `supabase/migrations/**`, `supabase/functions/**` ou `API-CONTRACT.yaml`; nenhuma
+  tabela/coluna/RPC/Edge Function nova aparece associada a nenhum lote — checável por
+  leitura direta do diff, mesmo padrão de verificabilidade já usado em G-04/G-19.
+
+**G-21 [APROVADO — CTO, "Gate 3 (Redesign Visual 'MyMoney v2.0', Grupo A — Lotes
+0-4)", 2026-09-04]** — Todo PR de qualquer lote deste
+redesign contém exclusivamente arquivos de apresentação
+(`frontend/src/components/**`, `frontend/src/pages/**`, `frontend/src/index.css`,
+assets de fonte/ícone) e corresponde a exatamente um lote do `TASK.md` (nunca mistura
+tarefas de dois lotes diferentes no mesmo PR, nem mescla um lote parcialmente
+concluído com o início de outro). Nenhum PR deste redesign toca
+`frontend/src/lib/api/**`, `frontend/src/lib/auth/**`, migrations Supabase ou Edge
+Functions.
+- **Origem**: `SDD.md` Adendo B, Seção B.1, princípio 3 ("Fronteira de PR = fronteira
+  de camada de apresentação" — recomendação do Software Architect ao Tech Lead);
+  `CTO-REVIEW.md`, "Gate 2 (Redesign Visual 'MyMoney v2.0', Adendo B)", ressalva 2
+  ("recomendo ao Tech Lead formalizá-la como entrada em `GUARDRAILS.md`... não
+  deixá-la como recomendação solta sem rastro").
+- **Verificação objetiva**: mesmo mecanismo de G-20 (diff restrito aos caminhos de
+  apresentação listados), mais a correspondência 1:1 entre PR e lote da Seção 3 do
+  `TASK.md` — checável por leitura direta do diff e da tabela de tarefas.
+
+**Nota de avaliação — proibição de feature flag (`ADR-018`) não proposta como
+guardrail**: o Tech Lead avaliou e decidiu **não** propor uma terceira regra formal
+cobrindo a proibição de feature flag para este redesign, apesar de `ADR-018` fixar
+essa decisão com firmeza. Racional (`TASK.md` Seção 6.2, `DET-16`): o próprio
+`ADR-018` já prevê reabertura condicionada a um requisito futuro explícito do
+stakeholder — não é uma regra absoluta e sem exceção como `G-01`/`G-02`/`G-06`, é uma
+decisão de arquitetura já registrada e imutável como ADR, com escape hatch
+documentado. Formalizá-la como guardrail duplicaria a mesma decisão em dois
+artefatos com semânticas de imutabilidade diferentes, sem ganho real de
+rastreabilidade — não atende ao critério de "inegociável, sem escape hatch" que
+`guardrails-drafting` exige. Registrado aqui para rastreabilidade da avaliação, não
+como regra pendente de aprovação.
+
 ---
 
 ## Log de Alterações
@@ -257,3 +332,4 @@ Preenchida pelo CTO no momento da aprovação (`guardrails-governance`,
 | 2026-09-02 | tech-lead | cto | Aprovação inicial do documento completo (G-01 a G-18) | Gate 3 (`guardrails-governance`, `CTO-REVIEW.md`): as 18 regras atendem aos 4 critérios de `guardrails-drafting` (inegociável, origem rastreável, verificável objetivamente, abrangência de projeto); as 4 regras recomendadas por mim no Gate 2 (SPK-001 antes de migration, ALTER/DROP fora de `mymoney` só com minha revisão, confirmação humana como guardrail de código, retenção/descarte antes da Fase 3) estão presentes sem diluição — G-01, G-02, G-06, G-13 respectivamente | Vigente — sujeita a nova aprovação minha em caso de proposta de exceção ou mudança estrutural futura |
 | 2026-09-02 | tech-lead | cto | Nota específica sobre G-13 (Retenção e Descarte de Dado) | G-13 já nasce marcada "[Condição satisfeita]" — o bloqueio que ela documentava (`Bloqueio 002`) foi resolvido via `ADR-011` antes mesmo deste Gate 3. Aprovo a regra como registro de rastreabilidade permanente, não como bloqueio ativo — não deve ser removida do documento, pois documenta a origem da política de retenção que `BE-F3-08`/`BE-F3-09`/`BE-F3-10` implementam | Vigente como registro histórico; sem efeito de bloqueio |
 | 2026-09-02 | tech-lead | cto | Aprovação da reescrita de G-01 e G-02 (reabertura por Bloqueio 003 — `ADR-012`/`ADR-013`, supersede `ADR-001`) | `guardrails-governance` pontual (`CTO-REVIEW.md`, "Gate 3 (Reaberto por Bloqueio 003)"): as duas regras reescritas atendem aos 4 critérios de `guardrails-drafting` (inegociável, origem rastreável, verificável objetivamente, abrangência de projeto) — origem em `ADR-012` (tabela de auditoria, "Preservação de Dado Real") e nas condições de aceite nº 1 e nº 2 que eu mesmo fixei no parecer "Gate 2 (Reaberto por Bloqueio 003)"; nenhuma diluição do espírito das regras originais (nenhuma migration sem auditoria prévia satisfeita; nenhuma alteração destrutiva sem minha revisão explícita) — só o escopo textual mudou de `mymoney` para `public`, coerente com `ADR-012`. Aprovado junto com `capacity-and-timeline-validation` pontual sobre a reestimativa de `TASK.md` (+1,25 dia histórico) no mesmo parecer — libera o fechamento do Bloqueio 003 (`BLOCKERS.md`) e a retomada de `BE-M-00` pelo Backend | Vigente — sujeita a nova aprovação minha em caso de proposta de exceção ou mudança estrutural futura |
+| 2026-09-04 | tech-lead | cto | Aprovação de G-20 e G-21 (Seção 9, Redesign Visual "MyMoney v2.0" — Camada de Apresentação e Fronteira de PR) | `guardrails-governance` (`CTO-REVIEW.md`, "Gate 3 (Redesign Visual 'MyMoney v2.0', Grupo A — Lotes 0-4)"): as duas regras atendem aos 4 critérios de `guardrails-drafting` (inegociável, origem rastreável — RN-19/RN-20/RNF-15 e minha condição de aceite 1 no Gate 1 desta iniciativa para G-20; `SDD.md` Adendo B B.1 item 3 e minha ressalva 2 no Gate 2 desta iniciativa para G-21 —, verificável objetivamente por diff, abrangência restrita à iniciativa inteira — mesmo padrão de escopo já aceito em `G-08`). Zero diluição: `G-21` preserva a correspondência 1:1 PR↔lote exatamente como recomendei. Aprovado junto com `capacity-and-timeline-validation` restrito aos Lotes 0-4 (18.5 dias ideais, Aprovado com ressalvas) no mesmo parecer. Registrada também, no mesmo parecer, uma condição de governança de acompanhamento (não uma terceira regra formal): qualquer enfraquecimento/remoção futura de `TASK.md` `DIR-42` (proibição de feature flag deste redesign) deve ser escalado ao CTO antes de aplicado | Vigente — vinculante para todo PR do redesign a partir deste registro; sujeita a nova aprovação minha em caso de proposta de exceção ou mudança estrutural futura; condição de acompanhamento sobre `DIR-42` registrada em `CTO-REVIEW.md`, não em nova regra desta tabela |

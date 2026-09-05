@@ -19,8 +19,11 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
     "bg-white text-primary border border-primary hover:bg-neutral-50 disabled:border-neutral-300 disabled:text-neutral-400",
   ghost:
     "bg-transparent text-neutral-700 hover:bg-neutral-100 disabled:text-neutral-400",
+  // FE-RS-14 (`UX-03` Achado 1): hover usa o tom escurecido do próprio token
+  // `danger` (`--color-danger-hover`, `index.css`), nunca a rampa padrão do
+  // Tailwind (`hover:bg-red-800`), que não acompanhava a paleta v2.0.
   destructive:
-    "bg-danger text-white hover:bg-red-800 disabled:bg-neutral-300 disabled:text-neutral-500",
+    "bg-danger text-white hover:bg-danger-hover disabled:bg-neutral-300 disabled:text-neutral-500",
 };
 
 /**

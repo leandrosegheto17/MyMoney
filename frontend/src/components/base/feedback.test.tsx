@@ -19,6 +19,22 @@ describe("Badge", () => {
     render(<Badge tone="warning">⚠ 82% do teto</Badge>);
     expect(screen.getByText("⚠ 82% do teto")).toBeInTheDocument();
   });
+
+  it.each([
+    ["income", "bg-income-soft"],
+    ["expense", "bg-expense-soft"],
+    ["warning", "bg-warning-soft"],
+    ["danger", "bg-danger-soft"],
+    ["primary", "bg-primary-soft"],
+  ] as const)(
+    "uses the -soft design-system token for tone=%s, never the raw Tailwind ramp (FE-RS-14, UX-03 Achado 1)",
+    (tone, expectedClass) => {
+      render(<Badge tone={tone}>status</Badge>);
+      const badge = screen.getByText("status");
+      expect(badge.className).toContain(expectedClass);
+      expect(badge.className).not.toMatch(/bg-(red|green|amber|blue)-\d{2,3}/);
+    },
+  );
 });
 
 describe("Skeleton", () => {
@@ -53,5 +69,27 @@ describe("Alert", () => {
   it("uses role=status for informational variant", () => {
     render(<Alert variant="info">Sincronizado agora</Alert>);
     expect(screen.getByRole("status")).toHaveTextContent("Sincronizado agora");
+  });
+
+  it.each([
+    ["info", "bg-primary-soft"],
+    ["warning", "bg-warning-soft"],
+    ["danger", "bg-danger-soft"],
+    ["success", "bg-income-soft"],
+  ] as const)(
+    "uses the -soft design-system token for variant=%s, never the raw Tailwind ramp (FE-RS-14, UX-03 Achado 1)",
+    (variant, expectedClass) => {
+      render(<Alert variant={variant}>mensagem</Alert>);
+      const alert = screen.getByRole(variant === "warning" || variant === "danger" ? "alert" : "status");
+      expect(alert.className).toContain(expectedClass);
+      expect(alert.className).not.toMatch(/bg-(red|green|amber|blue)-\d{2,3}/);
+    },
+  );
+
+  it("renders a real v2.0 (terracota) danger palette, not the generic Tailwind red, when used in a CRUD screen error state (ex. AccountsPage)", () => {
+    render(<Alert variant="danger">Não foi possível carregar as contas</Alert>);
+    const alert = screen.getByRole("alert");
+    expect(alert.className).toContain("bg-danger-soft");
+    expect(alert.className).not.toContain("bg-red-50");
   });
 });

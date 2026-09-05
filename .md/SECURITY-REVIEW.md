@@ -2924,3 +2924,261 @@ reabertas por esta rodada.
       novo exigido por este lote, Seção 4 já cobre o projeto
 - [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
       nenhum achado desta natureza
+
+---
+
+### 1.23 — `static-security-analysis` (SAST + dependências + secrets) — "Lote 0 — Design System (Redesign v2.0)" (`FE-RS-01`, `02`, `03`, `04`, `14`) — em paralelo ao QA — 2026-09-04
+
+**Escopo desta rodada**: `frontend/src/index.css` (nova paleta de tokens v2.0 —
+substituição integral do bloco `@theme`), `frontend/src/components/base/Num.tsx`
+(novo primitivo de renderização numérica), `frontend/src/components/base/
+{Alert,Badge,Button}.tsx` (migração de cor para tokens `-soft`/`danger-hover`),
+`frontend/src/components/domain/OfflineSyncBadge.tsx` (idem),
+`frontend/src/layout/AppLayout.tsx` (reestruturação de navegação — sidebar
+desktop de 4 grupos, bottom nav mobile, botão "+" fixo no cabeçalho). Duas
+dependências novas: `@fontsource/public-sans`, `@fontsource/newsreader`. Rodada
+só de `static-security-analysis`, em paralelo ao QA (`QA-RS-01`/`02`/`03`) — não
+espera o veredito dele; as 4 skills de auditoria completa
+(`security-requirement-validation`, `compliance-validation`,
+`sensitive-data-exposure-check`, `finding-severity-classification`) ficam para
+quando o QA aprovar (Aprovado/Aprovado com ressalvas) as 5 tarefas deste lote em
+`QA-REPORT.md`.
+
+**Verificação de conformidade com `GUARDRAILS.md` G-20/G-21 (RN-19/RN-20/RNF-15,
+`ADR-018`) — pré-condição estrutural desta iniciativa, checada antes do resto**:
+`git status`/`git diff --stat` confirmam que o working tree deste lote toca
+exclusivamente `frontend/src/components/base/**`, `frontend/src/components/
+domain/OfflineSyncBadge.tsx`, `frontend/src/layout/AppLayout.tsx`,
+`frontend/src/index.css`, `frontend/package.json`/`package-lock.json` — nenhum
+arquivo em `supabase/migrations/**`, `supabase/functions/**`,
+`frontend/src/lib/api/**`, `frontend/src/lib/auth/**` ou `.md/API-CONTRACT.yaml`
+(grep dirigido confirmou zero ocorrência desses caminhos no `git status`).
+**G-20/G-21 respeitados**: nenhuma mudança de regra de negócio, modelo de dado
+ou contrato de API; PR contém exclusivamente arquivos de apresentação.
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| RN-20 (nenhuma rota/permissão/comportamento de navegação muda) | Comparei as 13 rotas referenciadas pelos 5 grupos de `DESKTOP_NAV_GROUPS` + 4 `MOBILE_DESTINATIONS` de `AppLayout.tsx` contra `frontend/src/router/router.tsx` | Todas as rotas (`/`, `/lancamentos`, `/contas`, `/formas-pagamento`, `/categorias`, `/orcamento`, `/recorrencias`, `/contas-fixas`, `/metas`, `/cartoes`, `/parcelamentos`, `/relatorios/entradas-saidas`, `/configuracoes`) já existiam identicamente em `router.tsx` antes desta rodada — nenhuma rota nova, removida ou redirecionada | Passa |
+| XSS via nome de categoria/descrição/valor renderizado nos 5 componentes tocados | Grep dirigido por `dangerouslySetInnerHTML`/`innerHTML`/`eval(`/`document.write` em `index.css`, `Num.tsx`, `Alert.tsx`, `Badge.tsx`, `Button.tsx`, `OfflineSyncBadge.tsx`, `AppLayout.tsx` | Zero ocorrências; todo texto dinâmico (`children`, `statusText`, `item.description`, `item.date`, `label`) chega ao DOM só como filho de JSX puro — React escapa por padrão | Passa |
+| Segredos/tokens/URLs de serviço hardcoded | Grep dirigido por padrão de chave/token/`Bearer`/URL de serviço (`sk_`, `api[_-]?key`, `secret`, `password`, `supabase\.co`, `https?://`) nos 7 arquivos do lote | Zero ocorrências | Passa |
+| Armazenamento local (`localStorage`/`sessionStorage`) | Grep dirigido nos 7 arquivos | Zero ocorrências — `OfflineSyncBadge` continua delegando a fila offline ao Dexie/IndexedDB via `useOfflineQueue` (módulo fora do escopo deste lote, comportamento não tocado) | Passa |
+| Logs client-side (`console.*`) | Grep dirigido nos 7 arquivos | Zero ocorrências | Passa |
+| Service worker (Workbox) ainda exclui `/rest/`/`/auth/` do cache após a mudança de fonte/navegação | Leitura direta de `vite.config.ts` (não modificado por este lote, mas revalidado porque `FE-RS-02` exige que os novos `.woff2` entrem no pré-cache) | `globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"]` já cobre os novos arquivos de fonte; `runtimeCaching` mantém `NetworkOnly` para `/rest/`/`/auth/`, inalterado — nenhuma resposta de API passa a ser cacheada pelo shell PWA por causa da fonte nova | Passa |
+| Fonte self-hosted (`@fontsource/*`) em vez de CDN de terceiro (Google Fonts) | Leitura de `index.css:1-18` | `@import "@fontsource/public-sans/*.css"`/`"@fontsource/newsreader/*.css"` — pacotes ficam no bundle da própria aplicação; nenhuma requisição de rede a `fonts.googleapis.com`/`fonts.gstatic.com` no runtime | Passa — nota positiva: elimina o vazamento de IP/user-agent do usuário a um CDN de terceiro a cada carregamento de tela (superfície de exposição de dado a terceiro a menos, alinhado à minimização de dado ainda que este lote não processe PII) |
+| `Alert`/`Badge`/`Button` migrados por `FE-RS-14` não introduzem vetor novo de leitura cross-tenant via `aria-*`/props | Leitura direta dos 3 componentes — são primitivos puros, recebem `children`/`variant`/`tone` do chamador, sem chamada a API/RPC própria | `Alert.tsx`, `Badge.tsx`, `Button.tsx` não importam nenhum módulo de `lib/api/**` — apenas renderizam o que o componente pai já filtrou (RLS já auditada em rodadas anteriores para cada tela consumidora) | Passa |
+
+**Análise de dependência — `@fontsource/public-sans`, `@fontsource/newsreader`
+(as 2 dependências novas pedidas nesta rodada)**:
+
+- **Procedência**: ambas resolvem em `package-lock.json` diretamente de
+  `https://registry.npmjs.org/` (não um mirror/fork de terceiro), com hash
+  `integrity` (`sha512`) presente e íntegro. `license: "OFL-1.1"` (SIL Open Font
+  License) — licença padrão e esperada para pacote de distribuição de fonte,
+  sem termo restritivo a uso comercial. `funding.url` aponta para
+  `github.com/sponsors/ayuhito` — mantenedor real e conhecido do projeto
+  Fontsource (`fontsource.org`), não uma conta anônima/recém-criada; nome do
+  pacote (`@fontsource/public-sans`, `@fontsource/newsreader`) é o escopo oficial
+  do projeto, não há indício de typosquat (nome com escopo `@fontsource/`
+  consistente com dezenas de outras fontes já publicadas pelo mesmo autor).
+- **Superfície de supply-chain**: inspecionei o `package.json` publicado de cada
+  pacote (via `require.resolve`, não só o manifesto do projeto) — **nenhum script
+  de ciclo de vida npm** (`postinstall`/`preinstall`/`prepare`) e **zero
+  dependências transitivas** (`dependencies: {}`) em ambos. Superfície de
+  supply-chain mínima possível para uma dependência de terceiro — não executa
+  código algum na instalação, não puxa nenhum pacote adicional.
+- **Vulnerabilidade conhecida**: `npm audit --omit=dev` sobre
+  `frontend/package.json`/`package-lock.json` → **0 vulnerabilidades** em toda a
+  árvore de produção, incluindo as duas dependências novas.
+- **Conteúdo**: ambos os pacotes distribuem exclusivamente arquivos estáticos
+  (`.css` + `.woff2`) — nenhum arquivo `.js` executável no pacote além de
+  metadados; consistente com o propósito declarado (fonte self-hosted, `DIR-43`).
+- **Resultado**: **sem achado.** Procedência legítima, superfície de
+  supply-chain mínima (zero scripts, zero transitivos), zero vulnerabilidade
+  conhecida.
+
+**Nota sobre `lucide-react@^1.41.0` (dependência já introduzida em rodada
+anterior, 1.17/1.18/1.19/1.21, sempre classificada como "fora do escopo" por não
+ser consumida pelos arquivos auditados naquelas rodadas)**: nesta rodada, pela
+primeira vez, `lucide-react` **é de fato consumida dentro do escopo auditado**
+(`AppLayout.tsx` importa `Home`/`FileText`/`Target`/`MoreHorizontal`/`Plus` —
+`FE-RS-03`, substituição de emoji por ícone line-style). Verifiquei agora o que
+as rodadas anteriores não precisavam verificar: `package-lock.json` resolve de
+`registry.npmjs.org` com `integrity` presente, `license: "ISC"` (permissiva),
+`dependencies: {}` (zero transitivo); `package.json` publicado só declara
+scripts de build interno do próprio repositório-fonte da lib (não hooks de
+ciclo de vida do npm — nenhum `postinstall`/`preinstall`); `npm audit` já
+confirmou 0 vulnerabilidades para esta dependência (parte da mesma árvore
+auditada acima). **Resultado: sem achado** — mesmo padrão de baixo risco das
+duas dependências pedidas nesta rodada, agora formalmente verificado por estar,
+de fato, em uso dentro de um lote auditado.
+
+**Nenhum achado nesta rodada, de nenhuma severidade.** Confirmo os pontos
+pedidos: RN-19/RN-20/G-20 (zero mudança de backend/schema/RLS/auth, zero mudança
+de rota/comportamento de navegação); dependências novas (`@fontsource/*`) —
+procedência legítima, zero vulnerabilidade conhecida, superfície de supply-chain
+mínima; nenhum vetor de XSS, segredo hardcoded ou exposição de dado sensível
+introduzido pelos 7 arquivos do lote.
+
+**Sem achado de severidade alta/crítica — nenhuma pausa obrigatória do
+orquestrador é acionada por esta rodada.**
+
+**Checklist — rodada 1.23 (`static-security-analysis`, "Lote 0 — Design System
+(Redesign v2.0)", em paralelo ao QA)**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto — nenhum achado nesta
+      rodada
+- [x] Nenhum achado de compliance obrigatório (LGPD) pendente — não avaliado
+      formalmente nesta rodada (skill fora de escopo, aguarda gate de QA);
+      nenhum indício levantado durante o SAST (lote não introduz/altera dado
+      pessoal, confirmado por G-20)
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado nesta rodada
+- [x] Nenhum requisito operacional novo para o DevOps surgiu desta rodada —
+      fontes self-hosted não exigem configuração de rede/CDN externa
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito do lote (parcial, só `static-security-analysis`): Aprovado, sem
+débito.** Fica condicionado, como em toda rodada anterior deste padrão, à
+auditoria completa (as 4 skills restantes) assim que o QA aprovar (Aprovado/
+Aprovado com ressalvas) as 5 tarefas deste lote (`FE-RS-01`, `02`, `03`, `04`,
+`14`) em `QA-REPORT.md`.
+
+---
+
+### 1.24 — Auditoria completa (veredito de lote) — "Lote 0 — Design System
+(Redesign v2.0)" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 14.8 (revalidação pontual, 2026-09-05) aprovou
+(Aprovado, 5/5 — `FE-RS-01`/`02`/`03`/`04`/`14`) o lote, fechando o **Reprovado**
+anterior da Seção 14.6 (`QA-BUG-001`, Alta — regressão de contraste WCAG 2.1 AA em
+`--color-neutral-500`, introduzida por `FE-RS-01`, propagada a 29 arquivos de
+produção). A correção (`#6E726B`, recalculado e confirmado ≥4,5:1 sobre `--surface`
+e `--bg` pelo próprio QA de forma independente, com ordem monotônica da rampa
+400/500/600 preservada) libera a auditoria completa de DevSecOps — as 4 skills além
+de `static-security-analysis`, já rodada na Seção 1.23 — respeitando meu próprio gate
+de entrada (não auditar um build que o QA ainda não validou funcionalmente).
+
+**Reconfirmação de escopo antes de auditar**: `git status`/`git log` sobre os 7
+caminhos do lote (`frontend/src/index.css`,
+`frontend/src/components/base/{Num,Alert,Badge,Button}.tsx`,
+`frontend/src/components/domain/OfflineSyncBadge.tsx`,
+`frontend/src/layout/AppLayout.tsx`) não mostram nenhum arquivo adicional tocado
+entre a rodada 1.23 e este fechamento — a correção de `QA-BUG-001` foi aplicada
+dentro do próprio `index.css` já capturado no diff original do lote, não abriu
+escopo novo. Reexecutei o grep dirigido (`dangerouslySetInnerHTML`/`innerHTML`/
+`eval(`/`console\.*`/`localStorage`/`sessionStorage`/padrão de segredo) nos 7
+arquivos: **zero ocorrências**, mesmo resultado de 1.23. Li o valor final de
+`--color-neutral-500` diretamente em `index.css` (`#6e726b`) e confirmei que bate
+com o que o QA reporta como corrigido.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md` G-20/G-21
+
+| Requisito | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| `SDD.md` Seção 7 — Autenticação/Autorização/Criptografia/Isolamento Multi-Tenant | Nenhum dos 4 requisitos é tocado por este lote (camada de apresentação pura) | `git diff --stat` do lote não contém `supabase/**`, `frontend/src/lib/api/**`, `frontend/src/lib/auth/**` | Passa (fora de escopo, confirmado por diff, não presumido) |
+| `G-20` (nenhuma mudança de regra de negócio, modelo de dado ou contrato de API) | Reconfirmado nesta rodada, não só herdado de 1.23 | Zero arquivo em `supabase/migrations/**`, `supabase/functions/**` ou `.md/API-CONTRACT.yaml` no diff do lote | Passa |
+| `G-21` (PR só arquivos de apresentação, correspondência 1:1 PR↔lote) | 100% dos 7 arquivos tocados são `components/**`, `layout/**`, `index.css` ou dependência de fonte (`package.json`/`package-lock.json`) | Mesmo `git diff --stat` | Passa |
+| RN-19/RN-20 (nenhuma rota/permissão/comportamento de navegação muda) | Já verificado linha a linha em 1.23 (13 rotas de `AppLayout.tsx` idênticas a `router.tsx`); reconfirmado sem mudança nesta rodada | Seção 1.23, tabela, linha 1 | Passa |
+
+**Nenhum requisito de arquitetura de segurança da Seção 7 do `SDD.md` é relevante a
+este lote** — natureza 100% de apresentação confirmada de forma verificável (diff),
+não presumida a partir da descrição da tarefa.
+
+#### `compliance-validation` — LGPD
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Minimização de dado — nenhum campo novo de PII introduzido | `Num.tsx` só formata valores numéricos já existentes (moeda em centavos, percentual, contagem) recebidos do componente chamador — não acrescenta coleta nem armazenamento de dado novo; `Alert`/`Badge`/`Button`/`OfflineSyncBadge` são primitivos de apresentação, recebem `children`/`variant`/props do chamador | Passa |
+| Base legal/titular do dado exibido | Não aplicável — nenhuma mudança em captura, processamento ou finalidade de dado pessoal; o dado financeiro exibido pelos componentes (já do próprio stakeholder, mesmo enquadramento de `CTO-REVIEW.md` linha 307) não muda de mãos nem de forma de tratamento | Passa |
+| Direito ao esquecimento / exclusão de conta | Não aplicável — nenhuma tela ou fluxo de exclusão de conta tocado por este lote | Passa (fora de escopo) |
+| Consentimento | Não aplicável — nenhuma coleta de dado novo | Passa (fora de escopo) |
+
+**Nenhum achado de compliance obrigatório (LGPD) neste lote** — nada fica pendente
+como débito, não há gap a resolver.
+
+#### `sensitive-data-exposure-check`
+
+| Superfície | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Payload de API | Nenhum dos 7 arquivos deste lote importa `lib/api/**` | Grep de `^import` nos 5 componentes tocados (Alert/Badge/Button sem import de módulo de domínio; `OfflineSyncBadge` só importa `lib/offline/useOfflineQueue`/`lib/offline/sync` — módulos não tocados por este lote, já auditados em rodada anterior) | Passa |
+| Mensagens de erro | `Alert.tsx`/`Badge.tsx` são primitivos puros — recebem texto já formatado pelo chamador, não geram nem formatam mensagem de erro própria | Leitura direta dos 2 arquivos | Passa |
+| Logs client-side | Zero `console.*` nos 7 arquivos | Grep dirigido, reconfirmado nesta rodada (mesmo resultado de 1.23) | Passa |
+| Armazenamento local (`localStorage`/`sessionStorage`/IndexedDB) | Zero ocorrência nos 7 arquivos; `OfflineSyncBadge` continua delegando à fila offline (Dexie/IndexedDB) via `useOfflineQueue`, módulo não tocado por este lote | Grep dirigido, reconfirmado | Passa |
+| Renderização de dado dinâmico (XSS) | Zero `dangerouslySetInnerHTML`/`innerHTML`/`eval(`/`document.write` nos 7 arquivos | Grep dirigido, reconfirmado | Passa |
+| Fonte self-hosted (`@fontsource/*`) | Já avaliado em 1.23 como redução líquida de superfície de exposição — elimina requisição de rede a CDN de terceiro (Google Fonts) a cada carregamento de tela | Seção 1.23 | Passa (nota positiva, não achado) |
+
+**Nenhum vazamento de dado sensível via API, log, armazenamento local ou
+renderização neste lote.**
+
+#### `finding-severity-classification`
+
+O QA registrou 2 achados sobre este lote (`QA-REPORT.md` Seção 14.4/14.6/14.8).
+Avalio explicitamente a implicação de segurança de cada um, como exigido pelo meu
+escopo:
+
+- **`QA-BUG-001`** (Alta, WCAG — regressão de contraste em `--color-neutral-500`):
+  **classificação de segurança: nenhuma.** É um achado de acessibilidade/contraste
+  de cor, não de autorização, exposição de dado ou integridade — o texto em baixo
+  contraste continha exatamente o mesmo dado (rótulo/valor) que o resto da UI já
+  exibia com contraste adequado; não há informação oculta, vazada ou exposta de
+  forma que comprometa confidencialidade, integridade ou disponibilidade. **Já
+  corrigido e revalidado de forma independente pelo QA** (Seção 14.8 —
+  `#6E726B`, ≥4,5:1 confirmado sobre os 2 fundos onde o token é usado, ordem
+  monotônica da rampa preservada) antes de chegar a esta auditoria — nenhum achado
+  em aberto herdado, nenhum novo débito de segurança gerado.
+- **`QA-DEBT-014`** (Baixa, `--shadow-elevation-md` com parâmetro `spread-radius`
+  divergente do valor literal de `UX-SPEC.md`): **classificação de segurança:
+  nenhuma.** É imprecisão de valor de token visual (sombra), sem qualquer
+  implicação de autorização/exposição/integridade de dado. **Já corrigido e
+  fechado pelo QA** no mesmo ciclo da correção de `QA-BUG-001` (Seção 14.8.4).
+
+**Confirmado: nenhum achado de severidade alta/crítica, nesta rodada nem herdado,
+em nenhum dos 7 arquivos do lote.**
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+Consolidando o achado da análise estática (1.23 — nenhum achado) com os 3 checks
+acima (nenhum achado novo de severidade alta/crítica, nenhum achado de compliance
+obrigatório, nenhum vazamento de dado sensível, os 2 achados do QA reclassificados
+como sem componente de segurança e já fechados):
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado — nada fica pendente como
+  débito, não há gap a resolver.
+- **Exposição de dado sensível**: nenhum achado.
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — este lote
+  não introduz Edge Function, secret, dependência de rede externa (fonte
+  self-hosted elimina, não adiciona, dependência de CDN de terceiro) nem storage
+  novo; Seção 4 já cobre o que é aplicável ao projeto.
+
+**Veredito do lote: Aprovado, sem débito de segurança.** As 5 tarefas
+(`FE-RS-01`, `02`, `03`, `04`, `14`) estão liberadas para o fechamento formal do
+lote pelo Tech Lead (`TASK.md` Seção 7) do ponto de vista de segurança.
+`QA-BUG-001`/`QA-DEBT-014` permanecem débitos de UX/acessibilidade sob
+responsabilidade do Frontend/QA, já fechados por eles — não geram nenhum
+`SEC-DEBT-*` novo neste documento.
+
+**Sinalização ao CTO (paralela, não pré-requisito)**: nenhuma — este lote não gera
+achado de relevância estratégica (nenhum achado de segurança, e os 2 achados do QA
+não têm componente de segurança nem decisão de negócio envolvida). As sinalizações
+já registradas na Seção 5 permanecem válidas e não são reabertas por esta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado de
+      compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado de segurança nesta rodada (`QA-BUG-001`/
+      `QA-DEBT-014` são débitos de UX/acessibilidade, já corrigidos e fechados
+      pelo QA/Frontend, sem componente de segurança)
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum novo
+      exigido por este lote, Seção 4 já cobre o projeto
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável, nenhum
+      achado desta natureza
+
+**Veredito final do Lote 0 ("Design System, Redesign v2.0") do ponto de vista de
+DevSecOps: Aprovado, sem débito.** Nenhuma pré-condição de deploy pendente por
+parte de segurança/compliance.

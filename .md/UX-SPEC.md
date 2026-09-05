@@ -81,6 +81,53 @@ mapeada).
 > desses três itens exige fluxo novo, só mudança de wireframe (Seção 2), registrada
 > como tal abaixo.
 
+> **Nota de extensão (2026-09-04, Redesign Visual "MyMoney v2.0" — `PRD-TECNICO.md`
+> Adendo B, `SDD.md` Adendo B, ADR-017/ADR-018, `CTO-REVIEW.md` Gate 2 desta
+> iniciativa "Aprovado com ressalvas")**: os 4 lotes do Grupo A (RF-RS-01 a 04)
+> **não introduzem fluxo de usuário novo** — cada um reaplica a camada visual sobre
+> um fluxo já mapeado (`UX-FL-01`/`UX-FL-21` para Lançamentos, Lote 2; fluxos de
+> CRUD estrutural da Seção 1.2 para Dashboard/Contas & Cartões/Categorias, Lotes
+> 1/3/4), confirmando RN-20 (nenhuma regra de negócio ou fluxo já fixado é
+> reaberto). Nenhum `UX-FL-NN` novo é criado por este redesign — a mudança é só de
+> wireframe/token, registrada na Seção 2 e na Seção 3.0. O Lote 0 (RF-RS-00,
+> fundação do design system) também não é um fluxo de usuário — é processo de
+> trabalho do próprio `ux-ui`, já diagramado pelo BA como `FL-08`
+> (`PRD-TECNICO.md` Adendo B), sem contraparte de tela. O Grupo B (Lotes 5-13)
+> recebe diretrizes leves de aplicação do design system (Seção 2.3), sem RF/AC
+> tela a tela, conforme resolução do CTO ao `BLOCKERS.md` Bloqueio 021.
+>
+> **Nota de execução — limitação de ferramenta nesta rodada, não uma decisão de
+> design**: RF-RS-00 AC1/AC2 e RF-RS-01 a 04 AC2 pressupõem acesso visual direto do
+> `ux-ui` aos 8 artboards do canvas Claude Design ("MyMoney v2.0 — Mockups"). Nesta
+> sessão de trabalho, a ferramenta de leitura de artifact necessária para abrir
+> esse canvas **não está disponível** no ambiente de execução deste agente — uma
+> tentativa de acesso via busca web genérica ao link do canvas retornou apenas o
+> invólucro da página (sem conteúdo visual/artboards), confirmando a
+> indisponibilidade, não uma escolha de não tentar. É a mesma classe de limitação
+> que o BA já registrou para si mesmo (risco B6.3, `PRD-TECNICO.md` Adendo B: "BA
+> também não tem acesso visual ao canvas nesta rodada") e que o Software Architect
+> também registrou (`SDD.md` Adendo B, B6.3/B6.10) — mas, aqui, atinge diretamente
+> o dono natural da extração (`ux-ui`), que é quem deveria resolvê-la. Consequência
+> aplicada de forma consistente em toda esta extensão do documento:
+> 1. Nenhum valor de token (cor/tipografia/raio/elevação) é inventado a partir de
+>    uma paleta que não foi vista — a Seção 3.0/3.1 **estende** o conjunto de
+>    tokens já vigente e validado em produção (repaginada 2026-09-04), em vez de
+>    substituí-lo por valores fabricados (decisão exigida explicitamente por
+>    RF-RS-00 AC1, nunca deixada implícita).
+> 2. A comparação "linha a linha" contra cada artboard (meta N2, RF-RS-01 a 04
+>    AC2) permanece **ação pendente explícita**, não escondida — mesmo tratamento
+>    já dado ao baseline de rolagem M4 (RF-REF-01 AC4) na revisão anterior deste
+>    documento.
+> 3. A validação de contraste de "nova paleta" (RF-RS-00 AC3) não pode ser fechada
+>    como um evento novo nesta rodada porque não há paleta nova a validar — os
+>    tokens de cor já vigentes já foram validados quanto a contraste na revisão de
+>    2026-09-04 (Seção 5); essa validação permanece o estado de fato até que
+>    acesso visual real ao canvas confirme se os mockups pedem algo além disso.
+>
+> Ver Seção 3.0 para o detalhamento da fundação do Lote 0 sob esta restrição, e
+> Seção 7.2 para o registro formal desta pendência como restrição de execução (não
+> um conflito com o Software Architect).
+
 ### 1.2 Fluxos de CRUD estrutural (mapeados pelo UX/UI, sem diagrama próprio no BA por serem simples, mas com tela obrigatória)
 
 | Fluxo UX | Descrição | Telas | Requisitos | Fase |
@@ -322,6 +369,53 @@ S-AUTH-02 (wireframe)
 >   permanecem exatamente como já especificados — reaproveitados sem alteração,
 >   tanto a partir do card quanto de dentro de `S-CAT-01a`.
 
+> **`S-CAT-01` — Redesign visual v2.0 (Lote 4, RF-RS-04) [REVISADO, 2026-09-04,
+> Redesign Visual "MyMoney v2.0" — resolução final do Bloqueio 023]**: leitura
+> direta de `Categorias.dc.html` (desktop) e `CategoriasMobile.dc.html`
+> (mobile).
+>
+> **Achado registrado e resolvido (`BLOCKERS.md` Bloqueio 023, por
+> `business-analyst`: mockup desatualizado/incompleto, não mudança de
+> comportamento)**: os dois artboards mostram uma **lista-árvore expansível**
+> — não a grade de `CategoryCard` (Padrão C) que RF-REF-05 já implantou em
+> produção desde o Pacote de Refinamento:
+> - **Desktop**: 2 colunas lado a lado dentro de 1 `Card` cada — "Despesas" à
+>   esquerda, "Receitas" à direita. Dentro de "Despesas": cada categoria de
+>   topo-nível é uma linha (`catRow`: ponto colorido + nome 14px semibold à
+>   esquerda, valor em `<Num format="currency">` 13px `--text-2` + chevron `›`
+>   à direita), seguida pelas subcategorias indentadas 28px (`childRow`: nome
+>   13px `--text-2`, valor em `<Num>` 13px — mockup usa `--text-3`, **corrigido
+>   para `--text-2`** por falha de contraste). Nenhum card por categoria,
+>   nenhuma contagem de subcategorias exibida — é o layout de lista-árvore
+>   anterior ao Pacote de Refinamento, com tokens v2.0.
+> - **Mobile**: abas segmentadas "Despesas"/"Receitas" (`segTab`) substituem as
+>   2 colunas — mesma lista-árvore abaixo, 1 aba por vez.
+> - **Resolução final, não mais reversível (`PRD-TECNICO.md` emendado — RF-RS-04
+>   AC1 reforçado, AMB-20 registrada)**: RF-REF-05 (grade de `CategoryCard`,
+>   Padrão C) **prevalece como estava antes do redesign** — a divergência do
+>   mockup foi julgada, pela BA, como material de referência
+>   desatualizado/incompleto, não uma intenção deliberada de reverter o
+>   Pacote de Refinamento. `S-CAT-01` **não** volta a ser lista-árvore. Dado
+>   exibido no card, clique (expandir/navegar) e ações de edição/exclusão
+>   permanecem intocados (RF-RS-04 AC2).
+> - **O que isso exige do redesign, de forma explícita**: a composição visual
+>   deste lote precisa **acomodar `CategoryCard` (grade de cards) dentro da
+>   linguagem visual v2.0** (paleta verde/terracota/creme, tipografia
+>   `Newsreader`+`Public Sans`, radius/elevação da Seção 3.1) — não copiar
+>   literalmente o artboard "Categorias", que mostra um padrão diferente do
+>   confirmado. Tratamento aplicado: `CategoryCard` já especificado (Padrão C,
+>   Seção 2.1) recebe os tokens de cor/raio/elevação da Seção 3.1 e o valor
+>   monetário do card passa a usar `<Num format="currency">` (migração deste
+>   ponto de chamada ocorre neste mesmo lote/PR, conforme o plano de migração
+>   incremental do `Num`, ADR-019).
+> - **Critério de aceite (meta N3/N4)**: 0 regressões — Padrão C preservado,
+>   nenhuma mudança de dado/cálculo.
+> - **Reestimativa**: ver Log de Alterações Pós-Publicação — troca de token
+>   (Seção 3.1) + migração do valor monetário do card para `<Num>` sobre o
+>   `CategoryCard` já existente; nenhuma reestimativa de mudança estrutural
+>   (grade→lista) é necessária — descartada em definitivo pela resolução do
+>   Bloqueio 023.
+
 #### Lançamentos (MVP — núcleo, reaproveitado pela Fase 3)
 
 **S-TXN-01 — Lista de lançamentos** *(wireframe original abaixo, superado em
@@ -444,6 +538,74 @@ no submit (RF-MVP-04 AC2).
 > desenho/código (`CTO-REVIEW.md` Gate 2 desta rodada, ressalva 1: Bloqueio 013
 > deve estar `Resolvido` antes de o item 4 ir ao ar).
 
+> **`S-TXN-01`/`S-TXN-02` — Redesign visual v2.0 (Lote 2, RF-RS-02) [REVISADO,
+> 2026-09-04, Redesign Visual "MyMoney v2.0" — mapeamento real, acesso visual
+> confirmado]**: leitura direta de `Lancamentos.dc.html` (desktop) e
+> `LancamentosMobile.dc.html` (mobile).
+>
+> **Mapeamento linha a linha, desktop**:
+> 1. Cabeçalho: `h1` "Lançamentos" (`Newsreader` 32px) + subtítulo "47
+>    lançamentos em setembro de 2026" (`--text-2`) à esquerda; botão "+ Novo
+>    lançamento" (mesmo padrão do botão de cabeçalho do Lote 1) à direita.
+> 2. Filtros: 3 `chip`s pílula (`--r-*` full, borda `--border`) — "Setembro
+>    2026", "Categoria: todas", "Conta: todas". **"Forma de pagamento" não
+>    aparece como chip próprio** nesta versão do mockup (possivelmente
+>    ilustrativo/incompleto, não necessariamente uma remoção deliberada) — mantido
+>    como filtro existente (Seção 2.2, nota "`*` FilterBar") até indicação em
+>    contrário; baixo risco por já ser comportamento preservado por padrão
+>    (RF-REF-02 nota de FilterBar).
+> 3. Card de resumo do período: "Entradas/Saídas/Saldo do período" lado a lado,
+>    valores em `<Num format="currency">`.
+> 4. Lista agrupada por dia (`p` de data 13px semibold `--text-2` como separador,
+>    sem `Card` próprio por grupo — um único `Card` envolve a lista inteira,
+>    separadores internos por `border-bottom`), cada item: ponto colorido por
+>    categoria (9px) + texto + valor em `<Num format="currency">` à direita
+>    (`--expense`/`--income`).
+>
+> **Achado resolvido (`BLOCKERS.md` Bloqueio 023, por `business-analyst`:
+> mockup desatualizado/incompleto, não mudança de comportamento)**: o mockup
+> real mostrava a descrição/estabelecimento como elemento de maior destaque
+> (linha 1) e "categoria · forma de pagamento" como secundário (linha 2) — o
+> oposto do que RN-18 já fixa. **Resolução final, não mais reversível**
+> (`PRD-TECNICO.md` emendado — RF-RS-02 AC1/AC2 reforçados, AMB-18
+> registrada): RN-18 **prevalece como estava antes do redesign** — subcategoria
+> continua o elemento de maior destaque visual (linha 1), descrição e forma de
+> pagamento continuam secundárias (linha 2), exatamente como já especificado
+> nesta Seção 2.2 (bloco "`S-TXN-01` revisado", RF-REF-02). A composição do
+> item de lista deste lote acomoda essa hierarquia **dentro** da linguagem
+> visual v2.0: linha 1 (subcategoria) em `--text` semibold; linha 2
+> (descrição · forma de pagamento) em `--text-2` (não `--text-3` — falha de
+> contraste, Seção 5); valor à direita em `<Num format="currency">`
+> (`Newsreader`, `--expense`/`--income`).
+> - **`ShortcutBar`/`ShortcutChip` (RF-REF-03) — resolvido, obrigatório mesmo
+>   ausente do mockup** (`BLOCKERS.md` Bloqueio 023; `PRD-TECNICO.md` emendado,
+>   AMB-19 registrada): nenhum dos dois artboards mostra a barra de atalhos,
+>   mas isso não a torna opcional — RF-REF-03 permanece requisito funcional
+>   ativo do Lote 2. Composição: `ShortcutBar` renderizada no topo de
+>   `S-TXN-01`, entre o cabeçalho e os filtros (mesma posição já especificada),
+>   com `ShortcutChip` em pílula (`--r-*` full, mesmo raio do `.chip` do
+>   mockup) e paleta v2.0 (`--accent`/`--accent-soft` para o estado
+>   selecionável/ativo) — visualmente integrada à nova linguagem, mesmo sem
+>   equivalente literal no artboard.
+> - **Formulário `S-TXN-02` unificado sem campo "Conta" (RF-REF-04)**: não
+>   retratado por nenhum artboard — comportamento já fixado permanece sem
+>   alteração, tokens v2.0 (incluindo `<Num>` no campo de valor/`CurrencyInput`)
+>   aplicados quando implementado.
+> - **Mobile (`LancamentosMobile.dc.html`)**: mesma hierarquia confirmada (RN-18
+>   preservada), filtros em chips com `overflow-x:auto`, `ShortcutBar` com
+>   rolagem horizontal (Seção 6.3), tokens v2.0.
+> - **Migração do primitivo `Num` neste lote (ADR-019)**: os pontos de chamada
+>   de `formatCentsToBRL()` em `TransactionsPage.tsx` (valor de cada item) e no
+>   card de resumo do período são migrados para `<Num format="currency">` no
+>   mesmo PR deste lote — não uma migração atômica separada.
+> - **Critério de acessibilidade (meta N3, RNF-17)**: correção de contraste da
+>   Seção 5 (linha 2 usa `--text-2`, não `--text-3`) aplicada; `aria-label` de
+>   `ShortcutChip` e foco automático no campo Valor (RF-REF-03 AC4) preservados.
+> - **Reestimativa**: ver Log de Alterações Pós-Publicação — troca de token
+>   sobre a hierarquia/`ShortcutBar` já existentes (RN-18/RF-REF-03
+>   confirmados, sem reordenamento), mais o esforço de migração de `<Num>`
+>   neste lote específico.
+
 #### Dashboard (MVP — atenção especial do stakeholder: gráficos, não só números)
 
 **S-DASH-01**
@@ -555,6 +717,107 @@ desktop (< `lg`, 1024px).
 >   antes de qualquer mudança de layout deste item. **Fica registrado como
 >   ação pendente explícita, não como pendência escondida** — ver Seção 7.
 
+> **`S-DASH-01` — Redesign visual v2.0 (Lote 1, RF-RS-01) [REVISADO, 2026-09-04,
+> Redesign Visual "MyMoney v2.0" — mapeamento real, acesso visual confirmado]**:
+> leitura direta de `Main.dc.html` (desktop, 1440px) e `DashboardMobile.dc.html`
+> (mobile, 390px). Confirma RF-RS-01 AC4/RN-20 — dado, cálculo e navegação (toque
+> na fatia do donut → lista filtrada) permanecem intocados; muda a composição
+> visual.
+>
+> **Desktop (`Main.dc.html`) — mapeamento linha a linha `S-DASH-01` atual → v2.0**:
+> 1. **Navegação lateral fixa (`<aside>`, 264px)** substitui a atual — passa a
+>    ter 4 grupos rotulados (`navlabel`, 11px uppercase; mockup usa `--text-3`,
+>    mas este documento recomenda `--text-2` aqui também — falha de contraste,
+>    ver Seção 5, linha "`navlabel`"):
+>    "Visão geral" (Dashboard) · "Lançamentos" (Lançamentos, Contas, Formas de
+>    pagamento, Categorias) · "Planejamento" (Orçamento, Recorrências, Contas
+>    fixas, Metas) · "Cartões" (Cartões, Parcelamentos); grupo final sem rótulo,
+>    separado por borda superior (Relatórios, Configurações). Logo "MyMoney" em
+>    `Newsreader` itálico 22px no topo da sidebar. Item ativo:
+>    `background:--accent-soft; color:--accent; font-weight:600`. **Isto
+>    substitui e detalha** a navegação lateral já descrita em Seção 6.2
+>    ("agrupados por fase/seção", antes vago) — atualização direta da Seção 6.2
+>    abaixo.
+> 2. **Cabeçalho da página**: `h1` "Dashboard" em `Newsreader` 32px peso 500 +
+>    subtítulo "Setembro 2026" (`--text-2`, 14px) à esquerda; à direita, ícone de
+>    notificação (círculo outline 40px) + botão primário "+ Novo lançamento"
+>    (`--accent` bg, `--r-sm` 8px, 40px altura) — **substitui o FAB "+"
+>    flutuante** por um botão fixo no cabeçalho (ver nota de navegação abaixo).
+> 3. **Card de saldo consolidado**: `--shadow-md`/`--r-lg` (20px), rótulo
+>    uppercase 13px + valor em `<Num format="currency">` 48px peso 500 + badge
+>    "sincronizado agora" (`--accent-soft` bg, `--accent` texto, 5,33:1 — passa)
+>    à direita — mesma posição/papel hero já especificado, tokens v2.0
+>    aplicados. **Migração `Num` (ADR-019) neste lote**: ponto de chamada de
+>    `formatCentsToBRL()` do saldo consolidado em `DashboardPage.tsx` migrado
+>    para `<Num>` neste mesmo PR.
+> 4. **3 KPIs lado a lado** (`grid-cols-3`): "Entradas do mês"/"Saídas do
+>    mês"/"Lançamentos", ícone (seta up/down) + valor em `<Num format="currency">`
+>    (KPIs monetários) / `<Num format="count">` ("Lançamentos") 26px — estrutura
+>    idêntica à já fixada por RF-REF-01/AC1, cores `--income`/`--expense`.
+>    **Migração `Num` neste lote**: os 2 pontos de `formatCentsToBRL()` das
+>    linhas 109/113 de `DashboardPage.tsx` (concatenados hoje com a seta
+>    `↑`/`↓` no mesmo nó de texto, `adr/019...md` achado B) são separados em
+>    nós distintos — seta como elemento próprio, valor como `<Num>` isolado.
+> 5. **Linha 2 colunas (`1.3fr 1fr`)**: "Para onde o dinheiro foi" (donut +
+>    legenda com valor em `<Num format="currency">` por categoria, migrando o
+>    ponto de chamada de `DonutChart.tsx:93` — hoje concatenado com o
+>    percentual no mesmo nó, `adr/019...md` achado B; percentual passa a
+>    `<Num format="percent">` separado) à esquerda; "Orçamentos do mês" (barras
+>    finas 8px, `--accent` normal / `--warn` alerta) à direita — **mesma
+>    disposição lado a lado já fixada por RF-REF-01 AC1/AMB-16**, confirmando o
+>    grid 2 colunas a partir de `lg`.
+> 6. **"Últimos lançamentos"** (largura total, abaixo da linha 2 colunas): **não
+>    lado a lado com outro bloco** — ocupa a linha inteira, diferente do que a
+>    versão anterior desta Seção descrevia ("orçamentos \| últimos lançamentos
+>    lado a lado"). Cada item mostra descrição (linha 1, 14px) + valor em
+>    `<Num format="currency">` (mesma linha, alinhado à direita) — **sem**
+>    linha 2 de categoria/forma de pagamento neste widget específico do
+>    dashboard (mais enxuto que o item de `S-TXN-01`, resolvido em RN-18 para
+>    o Lote 2 — ver abaixo). **Correção à Seção 2.2 anterior**: o wireframe
+>    "desktop ≥1024px lg" publicado antes desta revisão mostrava "Orçamentos \|
+>    Últimos lançamentos" como 2ª linha de 2 colunas — o mockup real mostra
+>    "Últimos lançamentos" como bloco de largura total, abaixo de "Orçamentos"
+>    (que fica dentro da coluna direita da linha 1, junto do donut). Ver item 5
+>    acima — isso muda a proporção mas não invalida a estrutura de 2
+>    blocos-alvo já fixada por AMB-16 (proporção de coluna é decisão de
+>    implementação).
+>
+> **Item de "Últimos lançamentos" mostra descrição como linha primária, sem
+> categoria/forma de pagamento** — nota separada, não uma contradição de RN-18
+> em si: RN-18 rege a **listagem de lançamentos** propriamente dita
+> (`S-TXN-01`); este widget do dashboard é um resumo compacto de 1 linha por
+> item, sem segunda linha nenhuma, então não há "hierarquia" a inverter aqui.
+> A tensão equivalente em `S-TXN-01` (Lote 2, onde o mockup **tem** 2 linhas e
+> a ordem divergia de RN-18) já foi resolvida — ver `BLOCKERS.md` Bloqueio 023
+> (`Resolvido`) e o bloco "`S-TXN-01`/`S-TXN-02`" abaixo: RN-18 prevalece.
+>
+> **Mobile (`DashboardMobile.dc.html`, 390px)**: mesma sequência de blocos
+> empilhados (saldo → 3 KPIs em grid compacto → donut → orçamentos → últimos
+> lançamentos), confirmando RNF-10 (single-column preservado). **Navegação
+> inferior muda de 5 para 4 destinos, sem FAB central** — ver nota de navegação
+> abaixo, Seção 6.2/6.5.
+>
+> **Nota de navegação (decisão de UX/UI, não uma regra de negócio — dentro da
+> minha autoridade de "definir a experiência de navegação", sem necessidade de
+> escalar)**: o mockup substitui o padrão FAB central + 5 destinos (já vigente,
+> Seção 6.2) por: **desktop** — botão "+ Novo lançamento" fixo no cabeçalho de
+> cada tela (não mais um FAB flutuante); **mobile** — barra inferior de **4**
+> destinos (Dashboard, Lançamentos, Orçamento, Mais) + botão "+" circular no
+> cabeçalho (não na barra inferior), confirmado de forma consistente nos 4
+> artboards mobile (Dashboard/Lançamentos/ContasCartões/Categorias — "Contas e
+> Cartões" e "Categorias" ficam sob a aba "Mais", ativa nesses dois artboards).
+> Isto **atualiza** a Seção 6.2 (revisão abaixo) — é mudança de camada de
+> apresentação/navegação (competência deste `ux-ui`, `PRD-TECNICO.md` Adendo B
+> não define nada sobre quantidade de destinos de nav), não uma regra de
+> negócio (RN-01 a RN-20) — não exige escalonamento a BA/SA.
+>
+> - **Critério de acessibilidade (meta N3, RNF-17)**: nenhuma regressão de
+>   navegação por teclado/foco visível; ver Seção 5 para os 2 achados reais de
+>   contraste (`--text-3`, `--warn` como texto) e a correção de uso aplicada.
+> - **Reestimativa**: ver Log de Alterações Pós-Publicação — mapeamento real
+>   substitui a estimativa preliminar registrada na entrada anterior (comparação
+>   N2 agora executada; reestimativa deixa de ser "preliminar").
+
 #### Orçamento (MVP)
 
 **S-BUD-01** segue Padrão A; cada item de categoria mostra barra de progresso
@@ -609,6 +872,59 @@ lista), teto (CurrencyInput), limiar de alerta (select, padrão 80%, RN-04).
 ```
 Horizonte padrão: competência atual + 2 futuras (SDD Seção 2.5), sem necessidade de
 paginação adicional no MVP dessa tela.
+
+> **`S-ACC-01/02/04` + `S-CARD-01/02/03` — Redesign visual v2.0 (Lote 3,
+> RF-RS-03) [REVISADO, 2026-09-04, Redesign Visual "MyMoney v2.0" — mapeamento
+> real, acesso visual confirmado]**: leitura direta de `ContasCartoes.dc.html`
+> (desktop) e `ContasCartoesMobile.dc.html` (mobile).
+>
+> **Mapeamento linha a linha, desktop**:
+> 1. Cabeçalho: `h1` "Contas e Cartões" + subtítulo "4 contas · 2 cartões de
+>    crédito" (`--text-2`); botão "+ Nova conta" à direita.
+> 2. **Seção "Contas"** (título 16px semibold): grade `grid-cols-4` de cards —
+>    cada card: `iconChip` (36px, `--accent-soft` bg, `--accent` ícone, `--r-md`
+>    equivalente 10px) + rótulo do banco (`--text-3` 12px — **falha contraste,
+>    corrigido para `--text-2`**, ver Seção 5) + nome da conta (14px semibold) +
+>    saldo em `<Num format="currency">` 22px. **Confirma AMB-17**: é grade de
+>    cards de resumo, não lista — mais próximo do Padrão C (Seção 2.1) que do
+>    Padrão A original de `S-ACC-01`. Recomendo ao Tech Lead considerar
+>    `S-ACC-01` como candidato a migrar de Padrão A para Padrão C nesta rodada
+>    (mudança de padrão de layout, não de dado/comportamento — dentro do
+>    escopo de RF-RS-03, não exige escalonamento). **Migração `Num` (ADR-019)
+>    neste lote**: ponto de chamada de saldo em `AccountsPage.tsx` migrado
+>    para `<Num>`.
+> 3. **Seção "Cartões de crédito"**: grade `grid-cols-2`, cada card: nome do
+>    cartão + "vence DD/MM"; "Fatura atual" + valor em `<Num format="currency">`
+>    26px em destaque; barra de "Limite usado" (8px, `--accent` fill) + texto
+>    "X% de R$ Y" (dois números, `<Num format="percent">` + `<Num
+>    format="currency">`, separados — hoje concatenados em `CreditCardsPage.tsx`,
+>    `adr/019...md` achado B) — **é a visão-resumo confirmada, sem abas/timeline
+>    de múltiplas competências**. **Migração `Num` neste lote**: pontos de
+>    chamada de fatura atual e limite usado em `CreditCardsPage.tsx` migrados.
+> - **Confirma AMB-17 definitivamente**: o artboard "ContasCartoes" cobre
+>   exclusivamente a visão-lista/resumo (cards de conta + card-resumo de
+>   cartão com só a fatura atual) — nenhuma aba, nenhuma navegação entre
+>   competências, nenhum detalhamento de lançamentos da fatura. O detalhamento
+>   fino de `InvoiceTimeline` (múltiplas abas, lista de lançamentos por
+>   competência) permanece integralmente com o Lote 8 (Grupo B), como a leitura
+>   conservadora do BA já previa — **confirmado, não uma suposição**.
+> - **`InvoiceTimeline` em si — não tocado por este lote**: como o artboard não
+>   o retrata, `S-CARD-03` (fatura projetada com abas) permanece com o
+>   wireframe/tokens já especificados nesta Seção 2.2 (Padrão A original),
+>   recebendo só os tokens v2.0 (Seção 3.1) quando implementado — nenhuma
+>   mudança de cálculo de limite (RN-06), fechamento (RN-01) ou horizonte de
+>   faturas.
+> - **Mobile (`ContasCartoesMobile.dc.html`)**: mesma estrutura, cards
+>   empilhados em coluna única (não grade) — Contas em lista vertical de cards
+>   horizontais (ícone + nome + saldo), Cartões em lista vertical de cards
+>   completos (mesmo conteúdo do desktop, empilhado). Acessado pela aba "Mais"
+>   (Seção 6.2).
+> - **Critério de aceite (meta N3/N4, com atenção redobrada a N4)**: 0
+>   regressões funcionais — nenhuma mudança de cálculo/regra confirmada nesta
+>   leitura real, RN-01/RN-06 preservadas.
+> - **Reestimativa**: ver Log de Alterações Pós-Publicação — inclui agora a
+>   recomendação de migração de Padrão A→C para `S-ACC-01` (item 2 acima),
+>   além da troca de token já prevista.
 
 #### Recorrência, Parcelamento, Contas Fixas, Metas (Fase 2) — seguem Padrão A
 
@@ -742,40 +1058,413 @@ conta fixa padrão (RN-05) — aplicam como padrão para novos cadastros, cada
 orçamento/conta fixa individual pode sobrescrever (já coberto nos formulários
 S-BUD-02/S-FIX-02).
 
+### 2.3 Grupo B — Diretrizes de Aplicação do Design System (Lotes 5-13, sem
+mockup direto) **[NOVO, 2026-09-04, Redesign Visual "MyMoney v2.0"]**
+
+Segue à risca a resolução do CTO ao `BLOCKERS.md` Bloqueio 021 (item 2), replicada
+em `PRD-TECNICO.md` Adendo B, Seção B.1.2: **nenhum RF/RN/AC tela a tela é
+produzido aqui para o Grupo B**. Esta subseção define só como aplicar a fundação
+do Lote 0 (Seção 3.0) a cada domínio já inventariado pelo BA — o aprofundamento
+técnico completo de cada um ocorre lote a lote, junto do `ux-ui`/Tech Lead, pouco
+antes de cada lote iniciar execução, fora do escopo desta rodada. Nenhum destes 9
+domínios tem artboard próprio no canvas — a diretriz abaixo é herança de padrão
+(Padrão A/B/C, tokens da Seção 3.1), não extração visual.
+
+| Lote | Domínio | Telas | Padrão de layout já aplicável (herda do Grupo A/já vigente) | Restrições que a diretriz não pode contrariar | Diretriz de aplicação do Lote 0 |
+|---|---|---|---|---|---|
+| 5 | Autenticação/Sessão + Onboarding | S-AUTH-01/03/04/05, S-ONB-01/02 | Nenhum ainda — é o próprio candidato de consolidação em `AuthCard`/`AuthLayout` (Seção 3.2) | RF-MVP-08 (login seguro) e a remoção definitiva do 2º fator por e-mail (`ADR-014`) não podem ser tocados; onboarding preserva RF-MVP-01/RF-MVP-03/RN-09 | Consolidar as 3 páginas duplicadas em `AuthCard`/`AuthLayout` (especificação mínima já publicada, Seção 3.2), aplicando os tokens de cor/raio/elevação da Seção 3.1 (mesmo card, `radius.lg`/`elevation.sm`); nenhuma mudança de fluxo/estado, só consolidação de componente + skin |
+| 6 | Orçamento | S-BUD-01/02 | Padrão C (grade de cards) já validado desde o Lote 4 (Categorias) e desde o Pacote de Refinamento (`BudgetCard`) | RN-04 (limiares 80%/100%+) e o cálculo de RF-MVP-07 não podem mudar | Extensão incremental direta do Padrão C — menor esforço de extrapolação esperado; nenhum token/componente novo previsto |
+| 7 | Formas de Pagamento | S-PAY-01/02 | Padrão A (lista + formulário) | RN-14/RN-15/RN-16 preservadas; RF-REF-04 segue bloqueado pelas 3 pré-condições do risco A3 (Adendo A), independentemente deste redesign | Aplicar tokens/regras anti-corte da Seção 3.1.1 ao Padrão A já existente; forte sobreposição visual esperada com o Lote 3 — decisão final de agrupamento (mesclar `S-PAY-01` na tela de Contas ou manter separado) delegada ao `ux-ui`/Tech Lead quando este lote for detalhado, não decidida aqui |
+| 8 | Cartão & Fatura detalhado | S-CARD-01/02/03, parte não coberta pelo Lote 3 | Abas por competência (`Tabs`), `InvoiceTimeline` | `InvoiceTimeline` é lógica de negócio sensível — RN-01, RN-06, FL-02 não podem ser alterados pelo redesign | Depende de o Lote 3 já ter validado, em produção, o padrão de "tela com lógica de negócio sensível" antes de avançar; escopo real deste lote só é confirmado depois que o acesso visual ao artboard "ContasCartoes" (pendente, Seção 7.2) definir o que o Lote 3 já cobriu (AMB-17) |
+| 9 | Recorrência, Parcelamento, Contas Fixas, Metas | S-REC-01..04, S-INST-01/02, S-FIX-01..03, S-GOAL-01..04 | Padrão A + Padrão B (confirmação de reajuste, `S-REC-03`) | RN-02 (reajuste prospectivo com confirmação obrigatória) e RN-07 (preservação de histórico ao cancelar) não podem mudar | Aplicar tokens/regras anti-corte da Seção 3.1.1 (grid 2 colunas a partir de `md` para os formulários de 8 campos já identificados: `S-INST-01`, `S-FIX-02`, `S-REC-02`); Tech Lead pode subdividir o lote em sub-domínios menores sem reabrir o `PRD.md` |
+| 10 | Notificações | S-NOT-01 | Sino no topo + painel/lista suspensa | RF-F2-09 AC2 (histórico sempre acessível independentemente de push) preservado | Componente relativamente simples — aplicar tokens da Seção 3.1 ao `NotificationBell`/`NotificationCenter` já existentes; baixo esforço de extrapolação esperado |
+| 11 | Relatórios e Exportação | S-REP-01/02/03 | `BarChart`/`DonutChart` reaproveitados; `S-REP-02`/`S-REP-03` ainda não implementados em produção (Fase 3) | RF-F2-10 AC2 (não preencher com zero quando há menos de 6 meses de dado disponível) | Gráficos herdam diretamente o tratamento visual do Dashboard (Lote 1) uma vez redesenhado — nenhuma diretriz visual nova além de "seguir o mesmo tratamento de `DonutChart`/`BarChart` já aplicado ao Lote 1" |
+| 12 | Captura Automatizada (Fase 3) | S-CAP-01 a 09 | Nenhum — tela ainda não existe em produção | RNF-01 (confirmação humana obrigatória) é barreira arquitetural, não apenas visual — redesign não pode alterá-la; WCAG 2.2.1 (sem limite de tempo em confirmação) também não pode regredir, quando a tela existir | Deliberadamente por último — padrão de redesign deve estar maduro antes de tocar a superfície mais sensível do produto; os 4 componentes **[NOVO]** já documentados (Seção 3.3: `VoiceRecorderUI`, `ReceiptCameraCapture`, `DraftReviewBanner`, `AutoFillTag`) já cumprem o papel de abstração exigido por RF-RS-00 AC2 — nenhuma diretriz visual adicional é necessária até este lote ser efetivamente detalhado |
+| 13 | Configurações | S-SET-01/02/03 | Padrão A simplificado | Nenhuma regra de negócio sensível identificada nesta rodada | Aplicar tokens da Seção 3.1 ao Padrão A já existente; baixo esforço de extrapolação esperado |
+
+**Nota de arquitetura confirmada (`SDD.md` Adendo B, B.2.5)**: nenhum domínio do
+Grupo B precisa de estrutura técnica diferente da já usada pelo Grupo A — todo
+componente já listado nas Seções 3.2/3.3 vive na mesma estrutura de ADR-017
+(`components/base/*`/`components/domain/*`, bloco `@theme` único). A única lacuna
+estrutural real é a do Lote 5 (`AuthCard`/`AuthLayout`), já registrada acima e na
+Seção 3.2.
+
+**Ordem de execução do Grupo B** (herdada do `PRD.md` Adendo B, classificação
+Now/Next/Later, já confirmada pelo CTO sem reordenação): não decidida nem revisada
+por este documento — carregada adiante exatamente como fixada pelo PM/CTO.
+
 ---
 
 ## 3. Design System e Componentes
 
+### 3.0 Fundação do Design System v2.0 (Lote 0, RF-RS-00) **[REVISADO,
+2026-09-04, Redesign Visual "MyMoney v2.0" — correção sobre acesso visual real]**
+
+Pré-requisito estrutural de todos os 13 lotes seguintes (Grupo A e Grupo B),
+conforme `PRD-TECNICO.md` Adendo B e `SDD.md` Adendo B (ADR-017/ADR-018). Esta
+subseção é o entregável do Lote 0 em si — não descreve uma tela de usuário final.
+
+> **Correção sobre a versão anterior desta seção**: a primeira versão desta
+> subseção (mesma data, antes desta revisão) registrava "tokens ESTENDIDOS" por
+> falta de acesso visual ao canvas ("Conflito 2", `Seção 7.2`). O orquestrador
+> do pipeline forneceu, na sequência, os 8 arquivos `.dc.html` estáticos reais
+> (HTML+CSS puro, não o runtime interativo do canvas) — lidos diretamente nesta
+> revisão. **Achado crítico que substitui a decisão anterior**: o bloco `:root`
+> é **idêntico nos 8 artboards** (confirma design system real e consistente,
+> não mockups desalinhados entre si) — mas é uma **paleta e tipografia
+> inteiramente diferentes** do conjunto já vigente em produção, não uma
+> extensão dele. A decisão de AC1 abaixo é reescrita de acordo; a versão
+> anterior ("estendido") fica preservada só como registro histórico no Log de
+> Alterações Pós-Publicação, mesmo tratamento já dado a outras correções deste
+> documento (ex. S-AUTH-02, breakpoint do grid do dashboard).
+
+**Decisão explícita exigida por RF-RS-00 AC1 (nunca deixada implícita): os
+tokens publicados na Seção 3.1 abaixo SUBSTITUEM integralmente o conjunto já
+vigente desde a repaginada de 2026-09-04 — não são uma extensão dele.** Esta é
+uma leitura fiel do que os 8 artboards mostram (extração direta dos arquivos
+reais, não mais uma decisão tomada sob limitação de ferramenta), comparada
+lado a lado com `frontend/src/index.css`:
+
+| Token | Produção atual | Mockup "v2.0" (idêntico nos 8 artboards) | Decisão final (esta rodada) |
+|---|---|---|---|
+| accent/primary | `#4f46e5` (índigo) | `#2F6B4F` (verde escuro) | `#2F6B4F`, sem alteração |
+| income | `#16a34a` (token próprio) | `#2F6B4F` — fundido com accent | **Confirmado como fusão deliberada** (`adr/019...md`, Parte 1: "escolha de valor, não de estrutura" — os dois seguem tokens de nomes distintos, só coincidem numericamente; não exige revisão de arquitetura) |
+| expense | `#dc2626` (vermelho vivo) | `#B4483A` (terracota) | `#B4483A`, sem alteração |
+| danger (estouro, distinto de expense) | `#b91c1c` | Ausente do mockup (nenhum artboard mostra orçamento >100%) | **Finalizado nesta rodada**: `--danger:#752F26` — mesma família terracota de `--expense`, escurecida ~35% (mesma relação de intensidade já usada em produção entre `expense`/`danger`). Contraste calculado sobre `--bg`: **9,03:1** (folga ampla, AAA). Ausência de exemplo visual não significa ausência de necessidade do token (`adr/019...md`, Parte 1: "RN de estouro de orçamento >100% continua existindo no produto") — declarado mesmo sem uso literal em nenhum dos 8 artboards |
+| warn | `#d97706` | `#B9862F` | `#B9862F`, sem alteração (ver correção de uso na Seção 5) |
+| background | `#f8fafc` (frio) | `#FAF8F3` (creme quente) | `#FAF8F3`, sem alteração |
+| surface | `#ffffff` | `#FFFFFF` (igual) | `#FFFFFF`, sem alteração |
+| border | implícito em `neutral-200` | `#EDE8DD` | `#EDE8DD`, sem alteração |
+| texto | escala neutra `slate` (`neutral-900`→`neutral-500`) | `--text:#1F2420` / `--text-2:#6B6F68` / `--text-3:#9A9C93` (3 níveis) | 3 níveis confirmados, com restrição de uso de `--text-3` (Seção 5) |
+| tipografia | Inter (única família, sans) | `Newsreader` (serif, itálico no logo, títulos `h1`/saldo em peso 500) **+** `Public Sans` (corpo/UI) | **Resolvido via `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`** — não é classe `.num` solta; é o primitivo `Num` (`components/base/Num.tsx`), ver Seção 3.2. Fontes self-hosted via `@fontsource/public-sans`/`@fontsource/newsreader` (não Google Fonts CDN), preservando offline-first (ADR-003/RNF-04) |
+| radius | `sm 4 / md 8 / lg 16 / xl 20` (4 níveis) | `--r-sm:8; --r-md:12; --r-lg:20` no desktop (3 níveis); mobile só declara `--r-md:12` na maioria dos artboards, e `--r-lg:18` (não 20) especificamente no card de saldo de `DashboardMobile.dc.html` | 3 níveis confirmados, sem alteração |
+| elevação | `sm / md / lg` (`rgb(17 24 39 / ...)`) | `--shadow-sm:0 1px 2px rgba(31,36,32,.05); --shadow-md:0 6px 20px rgba(31,36,32,.06)` (desktop; mobile usa blur 18 em vez de 20 no `shadow-md`) | Confirmado, sem alteração |
+
+**Resolução do Bloqueio 022 (`BLOCKERS.md`, resolvido por `software-architect`
+via `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`,
+Status: Accepted)** — substitui a "consequência arquitetural sinalizada, não
+decidida" da versão anterior desta seção:
+
+O ADR-019 confirma a suspeita registrada no Bloqueio 022: a tipografia
+numérica seletiva **não cabe** na premissa "zero mudança de componente" do
+ADR-017 — não por causa da paleta (que segue exatamente o precedente: mesmos
+nomes de variável, novos valores, zero toque em `className`/JSX), mas por dois
+motivos concretos, confirmados por inspeção real do código pelo Software
+Architect: (1) **não existe hoje nenhuma infraestrutura real de web font** no
+projeto (`Inter` está declarada em `index.css` mas nunca foi de fato carregada
+— sem `<link>`/`@font-face`/pacote de fonte); (2) `formatCentsToBRL()` é
+consumida por **interpolação direta em 17 arquivos, 25+ pontos de chamada**,
+vários com o número concatenado no mesmo nó de texto que texto não-numérico
+(ex. `BudgetCard.tsx`: `` `${formatCentsToBRL(spentCents)} de ${formatCentsToBRL(limitCents)}` ``
+como `string` de uma prop `detailText`) — aplicar uma classe `.num`
+seletivamente exigiria, nesses casos, mudar o contrato do componente, não só
+adicionar `className`.
+
+**Decisão (ADR-019, Opção 3 escolhida)**: introduzir um **primitivo `Num`**
+(`components/base/Num.tsx`) no Lote 0 — mesmo diretório e disciplina de teste
+dos outros 14 componentes-base — com **migração incremental lote a lote**
+(mesmo desacoplamento token global vs. composição já validado pelo ADR-018),
+não uma migração atômica de todos os 17 arquivos no Lote 0. Fonte via pacote
+self-hosted (`@fontsource/public-sans`, `@fontsource/newsreader`), não Google
+Fonts CDN — preserva o cache do service worker do PWA (ADR-003) e a
+confiabilidade offline (RNF-04) sem depender de rede de terceiro. Ver Seção
+3.2 para a especificação do componente `Num`, e os blocos "Redesign visual
+v2.0" da Seção 2.2 para o plano de migração por lote. Dívida técnica explícita
+registrada por este ADR (não escondida): durante a janela de migração, números
+já migrados (`Newsreader`, via `<Num>`) convivem com números ainda não
+migrados (fonte única atual) — mesma classe de risco já aceita pelo ADR-018
+para composição de tela (`SDD.md` Adendo B, Seção B.6.2).
+
+**AC2 — quatro superfícies não mostradas literalmente pelos 4 artboards
+principais (escopo mínimo de abstração exigido do Lote 0)**: confirmado, após
+leitura real dos 8 arquivos, que nenhum deles retrata Autenticação/Onboarding,
+fatura detalhada, captura por voz/foto, ou o padrão de card de resumo que
+RF-REF-05/06 já usam em produção. Situação por superfície:
+
+| Superfície exigida (RF-RS-00 AC2) | Componente(s) que cobre(m) | Status |
+|---|---|---|
+| Formulário isolado pré-sessão (Auth) | `AuthCard`/`AuthLayout` **[NOVO — componente-base recomendado, especificação mínima nesta rodada]** | **Lacuna real, confirmada** — nenhum dos 8 artboards mostra tela de Auth; hoje duplicado ad hoc em `LoginPage.tsx`/`UnlockPage.tsx`/`PinSetupPage.tsx` (mesmo achado do `SDD.md` Adendo B, B.2.1). Consolidação formal ocorre no Lote 5 (Grupo B); especificação mínima publicada já nesta rodada (Seção 3.2), agora também com os tokens reais (fonte serif no título, cores v2.0) |
+| Tabela/timeline de fatura | `InvoiceTimeline` (Seção 3.3, já existente) | Confirmado — `ContasCartoes.dc.html` mostra só a visão-lista/resumo de cartão (card com fatura atual + barra de limite usado), sem abas/timeline detalhada (AMB-17 confirmado, ver Seção 2.2 Lote 3) — `InvoiceTimeline` em si permanece coberto só conceitualmente, detalhamento visual fica com o Lote 8 |
+| Elemento de captura por voz/foto | `VoiceRecorderUI`, `ReceiptCameraCapture`, `DraftReviewBanner`, `AutoFillTag` (Seção 3.3, já documentados **[NOVO]** desde a publicação original) | Confirmado — nenhum dos 8 artboards mostra captura automatizada; abstração textual já documentada permanece a única cobertura, nenhuma implementação de funcionalidade nesta rodada |
+| Grade de card de resumo | `CategoryCard`/`BudgetCard` (Padrão C, Seção 2.1, já existente desde o Pacote de Refinamento) | **Confirmado como alvo final, resolvido (`BLOCKERS.md` Bloqueio 023, por `business-analyst`)**: `Categorias.dc.html`/`CategoriasMobile.dc.html` mostram lista-árvore expansível, não grade de cards — mas essa divergência foi julgada mockup desatualizado/incompleto, não mudança de comportamento. RF-REF-05 (Padrão C, `CategoryCard`) **prevalece como já estava antes do redesign**; `PRD-TECNICO.md` emendado (RF-RS-04 AC1 reforçado, AMB-20 registrada). Padrão C não é retratado literalmente por nenhum dos 8 artboards, mas é o alvo definitivo — a composição visual do Lote 4 precisa acomodar `CategoryCard` dentro da linguagem visual v2.0 (tokens/tipografia dos mockups), não reverter ao formato de lista-árvore mostrado |
+
+**AC3 — contraste ≥4,5:1 (texto normal) / ≥3:1 (texto grande, ícones de estado)
+sobre `color.surface`**: **validação real, calculada, não estimada** (fórmula
+WCAG de luminância relativa, `frontend/src/index.css`/mockup convertidos
+sRGB→linear). Dois achados de não-conformidade confirmados, não hipotéticos —
+ver Seção 5 para o detalhamento completo e a correção aplicada:
+
+| Par | Contraste calculado | Limiar exigido | Resultado |
+|---|---|---|---|
+| `--text-3` (`#9A9C93`) sobre `--bg` (`#FAF8F3`) | **2,62:1** | 4,5:1 (texto normal) / 3:1 (texto grande) | **Falha nos dois limiares** — usado em texto normal (11–13px) para "Categoria · Forma de pagamento" (todo item de lançamento), rótulos de banco em Contas, valor de subcategoria em Categorias |
+| `--text-3` sobre `--surface` (`#FFFFFF`) | **2,78:1** | idem | **Falha nos dois limiares** |
+| `--warn` (`#B9862F`) sobre `--bg`/`--surface`, como cor de **texto** (ex. "87%") | 3,04:1 / 3,22:1 | 4,5:1 (texto normal) | **Falha** — passa só o limiar de 3:1 aplicável a elemento gráfico não-textual (a própria barra de progresso preenchida, que atende 1.4.11) |
+| `--text-2` (`#6B6F68`) sobre `--bg`/`--surface` | 4,83:1 / 5,12:1 | 4,5:1 | Passa (margem modesta) |
+| `--accent`/`--income` (`#2F6B4F`) sobre `--bg` | 5,93:1 | 4,5:1 | Passa |
+| `--expense` (`#B4483A`) sobre `--bg`/`--surface` | 5,03:1 / 5,34:1 | 4,5:1 | Passa |
+| `--accent` sobre `--accent-soft` (nav ativo) | 5,33:1 | 4,5:1 | Passa |
+| `--bg` (texto) sobre `--accent` (botão primário) | 5,93:1 | 4,5:1 | Passa |
+
+**Correção aplicada por este `ux-ui` (dentro da minha autoridade de decisão de
+token/detalhe visual, RF-RS-00 nota "não decidido aqui" — não uma restrição de
+arquitetura do `SDD.md`, não escalado)**: dois ajustes de **uso**, não de
+arquitetura, preservando a paleta v2.0 tal como extraída:
+1. `--text-3` é restrito, neste documento, a conteúdo decorativo/não-essencial
+   (ex. cor de traço de ícone `stroke="var(--text-3)"`) — todo uso onde o
+   mockup aplicava `--text-3` a texto com informação real (linha secundária de
+   item de lançamento, rótulo de banco, valor de subcategoria) passa a usar
+   `--text-2` (já validado, 4,83:1+) em vez do valor literal do mockup. Ver
+   Seção 3.1 nota de token.
+2. `--warn` como **cor de preenchimento** (barra de progresso, ícone/badge de
+   alerta) é preservado — atende 3:1 como elemento não-textual (SC 1.4.11).
+   Como **cor de texto** (percentual "87%" e equivalentes), o texto passa a
+   usar `--text`/`--text-2` (sempre passa) acompanhado do preenchimento/ícone
+   `--warn` ao lado — mesmo princípio "não depender só de cor" já obrigatório
+   neste documento desde a publicação original (Seção 5), agora aplicado
+   também para resolver um problema de contraste, não só de semântica.
+
+Nenhum destes dois ajustes muda a paleta em si (hex de `--text-3`/`--warn`
+permanecem os do mockup) — muda só onde cada token pode ser aplicado como cor
+de **texto**. Registrado explicitamente para o Tech Lead/`frontend` não
+reintroduzirem o uso literal do mockup nesses dois pontos.
+
+**AC4 — baseline de `design-system-consistency-check` antes do Lote 0
+iniciar**: mantido como na versão anterior desta seção — a auditoria mais
+recente registrada neste documento é o "Achado de consistência 2026-09-04"
+(Seção 3.3, `CurrencyInput`/`S-CARD-02`), usada como baseline de N1. Nenhuma
+auditoria completa nova foi reexecutada nesta rodada (sem acesso a uma sessão
+executável do app) — ação pendente explícita, mesma classe do baseline M4, sem
+impedir a estimativa do Tech Lead.
+
+> **Atualização 2026-09-04 (UX-03) — AC4 satisfeito, pendência fechada.** A
+> auditoria completa de `design-system-consistency-check` sobre o estado ATUAL
+> de `frontend/src/` (análise estática de código-fonte, não uma sessão
+> executável do app — limitação de ambiente já registrada nesta rodada, ver a
+> nota de execução no topo da Seção 1.1) foi reexecutada e o baseline de N1
+> está publicado na **Seção 3.0.1**, logo abaixo. O parágrafo AC4 acima é
+> preservado como registro histórico do estado da pendência antes desta
+> atualização (mesmo tratamento dado a S-AUTH-02 e a outras correções deste
+> documento) — não é mais o estado de fato. `TASK.md` Seção 6, item 13, recebe
+> o registro de status correspondente.
+
+**AC5 — nenhum lote de tela inicia implementação antes desta publicação**: esta
+Seção 3.0, nesta versão final, constitui a publicação exigida por RF-RS-00 AC5
+— libera o Tech Lead para **estimar e planejar a implementação** dos Lotes 1-4
+(Seção 2.2, mapeamento real linha a linha, sem pendência aberta) e o
+levantamento incremental dos Lotes 5-13 (Seção 2.3). As duas escalações
+abertas nesta rodada estão **ambas resolvidas**: `BLOCKERS.md` Bloqueio 022
+(`software-architect`, via `adr/019-...md` — primitivo `Num`, migração
+incremental) e Bloqueio 023 (`business-analyst` — RN-18/RF-REF-03/RF-REF-05
+confirmados como alvo final, mockup julgado desatualizado/incompleto). Ver
+Seção 7.2 para o registro formal de ambas como `Resolvido`.
+
+### 3.0.1 Baseline N1 pré-Lote 0 — UX-03 (auditoria `design-system-consistency-check` completa) **[NOVO, 2026-09-04]**
+
+**Dono/skill**: `ux-ui`, `design-system-consistency-check`. **Gatilho**: `TASK.md`
+Seção 6, item 13 (`UX-03`), exigido por `PRD-TECNICO.md` RF-RS-00 AC4/Adendo B B6.5
+antes de qualquer tarefa do Lote 0 começar. **Métrica que este baseline alimenta**:
+N1 (`PRD.md` Adendo B, Seção B.3) — "% das superfícies redesenhadas usando
+exclusivamente tokens/componentes de `UX-SPEC.md` Seção 3, sem estilo inline/ad-hoc
+divergente", medida lote a lote a partir de agora.
+
+**Método e limitação declarada** (mesma classe de limitação já registrada nesta
+rodada para o acesso ao canvas — ver nota de execução no topo da Seção 1.1):
+auditoria por **leitura/busca estática do código-fonte** de `frontend/src/`
+(`Grep`/`Read` sobre todo `.tsx` de `components/base`, `components/domain` e
+`pages/**`, e sobre `frontend/src/index.css`), não uma sessão executável do app no
+navegador — não captura estado visual em runtime (hover/foco reais, media queries
+avaliadas). Suficiente para o que N1 mede (uso de token/componente no código-fonte,
+não renderização pixel a pixel), mas registrado como restrição de método, não
+escondido.
+
+**Achado 1 (o mais propagado — toca praticamente toda tela do produto): tokens
+`-soft` já existem, mas 4 componentes-base ignoram-nos e usam a paleta padrão do
+Tailwind em seu lugar.** `frontend/src/index.css` já declara `--color-primary-soft`,
+`--color-income-soft`, `--color-expense-soft`, `--color-warning-soft` e
+`--color-danger-soft` — exatamente para uso em fundo suave de estado (a mesma
+convenção que `BudgetCard.tsx` já usa corretamente via `var(--color-warning-soft)`/
+`var(--color-danger-soft)`, achado de qualidade de 2026-09-04). Quatro componentes,
+porém, não usam esses tokens e escrevem a rampa de cor padrão do Tailwind
+diretamente (`red-*`/`green-*`/`amber-*`/`blue-*`), que **não é redefinida** pelo
+bloco `@theme` de `index.css` e portanto **não muda** quando o Lote 0 substituir a
+paleta:
+- `components/base/Alert.tsx:13-16` — `bg-blue-50` (info), `bg-amber-50` (warning),
+  `bg-red-50` (danger), `bg-green-50` (success): 4 ocorrências.
+- `components/base/Badge.tsx:17-22` — `bg-green-100` (income), `bg-red-100`
+  (expense), `bg-amber-100` (warning), `bg-red-100` (danger), `bg-blue-100`
+  (primary): 5 ocorrências.
+- `components/domain/OfflineSyncBadge.tsx:45` — `bg-amber-100` +
+  `hover:bg-amber-200`: 2 ocorrências.
+- `components/base/Button.tsx:23` — variante `destructive`, `hover:bg-red-800`: 1
+  ocorrência.
+
+Total: **12 ocorrências** de cor não-token nesses 4 componentes-base. O impacto real
+não é "4 componentes" — é a **propagação**: `Alert variant="danger"` (estado de
+Erro, um dos 4 estados obrigatórios do Padrão A/B, Seção 4) é consumido por **todas
+as ~18 telas de CRUD do produto** (`AccountsPage`, `BudgetPage`, `DashboardPage`,
+`PinSetupPage`, `LoginPage`, `InstallmentsPage`, `CategoriesPage`, `RecurringPage`,
+`GoalsPage`, `TaxonomyReviewPage`, `TransactionsPage`/`TransactionFormModal`,
+`FirstAccountPage`, `FixedBillsPage`, `CreditCardsPage`, `PaymentMethodsPage`,
+`SettingsPage`, `IncomeExpenseReportPage`), confirmado por varredura de todos os
+pontos de chamada de `<Alert`/`<Badge`/`<OfflineSyncBadge`/`variant="destructive"`.
+Sem correção, o estado de Erro de praticamente toda tela do produto continuará
+exibindo tons de vermelho/âmbar/verde/azul do Tailwind genérico, visualmente
+incoerentes com a paleta verde/terracota/creme do v2.0 — não é um problema que a
+troca de tokens do Lote 0 resolve sozinha, é ação explícita adicional. Não escalado
+ao Software Architect (não é conflito de arquitetura, é correção de implementação
+dentro do que o `SDD.md` já permite) — registrado aqui para o Tech Lead incluir o
+ajuste desses 4 componentes-base no escopo do Lote 0/Lote 1, e para o `frontend`
+não reintroduzir a rampa padrão do Tailwind ao tocar esses arquivos.
+
+**Achado 2: paleta categórica do `DonutChart` é 100% hardcoded, sem token
+correspondente.** `components/domain/DonutChart.tsx:16` declara
+`const PALETTE = ["#2563EB", "#16A34A", "#D97706", "#DC2626", "#7C3AED", "#0891B2",
+"#DB2777", "#4B5563"]` — 8 valores hex literais, nenhum lido de `index.css`. Usado
+em `S-DASH-01` (RF-MVP-06). Causa raiz: o design system só define 5 matizes
+semânticas (`primary`/`income`/`expense`/`warning`/`danger`), nenhuma família
+"categórica" para gráficos com mais de 2 séries — `BarChart.tsx` (2 séries:
+entradas/saídas) usa corretamente `bg-income`/`bg-expense`, então a lacuna é
+isolada ao caso de N categorias do donut. É o único hardcode de cor literal
+encontrado em código de produção (fora de `.test.tsx`). Mesmo tratamento do Achado
+1: não é conflito de arquitetura, é lacuna de token + ponto de código a corrigir;
+registrado para o Tech Lead prever, no Lote 0 ou no lote que tocar o Dashboard
+(Lote 1), a definição de uma família `--color-chart-*` (N tons derivados da nova
+paleta v2.0, mantendo contraste ≥3:1 exigido para elemento gráfico não-textual,
+Seção 5) e a migração do `DonutChart` para consumi-la.
+
+**Achado 3: 4 telas de Auth/Onboarding duplicam manualmente o mesmo wrapper de
+card, e uma 5ª usa um padrão estrutural diferente — confirma e quantifica, por
+inspeção direta de código, a lacuna já registrada em AC2 acima
+(`AuthCard`/`AuthLayout`).** Nenhuma das 5 usa o `Card` já existente
+(`components/base/Card.tsx`). Em vez disso:
+- `pages/auth/LoginPage.tsx:59`, `pages/auth/PinSetupPage.tsx:83`,
+  `pages/onboarding/FirstAccountPage.tsx:54` e
+  `pages/onboarding/TaxonomyReviewPage.tsx:38` reescrevem, cada uma
+  independentemente, a mesma classe `"w-full max-w-sm|md rounded-lg bg-surface p-6
+  shadow-elevation-md"` (uma delas acrescenta `text-center`) — 4 cópias
+  divergentes do mesmo wireframe "card centralizado, isolado" (Seção 2.2,
+  S-AUTH-01/02/04, S-ONB-01/02), nenhuma delas o componente-base `Card`.
+- `pages/auth/UnlockPage.tsx` (S-AUTH-03/05) usa um **padrão estrutural
+  diferente**: sem card algum, layout borderless de tela cheia centralizada
+  (`flex min-h-screen ... bg-surface-alt`) — correto quanto a tokens de cor, mas é
+  um 2º padrão de "container de tela pré-sessão" coexistindo com o 1º (card
+  caixado), para o mesmo propósito conceitual.
+Resultado: **2 padrões de container divergentes para a mesma família de tela**
+(pré-sessão/onboarding), nenhum dos dois sendo o `AuthCard`/`AuthLayout` que a AC2
+já recomenda formalizar. Consolidação continua planejada para o Lote 5 (Grupo B,
+conforme já registrado); este achado só adiciona a contagem exata de pontos de
+código a migrar quando esse lote acontecer.
+
+**Achado 4 (controle positivo — não é uma pendência, é o contraponto que confirma
+que os Achados 1-3 são a exceção, não a regra).** Fora do cluster Auth/Onboarding
+(Achado 3) e dos 4 componentes do Achado 1, o restante do design system mostra
+**um único padrão canônico por propósito**, sem reinvenção divergente:
+- **Card genérico**: usado sem alteração por `CategoryCard`, `BudgetCard`,
+  `LoginPage`(não — ver Achado 3)/demais páginas de CRUD, `Modal`, `Toast` — 0
+  reimplementações alternativas de "card" fora do Achado 3.
+- **Botão primário**: `Button variant="primary"` é o único ponto de estilo de
+  botão de ação primária em todo o código auditado — nenhuma tela reimplementa um
+  `<button>` cru com a aparência de botão primário por fora do componente.
+- **Campos de formulário**: `Input`/`Select`/`DatePicker`/`CurrencyInput`/
+  `CategoryPicker` compartilham `FieldLabel`/`FieldMessage`
+  (`components/base/FieldChrome.tsx`) — rótulo, obrigatoriedade e mensagem de
+  erro/apoio têm markup e comportamento idênticos entre os 5 campos.
+- **Botão de ícone isolado** (ação secundária tipo "editar"/"expandir tabela"):
+  não existe componente-base próprio ainda, mas as 33 ocorrências encontradas em
+  24 arquivos repetem **a mesma classe literal**
+  (`min-h-11 min-w-11 ... focus-visible:outline-2 focus-visible:outline-primary`)
+  — duplicada, porém consistente (não divergente); candidato a virar um
+  `IconButton` de design system no Lote 0/5, sinalizado aqui para não ser
+  reinventado de forma diferente por lote a lote durante o redesign.
+
+**Métrica quantitativa de N1 (nível ocorrência, complementar à métrica "% de
+superfícies" oficial de `PRD.md` Adendo B B.3)**: contagem de classes utilitárias
+de cor que resolvem para um token de `index.css` (`bg|text|border|ring-` +
+`primary|income|expense|warning|danger|neutral|surface`) vs. cor não-token
+(hex literal ou classe da rampa padrão do Tailwind não redefinida por `@theme`):
+
+| | Ocorrências | Fonte |
+|---|---|---|
+| Cor via token (`index.css`/`@theme`) | 251 | 55 arquivos `.tsx` de produção |
+| Cor não-token (hex literal ou rampa padrão Tailwind) | 20 | 8 (`DonutChart` PALETTE) + 12 (Achado 1) |
+| **N1 aproximado (nível ocorrência)** | **251 / 271 ≈ 92,6%** | — |
+
+**Tabela de superfícies (nível "% de superfícies", a métrica oficial de N1)** —
+veredito por domínio, considerando o critério estrito de N1 ("sem estilo
+inline/ad-hoc divergente", 0 exceções para ser 100%):
+
+| Domínio / superfícies | Veredito | Motivo |
+|---|---|---|
+| Auth (S-AUTH-01/02/04) | Parcial | Achado 3 (card duplicado) |
+| Auth (S-AUTH-03/05) | Parcial | Achado 3 (padrão estrutural divergente, sem card) |
+| Onboarding (S-ONB-01/02) | Parcial | Achado 3 (card duplicado) |
+| Dashboard (S-DASH-01) | Parcial | Achado 2 (`DonutChart`) + Achado 1 (`Alert` erro) |
+| Todas as telas de CRUD com estado de Erro (Contas, Formas de Pagamento, Categorias, Orçamento, Cartões, Parcelas, Recorrências, Metas, Contas Fixas, Lançamentos, Relatórios, Configurações) | Parcial | Achado 1 (`Alert variant="danger"`, presente em todas) |
+| Navegação (`AppLayout`, `OfflineSyncBadge`) | Parcial | Achado 1 (`OfflineSyncBadge`) |
+| Relatórios (`BarChart`, 2 séries) | Compliant | Usa `bg-income`/`bg-expense`, sem exceção |
+| Formulários (campos `Input`/`Select`/`DatePicker`/`CurrencyInput`/`CategoryPicker`, isoladamente) | Compliant | `FieldChrome` compartilhado, sem hardcode |
+
+**Leitura honesta do resultado**: pelo critério estrito de N1 ("0 divergência para
+ser 100%"), a **grande maioria das superfícies do produto herda pelo menos 1
+ocorrência do Achado 1** (o estado de Erro do Padrão A/B está presente em quase
+toda tela) — o baseline real de N1, na métrica oficial de "% de superfícies 100%
+aderentes", é **baixo** (poucas superfícies passam no critério de zero exceções),
+mesmo com adesão de ~92,6% no nível de ocorrência individual de cor. As duas
+leituras não se contradizem: um pequeno número de componentes-base amplamente
+reutilizados (Achado 1) é suficiente para derrubar a métrica "por superfície"
+mesmo quando a adesão agregada por ocorrência é alta — é exatamente por isso que
+`PRD.md` Adendo B B.3 mede N1 por superfície, não por ocorrência agregada, e é
+esse número (superfície) que deve ser cobrado lote a lote daqui em diante. Este
+baseline não é uma condição de bloqueio do Lote 0 — é a fotografia "antes" contra a
+qual `PRD.md` Adendo B B.3 exige comparação "ao final de cada lote".
+
+**Nenhum destes 4 achados é escalado ao Software Architect** — são correções de
+implementação dentro do que o `SDD.md` já permite (mesma natureza da correção de
+`--text-3`/`--warn` já aplicada nesta Seção, AC3), não uma restrição de
+arquitetura. Registrados para o Tech Lead avaliar reestimativa dos componentes
+afetados (`Alert`, `Badge`, `Button`, `OfflineSyncBadge`, `DonutChart` — todos já
+dentro do escopo de tela tocado pelos Lotes 0-4) e para o `frontend` não
+reintroduzir os mesmos padrões ao implementar.
+
 ### 3.1 Tokens visuais
 
-> **Atualização 2026-09-04 — repaginada visual + correção de corte de campo.**
-> O dono do produto reportou dois problemas juntos: (1) campos/formulários
-> cortando em tela em várias telas do app, achado confirmado em auditoria de
-> código (ver `Log de Alterações Pós-Publicação` no final do documento para a
-> lista completa arquivo → problema → correção); (2) pedido de uma "skin mais
-> moderna". Os dois são tratados como uma única revisão, não dois problemas
-> separados — a tabela abaixo **substitui** os valores originais (publicados em
-> 2026-09-02); os valores antigos ficam preservados só na cópia versionada do
-> Git, não duplicados aqui. É uma repaginada de tokens (cor/tipografia/raio/
-> sombra), não uma reabertura de decisão de arquitetura — nenhum item aqui
-> conflita com o `SDD.md`, então não há `technical-constraint-check` a abrir.
+> **Correção 2026-09-04 (Redesign Visual "MyMoney v2.0", Lote 0) — substitui a
+> nota anterior desta seção.** Com acesso real aos 8 arquivos `.dc.html`, a
+> tabela abaixo **substitui integralmente** os valores da repaginada de
+> 2026-09-04 (histórico preservado só na cópia versionada do Git, mesmo
+> tratamento já usado pela própria repaginada em relação à publicação original
+> de 2026-09-02) — não é uma extensão. Fonte: bloco `:root` idêntico nos 8
+> artboards (`Main.dc.html`, `Lancamentos.dc.html`, `ContasCartoes.dc.html`,
+> `Categorias.dc.html`, e as 4 variantes `*Mobile.dc.html`). Decisão de
+> substituir (não estender) é minha, dentro da autoridade que RF-RS-00 deixa
+> explicitamente ao `ux-ui` ("não decidido aqui"). **Ressalva de arquitetura
+> resolvida** (`BLOCKERS.md` Bloqueio 022, `Resolvido` por `software-architect`
+> via `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`):
+> a tipografia numérica seletiva não cabe no precedente "zero mudança de
+> componente" do ADR-017 — vira o primitivo `Num` (Seção 3.2), não uma classe
+> `.num` solta. Ver Seção 3.0 para o racional completo.
 
-| Token | Valor/Definição | Uso |
+| Token | Valor/Definição (real, extraído dos 8 artboards) | Uso |
 |---|---|---|
-| `color.primary` | Índigo (`#4F46E5`), hover `#4338CA`, fundo suave `color.primary-soft` (`#EEF2FF`) para estado ativo/selecionado sem depender de preencher a área toda de cor sólida | Ações primárias, links, elementos de marca, estado ativo de navegação (substitui o `bg-blue-50` ad-hoc hoje hardcoded em `AppLayout.tsx`) |
-| `color.income` | Verde (`#16A34A`), fundo suave `#DCFCE7` | Entradas, saldo positivo, meta atingida |
-| `color.expense` | Vermelho (`#DC2626`), fundo suave `#FEE2E2` | Saídas |
-| `color.warning` | Âmbar (`#D97706`), fundo suave `#FEF3C7` | Alerta de aproximação de orçamento (80%), aviso de conta fixa a vencer |
-| `color.danger` | Vermelho forte (`#B91C1C`) | Estouro de orçamento (>100%), conta vencida/em atraso, ações destrutivas |
-| `color.neutral-50…900` | Escala neutra levemente azulada (slate), não cinza puro — `50 #f8fafc / 100 #f1f5f9 / 200 #e2e8f0 / 300 #cbd5e1 / 400 #94a3b8 / 500 #64748b / 600 #475569 / 700 #334155 / 800 #1e293b / 900 #0f172a` | Texto, bordas, superfícies — troca deliberada em relação à escala cinza-puro original, é o principal responsável pela sensação de "skin mais moderna" sem mudar nenhuma semântica de cor de estado |
-| `color.surface` / `color.surface-alt` | Fundo de card/página (`#ffffff` / `neutral-50`) | Hierarquia visual de bloco |
-| `typography` | Fonte de sistema (system-ui/Inter), escala `xs 12 / sm 14 / base 16 / lg 18 / xl 20 / 2xl 24 / 3xl 30`; títulos de página (`h1` de cada tela, ex. "Lançamentos", "Contas") passam a `font-semibold` com `tracking-tight` — refinamento tipográfico, sem mudar a escala numérica já validada pelo Tech Lead | `3xl` continua reservado ao saldo consolidado do dashboard |
-| `spacing` | Escala 4/8/12/16/24/32/48 (px), inalterada | Consistente com utilitário Tailwind já definido no `SDD.md` Seção 3 |
-| `radius` | `sm 4 / md 8 / lg 16 / xl 20` **[novo nível]** `/ full` (pill) | `lg` (16) permanece o padrão de `Card`/`Modal`; `xl` (20) fica reservado ao card de saldo consolidado do dashboard (`S-DASH-01`), único elemento que recebe destaque extra de raio, para reforçar hierarquia visual sem introduzir um 3º nível de elevação; `full` reservado a badges de status e ao FAB |
-| `elevation` | `sm` (card em lista), `md` (modal/sheet), `lg` **[novo nível]** (card de saldo consolidado, `S-DASH-01`, único uso) | Regra inalterada: nunca mais de 2 níveis de elevação simultâneos **na mesma tela** — `lg` só aparece isolado no card de saldo; o resto da tela permanece em `sm`, nunca os 3 juntos |
-| `motion` | Transições ≤ 200ms para hover/foco, ≤ 300ms para abertura de modal/sheet; toda animação respeita `prefers-reduced-motion` (Seção 5) | Inalterado |
-| Ícones | Conjunto line-style, grade 24px, semântica consistente; biblioteca concreta fica a critério do Tech Lead/Frontend (ex. Lucide/Heroicons) | **Achado de auditoria**: `AppLayout.tsx` (navegação inferior mobile) hoje usa emoji (🏠📄🎯⋯) em vez de ícone line-style — inconsistente com este token desde a publicação original, não é uma mudança nova de direção, é a aplicação de um token que já existia e não tinha sido seguido; sinalizado aqui para o `frontend` corrigir junto da repaginada, não como conflito técnico |
-| Moeda/formato | BRL, formato `R$ 0.000,00`, `RNF-07` — nenhuma tela exibe valor sem símbolo de moeda | Inalterado |
+| `--accent` (primary) | Verde escuro `#2F6B4F`, hover `#244F3B` (usado em `a:hover`), fundo suave `--accent-soft` `#E7EEE8` | Ações primárias, links, estado ativo de navegação, ícone/fundo de "sincronizado agora" |
+| `--income` | `#2F6B4F` — **mesmo valor de `--accent`**, fusão confirmada como escolha de valor (`adr/019...md` Parte 1) | Entradas, saldo positivo |
+| `--expense` | Terracota `#B4483A`, fundo suave `--expense-soft` `#F5E7E1` | Saídas |
+| `--warn` | Âmbar-dourado `#B9862F`, fundo suave `--warn-soft` `#F5EBDA` | Alerta de aproximação de orçamento (80%) — **ver Seção 5**: como cor de preenchimento/ícone, ok; como cor de texto direto, falha contraste (3,04–3,22:1), corrigido nesta rodada |
+| `--danger` (estouro, distinto de expense) **[NOVO/FINALIZADO, ausente do mockup]** | `#752F26` — mesma família terracota de `--expense`, escurecida ~35% (mesma relação de intensidade que a produção atual já usa entre `expense`/`danger`). Contraste calculado sobre `--bg`: **9,03:1** (folga ampla). Declarado mesmo sem exemplo visual no mockup (`adr/019...md` Parte 1: "RN de estouro de orçamento >100% continua existindo no produto") | Estouro de orçamento (>100%), sempre acompanhado de ícone + texto distintos do alerta (RN-04) — nunca só tom de vermelho mais forte |
+| `--bg` | Creme quente `#FAF8F3` | Fundo de página |
+| `--surface` | `#FFFFFF` | Fundo de card |
+| `--border` | `#EDE8DD` | Bordas de card, separadores de lista |
+| `--text` | `#1F2420` (quase preto, esverdeado) | Texto primário — contraste 14,8:1 sobre `--bg`, folga ampla |
+| `--text-2` | `#6B6F68` | Texto secundário com informação real (rótulos, "vence 10/09", categoria·forma de pagamento — **realocado para cá nesta rodada**, ver Seção 5) — 4,83:1 sobre `--bg` |
+| `--text-3` | `#9A9C93` | **Restrito nesta rodada a uso decorativo/não-textual** (traço de ícone) — falha contraste como texto (2,62–2,78:1), ver Seção 5 |
+| `typography` | **Duas famílias**: `Newsreader` (serif; itálico peso 500 só no logo "MyMoney"; peso 500 roman em `h1`/título de página e no valor do saldo consolidado) + `Public Sans` (400/500/600/700, corpo/UI, aplicada ao `body` inteiro por padrão) | **Resolvido via `adr/019-...md`**: aplicada através do primitivo `Num` (`components/base/Num.tsx`, Seção 3.2) — não uma classe `.num` aplicada diretamente em JSX já existente. Fontes carregadas via pacote self-hosted (`@fontsource/public-sans`, `@fontsource/newsreader`), não `<link>` para Google Fonts CDN — preserva cache do service worker/offline-first (ADR-003, RNF-04). Migração dos 17 arquivos/25+ pontos de chamada já existentes de `formatCentsToBRL()` é incremental, lote a lote (ver blocos "Redesign visual v2.0", Seção 2.2), não atômica no Lote 0 |
+| `font-size` (observados) | `h1` 32px desktop / 24px mobile (Newsreader 500); logo 22px itálico; saldo consolidado 48px desktop / 34px mobile (`<Num>`); KPI 26px desktop / 16px mobile (`<Num>`); corpo/item de lista 14px / 13px mobile; secundário 12–13px / 11–12px mobile; nav label 11px uppercase `letter-spacing:0.06em` | Escala observada empiricamente nos 8 artboards, não uma escala nomeada (`xs/sm/base…`) explícita no `:root` — Tech Lead/`frontend` podem mapear para a escala Tailwind mais próxima já em uso |
+| `spacing` | Não redefinido explicitamente por token próprio nos artboards — paddings observados usam múltiplos de 4px (12/14/16/18/20/22/24/28/32/36/40/48), compatível com a escala 4/8/12/16/24/32/48 já em produção | Nenhuma mudança de escala de espaçamento confirmada — apenas os múltiplos usados em cada componente específico (ver Seção 2.2) |
+| `radius` | Desktop: `--r-sm:8px; --r-md:12px; --r-lg:20px` (3 níveis, contra 4 níveis `sm4/md8/lg16/xl20` da produção); mobile: só `--r-md:12px` declarado na maioria dos artboards, e `DashboardMobile.dc.html` declara `--r-lg:18px` (não 20px) especificamente para o card de saldo | `--r-sm` (8px) = botões/chips; `--r-md` (12px) = `Card` padrão; `--r-lg` (20px desktop / 18px mobile) = card de saldo consolidado (hero), mesmo papel conceitual do antigo `radius.xl`, mas sem um 4º nível distinto — este documento consolida em 3 níveis nomeados (`r-sm`/`r-md`/`r-lg`), substituindo `sm/md/lg/xl` |
+| `elevation` | `--shadow-sm:0 1px 2px rgba(31,36,32,.05)` (card padrão); `--shadow-md:0 6px 20px rgba(31,36,32,.06)` desktop / `0 6px 18px rgba(31,36,32,.06)` mobile (card de saldo) | Mesma disciplina de no máximo 2 níveis simultâneos por tela já vigente — `shadow-md` só no card de saldo, resto em `shadow-sm` |
+| `motion` | Não observável nos arquivos estáticos (`.dc.html` não tem transição/JS) — mantido o já vigente: transições ≤200ms hover/foco, ≤300ms modal/sheet, respeitando `prefers-reduced-motion` | Sem evidência de mudança nos mockups; preservado até indicação em contrário |
+| Ícones | Line-style, `stroke-width:1.6–1.8`, grade 24px (desktop) / 21px (mobile, nav) / 17–18px (chips/botões pequenos) — SVG inline com `stroke="currentColor"`, consistente com o token de ícone já vigente (linha, não preenchido) | Confirma a correção já pendente de "trocar emoji por ícone line-style na navegação inferior mobile" (achado de 2026-09-04) — o mockup usa exclusivamente ícone SVG line-style, nunca emoji, em toda navegação |
+| Moeda/formato | BRL, `R$ 0.000,00` — confirmado nos mockups (todo valor com símbolo, exceto quando o rótulo ao lado já deixa a moeda implícita em mobile, ex. "8.200,00" sem "R$" repetido em card de KPI compacto — decisão de compactação visual, não de formato) | `RNF-07` preservado |
 
 ### 3.1.1 Tokens/regras de layout para prevenir corte de conteúdo **[NOVO]**
 
@@ -811,6 +1500,8 @@ todo componente/tela novo os segue por padrão.
 | `FilterBar` | Conjunto de filtros (conta, forma de pagamento, categoria, período) |
 | `ConfirmationDialog` | Instância do Padrão B (Seção 2.1) |
 | `DatePicker` | Seleção de data única |
+| `Num` **[NOVO, 2026-09-04, Redesign Visual "MyMoney v2.0", Lote 0 — `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`]** | Primitivo de renderização de número em `Newsreader` (`font-variant-numeric: tabular-nums`), introduzido no Lote 0, migração incremental lote a lote nos 17 arquivos/25+ pontos de chamada já existentes de `formatCentsToBRL()` — nunca uma migração atômica. **Contrato mínimo** (nome/API final é decisão do `frontend`, não fixada em pixel aqui, mesma disciplina já usada para `AuthCard`): `<Num value={number} format="currency" \| "percent" \| "count" />` — `format="currency"` aplica `formatCentsToBRL()` internamente (recebe centavos) e renderiza com símbolo BRL; `format="percent"` recebe percentual já calculado e adiciona `%`; `format="count"` renderiza um inteiro sem formatação monetária (ex. "47 este mês"). Renderiza sempre um `<span>` (ou elemento equivalente inline) isolado — nunca concatenado a texto não-numérico no mesmo nó; onde hoje um número está concatenado a texto no mesmo nó/`string` (ex. `BudgetCard` — `"${formatCentsToBRL(spentCents)} de ${formatCentsToBRL(limitCents)}"` numa prop `detailText: string`), o componente consumidor precisa ser ajustado para aceitar `ReactNode`/props numéricas separadas em vez de uma única `string` pré-formatada — mudança de contrato de componente, não só de estilo, tratada como parte do esforço do lote que tocar aquele componente (ver blocos "Redesign visual v2.0", Seção 2.2). Até a migração de um ponto de chamada específico, ele permanece renderizando o número na fonte única atual — dívida técnica explícita (`SDD.md` Adendo B, Seção B.6.2), nunca escondida. |
+| `AuthCard`/`AuthLayout` **[NOVO, recomendado, 2026-09-04, Redesign Visual "MyMoney v2.0", Lote 0/Lote 5]** | Consolida o padrão hoje duplicado ad hoc (card centralizado, sem navegação lateral, título + corpo + rodapé de ação/link secundário) usado por `S-AUTH-01/02/03/04/05` e `S-ONB-01/02` num único componente-base reutilizável — materializa a 4ª superfície exigida por RF-RS-00 AC2 (formulário isolado pré-sessão). Especificação mínima: `AuthLayout` = contêiner de página inteira (sem `AppLayout`/navegação), centraliza `AuthCard` vertical e horizontalmente, largura fixa menor que a viewport em desktop (`lg`+), largura confortável total em mobile (mesmo padrão já descrito na Seção 6.3 para S-AUTH-02); `AuthCard` = `Card` (Seção 3.2, `--shadow-sm`, `--r-md`) com título em `Newsreader` (mesma família do `h1`/logo, Seção 3.1) e slots para corpo (formulário/conteúdo específico da tela, em `Public Sans`) e rodapé (link(s) secundário(s), ex. "Esqueci minha senha"/"Usar PIN em vez disso"). Decisão final de nome de API/props é do `frontend`, não decidida aqui (mesma disciplina de "não decidido aqui" já usada pelo Software Architect); consolidação de fato — migrar `LoginPage.tsx`/`UnlockPage.tsx`/`PinSetupPage.tsx` para usá-lo — ocorre no Lote 5 (Grupo B, Seção 2.3), esta linha só publica a especificação mínima para permitir estimativa antecipada pelo Tech Lead. |
 
 **Nota (S-AUTH-02, adicionada em 2026-09-03)**: a tela de verificação por e-mail
 (Seção 2.2) não introduz nenhum componente novo — reaproveita integralmente
@@ -929,6 +1620,20 @@ divergente têm nota própria na tabela da Seção 4.2.
 | **S-CAP-07** (candidatos) | Arquivo/sincronização não retornou nenhuma transação → `EmptyState` "Nenhuma transação encontrada" | "Interpretando arquivo..." / "Sincronizando com o banco..." | Arquivo corrompido/formato inválido → `Banner` "Não foi possível ler o arquivo. Verifique o formato (OFX/CSV) e tente novamente" | N lançamentos confirmados → `Toast` + retorno a S-TXN-01 |
 | **S-NOT-01** | `EmptyState` "Nenhuma notificação ainda" | `Skeleton` de lista | `Banner` de recarregamento | Lista com não-lidas destacadas |
 
+> **Nota (2026-09-04, Redesign Visual "MyMoney v2.0")**: os 4 estados de
+> `S-DASH-01`, `S-TXN-01`, `ShortcutBar`/`ShortcutChip`, `S-BUD-01` e `S-CAT-01`
+> (Lotes 1, 2 e 4 do Grupo A, acima) **permanecem exatamente como já
+> especificados nesta seção** — o redesign v2.0 troca só a camada visual
+> (tokens/composição de tela), nunca a lógica de vazio/carregando/erro/sucesso em
+> si (RN-19/RN-20). `S-ACC`/`S-CARD` (Lote 3) seguem o Padrão A/B geral (Seção
+> 4.1), também sem alteração de estado. Nenhum dos 4 lotes do Grupo A exige nova
+> linha nesta seção — é o mesmo caso já registrado para RF-REF-01/02/05/06 na
+> extensão anterior ("RF-REF-01... não introduz nem altera nenhum dos 4 estados
+> desta tela", linha `S-DASH-01` acima). O Grupo B (Lotes 5-13) não recebe
+> detalhamento de estado nesta rodada, consistente com a ausência de RF/AC tela a
+> tela na Seção 2.3 — cada lote reaproveita seus próprios estados já vigentes
+> (Padrão A/B ou próprios, conforme a tabela da Seção 2.3) até ser detalhado.
+
 ---
 
 ## 5. Requisitos de Acessibilidade (WCAG)
@@ -956,6 +1661,30 @@ produto.
 | **`ShortcutChip` — foco automático no campo Valor (RF-REF-03 AC4) [NOVO, 2026-09-04]** | Desvio documentado, não uma violação da regra geral de foco de `Modal`/`BottomSheet` (linha "Foco visível e gerenciamento de foco" acima): quando `S-TXN-02` é aberto a partir de um atalho, o foco vai direto ao campo Valor (não ao primeiro campo do formulário) — é uma decisão deliberada de UX (RF-REF-03 AC4), não um bug de gerenciamento de foco. Continua a valer, sem exceção, o restante da regra: foco preso dentro do modal (focus trap) e retorno ao elemento que abriu, ao fechar. |
 | **Card clicável (`CategoryCard`/`BudgetCard`, Padrão C — RF-REF-05/06) [NOVO, 2026-09-04]** | Ver estrutura completa na Seção 2.1, Padrão C: elemento clicável primário e ação(ões) secundária(s) são elementos interativos **irmãos**, nunca aninhados (`<button>` dentro de `<button>` é inválido e quebra leitor de tela). `aria-label` do elemento clicável primário descreve a ação, não só repete o nome (ex. "Ver subcategorias de Alimentação", não só "Alimentação"). Ordem de tabulação: elemento clicável primário antes da(s) ação(ões) secundária(s) dentro do mesmo card. |
 | **Rótulo desambiguado de forma de pagamento (RN-14/RNF-13) [NOVO, 2026-09-04]** | Nenhum requisito de acessibilidade novo além dos já cobertos por "Rótulos e associação de formulário" acima — o `<select>` de forma de pagamento em `S-TXN-02` continua com `label` associado normalmente; o texto da `<option>` (ex. "Débito Conta Corrente") já é lido integralmente por leitor de tela sem necessidade de `aria-label` adicional por item. Sinalizado aqui só para deixar explícito que a mudança de RF-REF-04 não introduz pendência de acessibilidade própria. |
+| **Não-regressão de acessibilidade — Redesign Visual "MyMoney v2.0" (RNF-17, meta N3) [NOVO, 2026-09-04]** | Toda tela redesenhada em qualquer lote (Grupo A: `S-DASH-01`, `S-TXN-01`/`02`, `ShortcutBar`/`ShortcutChip`, `S-ACC`/`S-CARD`, `S-CAT-01`; Grupo B, quando chegar sua vez) deve preservar **integralmente** todas as linhas desta Seção 5 já aplicáveis a ela — nenhum item (contraste, não depender só de cor, navegação por teclado, foco visível, alvos de toque, alternativa a gráficos, WCAG 2.2.1 sem limite de tempo) é revisado ou relaxado pelo redesign. Este é o critério de aceite explícito de cada lote (`FL-09` do BA), não uma checagem única de uma vez só. |
+| **Ícones de estado do redesign v2.0 (severidade de `ProgressBar`/`BudgetCard`/badge de fatura)** | Mantém, sem exceção, a regra já vigente "Não depender só de cor" (linha acima desta tabela) — a barra de progresso de alerta usa `--warn` como preenchimento (elemento gráfico, atende 3:1 por SC 1.4.11) sempre acompanhada de texto/ícone em `--text`/`--text-2` (nunca `--warn` como cor do próprio texto, ver linha de contraste abaixo). |
+| **[REVISADO, 2026-09-04, achado real de contraste, cálculo WCAG completo — substitui a pendência anterior]** `--text-3` (`#9A9C93`) da paleta v2.0 falha contraste como texto | **Calculado, não estimado**: `--text-3` sobre `--bg` (`#FAF8F3`) = **2,62:1**; sobre `--surface` (`#FFFFFF`) = **2,78:1** — falha tanto o limiar de 4,5:1 (texto normal) quanto o de 3:1 (texto grande/UI não-textual). Usado no mockup real para "categoria · forma de pagamento" (item de lançamento, `S-TXN-01`), rótulo de banco (`S-ACC`), valor de subcategoria (`S-CAT-01`) — todos textos com informação real, nunca decorativos. **Correção aplicada nesta rodada, obrigatória em todo lote do Grupo A**: onde o mockup usa `--text-3` para texto com informação (não para traço de ícone/`navlabel` uppercase decorativo), a implementação usa `--text-2` (`#6B6F68`, 4,83:1/5,12:1 — passa) no lugar. Aplicado explicitamente nos blocos "Redesign visual v2.0" de `S-TXN-01`, `S-ACC`, `S-CAT-01` (Seção 2.2). |
+| **[NOVO, 2026-09-04, achado real de contraste]** `--warn` (`#B9862F`) da paleta v2.0 falha contraste como cor de texto | **Calculado**: `--warn` sobre `--bg` = **3,04:1**; sobre `--surface` = **3,22:1** — falha 4,5:1 (texto normal, ex. rótulo percentual "87%" a 13px), passa só o limiar de 3:1 de elemento não-textual. **Correção aplicada**: `--warn` continua válido como cor de **preenchimento** de barra/ícone/badge (não-texto, SC 1.4.11, passa); todo texto que hoje seria colorido em `--warn` (percentuais, rótulos de alerta) passa a ser renderizado em `--text`/`--text-2` (sempre passa), com o indicador de severidade carregado pelo ícone/preenchimento ao lado — mesmo princípio "não depender só de cor" já vigente nesta seção, aplicado aqui para resolver contraste, não só semântica. |
+| **[NOVO, 2026-09-04]** `navlabel` (rótulo de grupo da navegação lateral, Seção 6.2) usa `--text-3` | Exceção deliberada à correção acima: é `font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.06em` — texto curto, maiúsculo, de agrupamento (não informação transacional), mesmo assim **recomendo ao `frontend` também usar `--text-2` aqui por precaução**, já que 11px uppercase ainda conta como "texto normal" para fins de WCAG 2.1 (a exceção de "texto grande" exige 18px+/14px+bold, que este rótulo não atinge) — não há benefício de manter `--text-3` que justifique o risco de falha, dado que o próprio `--text-2` já está sendo adotado em todo o resto da tela. |
+
+> **Nota ao Tech Lead — ambiguidade de custo já registrada pelo CTO no Gate 2
+> desta iniciativa (`CTO-REVIEW.md`, veredito "Aprovado com ressalvas", ressalva
+> 1)**: "0 regressões... de acessibilidade" (RNF-17, `ADR-018`) não especifica, em
+> nenhum dos dois ADRs nem no `SDD.md` Adendo B, se a verificação de WCAG por lote
+> é **automatizada** (ex. `jest-axe` ou equivalente já embutido nos testes
+> `*.test.tsx`, mesmo padrão da suíte automatizada que `TEST-PLAN.md` já confirma
+> para a verificação funcional) ou depende de **checagem manual adicional** a cada
+> lote. Este `UX-SPEC.md` especifica **o quê** verificar (esta Seção 5, item a
+> item, por tela) — não decide **como** a verificação é executada
+> mecanicamente, porque essa é uma decisão de ferramenta/processo de QA, fora do
+> escopo deste agente. Ao decompor `TASK.md`, o Tech Lead deve confirmar
+> explicitamente qual dos dois caminhos se aplica a cada item desta seção — se
+> manual, esse custo deve entrar na calibração real de velocidade exigida pela
+> condição vinculante do CTO ao Bloqueio 021 (Lote 0 + 1 lote do Grupo A antes de
+> qualquer estimativa agregada dos Lotes 5-13), não ser tratado como custo zero
+> por analogia à suíte automatizada existente. Este documento não resolve essa
+> ambiguidade por conta própria — só a repassa de forma explícita, como o CTO já
+> havia pedido.
 
 ---
 
@@ -978,13 +1707,43 @@ visual que justifique "não aplicável".
 
 ### 6.2 Padrão de navegação
 
-- **Mobile (< 1024px)**: barra de navegação inferior fixa com 5 destinos (Dashboard,
-  Lançamentos, FAB central "+", Orçamento/Cartão, Mais), respeitando `safe-area-inset`
-  em dispositivos com notch/home indicator.
-- **Desktop (≥ 1024px)**: barra lateral fixa com todos os domínios (Contas, Formas de
-  Pagamento, Categorias, Lançamentos, Orçamento, Cartão, Recorrência, Contas Fixas,
-  Metas, Relatórios, Configurações — agrupados por fase/seção), barra superior com
-  `NotificationBell`, `OfflineSyncBadge` e ação "+ Novo lançamento".
+> **Revisado 2026-09-04 (Redesign Visual "MyMoney v2.0", Lote 1/RF-RS-01) —
+> substitui a versão anterior, com base no mapeamento real dos 8 artboards**
+> (decisão de UX/UI dentro da minha autoridade de "definir a experiência de
+> navegação" — não uma regra de negócio, não escalada). Padrão anterior (FAB
+> central mobile, agrupamento "por fase/seção" sem detalhe) fica só no Log de
+> Alterações Pós-Publicação.
+
+- **Mobile (< 1024px)**: barra de navegação inferior fixa com **4** destinos —
+  Dashboard, Lançamentos, Orçamento, Mais (confirmado de forma idêntica nos 4
+  artboards mobile: `DashboardMobile`, `LancamentosMobile`,
+  `ContasCartoesMobile`, `CategoriasMobile`) — respeitando `safe-area-inset` em
+  dispositivos com notch/home indicator. **Sem FAB central na barra** — o botão
+  "+" circular (`--accent` bg, ícone "+") fica no cabeçalho de cada tela, ao
+  lado do título, não mais flutuante sobre o conteúdo. "Contas e Cartões" e
+  "Categorias" (e todo domínio sem aba própria) são acessados a partir da aba
+  "Mais", confirmado pelos dois artboards mobile onde essa aba aparece ativa.
+- **Desktop (≥ 1024px)**: barra lateral fixa (`<aside>`, 264px), com logo
+  "MyMoney" (`Newsreader` itálico) no topo e 4 grupos rotulados + 1 grupo final
+  sem rótulo, confirmados de forma idêntica nos 4 artboards desktop:
+  - **Visão geral**: Dashboard
+  - **Lançamentos**: Lançamentos, Contas, Formas de pagamento, Categorias
+  - **Planejamento**: Orçamento, Recorrências, Contas fixas, Metas
+  - **Cartões**: Cartões, Parcelamentos
+  - *(sem rótulo, separado por borda superior, empurrado ao final via
+    `margin-top:auto`)*: Relatórios, Configurações
+
+  Substitui a descrição anterior "agrupados por fase/seção" (vaga) por esta
+  estrutura concreta de 4+1 grupos. Item ativo: fundo `--accent-soft`, texto
+  `--accent` semibold (contraste 5,33:1, ver Seção 5). Sem `NotificationBell`/
+  `OfflineSyncBadge`/ação "+ Novo lançamento" na barra lateral em si — o botão
+  "+ Novo [item]" contextual (varia por tela: "Novo lançamento", "Nova conta",
+  "Nova categoria") e o ícone de notificação ficam no cabeçalho de cada página
+  (ver blocos "Redesign visual v2.0" de cada tela, Seção 2.2), não na sidebar.
+  `NotificationBell`/`OfflineSyncBadge` não aparecem em nenhum dos 4 artboards
+  desktop — mantidos como já especificado (topo de toda tela autenticada) até
+  confirmação em contrário, por não terem sido mostrados nem contradizerem
+  nenhuma regra já fixada (RF-F2-09 AC2, RNF-04).
 
 ### 6.3 Adaptação por tipo de componente
 
@@ -1013,6 +1772,18 @@ visual que justifique "não aplicável".
   primeira visita explicando o passo a passo, já que o iOS não oferece prompt
   automático (limitação de plataforma, coerente com ADR-003).
 
+### 6.5 Redesign Visual "MyMoney v2.0" — confirmação de responsividade (RNF-20)
+**[NOVO, 2026-09-04]**
+
+Confirmado diretamente pelo stakeholder e formalizado em `PRD-TECNICO.md` Adendo B
+(RNF-20): "mobile", em todo este redesign (Grupo A e Grupo B), continua
+significando exclusivamente o breakpoint responsivo desta mesma PWA (ADR-003) —
+nunca uma frente de app nativo separada. Nenhum breakpoint novo é introduzido
+pelos Lotes 0-4: a tabela da Seção 6.1 (com o breakpoint `lg`/1024px já corrigido
+como gatilho do grid do dashboard, revisão de 2026-09-04) permanece a referência
+única. O redesign v2.0 aplica tokens/composição de tela **dentro** dos breakpoints
+já fixados, não redefine onde cada breakpoint dispara.
+
 ---
 
 ## 7. Restrições Técnicas Aplicadas e Conflitos Sinalizados ao Software Architect
@@ -1037,6 +1808,12 @@ visual que justifique "não aplicável".
 | RF-REF-04 (item 4) codificação pode prosseguir com Bloqueio 013 aberto; deploy em produção condicionado ao Bloqueio 013 `Resolvido` (`CTO-REVIEW.md` Gate 2 desta rodada, ressalva 1; `ADR-016` Decisão 5) | Layout/formulário de `S-TXN-02` (campo "Conta" removido) está pronto para estimativa e implementação imediatas (Seção 2.2); nenhuma tela/estado de UI depende do Bloqueio 013 em si — é uma condição de sequenciamento de deploy, não uma restrição de experiência, sinalizada aqui só para o Tech Lead não tratar como bloqueio de design |
 | `RecurringTemplate`/`InstallmentPurchase`/`FixedBill` (Fase 2) explicitamente fora do escopo de RF-REF-04 — continuam com seleção independente de conta + forma de pagamento (`ADR-016`, "Nota de escopo"/"Fora de Escopo") | `S-CARD-02`/`S-INST-01`/`S-REC-02`/`S-FIX-02` **não são alterados** por este pacote — nenhum campo "Conta" é removido desses 4 formulários; só `S-TXN-02` (RF-MVP-04) muda |
 | RPC de atalhos (item 3) sem índice composto dedicado, dívida técnica de baixa severidade aceita conscientemente (`SDD.md` Adendo A.6.2, `ADR-015`) | `ShortcutBar` tem estado de carregamento (`Skeleton` de pílulas, Seção 4.2) para absorver qualquer latência perceptível da RPC sem bloquear o restante da tela — mitigação de UX para uma dívida técnica já aceita pela arquitetura, não uma correção da dívida em si |
+| **[NOVO, 2026-09-04, Redesign Visual "MyMoney v2.0"]** ADR-017 — tokens em bloco `@theme` único (`frontend/src/index.css`) + `components/base/*`/`components/domain/*`, sem pacote/monorepo/Storybook | Seção 3.0/3.1 estende (não substitui) exatamente essa estrutura já vigente; `AuthCard`/`AuthLayout` (Seção 3.2) é publicado como componente-base recomendado dentro da mesma estrutura, não uma exceção a ela |
+| **[NOVO, 2026-09-04]** ADR-018 — camada de tokens/componentes global (Lote 0) vs. camada de composição de tela (migrada lote a lote); corte direto por lote, sem feature flag/rota paralela | Cada bloco "Redesign visual v2.0" desta Seção 2 (Lotes 1-4) documenta explicitamente que a estrutura funcional/dado não muda, só a composição de tela daquele lote — consistente com o desacoplamento do ADR-018; nenhuma tela deste documento assume alternância em produção entre versão antiga/nova |
+| **[NOVO, 2026-09-04]** RNF-18 — suíte de testes existente reexecutada **sem escopo reduzido ao lote** (requisito de arquitetura decorrente do ADR-018, "blast radius" de componente-base global) | Nenhuma implicação de UX própria — registrado aqui só para o Tech Lead não interpretar as reestimativas do Log de Alterações desta rodada como "reteste só das 4 telas do Grupo A" |
+| **[NOVO, 2026-09-04]** RNF-19 — estratégia de corte em produção (não decidida pelo `PRD-TECNICO.md`, decidida pelo Software Architect via ADR-018: corte direto, sem fallback de tela antiga) | Nenhuma tela "versão antiga" é mantida em paralelo neste documento; qualquer necessidade futura de comparação lado a lado seria um requisito novo (RNF-19 revisitada), não uma tela já especificada aqui |
+| **[RESOLVIDO, 2026-09-04]** Indisponibilidade inicial da ferramenta de leitura de artifact — **superada nesta mesma rodada**: o orquestrador forneceu os 8 arquivos `.dc.html` estáticos reais, lidos diretamente | Ver Seção 7.2 abaixo, "Conflito 2" (marcado `Resolvido`) — os achados da leitura real geraram 2 escalações formais em `BLOCKERS.md` (Bloqueio 022, ao Software Architect; Bloqueio 023, à BA/PM), ambas também `Resolvido` |
+| **[RESOLVIDO, 2026-09-04]** `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md` — primitivo `Num` (Lote 0), migração incremental lote a lote, fontes self-hosted (`@fontsource/*`) | Seção 3.0/3.1/3.2 especificam o componente `Num` (contrato/props) e o plano de migração por lote — nenhuma classe `.num` solta é usada nesta spec (`BLOCKERS.md` Bloqueio 022) |
 
 ### 7.2 Conflitos sinalizados ao Software Architect
 
@@ -1049,6 +1826,25 @@ entradas novas da tabela acima (baseline de M4; sequenciamento do Bloqueio 013) 
 **restrições de execução carregadas adiante**, não conflitos de experiência —
 mesma distinção já usada para as entradas do documento original (ex. Pluggy/Open
 Finance, retenção de dado).
+
+**Nesta rodada (Redesign Visual "MyMoney v2.0", `PRD-TECNICO.md`/`SDD.md` Adendo B,
+ADR-017/ADR-018)**: o **Conflito 2** (indisponibilidade de acesso visual ao
+canvas) foi **resolvido dentro da própria rodada** — o orquestrador forneceu os
+8 arquivos `.dc.html` reais, lidos diretamente. Essa leitura, por sua vez,
+revelou uma pergunta real de arquitetura (introdução de segunda família
+tipográfica pode não sustentar o precedente "zero mudança de componente" do
+ADR-017) e três pontos onde o mockup diverge de regra de negócio já fixada
+(RN-18, RF-REF-03, RF-REF-05) — registradas como duas entradas formais em
+`BLOCKERS.md` (Bloqueio 022 ao `software-architect`; Bloqueio 023 à
+`business-analyst`/PM), **ambas já `Resolvido`** (Bloqueio 022 via
+`adr/019-...md` — primitivo `Num`; Bloqueio 023 — RN-18/RF-REF-03/RF-REF-05
+confirmados como alvo final). Nenhuma das duas era, em si, um
+`technical-constraint-check` contra o `SDD.md` (Bloqueio 022 era pergunta sobre
+alcance de um ADR já aceito, não apontava violação; Bloqueio 023 era
+divergência de conteúdo de mockup vs. regra de negócio, não de arquitetura) —
+mas seguiram o mesmo princípio de nunca decidir sozinho o que pertence a outro
+papel. As 3 ressalvas do Gate 2 desta iniciativa continuam endereçadas ao Tech
+Lead (ver nota na Seção 5).
 
 #### Conflito 1 — Desbloqueio por PIN/WebAuthn offline vs. exigência de revalidação server-side
 
@@ -1089,9 +1885,60 @@ Finance, retenção de dado).
   A tela é liberada para estimativa do Tech Lead sem ressalva.
 - **Escalado para**: `software-architect`.
 
+#### Conflito 2 — Indisponibilidade de acesso visual ao canvas de mockups (Lote 0)
+
+- **Status**: **Resolvido — 2026-09-04, pelo orquestrador do pipeline**, que
+  forneceu os 8 arquivos `.dc.html` estáticos reais (HTML+CSS puro), lidos
+  diretamente por este agente nesta mesma rodada. A extração de tokens/
+  componentes (RF-RS-00 AC1/AC2) e a comparação "linha a linha" contra cada
+  artboard (meta N2, RF-RS-01 a 04 AC2) foram executadas de fato — ver Seções
+  3.0/3.1 e os blocos "Redesign visual v2.0" revisados na Seção 2.2.
+- **Desdobramento, ambos resolvidos**: a leitura real revelou duas classes de
+  achado que este `ux-ui` não decidiu sozinho — registradas como entradas
+  formais em `BLOCKERS.md`, ambas agora `Resolvido`:
+  - **Bloqueio 022 — `Resolvido` em 2026-09-04 por `software-architect`, via
+    `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`
+    (Status: Accepted)**: confirmado que a tipografia numérica seletiva não
+    cabe no precedente "zero mudança de componente" do ADR-017 — não pela
+    paleta (que segue o precedente normalmente), mas pela ausência de
+    infraestrutura real de web font no projeto e pelos 17 arquivos/25+ pontos
+    de chamada de `formatCentsToBRL()` já existentes, vários concatenando
+    número e texto no mesmo nó. Decisão: primitivo `Num`
+    (`components/base/Num.tsx`), introduzido no Lote 0, migração incremental
+    lote a lote (não atômica), fontes self-hosted via `@fontsource/*` (não
+    Google Fonts CDN, preserva offline-first ADR-003/RNF-04). Incorporado
+    nesta rodada — ver Seção 3.0 ("Resolução do Bloqueio 022"), Seção 3.1
+    (linha `typography`) e Seção 3.2 (componente `Num`).
+  - **Bloqueio 023 — `Resolvido` em 2026-09-04 por `business-analyst`**:
+    julgado mockup desatualizado/incompleto, não mudança de comportamento —
+    hierarquia de item de lançamento (RN-18), `ShortcutBar`/`ShortcutChip`
+    (RF-REF-03, obrigatório mesmo ausente do mockup) e grade de cards
+    `CategoryCard` (RF-REF-05, Padrão C) **prevalecem exatamente como estavam
+    antes do redesign**. `PRD-TECNICO.md` emendado (RF-RS-02 AC1/AC2 e RF-RS-04
+    AC1 reforçados; AMB-18/19/20 registradas). Incorporado nesta rodada como
+    alvo final confirmado, não mais posição-padrão reversível — ver blocos
+    "`S-TXN-01`/`S-TXN-02`" (Lote 2) e "`S-CAT-01`" (Lote 4), Seção 2.2: a
+    composição visual de ambos os lotes acomoda esses componentes/
+    comportamentos já fixados dentro da linguagem visual v2.0 (paleta/
+    tipografia dos mockups), mesmo sem equivalente literal no artboard.
+- **Achado real de contraste, resultado direto do acesso ao mockup** (não um
+  novo Conflito, tratado dentro de AC3/Seção 5): `--text-3` e `--warn` (como
+  cor de texto) falham WCAG AA por cálculo real — corrigido nesta rodada via
+  reatribuição de uso (`--text-2` no lugar de `--text-3` para texto com
+  informação; `--text`/`--text-2` no lugar de `--warn` como cor de texto,
+  preenchimento/ícone mantido em `--warn`). Ver Seção 3.0 AC3 e Seção 5.
+- **Escalado para**: `software-architect` (Bloqueio 022, `Resolvido`) e
+  `business-analyst` (Bloqueio 023, `Resolvido`) — nenhuma pendência aberta
+  remanescente deste Conflito 2 nem de seus dois desdobramentos.
+
 Nenhum outro conflito real entre experiência desejada e restrição técnica do
-`SDD.md` foi identificado nesta rodada — os demais pontos de atenção da Seção 7.1 são
-restrições já resolvidas e aplicadas, não divergências em aberto.
+`SDD.md` foi identificado nesta rodada — os demais pontos de atenção da Seção
+7.1 são restrições já resolvidas e aplicadas, não divergências em aberto.
+Bloqueio 022 e Bloqueio 023 não eram, tecnicamente, `technical-constraint-check`
+(o primeiro era pergunta sobre alcance de um ADR já aceito; o segundo era
+divergência de conteúdo de mockup vs. regra de negócio já fixada) — registrados
+aqui apenas para rastreabilidade cruzada com `BLOCKERS.md`, que é o registro
+formal e vinculante dos dois, ambos fechados.
 
 ---
 
@@ -1112,7 +1959,17 @@ restrições já resolvidas e aplicadas, não divergências em aberto.
       ao Software Architect, não resolvido por conta própria — Seção 7.1 completa;
       **Seção 7.2 Conflito 1 (desbloqueio offline) `Resolvido`** em 2026-09-02 pelo
       Software Architect via `adr/010-escopo-revalidacao-servidor-desbloqueio-local.md`,
-      registrado em `BLOCKERS.md` (Bloqueio 001)
+      registrado em `BLOCKERS.md` (Bloqueio 001); **Conflito 2 (indisponibilidade
+      de acesso visual ao canvas) `Resolvido`** em 2026-09-04 pelo orquestrador
+      do pipeline (8 arquivos `.dc.html` reais fornecidos e lidos nesta mesma
+      rodada), com seus dois desdobramentos também **`Resolvido`**:
+      **Bloqueio 022** (`software-architect`, via
+      `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`
+      — primitivo `Num`, migração incremental, fontes self-hosted) e
+      **Bloqueio 023** (`business-analyst` — RN-18/RF-REF-03/RF-REF-05
+      confirmados como alvo final do redesign, mockup julgado
+      desatualizado/incompleto; `PRD-TECNICO.md` emendado, AMB-18/19/20). **Nenhuma
+      pendência aberta remanescente nesta seção.**
 - [x] Nenhuma das 7 seções está vazia ou com placeholder
 
 **Este `UX-SPEC.md` está 100% pronto pela definição binária do próprio agente
@@ -1155,6 +2012,70 @@ na Seção 2.2, ação pendente sinalizada na Seção 7.1, sem impedir a estimat
 Tech Lead nem a liberação do restante do pacote. Ver "Log de Alterações
 Pós-Publicação" abaixo para o detalhamento completo tela a tela.
 
+**Extensão pontual (2026-09-04, Redesign Visual "MyMoney v2.0" — Adendo B ao
+`PRD-TECNICO.md`/`SDD.md`, ADR-017/ADR-018, `CTO-REVIEW.md` Gate 2 desta
+iniciativa "Aprovado com ressalvas")**: cobertura do Lote 0 (fundação do design
+system, RF-RS-00) e do Grupo A completo (RF-RS-01 a 04 — Dashboard, Lançamentos,
+Contas & Cartões, Categorias), mais diretrizes leves do Grupo B (Lotes 5-13, sem
+mockup direto, conforme resolução do CTO ao `BLOCKERS.md` Bloqueio 021). Afeta
+Seções 1.1 (nota de extensão), 2.2 (4 blocos "Redesign visual v2.0", um por lote
+do Grupo A, com mapeamento real linha a linha), 2.3 **[NOVA subseção]**
+(diretrizes por domínio do Grupo B), 3.0 **[NOVA subseção]** (fundação do Lote
+0), 3.1 (tabela de tokens **substituída** pelos valores reais), 3.2
+(`AuthCard`/`AuthLayout` **[NOVO]**), 4 (nota de preservação de estado), 5 (5
+linhas novas — 2 achados reais de contraste com correção aplicada, 1 nota de
+`navlabel`, 1 nota de não-regressão, 1 nota ao Tech Lead sobre a ressalva 1 do
+Gate 2 desta iniciativa), 6.2 (padrão de navegação **revisado** com a estrutura
+real de sidebar/nav inferior), 6.5 **[NOVA subseção]** (confirmação RNF-20), 7.1
+(7 linhas novas), 7.2 (Conflito 2 **`Resolvido`**), mais 2 escalações formais
+novas em `BLOCKERS.md` (Bloqueio 022, Bloqueio 023).
+>
+> **Histórico de correções desta mesma rodada, ambas incorporadas nesta versão
+> final (ver Seção 7.2, Conflito 2, `Resolvido`)**: a primeira passada desta
+> extensão registrou o canvas Claude Design "MyMoney v2.0 — Mockups" como
+> inacessível. O orquestrador do pipeline forneceu, na sequência, os 8
+> arquivos `.dc.html` estáticos reais — lidos diretamente. Isso mudou a
+> natureza dos achados: em vez de "extensão do baseline por falta de acesso"
+> (primeira versão da Seção 3.0), passou a documentar uma **substituição
+> completa e real** de paleta e tipografia, com 2 achados de contraste
+> calculados (não estimados) e corrigidos, e 2 escalações formais em
+> `BLOCKERS.md` — **ambas agora `Resolvido`**, incorporadas nesta versão final:
+> - **Bloqueio 022 — `Resolvido` por `software-architect`, via
+>   `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md`**:
+>   a segunda família tipográfica não cabia no precedente "zero mudança de
+>   componente" do ADR-017 — decisão final é o primitivo `Num`
+>   (`components/base/Num.tsx`, Seção 3.2), introduzido no Lote 0, migrado
+>   lote a lote (não atomicamente), com fontes self-hosted via `@fontsource/*`
+>   (não Google Fonts CDN, preserva offline-first ADR-003/RNF-04). Nenhuma
+>   menção a "classe `.num` solta" permanece como decisão ativa nesta spec —
+>   substituída pelo componente em toda a Seção 2.2/3.0/3.1/3.2.
+> - **Bloqueio 023 — `Resolvido` por `business-analyst`**: julgado mockup
+>   desatualizado/incompleto, não mudança de comportamento — RN-18
+>   (hierarquia da lista), RF-REF-03 (`ShortcutBar`/`ShortcutChip`, obrigatório
+>   mesmo ausente do mockup) e RF-REF-05 (grade `CategoryCard`, Padrão C)
+>   **prevalecem como estavam antes do redesign**. `PRD-TECNICO.md` emendado
+>   (RF-RS-02 AC1/AC2 e RF-RS-04 AC1 reforçados; AMB-18/19/20 registradas).
+>   Nenhuma marcação de "posição-padrão reversível" permanece nos blocos de
+>   Lote 2/4 (Seção 2.2) — os três pontos são tratados como alvo final
+>   confirmado, com a composição visual de cada lote explicitamente
+>   acomodando esses componentes/comportamentos dentro da linguagem visual
+>   v2.0 (paleta/tipografia dos mockups), mesmo sem equivalente literal no
+>   artboard.
+>
+> **Nenhuma pendência aberta remanescente desta extensão** — a estrutura
+> publicada (Seção 3.0/3.1/3.2, blocos "Redesign visual v2.0" da Seção 2.2)
+> está pronta para estimativa e planejamento de implementação do Tech Lead,
+> sem ressalva de arquitetura ou de regra de negócio em aberto.
+>
+> O checklist geral abaixo está fechado item a item para todo o escopo coberto
+> por este documento (nenhuma das 7 seções vazia; toda tela/componente novo ou
+> revisado com os 4 estados, acessibilidade e comportamento responsivo
+> especificados, ou herdando os já existentes sem alteração explícita). Ver
+> "Log de Alterações Pós-Publicação" abaixo para o detalhamento completo lote a
+> lote, incluindo o registro histórico das duas versões anteriores desta
+> extensão (tokens "estendidos"; depois "substituídos com 2 escalações
+> abertas"), ambas superadas por esta correção final.
+
 ---
 
 ## Log de Alterações Pós-Publicação
@@ -1180,6 +2101,45 @@ nesta primeira publicação — nenhuma estimativa foi feita ainda sobre este do
 | `S-CAT-01` | RF-REF-05 | Sim (publicação original, lista em árvore) | Lista expansível substituída por grade de `CategoryCard` (Padrão C); expansão de subcategorias move-se para `S-CAT-01a` (Modal/BottomSheet reaproveitado, não é tela nova) | **Sim** — troca de padrão de layout inteiro (lista → grade), maior impacto de esforço que um ajuste cosmético |
 | `S-BUD-01` | RF-REF-06 | Sim (publicação original, lista com `ProgressBar`) | Lista substituída por grade de `BudgetCard` (Padrão C); mesmo `ProgressBar`/indicadores de severidade, agora dentro do card | **Sim** — mesma natureza de mudança de `S-CAT-01` |
 | `S-ACC-02`/`S-PAY-01` | RF-REF-04 (RN-15, via FL-07) | Sim (publicação original) | Nenhuma mudança de layout — efeito é só de dado (novas formas de pagamento aparecem automaticamente na lista já existente de `S-PAY-01` ao cadastrar 2ª+ conta) | **Não** — nenhuma mudança de UI, só de dado exibido por uma tela já estimada sem alteração de estrutura |
+
+| 2026-09-04 (Redesign Visual "MyMoney v2.0", Adendo B) | Seções 1.1 (nota de extensão + nota de execução), 2.2 (4 blocos "Redesign visual v2.0" — Lotes 1-4), 2.3 **[NOVA]** (diretrizes Grupo B), 3.0 **[NOVA]** (fundação Lote 0), 3.1 (nota de "estendido"), 3.2 (`AuthCard`/`AuthLayout` **[NOVO]**), 4 (nota de preservação de estado), 5 (2 linhas + nota de ambiguidade automatizada/manual), 6.5 **[NOVA]** (RNF-20), 7.1 (6 linhas novas), 7.2 (Conflito 2 **[NOVO, Aberto]**) | Fundação do design system v2.0 (Lote 0, tokens/componentes ESTENDIDOS a partir da base já vigente, não substituídos — decisão explícita registrada, RF-RS-00 AC1) + redesign visual dos 4 lotes do Grupo A (Dashboard, Lançamentos, Contas & Cartões, Categorias — RF-RS-01 a 04, mesma estrutura funcional já fixada por RF-REF-01/02/03/04/05/06, só a "pele" muda) + diretrizes leves de aplicação do design system aos 9 domínios do Grupo B (Lotes 5-13, sem RF/AC tela a tela, conforme resolução do CTO ao Bloqueio 021) + componente novo recomendado `AuthCard`/`AuthLayout` (Lote 5) | `PRD-TECNICO.md` Adendo B (RF-RS-00 a 04, RNF-15 a 20, RN-19/20) + `SDD.md` Adendo B (ADR-017, ADR-018) + `CTO-REVIEW.md` "Gate 2 (Nova Iniciativa — Redesign Visual 'MyMoney v2.0') — 2026-09-04" (veredito Aprovado com ressalvas) + `BLOCKERS.md` Bloqueio 021 (Resolvido) | **Sim, para `S-DASH-01`, `S-TXN-01`/`02`, `S-ACC-01/02/04`, `S-CARD-01/02/03`, `S-CAT-01`** (ver detalhamento tela a tela abaixo) — troca de token visual (mesmo que "estendida", não uma paleta nova) já implica reestimativa, mesmo padrão da repaginada de 2026-09-04; **estimativa nova** (não reestimativa) para `AuthCard`/`AuthLayout`, que nunca havia sido especificado antes desta rodada. **Ressalva de execução**: a reestimativa de cada tela do Grupo A é feita sobre a estrutura publicada nesta rodada, com a comparação "linha a linha" contra o mockup real (meta N2) ainda pendente (Seção 7.2, Conflito 2) — o Tech Lead deve tratar essa reestimativa como preliminar, sujeita a ajuste quando o acesso visual for providenciado, não como estimativa final imutável. |
+
+#### Detalhamento da entrada 2026-09-04 (Redesign Visual "MyMoney v2.0", Adendo B)
+— tela/componente → requisito → já estimado antes? → o que muda → reestimar?
+
+| Tela/Componente | Requisito | Já estimado antes desta rodada? | O que muda | Tech Lead precisa reestimar? |
+|---|---|---|---|---|
+| `S-DASH-01` | RF-RS-01 (Lote 1) | Sim (publicação original + repaginada 2026-09-04 + RF-REF-01) | Camada visual redesenhada seguindo o artboard "Main"/"MainMobile" — estrutura de grid (2 colunas a partir de `lg`) e dado/cálculo exibido **preservados** (RF-RS-01 AC4/RN-20); comparação linha a linha contra o artboard **pendente** (Conflito 2) | **Sim, preliminar** — reestimativa de tratamento visual (tokens já estendidos, Seção 3.0), sujeita a ajuste quando a comparação N2 for possível; **implementação** segue também condicionada ao baseline M4 (RF-REF-01 AC4, já registrado) |
+| `S-TXN-01`/`S-TXN-02` | RF-RS-02 (Lote 2) | Sim (publicação original + wrap-fix + Pacote de Refinamento) | Camada visual redesenhada seguindo "Lancamentos"/"LancamentosMobile" — hierarquia do item (RN-18), `ShortcutBar`/`ShortcutChip` (RF-REF-03) e formulário unificado (RF-REF-04) **preservados** (RF-RS-02 AC3/RN-20); comparação linha a linha **pendente** | **Sim, preliminar** — mesma ressalva do item acima |
+| `S-ACC-01/02/04` + `S-CARD-01/02/03` | RF-RS-03 (Lote 3) | Sim (publicação original) | Camada visual redesenhada seguindo "ContasCartoes"/"ContasCartoesMobile", na parte que o artboard cobrir (AMB-17); `InvoiceTimeline` tratado com atenção redobrada como lógica de negócio sensível, cálculo/regra **preservados** (RF-RS-03 AC2/RN-20); comparação linha a linha **pendente**, inclusive a própria fronteira Lote 3/Lote 8 (AMB-17) | **Sim, preliminar** — maior atenção a N4 (regressão funcional), mesma ressalva de reestimativa preliminar |
+| `S-CAT-01` | RF-RS-04 (Lote 4) | Sim (publicação original + RF-REF-05) | Camada visual redesenhada seguindo "Categorias"/"CategoriasMobile" — grade de `CategoryCard` (Padrão C), dado exibido e comportamento de clique **preservados** (RF-RS-04 AC2/RN-20); comparação linha a linha **pendente** | **Sim, preliminar** — mesma ressalva |
+| `AuthCard`/`AuthLayout` | RF-RS-00 AC2 (Lote 0, consolidação real no Lote 5) | Não — componente novo, nunca antes especificado | Especificação mínima publicada nesta rodada (Seção 3.2); consolidação de `LoginPage.tsx`/`UnlockPage.tsx`/`PinSetupPage.tsx` em cima dele ocorre no Lote 5 (Grupo B), fora do escopo desta rodada | **Estimativa nova**, não reestimativa — mas só aplicável quando o Lote 5 for efetivamente detalhado (Seção 2.3) |
+| Grupo B (Lotes 5-13) | Seção 2.3 | Não se aplica — nenhuma tela redesenhada nesta rodada, só diretriz | Diretrizes de aplicação do design system por domínio, sem RF/AC tela a tela | **Não** — nada a reestimar ainda; aprofundamento técnico completo ocorre lote a lote, mais perto de cada execução (`PRD-TECNICO.md` Adendo B, Seção B.1.2) |
+
+| 2026-09-04 (correção — acesso visual real confirmado, mesma rodada) | Seções 3.0 (reescrita — substituição, não extensão), 3.1 (tabela de tokens **substituída** pelos valores reais), 2.2 (4 blocos "Redesign visual v2.0" **reescritos** com mapeamento real linha a linha), 5 (2 achados reais de contraste + correção de uso), 6.2 (padrão de navegação revisado), 7.2 (Conflito 2 → `Resolvido`) | **Superam a entrada imediatamente acima**, publicada sob a premissa de canvas inacessível. O orquestrador forneceu os 8 arquivos `.dc.html` reais nesta mesma rodada, lidos diretamente. Achados que mudam a entrada anterior: (1) paleta/tipografia são **substituição completa**, não extensão — `--accent`/`--income` fundidos em `#2F6B4F`, `--expense` `#B4483A`, sem `--danger` distinto, 2 famílias tipográficas (`Newsreader`+`Public Sans`); (2) 2 falhas reais de contraste calculadas (`--text-3` 2,62–2,78:1; `--warn` como texto 3,04–3,22:1), corrigidas via reatribuição de uso; (3) navegação real é sidebar de 4+1 grupos (desktop) e nav inferior de 4 destinos sem FAB (mobile); (4) 3 pontos do mockup divergem de RN-18/RF-REF-03/RF-REF-05 (hierarquia de item, `ShortcutBar` ausente, Categorias em lista-árvore) — escalados via `BLOCKERS.md` Bloqueio 023, posição-padrão de preservar o já fixado aplicada enquanto aguarda resposta; (5) segunda família tipográfica pode não sustentar o precedente do ADR-017 — escalado via Bloqueio 022 | Mensagem do orquestrador do pipeline fornecendo os 8 arquivos `.dc.html` reais, em resposta à limitação registrada na entrada anterior | **Sim, substitui a reestimativa "preliminar" da entrada anterior por reestimativa definitiva** para `S-DASH-01` (navegação/grid confirmados), `S-TXN-01`/`02` (hierarquia mantida sob posição-padrão, `--text-2` no lugar de `--text-3`), `S-ACC`/`S-CARD` (confirma AMB-17, recomenda migração Padrão A→C para `S-ACC-01`), `S-CAT-01` (mantido sob posição-padrão, reestimativa maior só se Bloqueio 023 confirmar reversão a lista-árvore). Ver detalhamento abaixo. |
+
+#### Detalhamento da correção 2026-09-04 (acesso visual real) — status final por tela/achado
+
+| Tela/Achado | Status na entrada anterior | Status real, confirmado | Ação para o Tech Lead |
+|---|---|---|---|
+| `S-DASH-01` (Lote 1) | Comparação N2 pendente; tokens "estendidos" | N2 executada — grid 2 colunas confirmado (proporção real: KPIs+gráfico na linha 1, "Últimos lançamentos" em largura total na linha 2, não 2 colunas como estimado antes); navegação lateral com 4+1 grupos; botão "+" de cabeçalho substitui FAB | Reestimar considerando a navegação lateral nova (Seção 6.2) como parte do esforço deste lote ou de um esforço transversal único (decisão do Tech Lead — a sidebar aparece em todas as 4 telas do Grupo A, pode valer a pena tratá-la como componente único estimado uma vez) |
+| `S-TXN-01`/`02` (Lote 2) | Comparação N2 pendente | N2 executada — acesso confirmou hierarquia invertida (Bloqueio 023) e ausência de `ShortcutBar` no mockup; posição-padrão preserva RN-18/RF-REF-03 | Estimar como troca de token sobre a hierarquia/`ShortcutBar` já existentes (não reordenamento); revisar se Bloqueio 023 for respondido com "seguir o mockup literalmente" |
+| `S-ACC`/`S-CARD` (Lote 3) | Comparação N2 pendente; limite Lote 3/Lote 8 (AMB-17) não confirmado | N2 executada — **AMB-17 confirmado**: artboard cobre só visão-resumo, `InvoiceTimeline` detalhado fica 100% com o Lote 8; nova recomendação de migrar `S-ACC-01` de Padrão A para Padrão C (grade de cards) | Incluir a migração de padrão de `S-ACC-01` na estimativa do Lote 3 (esforço adicional não previsto na entrada anterior) |
+| `S-CAT-01` (Lote 4) | Comparação N2 pendente | N2 executada — achado de reversão a lista-árvore (Bloqueio 023); posição-padrão preserva RF-REF-05 (Padrão C) | Estimar como troca de token sobre o card já existente; revisar se Bloqueio 023 for respondido com "seguir o mockup literalmente" (reestimativa maior, mudança estrutural) |
+| Contraste (`--text-3`, `--warn`) | Não avaliado (tokens "estendidos" eram os já validados) | 2 falhas reais calculadas e corrigidas via reatribuição de uso (Seção 5) | Nenhuma ação adicional — correção já incorporada aos blocos de tela desta Seção 2.2; `frontend` deve aplicar `--text-2` onde esta Seção indicar, não o `--text-3` literal do mockup |
+| Segunda família tipográfica (ADR-017) | Não identificado | Identificado — Bloqueio 022, aguardando resposta do Software Architect | Não estimar a aplicação de `.num` como custo zero até resposta do Bloqueio 022; se o ADR-017 precisar reabrir, a estimativa de Lote 0 muda |
+
+| 2026-09-04 (fechamento — Bloqueio 022 e Bloqueio 023 resolvidos, mesma rodada) | Seções 3.0 (resolução do Bloqueio 022 incorporada — primitivo `Num`; AC2 "grade de card" atualizado), 3.1 (linha `typography` reescrita — componente `Num`, não classe; `--danger` finalizado `#752F26`), 3.2 (`Num` **[NOVO]** especificado), 2.2 (blocos "Redesign visual v2.0" dos Lotes 1-4 — `<Num>` substitui toda menção a `.num`; Lotes 2 e 4 perdem a marcação de "posição-padrão reversível", RN-18/RF-REF-03/RF-REF-05 tratados como alvo final), 7.1/7.2 (Bloqueio 022/023 → `Resolvido`), Checklist de Pronto (fechado sem pendência) | **Superam as duas entradas imediatamente acima**, publicadas com Bloqueio 022/023 ainda `Aberto`. Resoluções recebidas: (1) `adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md` (Software Architect) — tipografia numérica seletiva não cabe como classe `.num` solta; decide primitivo `Num` (`components/base/Num.tsx`), introduzido no Lote 0, migração incremental lote a lote (não atômica), fontes self-hosted via `@fontsource/*` (não Google Fonts CDN); (2) `business-analyst` — Bloqueio 023 resolvido como "mockup desatualizado/incompleto", não mudança de comportamento: RN-18, RF-REF-03 e RF-REF-05 prevalecem como estavam antes do redesign, `PRD-TECNICO.md` emendado (AC1/AC2 de RF-RS-02 e AC1 de RF-RS-04 reforçados, AMB-18/19/20 registradas) | Mensagem do orquestrador do pipeline relatando as duas resoluções (`software-architect` via ADR-019; `business-analyst` via emenda ao `PRD-TECNICO.md`) | **Sim, ajuste sobre a reestimativa da entrada anterior**: `S-DASH-01`/`S-TXN-01`/`02`/`S-ACC`/`S-CARD`/`S-CAT-01` passam de "reestimativa preliminar/sujeita a confirmação" para **reestimativa definitiva**, incluindo agora o esforço específico de migração do primitivo `Num` por lote (ver linhas "Migração `Num` neste lote" em cada bloco da Seção 2.2) — nenhuma tela do Grupo A fica mais sujeita a mudança estrutural por resposta pendente de BA/PM. Ver detalhamento abaixo. |
+
+#### Detalhamento do fechamento 2026-09-04 (Bloqueio 022/023 resolvidos) — status final por achado
+
+| Achado | Status anterior (Aberto) | Resolução final | Ação para o Tech Lead |
+|---|---|---|---|
+| Tipografia numérica seletiva (Bloqueio 022) | Pergunta de arquitetura em aberto — não estimar `.num` como custo zero | **`adr/019-...md` (Accepted)**: primitivo `Num` (`components/base/Num.tsx`), introduzido no Lote 0, migração incremental lote a lote dos 17 arquivos/25+ pontos de chamada de `formatCentsToBRL()` já existentes; fontes self-hosted (`@fontsource/public-sans`, `@fontsource/newsreader`) | Estimar o Lote 0 incluindo a criação do componente `Num` + fontes self-hosted + `Num.test.tsx`; estimar cada lote do Grupo A (1-4) incluindo a migração dos pontos de chamada específicos daquele lote (ver Seção 2.2, linhas "Migração `Num` neste lote"); `BudgetCard.tsx` (mudança de contrato de prop `detailText: string` → `ReactNode`/props separadas) é esforço real de componente, não estilo — considerar ao estimar o lote que tocar `BudgetCard` |
+| Hierarquia de item de lançamento (RN-18, Bloqueio 023) | Posição-padrão reversível — revisar se BA/PM confirmar seguir o mockup literalmente | **Confirmado como alvo final**: RN-18 prevalece, subcategoria continua linha 1 (maior destaque) | Nenhuma reestimativa adicional além da já registrada (troca de token sobre a hierarquia já existente); descartar definitivamente a hipótese de reordenamento de conteúdo |
+| `ShortcutBar`/`ShortcutChip` (RF-REF-03, Bloqueio 023) | Preservada por padrão, revisável | **Confirmado obrigatório**, mesmo ausente do mockup literal | Estimar a composição de `ShortcutBar` dentro da paleta/tipografia v2.0 como parte do Lote 2 — não é opcional nem candidato a remoção |
+| `S-CAT-01` em grade de cards (RF-REF-05, Bloqueio 023) | Posição-padrão reversível — revisar se BA/PM confirmar reversão a lista-árvore | **Confirmado como alvo final**: Padrão C (`CategoryCard`) prevalece, lista-árvore do mockup descartada | Descartar definitivamente a hipótese de reestimativa de mudança estrutural (grade→lista) registrada na entrada anterior — o esforço do Lote 4 é só troca de token + migração de `<Num>` sobre o card já existente |
+| `--danger` (ausente do mockup) | Recomendação não confirmada de reaproveitar `--expense` | **Finalizado nesta rodada**: `--danger:#752F26` (token próprio, contraste calculado 9,03:1) | Nenhuma ação adicional — token já declarado na Seção 3.1, pronto para uso em qualquer estado de estouro de orçamento |
 
 #### Detalhamento da entrada 2026-09-04 — lista arquivo → problema → correção esperada
 

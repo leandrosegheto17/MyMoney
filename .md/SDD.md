@@ -948,3 +948,406 @@ ADR-016).** Não é considerado final até aprovação (Aprovado ou Aprovado com
 ressalvas). O restante do `SDD.md` (Seções 1-7 originais) não é reaberto por este
 adendo — permanece exatamente como já aprovado, salvo se o CTO decidir revisitá-lo
 por consequência direta desta rodada.
+
+---
+
+# Adendo B ao SDD.md — Redesign Visual ("MyMoney v2.0")
+
+**Dono**: Software Architect
+**Data**: 2026-09-04
+**Gate de entrada**: `PRD-TECNICO.md` Adendo B, liberado pelo Business Analyst em
+2026-09-04; `CTO-REVIEW.md`, "Gate 1 (Nova Iniciativa — Redesign Visual 'MyMoney
+v2.0') — 2026-09-04", veredito **Aprovado com ressalvas**; `BLOCKERS.md`, Bloqueio
+021, **Resolvido em 2026-09-04** (pulso de capacidade/prazo do CTO, condição
+vinculante ao Tech Lead sobre estimativa agregada dos Lotes 5-13).
+**Gate de saída**: revisão do CTO no **Gate 2** desta iniciativa
+(`architecture-decision-review` + `risk-and-compliance-check`) — este adendo é um
+rascunho pronto para revisão, não a arquitetura final. Só vira final após veredito
+Aprovado ou Aprovado com ressalvas do CTO.
+**Fonte**: `PRD-TECNICO.md` Adendo B (Seções B.1-B.7, RF-RS-00 a 04, RNF-15 a 20,
+RN-19/RN-20) + `CTO-REVIEW.md` Gate 1 desta iniciativa + `BLOCKERS.md` Bloqueio 021
+(resolução do CTO) + `SDD.md` Seções 1-7 e Adendo A (arquitetura vigente, não
+reescrita) + `UX-SPEC.md` Seções 2.2, 3, 5, 6 (estado vigente) + inspeção direta de
+`frontend/src/index.css`, `frontend/src/components/base/**`,
+`frontend/src/components/domain/**`, `frontend/package.json`.
+**Consumidor imediato**: `cto` (Gate 2 desta rodada); em seguida `ux-ui` (dono
+natural da extração dos 8 artboards e da extrapolação do Grupo B, dentro da
+estrutura técnica confirmada abaixo) e `tech-lead`.
+
+**Natureza deste adendo**: aditivo ao `SDD.md` original e ao Adendo A — as Seções
+1-7 originais e as Seções A.1-A.7 permanecem vigentes e não são reescritas nem
+invalidadas. Este adendo cobre exclusivamente a arquitetura da camada de
+apresentação/design system para o Redesign Visual "MyMoney v2.0" em sua
+totalidade (14 lotes, Grupo A + Grupo B), com a mesma estrutura fixa de 7 seções
+do `SDD.md`, prefixadas `B.1`-`B.7`. Toda referência a "Seção N" sem prefixo, ou a
+"Seção A.N", aponta para a seção correspondente do `SDD.md` original ou do Adendo
+A, respectivamente.
+
+**O que este adendo decide, e o que não decide**: decide a arquitetura técnica que
+sustenta o design system (onde ele vive no código, como se propaga, como Grupo A e
+Grupo B convivem sem duas linguagens visuais divergentes) e a estratégia de corte
+em produção (RNF-19, delegada explicitamente pelo `PRD-TECNICO.md`). **Não decide**
+o conteúdo dos tokens/componentes em si (paleta exata, substituir vs. estender —
+RF-RS-00, decisão do `ux-ui`), nem qualquer RF/RN tela a tela do Grupo B
+(deliberadamente fora de escopo desta rodada, conforme resolução do CTO ao
+Bloqueio 021). Nenhuma mudança de regra de negócio, modelo de dados ou contrato de
+API é introduzida por este adendo — confirma, na prática, RNF-15/RN-19: backend,
+Postgres/RLS/Edge Functions e `API-CONTRACT.yaml` permanecem **totalmente
+intocados** por este documento.
+
+---
+
+## B.1 Visão Geral da Arquitetura
+
+O redesign "MyMoney v2.0" é tratado, arquiteturalmente, como uma evolução da
+**camada de apresentação de um monólito modular já existente** (Seção 1 original),
+não como uma iniciativa que introduz componente, integração ou padrão
+arquitetural novo. Nenhuma decisão de stack é reaberta — confirma-se, item a item,
+a leitura do CTO no Gate 1 desta iniciativa: "stack e design system existentes são
+o ponto de partida, não uma decisão em aberto" (`CTO-REVIEW.md`, ver ADR-017).
+
+Duas decisões estruturais novas sustentam este adendo, ambas registradas como ADR:
+
+1. **Onde e como o design system vive tecnicamente no código** (ADR-017): tokens
+   CSS num único bloco `@theme` (`frontend/src/index.css`, consumido pelo
+   Tailwind CSS v4) + biblioteca de componentes React compartilhada
+   (`frontend/src/components/base/*`, primitivos; `frontend/src/components/domain/*`,
+   compostos de domínio) — a mesma estrutura já em produção desde o MVP, **sem**
+   extração para pacote/monorepo separado nem introdução de Storybook. Esta
+   estrutura já tem precedente empírico direto: a "repaginada visual" de
+   2026-09-04 (`UX-SPEC.md` Seção 3.1) trocou a paleta inteira do produto só
+   editando os valores desse bloco `@theme`, sem tocar em nenhum componente —
+   prova, em produção real, de que o mecanismo de propagação de token funciona
+   como este adendo pressupõe.
+2. **Como Grupo A (migrado lote a lote) e Grupo B (ainda não iniciado por vários
+   lotes) convivem na mesma sessão de usuário sem duas linguagens visuais
+   divergentes** (ADR-018): desacoplamento explícito entre a **camada de
+   tokens/componentes** (global, atualizada in-place a partir do Lote 0 —
+   propaga-se automaticamente para toda a aplicação, migrada ou não) e a
+   **camada de composição de tela** (o layout específico de cada página,
+   migrado lote a lote). O pior estado possível durante a transição é "esta
+   tela ainda usa um layout antigo" — nunca "esta tela usa componentes/cores
+   incompatíveis com aquela", porque só existe uma árvore de token/componente
+   em todo o produto. A mesma ADR-018 fixa a estratégia de corte em produção
+   (RNF-19): corte direto por lote, um PR por tela redesenhada, publicado via
+   pipeline de CI/CD já existente (Vercel/CDN, Seção 3 original), sem feature
+   flag e sem manter a tela antiga em rota paralela — reversão, se necessária,
+   via `git revert` + redeploy, suficiente porque nenhuma mudança de
+   dado/comportamento acompanha o redesign (RN-19).
+
+Princípios adicionais, específicos a este adendo, complementares aos 5 princípios
+já fixados na Seção 1 original:
+
+3. **Fronteira de PR = fronteira de camada de apresentação** — recomendação deste
+   agente ao `tech-lead` (não uma regra que o Software Architect impõe
+   sozinho, ver Guardrails do próprio papel): PRs de qualquer lote deste
+   redesign devem tocar exclusivamente arquivos de apresentação
+   (`frontend/src/components/**`, `frontend/src/pages/**` — mudança de
+   `className`/JSX/estrutura visual —, `frontend/src/index.css`), nunca
+   `frontend/src/lib/api/**`, `frontend/src/lib/auth/**`, migrations Supabase ou
+   Edge Functions, no mesmo PR. Isso torna RNF-15/RN-19 auditável
+   mecanicamente (revisão de diff), não só um princípio narrativo — candidato
+   concreto a nova entrada em `GUARDRAILS.md`, a critério do Tech Lead.
+4. **Blast radius de componente compartilhado exige regressão completa, não
+   escopada** — como a camada de tokens/componentes é global (princípio 1
+   acima), qualquer mudança nela afeta toda a aplicação, inclusive domínios do
+   Grupo B ainda não redesenhados. RNF-18 (suíte de testes existente,
+   reexecutada por lote) deve, portanto, sempre cobrir a suíte inteira — nunca
+   só as telas do lote em execução (ver ADR-018, "Requisito de arquitetura
+   decorrente").
+5. **Nenhum componente de Fase 3 (captura por voz/foto) é implementado por este
+   redesign** — o inventário do Grupo B (`PRD-TECNICO.md` Adendo B, Seção
+   B.1.2, Lote 12) confirma que nenhuma tela de captura automatizada existe
+   ainda em produção. O Lote 0 só precisa *abstrair o padrão* (RF-RS-00 AC2),
+   não construir a funcionalidade — logo, RNF-01 (confirmação humana,
+   barreira arquitetural) permanece exatamente como já definida na Seção 7
+   original, sem necessidade de revisão nesta rodada (ver B.7).
+
+Decisões estruturais registradas como ADR nesta rodada: arquitetura técnica do
+design system (ADR-017) e estratégia de rollout incremental/corte em produção
+(ADR-018) — índice completo na Seção B.4.
+
+---
+
+## B.2 Componentes e Fluxo de Dados
+
+### B.2.1 Componentes novos/confirmados
+
+| Componente | Responsabilidade | Requisito | Novo/Confirmado |
+|---|---|---|---|
+| Bloco `@theme` único (`frontend/src/index.css`) | Fonte única de tokens de cor, tipografia, espaçamento, raio, elevação, consumida por todo o Tailwind CSS gerado | RF-RS-00 AC1, RNF-16 | Confirmado — mesma estrutura desde o MVP (ADR-017) |
+| `frontend/src/components/base/*` (14 componentes primitivos) | Biblioteca de componentes genéricos reutilizados por todo domínio | RF-RS-00 AC2, RF-RS-01 a 04 AC1 | Confirmado (ADR-017) |
+| `frontend/src/components/domain/*` (componentes de domínio financeiro) | Componentes compostos com lógica/dado do produto (gráficos, `InvoiceTimeline`, `ShortcutBar`, cards de resumo) | RF-RS-01 a 04 AC1/AC2 | Confirmado (ADR-017) |
+| `AuthCard`/`AuthLayout` (recomendação de novo componente-base) | Consolida o padrão hoje duplicado ad hoc em `LoginPage.tsx`/`UnlockPage.tsx`/`PinSetupPage.tsx` (card centralizado, sem navegação lateral) em um único componente reutilizável — materializa a "quarta superfície" exigida por RF-RS-00 AC2 (formulário isolado pré-sessão) | RF-RS-00 AC2, Lote 5 (Grupo B) | Novo — recomendação de arquitetura ao `ux-ui`/`frontend`; decisão final de nome/API é implementação, não decidida aqui |
+| `VoiceRecorderUI`, `ReceiptCameraCapture`, `DraftReviewBanner`, `AutoFillTag` (já especificados em `UX-SPEC.md` Seção 3.3) | Superfícies de captura automatizada — abstração de padrão exigida por RF-RS-00 AC2, sem implementação de funcionalidade nesta rodada (Fase 3 não construída) | RF-RS-00 AC2, Lote 12 (Grupo B) | Já documentados como `[NOVO]` em `UX-SPEC.md`; nenhuma mudança de arquitetura aqui — permanece trabalho do `ux-ui`/Fase 3 futura |
+| `InvoiceTimeline`, `CategoryCard`/`BudgetCard` (Padrão C) | Já cobrem, respectivamente, as superfícies "fatura" e "grade de card de resumo" exigidas por RF-RS-00 AC2 | RF-RS-00 AC2, RF-RS-03, RF-RS-04 | Já existentes (Pacote de Refinamento) — RF-RS-00 AC2 não precisa criar essas duas superfícies do zero, só confirmar que já estão cobertas |
+
+Nenhum componente de Edge Functions, Storage, Realtime, Supabase Auth, RLS ou
+integração externa é criado/alterado por este adendo — confirma B.5.2 do
+`PRD-TECNICO.md` ("nenhuma integração externa nova identificada nesta rodada").
+
+### B.2.2 Diagrama — Camadas do Design System e Fluxo de Propagação de Mudança
+
+```mermaid
+flowchart TB
+    subgraph DS["Camada de Design System - global, atualizada in-place (ADR-017)"]
+        Tokens["Bloco @theme unico - index.css - cor, tipografia, raio, elevacao, espacamento"]
+        Base["components/base/* - 14 primitivos - Button, Input, Card, Modal..."]
+        Domain["components/domain/* - compostos de dominio - DonutChart, InvoiceTimeline, ShortcutBar..."]
+    end
+
+    subgraph Comp["Camada de Composicao de Tela - migrada lote a lote (ADR-018)"]
+        GA["Telas do Grupo A - RF-RS-01 a 04 - migradas conforme cada lote conclui"]
+        GB["Telas do Grupo B - Lotes 5-13 - ainda com layout anterior ate seu proprio lote"]
+    end
+
+    Tokens --> Base
+    Base --> Domain
+    Domain --> GA
+    Domain --> GB
+    Base --> GA
+    Base --> GB
+
+    GA -->|"lote concluido: layout novo, sobre tokens/componentes ja globais"| GAdone["Tela redesenhada - N1/N2/N3/N4 verificados - FL-09"]
+    GB -->|"antes do proprio lote: layout anterior, MAS ja sobre tokens/componentes atualizados desde o Lote 0"| GBpending["Tela nao migrada - dividida tecnicamente correta - nao e erro, e transicao aceita - ADR-018"]
+```
+
+### B.2.3 Fluxo — Publicação do Lote 0 e Propagação Automática (estende FL-08 do BA)
+
+```mermaid
+flowchart TD
+    A["ux-ui publica nova versao de UX-SPEC.md Secao 3 - tokens + componentes - Lote 0 concluido"] --> B["frontend edita o bloco @theme unico em index.css e/ou o corpo interno dos componentes base/domain"]
+    B --> C["PR contem exclusivamente arquivos de apresentacao - principio B.1 item 3"]
+    C --> D["Suite de testes completa reexecutada - nao escopada ao lote - RNF-18, ADR-018"]
+    D --> E{"0 regressoes funcionais e de acessibilidade em TODA a aplicacao?"}
+    E -- Nao --> F["Ajuste ate zerar regressoes"] --> D
+    E -- Sim --> G["Merge direto em main - corte direto, sem feature flag - ADR-018"]
+    G --> H["Deploy via pipeline existente - Vercel/CDN"]
+    H --> I["Toda tela da aplicacao - Grupo A e Grupo B, migrada ou nao - passa a renderizar com o novo token/componente"]
+    I --> J["Composicao de pagina de cada tela do Grupo B permanece inalterada ate seu proprio lote - RN-20"]
+```
+
+### B.2.4 Decisões de fluxo de dados de rotina (sem ADR próprio) — Grupo A (RF-RS-01 a 04)
+
+Aplicando o mesmo critério já usado na Seção 2.5 original e em A.2.4: nenhum dos 4
+lotes do Grupo A introduz chamada de API nova, dado novo ou mudança de cálculo —
+todos reaproveitam integralmente dado/endpoint já existente, confirmando
+RF-RS-01 AC4, RF-RS-02 AC3, RF-RS-03 AC2, RF-RS-04 AC2:
+
+- **RF-RS-01 (Dashboard)**: reorganização de layout (grid multi-coluna desktop,
+  já fixado por RF-REF-01/Adendo A) consumindo os mesmos dados de
+  RF-MVP-05/06/07 — mesma "decisão de rotina sem ADR" já registrada na Seção
+  2.5 original para a atualização do dashboard.
+- **RF-RS-02 (Lançamentos)**: reordenação visual sobre o mesmo comportamento já
+  fixado por RF-MVP-04 e RF-REF-02/03/04 — nenhuma mudança em
+  `get_transaction_shortcuts()` (ADR-015) nem no trigger de resolução de conta
+  (ADR-016).
+- **RF-RS-03 (Contas & Cartões)**: `InvoiceTimeline` é explicitamente tratado
+  como superfície de "só camada visual" — nenhuma mudança em RN-01/RN-06/RF-F2-05.
+- **RF-RS-04 (Categorias)**: reaproveita o Padrão C já validado desde o Pacote
+  de Refinamento (`CategoryCard`, ADR de origem não aplicável — já era decisão
+  de rotina em A.2.4).
+
+Nenhum destes 4 itens tem relevância arquitetural própria — nenhum ADR novo é
+produzido para eles, mesmo critério já aplicado aos itens 1/2/5/6 do Adendo A.
+
+### B.2.5 Grupo B — nota de arquitetura sobre o inventário (sem componente novo decidido aqui)
+
+O inventário de `PRD-TECNICO.md` Adendo B, Seção B.1.2 já mapeia, por domínio, a
+página/componente hoje implementado. Este adendo não decide nenhum RF/componente
+tela a tela do Grupo B (fora de escopo, resolução do CTO ao Bloqueio 021) — regista
+apenas duas observações de arquitetura, válidas para quando cada lote for
+detalhado:
+
+- Todo componente já listado em `UX-SPEC.md` Seção 3.2/3.3 (`ProgressBar`,
+  `InstallmentProgress`, `PinPad`, `NotificationBell`, `BarChart`, etc.) já vive
+  na estrutura confirmada por ADR-017 — nenhum domínio do Grupo B precisa de uma
+  estrutura técnica diferente da já usada pelo Grupo A.
+- A única lacuna estrutural identificada nesta rodada é a ausência de um
+  componente-base consolidado para o padrão "formulário isolado pré-sessão"
+  (Lote 5, Autenticação/Onboarding) — hoje implementado de forma duplicada em 3
+  páginas distintas — registrada como recomendação (`AuthCard`/`AuthLayout`,
+  B.2.1), não como requisito obrigatório desta rodada.
+
+---
+
+## B.3 Stack Tecnológica e Justificativa
+
+**Nenhuma mudança de stack.** Confirma-se, item a item, a leitura do CTO no Gate 1
+desta iniciativa ("não haveria decisão de build-vs-buy nova aqui a menos que o
+Software Architect identifique necessidade real de trocar de framework de UI, o
+que nada no briefing sugere"):
+
+| Componente | Tecnologia (já decidida, Seção 3 original) | Confirmação nesta rodada |
+|---|---|---|
+| Framework de UI | React 19 + TypeScript | Sem mudança — os 14 lotes são implementados sobre a árvore de componentes já existente |
+| Estilização/tokens | Tailwind CSS v4 (`@tailwindcss/vite`), tokens via `@theme` | Sem mudança — mecanismo de propagação de token já validado (ADR-017) |
+| Roteamento | `react-router-dom` v7 | Sem mudança — corte direto por lote (ADR-018) não introduz rota paralela nem guard de feature flag |
+| Ícones | `lucide-react` | Sem mudança de biblioteca — apenas correção de uso já sinalizada em `UX-SPEC.md` 3.1 (substituir emoji por ícone line-style na navegação inferior mobile), tarefa de implementação, não decisão de stack |
+| PWA/offline | Workbox, Dexie.js (IndexedDB) | Sem mudança — redesign é 100% camada de apresentação, não toca fila offline nem service worker |
+| Testes | Vitest + Testing Library, um arquivo `*.test.tsx` por componente-base | Sem mudança — reaproveitado como mecanismo de regressão obrigatório a cada lote (RNF-18, ADR-018) |
+| Hospedagem/CI-CD | CDN estático (Vercel), deploy a partir de `main` | Sem mudança — é o próprio mecanismo do corte direto por lote (ADR-018) |
+| Catálogo de design system | Documentação textual/tabular em `UX-SPEC.md` Seção 3 + testes automatizados existentes | **Confirmado como suficiente nesta rodada** — Storybook ou ferramenta equivalente avaliada e não adotada (ADR-017), sem fechar a porta a reavaliação futura |
+
+Nenhuma linha nova é adicionada com marcação "Gate 2? Sim" por escolha de
+tecnologia — as duas revisões formais deste Gate 2 (ADR-017, ADR-018) são de
+**arquitetura de solução sobre a stack já aprovada** (onde o design system vive,
+como o rollout é sequenciado), não de escolha de tecnologia nova, mesmo padrão já
+usado em A.3.
+
+---
+
+## B.4 Decisões Arquiteturais (ADRs) — índice do adendo
+
+| ADR | Título | Status |
+|---|---|---|
+| [017](./adr/017-arquitetura-tecnica-design-system-tokens-tailwind-biblioteca-componentes-compartilhada.md) | Arquitetura técnica do design system — tokens CSS via Tailwind v4 `@theme` + biblioteca de componentes React compartilhada, sem extração para pacote/monorepo/Storybook | Accepted |
+| [018](./adr/018-estrategia-rollout-incremental-desacoplamento-tokens-composicao-tela.md) | Estratégia de rollout incremental — desacoplamento entre camada de tokens/componentes (global) e camada de composição de tela (migrada lote a lote); corte direto por lote, sem feature flag nem tela antiga em paralelo (resolve RNF-19) | Accepted |
+| [019](./adr/019-tipografia-numerica-seletiva-primitivo-num-migracao-incremental.md) | Tipografia numérica seletiva (segunda família serif via classe `.num`) não cabe na premissa "zero mudança de componente" do ADR-017 — introdução do primitivo `Num`, migrado lote a lote (resolve Bloqueio 022) | Accepted |
+
+Mesma disciplina de imutabilidade da Seção 4 original e de A.4: nenhum ADR é
+editado após aceito; mudança de decisão gera novo ADR, marcando o anterior como
+`Status: Superseded by ADR-NNN`. ADR-019 **não** supersede o ADR-017 — apenas
+delimita o alcance de uma afirmação específica de seu racional e acrescenta uma
+sub-decisão nova (mesmo padrão já usado entre ADR-005/ADR-010). Nenhum ADR
+anterior (001-016) é tocado por este adendo.
+
+**Nenhum dos 4 RFs do Grupo A (RF-RS-01 a 04) tem ADR próprio** — confirmado em
+B.2.4 como decisão de rotina sem relevância arquitetural, mesmo padrão já usado em
+A.4 para os itens 1/2/5/6 do Pacote de Refinamento. O Grupo B não recebe ADR
+tela a tela nesta rodada, consistente com a ausência de RF/RN tela a tela na
+Seção B.1.2 do `PRD-TECNICO.md`.
+
+---
+
+## B.5 Modelo de Dados de Alto Nível
+
+**Nenhuma mudança de modelo de dados nesta rodada — nem tabela nova, nem coluna
+nova, nem alteração de constraint.** Diferente do Adendo A (que introduziu uma
+coluna nova, `created_via_shortcut`, e dois triggers novos), este adendo é
+estritamente camada de apresentação: nenhum RF do Grupo A (RF-RS-01 a 04) e
+nenhum item do inventário do Grupo B exige qualquer escrita em
+Postgres/PostgREST além do que já existe.
+
+- **Seção 5 original / Seção 5.1-5.4**: permanece exatamente como estava —
+  nenhuma entidade (`Account`, `Transaction`, `Budget`, `CreditCard`, etc.) é
+  tocada por este adendo.
+- **`API-CONTRACT.yaml`**: sem alteração — nenhum endpoint novo, nenhum campo
+  novo, nenhuma mudança de schema de request/response.
+- **RLS/Policies**: sem alteração — ver B.7.
+
+Isso confirma, de forma verificável (não apenas declarada), RNF-15/RN-19: um
+redesign de camada de apresentação, por definição, não tem motivo para alterar o
+modelo de dados — e, nesta rodada, de fato não altera.
+
+---
+
+## B.6 Riscos Técnicos e Dívida Técnica Aceita
+
+### B.6.1 Riscos e gargalos novos
+
+| Risco/Gargalo | Componente | Severidade | Mitigação ou plano |
+|---|---|---|---|
+| Mudança em componente-base/token tem alcance igual à aplicação inteira (blast radius), incluindo domínios do Grupo B ainda não redesenhados | `components/base/*`, bloco `@theme` | Média | Regressão completa (não escopada ao lote) obrigatória a cada lote — requisito de arquitetura explícito (ADR-018, "Requisito de arquitetura decorrente"); suíte de testes já existente (Vitest/Testing Library) cobre os 14 componentes-base individualmente, reduzindo a chance de regressão silenciosa |
+| Inconsistência visual transitória: telas do Grupo B ainda não migradas exibem layout/composição anterior por potencialmente vários lotes, enquanto já herdam tokens/componentes atualizados | Toda tela do Grupo B antes de seu próprio lote | Baixa (percepção, não funcional) | Aceita conscientemente como característica de rollout incremental desacoplado (ADR-018), não como falha — mitigada pelo fato de que o elemento mais visível (cor/tipografia/componente) já fica consistente desde o Lote 0; severidade reavaliada se o produto ganhar um segundo usuário/observador externo antes da conclusão do Grupo B (hoje usuário único, RNF-09) |
+| Extração incompleta de padrão pelo Lote 0 (risco B6.11 do BA): se a abstração das 4 superfícies não-literais (RF-RS-00 AC2) ficar rasa, a extrapolação de cada lote do Grupo B fica sujeita a interpretação divergente | `UX-SPEC.md` Seção 3 (trabalho do `ux-ui`), consumido por todos os lotes 5-13 | Média | Fora do controle direto deste agente (responsabilidade do `ux-ui`) — mitigação arquitetural possível: `AuthCard`/`AuthLayout` (B.2.1) reduz esse risco especificamente para o Lote 5, consolidando o padrão em um componente concreto em vez de deixá-lo só como descrição textual em `UX-SPEC.md` |
+| PR de um lote de redesign acidentalmente misturar mudança de apresentação com mudança de lógica de negócio/dado (risco histórico já nomeado pelo CTO no Gate 1 desta iniciativa) | Qualquer lote, Grupo A ou Grupo B | Média | Mitigação de processo, não de arquitetura em si: fronteira de PR restrita a arquivos de apresentação (B.1, princípio 3) — recomendação concreta ao Tech Lead para nova entrada em `GUARDRAILS.md`; revisão de diff a cada PR como controle detectivo |
+| Janela de transição longa (14 lotes, execução solo/serial) aumenta a exposição cumulativa ao risco de regressão funcional/acessibilidade já presente em cada redesign individual | Todo o produto, ao longo de toda a iniciativa | Baixa-Média | Mitigada pelo próprio faseamento por lote (FL-09) e pela condição vinculante do CTO (nenhuma estimativa agregada dos Lotes 5-13 antes de Lote 0 + 1 lote do Grupo A validados em produção) — cada lote é seu próprio ponto de verificação N1-N4, não um risco acumulado sem checkpoint |
+| Tipografia numérica seletiva (`Newsreader`/`.num`) exige tocar JSX/contrato de prop em 17 arquivos/25+ pontos de chamada de número já implementados, não só editar `@theme` (achado do Bloqueio 022) | `formatCentsToBRL()` e seus 25+ pontos de chamada (`BudgetCard`, `DashboardPage`, `DonutChart`, `BarChart`, etc.) | Média | Primitivo `Num` introduzido no Lote 0, migração incremental lote a lote (ADR-019) — mesmo mecanismo de desacoplamento já validado pelo ADR-018; nenhum PR migra número de tela fora do próprio lote |
+| Carregamento de duas famílias de web font novas (`Public Sans`, `Newsreader`) onde hoje nenhuma fonte web é de fato carregada (Inter só declarada, nunca ligada) | Bundle de assets estáticos, service worker do PWA | Baixa | Self-hosted via pacote local (`@fontsource/*`), não CDN do Google Fonts — cacheado pelo service worker já existente (`vite-plugin-pwa`), coerente com RNF-04/ADR-003 (offline-first); aumento de peso de asset aceito e registrado, não escondido (ADR-019) |
+
+### B.6.2 Dívida técnica aceita conscientemente
+
+| Dívida Técnica Aceita | Motivo | Condição de revisão |
+|---|---|---|
+| Sem catálogo de componente isolado (Storybook ou equivalente) | `UX-SPEC.md` Seção 3 + testes automatizados existentes cobrem o papel de catálogo/documentação; ferramenta nova desproporcional ao volume de um único frontend consumidor (ADR-017) | Revisitar se o volume real do Grupo B (13 lotes) revelar necessidade concreta de desenvolvimento/revisão de componente isolado da aplicação completa |
+| Telas do Grupo B mantêm composição/layout anterior até seu próprio lote, mesmo já herdando tokens/componentes atualizados desde o Lote 0 | Rollout incremental desacoplado (ADR-018) é o mecanismo de menor custo operacional compatível com execução solo/serial de 14 lotes; alternativa (migrar tudo de uma vez) contradiz diretamente a Declaração de capacidade do CTO | Cada domínio do Grupo B sai desta condição assim que seu próprio lote for concluído (FL-09) — revisitar item a item, não em bloco, mesmo padrão já usado para os objetos reaproveitados do ADR-012 |
+| Sem mecanismo de alternância em produção (feature flag/rota paralela) entre versão antiga e nova de uma tela redesenhada | Nenhum requisito exige comparação em produção; `git revert` + redeploy via CI/CD já existente cobre a necessidade de reversão, sem custo de manutenção permanente por lote (ADR-018) | Revisitar apenas se o stakeholder expressar preferência explícita por esse mecanismo (pergunta 3 do BA, `PRD-TECNICO.md` Adendo B, Seção B.6.2), tratado como requisito novo, não como reabertura silenciosa deste ADR |
+| Padrão "formulário isolado pré-sessão" segue duplicado em 3 páginas (`LoginPage`, `UnlockPage`, `PinSetupPage`) até o Lote 5 consolidá-lo (recomendação `AuthCard`/`AuthLayout`, B.2.1) | Fora do escopo desta rodada — Lote 5 é Grupo B, detalhamento técnico completo ocorre lote a lote, mais perto de sua execução | Revisitar quando o Lote 5 for detalhado tecnicamente pelo `ux-ui`/Tech Lead |
+| Pontos de chamada de número (17 arquivos/25+ ocorrências) ainda não migrados para o primitivo `Num` continuam renderizando em fonte única (sem `.num`/`Newsreader`) até seu próprio lote os tocar | Mesma lógica do item anterior — migração incremental (ADR-019) é o mecanismo de menor custo compatível com execução solo/serial, evita inflar o Lote 0 com trabalho de lotes ainda não planejados | Cada arquivo sai desta condição quando seu próprio lote migra a chamada para `<Num />` — revisitar item a item; `BudgetCard.tsx` tem tratamento explícito no ADR-019 (mudança de contrato de prop `detailText`) |
+
+---
+
+## B.7 Requisitos de Segurança e Compliance (nível de arquitetura) — delta
+
+Esta subseção não substitui a Seção 7 original (Autenticação/Autorização/
+Criptografia/Isolamento Multi-Tenant permanecem exatamente como estão) — confirma,
+com racional concreto por área, que **nenhuma mudança de arquitetura de segurança
+é necessária ou introduzida por este redesign**, mesmo padrão de confirmação já
+usado em A.7:
+
+- **Autenticação**: sem mudança. RF-RS-00 AC2 exige apenas que o Lote 0 abstraia
+  o *padrão visual* de "formulário isolado pré-sessão" (recomendação `AuthCard`,
+  B.2.1) — o mecanismo de autenticação em si (Supabase Auth + WebAuthn/PIN,
+  bloqueio após 5 tentativas, ADR-005/ADR-010/ADR-013/ADR-014) não é tocado. O
+  inventário do Lote 5 (`PRD-TECNICO.md` Adendo B, Seção B.1.2) confirma
+  explicitamente: "RF-MVP-08 (login seguro) e a remoção definitiva do 2º fator
+  por e-mail (`ADR-014`) não podem ser tocados".
+- **Autorização**: sem mudança. Nenhuma policy de RLS é criada, alterada ou
+  removida por este adendo — a camada de apresentação não introduz nenhum
+  caminho de acesso a dado que não passe pelas policies já existentes
+  (`accounts_select_own`, `transactions_insert_own`/`_update_own`, etc., Seção 7
+  original). `InvoiceTimeline` (Lote 3/8) e `PinPad` (Lote 5) continuam
+  operando sobre exatamente os mesmos endpoints/RPCs já auditados.
+- **Criptografia**: sem mudança. TLS em trânsito e criptografia em repouso (Seção
+  7 original) são propriedades da camada de transporte/persistência, alheias à
+  camada de apresentação — nenhum dado novo é criado ou transmitido por este
+  adendo.
+- **Isolamento Multi-Tenant**: sem mudança. O mecanismo de isolamento (RLS por
+  `auth.uid() = user_id`, Seção 7 original) não depende, em nenhum grau, de como
+  o dado é apresentado visualmente.
+- **Acessibilidade como requisito de não-regressão (RNF-17, meta N3)** — não é
+  um requisito de segurança em si, mas compartilha o mesmo tratamento de "não
+  pode regredir" desta seção: WCAG 2.1 AA já formalizado em `UX-SPEC.md` Seção 5
+  é reafirmado como critério de aceite obrigatório de cada lote (`FL-09`), com
+  atenção particular ao Lote 12 (Grupo B) — quando existir —, onde WCAG 2.2.1
+  (sem limite de tempo em confirmação) reforça diretamente RNF-01. **Nenhum
+  componente de captura automatizada é implementado nesta rodada** (B.1, item
+  5) — logo, RNF-01 como barreira arquitetural permanece exatamente como já
+  definida na Seção 7 original, sem necessidade de revisão até o Lote 12 ser
+  efetivamente detalhado e construído.
+- **Confirma explicitamente**: nenhuma nova policy de RLS, nenhuma nova
+  criptografia, nenhum novo mecanismo de autenticação/autorização/isolamento é
+  necessário para este adendo — os 14 lotes reaproveitam integralmente o modelo
+  de segurança já definido e aprovado na Seção 7 original.
+
+---
+
+## Checklist de Pronto — Adendo B (auto-verificação do Software Architect)
+
+- [x] Toda decisão arquitetural relevante tem ADR correspondente em `.md/adr/` —
+      ADR-017 (arquitetura técnica do design system) e ADR-018 (estratégia de
+      rollout incremental/corte em produção, resolve RNF-19); RF-RS-01 a 04
+      confirmados sem relevância arquitetural própria (B.2.4, B.4), mesmo
+      padrão da Seção 2.5 original e de A.4
+- [x] Toda escolha de stack tem justificativa e trade-off/alternativa
+      considerada registrados — B.3 confirma explicitamente que não há escolha
+      de stack nova neste adendo; ADR-017/ADR-018 registram alternativas
+      consideradas e rejeitadas (pacote/monorepo vs. estrutura vigente;
+      Storybook vs. documentação textual + testes; fork visual/feature flag
+      vs. camada única global; feature flag/rota paralela vs. corte direto)
+- [x] Todo risco técnico/gargalo tem severidade; toda dívida técnica aceita
+      conscientemente tem o motivo e a condição de revisão registrados — B.6.1/B.6.2
+- [x] Requisitos de segurança cobrem autenticação, autorização, criptografia e
+      isolamento — B.7 confirma que nenhuma mudança é necessária nessas 4
+      frentes, com o racional técnico de por que (não um item genérico sem
+      detalhe), incluindo o caso específico de RNF-01/Lote 12
+- [x] Nenhuma das 7 seções deste adendo está vazia ou com placeholder
+
+**Nenhum requisito do `PRD-TECNICO.md` Adendo B foi considerado tecnicamente
+inviável ou desproporcional nesta rodada** — não há sinalização de bloqueio ao
+Business Analyst. A única recomendação registrada que extrapola a decisão de
+arquitetura em si (fronteira de PR restrita a arquivos de apresentação, B.1 item
+3) é explicitamente marcada como candidata a `GUARDRAILS.md`, a critério do Tech
+Lead, não uma decisão unilateral deste agente sobre processo de outro papel.
+
+**Adendo B ao SDD.md pronto — liberado para o Gate 2 do CTO
+(`architecture-decision-review` + `risk-and-compliance-check`, focado em ADR-017 e
+ADR-018).** Não é considerado final até aprovação (Aprovado ou Aprovado com
+ressalvas). O restante do `SDD.md` (Seções 1-7 originais e Adendo A) não é
+reaberto por este adendo — permanece exatamente como já aprovado, salvo se o CTO
+decidir revisitá-lo por consequência direta desta rodada. Consistente com a
+condição vinculante do CTO ao Bloqueio 021: este adendo **não produz** nenhuma
+estimativa de prazo agregado para os Lotes 5-13 — isso permanece exclusivamente
+com o Tech Lead, e só depois de Lote 0 + 1 lote do Grupo A estarem validados em
+produção.

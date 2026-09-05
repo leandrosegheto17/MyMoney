@@ -9,11 +9,20 @@ export interface AlertProps {
   action?: ReactNode;
 }
 
+/**
+ * FE-RS-14 (`UX-03` Achado 1): usa exclusivamente os tokens `-soft` do design
+ * system (`frontend/src/index.css`) para o fundo de cada variante — nunca a
+ * rampa padrão do Tailwind (`bg-blue-50`/`bg-amber-50`/`bg-red-50`/`bg-green-50`),
+ * que não é redefinida pelo bloco `@theme` e por isso não acompanhava a paleta
+ * v2.0. Mapeamento por cor (mesmo já usado pela borda de cada variante, que já
+ * era baseada em token): info→primary(accent), warning→warning, danger→danger,
+ * success→income.
+ */
 const VARIANT_CLASSES: Record<AlertVariant, string> = {
-  info: "bg-blue-50 text-neutral-800 border-primary",
-  warning: "bg-amber-50 text-neutral-800 border-warning",
-  danger: "bg-red-50 text-neutral-800 border-danger",
-  success: "bg-green-50 text-neutral-800 border-income",
+  info: "bg-primary-soft text-neutral-800 border-primary",
+  warning: "bg-warning-soft text-neutral-800 border-warning",
+  danger: "bg-danger-soft text-neutral-800 border-danger",
+  success: "bg-income-soft text-neutral-800 border-income",
 };
 
 const VARIANT_ICON: Record<AlertVariant, string> = {

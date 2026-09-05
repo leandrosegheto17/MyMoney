@@ -403,6 +403,126 @@ este adendo.
 
 ---
 
+## Nota de Inclusão — Redesign Visual "MyMoney v2.0" (Adendo B) — 2026-09-04
+
+**Esta nota não reabre nem reestima nenhuma tarefa já `Concluída` de MVP/Fase 2/Fase
+3/Fase 2.1 — é a inclusão de um adendo novo, decompondo o Redesign Visual "MyMoney
+v2.0" (`PRD-TECNICO.md` Adendo B, `SDD.md` Adendo B, `ADR-017`/`ADR-018`/`ADR-019`),
+aprovado com ressalvas pelo CTO em `CTO-REVIEW.md`, "Gate 2 (Redesign Visual 'MyMoney
+v2.0', Adendo B) — 2026-09-04".**
+
+Novas tarefas numeradas na sequência própria desta rodada (`FE-RS-NN`/`QA-RS-NN`,
+`<fase>` = `RS`, mesma convenção de ID já usada para `M`/`F2`/`F3`/`REF` — Seção 3),
+sem reaproveitar nem colidir com nenhum ID já existente. **Nenhuma tarefa de Backend
+nesta rodada** — confirma, na prática, RNF-15/RN-19 e a Seção B.5 do `SDD.md` Adendo
+B: zero mudança de backend, schema, RLS ou contrato de API (`API-CONTRACT.yaml`
+inalterado).
+
+**Restrição de sequenciamento vinculante, herdada sem reabertura** (`BLOCKERS.md`
+Bloqueio 021, resolução do CTO): os 14 lotes desta iniciativa (Lote 0 + Grupo A =
+Lotes 1-4, com mockup direto e spec completa; Grupo B = Lotes 5-13, inventário leve)
+são tratados de forma assimétrica nesta decomposição. **Lotes 0-4 são decompostos e
+estimados normalmente** (Seção 3.5/4.5/5). **Lotes 5-13 (Grupo B) recebem apenas
+ordem de prioridade Now/Next/Later** (já fixada em `PRD.md` Seção B.5) **e uma nota
+explícita de estimativa pendente de calibração** (Seção 3.6) — nenhum número de dias
+é comprometido para eles nesta rodada, porque o CTO fixou como condição vinculante
+que nenhuma estimativa agregada dos Lotes 5-13 pode ser produzida antes de o Lote 0
+**e** ao menos 1 lote do Grupo A (Lote 1, Dashboard, por recomendação do próprio PM)
+estarem executados e validados em produção, calibrando a velocidade real observada.
+Esta condição não é decidida por este documento — é carregada adiante integralmente.
+
+**Resumo do que muda em cada seção** (detalhe completo nas próprias seções, não
+repetido aqui):
+
+1. **Seção 1** — nova subseção 1.9, traduzindo `ADR-017`/`ADR-018`/`ADR-019` em
+   `DIR-40` a `DIR-45`.
+2. **Seção 2** — nenhum spike novo identificado; nota adicionada ao final da seção
+   com o racional (os 3 ADRs já resolveram, com confiança, as únicas incertezas
+   técnicas reais desta rodada — onde o design system vive, como o rollout é
+   sequenciado, como a tipografia numérica é migrada).
+3. **Seção 3** — nova subseção 3.5 (Grupo A, Lotes 0-4: 13 tarefas Frontend + 7 QA =
+   20 tarefas novas, todas `Não iniciada`) e nova subseção 3.6 (Grupo B, Lotes 5-13:
+   inventário/prioridade, **sem tarefa nem estimativa nesta rodada**, conforme a
+   restrição acima).
+4. **Seção 4** — nova subseção 4.5, com uma subseção por lote (Lote 0 a Lote 4) +
+   caminho crítico do Grupo A, incluindo a **dependência de execução, não de
+   contrato** exigida por `RF-RS-00` AC4 (auditoria `design-system-consistency-check`
+   completa antes do início real do Lote 0) e a reafirmação explícita de que a
+   estimativa agregada dos Lotes 5-13 permanece bloqueada até Lote 0 + Lote 1 estarem
+   validados em produção.
+5. **Seção 5** — nova linha de esforço por time (Frontend 13.0 + QA 5.5 = **18.5 dias
+   ideais**, Lotes 0-4; Backend 0) e 5 novos riscos de prazo nomeados (nº 12 a 16),
+   incluindo a calibração do Bloqueio 021 e a ambiguidade de mecanismo de verificação
+   de acessibilidade já sinalizada pelo CTO no Gate 2 desta iniciativa (ressalva 1).
+6. **Seção 6** — nova pendência de sincronização com UX/UI (`UX-03`, auditoria
+   `design-system-consistency-check` completa ainda não reexecutada) e 7 novas
+   lacunas de detalhe decididas pelo Tech Lead (`DET-12` a `DET-18`); nenhuma lacuna
+   estrutural nova é escalada ao Software Architect.
+7. **Seção 7** — inalterada; nenhum dos lotes desta rodada foi fechado ainda
+   (rascunho — preenchimento é passo da fase de execução, não deste adendo).
+
+**Avaliação de `GUARDRAILS.md` (skill `guardrails-drafting`, cadência de uma vez por
+projeto, não por seção deste `TASK.md`)**: **2 regras novas propostas nesta rodada**
+(`G-20`, `G-21`, nova Seção 9 de `.md/GUARDRAILS.md`) — a formalização de
+RN-19/RN-20/RNF-15 ("redesign é camada de apresentação") como guardrail
+objetivamente verificável por diff, e a "fronteira de PR" recomendada pelo Software
+Architect (`SDD.md` Adendo B, B.1 item 3) e explicitamente endossada pelo CTO no Gate
+2 desta iniciativa (ressalva 2). **Avaliada e não proposta**: a proibição de feature
+flag para este redesign (`ADR-018`) — decisão registrada em `DET-16`, com
+justificativa de por que não atende ao critério de "inegociável para o projeto
+inteiro, sem escape hatch" que `guardrails-drafting` exige (o próprio `ADR-018` já
+prevê reabertura condicionada a um requisito futuro do stakeholder, não é uma regra
+absoluta). Ambas as propostas (`G-20`/`G-21`) submetidas ao CTO junto deste
+`TASK.md`, conforme `PIPELINE-CONVENTIONS.md` §5.
+
+---
+
+## Nota de Atualização — Baseline N1 pré-Lote 0 (`UX-03`), 2 Tarefas Novas (`FE-RS-14`/`15`) — 2026-09-04
+
+**Contexto**: `UX-SPEC.md` Seção 3.0.1 publica o resultado da auditoria
+`design-system-consistency-check` completa (`UX-03`) que faltava para satisfazer
+RF-RS-00 AC4 — a mesma pendência já registrada como risco 13 (Seção 5) e como `UX-03`
+(Seção 6.1.1), ambos aceitos pelo CTO no Gate 3 (Redesign Visual, Grupo A) sem
+bloquear aquele veredito ("Aprovado com ressalvas"), com a nota explícita de que a
+auditoria poderia revelar necessidade de reestimativa do Tech Lead nos Lotes 0/1/5.
+Esta nota é exatamente essa reestimativa — não reabre o Gate 3 já concedido, é a
+continuação natural de uma condição de acompanhamento que o próprio CTO já previu e
+aceitou antecipadamente. Nenhum dos 4 achados da auditoria é lacuna estrutural do
+`SDD.md` (confirmado pelo próprio `UX-SPEC.md`) — decisão de escopo/estrutura de
+documento dentro da autoridade normal do Tech Lead, mesma classe de `DET-12` a
+`DET-18`.
+
+**Decisão sobre o Achado 1** (`Alert`/`Badge`/`Button`/`OfflineSyncBadge` usando a
+rampa padrão do Tailwind em vez dos tokens `-soft`, 12 ocorrências, propagado a
+~18 telas de CRUD via `Alert variant="danger"`): **corrigir agora, dentro do Lote 0**
+— tarefa nova `FE-RS-14`. Ver `DET-19` (Seção 6.2) para o racional completo.
+
+**Decisão sobre o Achado 2** (paleta categórica hardcoded de `DonutChart.tsx`, sem
+token `--color-chart-*` correspondente): **corrigir no Lote 1**, onde o componente é
+consumido — tarefa nova `FE-RS-15`. Ver `DET-20` (Seção 6.2) para o racional completo.
+
+**Achado 3** (duplicação de `AuthCard`/`AuthLayout`): sem ação nesta rodada — já
+tratado pela `UX-SPEC.md` como consolidação planejada para o Lote 5 (Grupo B), este
+achado só quantifica os pontos de código, sem mudar o plano já registrado. **Achado
+4**: controle positivo, sem ação.
+
+**Efeito líquido nesta atualização**: +2 tarefas Frontend (`FE-RS-14`, `FE-RS-15`),
++1.0 dia ideal de esforço (0.5 + 0.5), 100% dentro dos Lotes 0/1 já aprovados —
+Grupo A passa de 18.5 para **19.5 dias ideais** (Seção 3.5/4.5/5 atualizadas). Nenhuma
+tarefa de QA nova (a suíte completa de `QA-RS-01`/`03` e o checklist de fechamento de
+`QA-RS-04` já cobrem, por escopo, os componentes/tela tocados por `FE-RS-14`/`15` —
+nenhum dos dois achados introduz superfície de teste fora do que essas tarefas já
+verificam). Nenhuma tarefa já `Concluída` de MVP/Fase 2/Fase 3/Fase 2.1/Refinamento é
+reaberta. **Transparência ao CTO**: este delta (+1.0 dia sobre os 18.5 já validados no
+Gate 3, Redesign Visual Grupo A) fica registrado aqui para visibilidade no próximo
+ponto de contato formal — não decido sozinho que ele dispensa nova validação de
+capacidade, mas, dado o tamanho marginal (5.4% do Grupo A) e a natureza não-estrutural
+do achado, sigo com a atualização e a execução do Lote 0 sem pausar por uma nova
+rodada completa de Gate 3, disponível para reabertura pontual se o CTO discordar
+desta leitura.
+
+---
+
 ## 1. Diretrizes de Implementação
 
 Camada base de comportamento (pensar antes de codificar, simplicidade, mudanças
@@ -507,6 +627,29 @@ verificável derivada deles.
 | DIR-38 | Nenhuma migration deste pacote altera/remove coluna existente, tabela existente ou dado real sem revisão explícita do CTO (G-02) — toda mudança de schema deste pacote é `CREATE FUNCTION`/`CREATE OR REPLACE FUNCTION`/`CREATE TRIGGER`/`ALTER TABLE ... ADD COLUMN` aditiva, incluindo a migration de backfill (`INSERT` de linha nova, nunca `UPDATE`/`DELETE` sobre `payment_methods` existente). | **[OBRIGATÓRIA]** | `ALTER TABLE public.transactions ADD COLUMN created_via_shortcut boolean NOT NULL DEFAULT false` é permitido sem revisão adicional; qualquer `ALTER COLUMN`/`DROP` em `payment_methods`/`transactions`/`accounts` exigiria revisão explícita do CTO antes de sequer ser proposto — nenhuma tarefa deste pacote propõe isso. |
 | DIR-39 | Deploy/exposição em produção do formulário unificado (RF-REF-04) fica atrás de feature flag (`payment_method_unification_enabled`, decisão de mecanismo do Tech Lead — ver Seção 6.2, `DET-09`) até `BLOCKERS.md` Bloqueio 013 estar confirmado `Resolvido` pelo DevSecOps. Código pode ser mesclado e implantado em produção com a flag desligada antes disso (o trigger da Decisão 3 já tem checagem própria de ownership, independente da correção do Bloqueio 013) — o que fica condicionado é exclusivamente a **exposição** ao usuário final. | **[OBRIGATÓRIA]** | `BE-REF-06` (Seção 3.4) é o único responsável por ligar a flag em produção; nenhuma outra tarefa deste pacote liga a flag por conta própria. |
 
+### 1.9 Redesign Visual "MyMoney v2.0" — Design System, Rollout e Migração Incremental (ADR-017, ADR-018, ADR-019)
+
+**Nova subseção — 2026-09-04.** Traduz as decisões de `ADR-017` (arquitetura técnica
+do design system), `ADR-018` (rollout incremental/corte direto por lote) e `ADR-019`
+(primitivo `Num`, migração incremental) em regra prática de implementação, mesmo
+padrão de `implementation-guideline-drafting` já usado em 1.1 a 1.8. A "fronteira de
+PR = fronteira de apresentação" (recomendação do Software Architect, `SDD.md` Adendo
+B, B.1 item 3, endossada pelo CTO no Gate 2 desta iniciativa) **não** é duplicada
+aqui como DIR — vira guardrail formal (`G-20`/`G-21`, `.md/GUARDRAILS.md`), mesmo
+tratamento já dado a `G-19`/Bloqueio 010 (achado que vira regra inegociável não é
+repetido como diretriz de Seção 1).
+
+| # | Regra | Classificação | Exemplo mínimo |
+|---|---|---|---|
+| DIR-40 | Todo token/componente-base/domínio deste redesign é atualizado **in-place**, no mesmo bloco `@theme` (`frontend/src/index.css`) e nos mesmos diretórios `components/base/`/`components/domain/` já existentes — nunca uma segunda árvore de tokens/componentes ("v2") coexistindo com a atual, mesmo que temporariamente (ADR-017/018). | **[PROIBIDA]** (segunda árvore) / **[OBRIGATÓRIA]** (atualização in-place) | Substituir o valor de `--color-primary` no bloco `@theme` já existente; nunca criar `--color-primary-v2` nem um segundo arquivo de tokens. |
+| DIR-41 | Migração do primitivo `Num` (`components/base/Num.tsx`) para um ponto de chamada de `formatCentsToBRL()` já existente é feita sempre **junto do lote que já vai tocar aquele arquivo/tela** — nenhum PR migra ponto de chamada de número fora do escopo do próprio lote (ADR-019). Até sua migração, um ponto de chamada permanece renderizando na fonte única atual — dívida técnica explícita, não escondida. | **[OBRIGATÓRIA]** | `FE-RS-06` (Lote 1, Dashboard) migra os pontos de `DashboardPage.tsx`/`DonutChart.tsx`; nenhum outro arquivo (`BudgetCard.tsx`, `CreditCardsPage.tsx` etc.) é tocado por essa mesma tarefa. |
+| DIR-42 | Nenhuma tela deste redesign é implementada atrás de feature flag ou publicada em rota paralela à existente — corte direto por lote, um PR por tela redesenhada, reversão via `git revert` + redeploy (ADR-018). Exceção só cabe se o CTO aprovar, como requisito novo, um mecanismo de alternância explicitamente pedido pelo stakeholder (não decidido por nenhum agente da esteira). | **[PROIBIDA]** (flag/rota paralela) | Merge de `FE-RS-05` (Dashboard) vai direto para `main`, sem `dashboard_v2_enabled` nem rota `/v2/dashboard`. |
+| DIR-43 | Fontes web novas (`Public Sans`, `Newsreader`) são carregadas via pacote self-hosted (`@fontsource/public-sans`, `@fontsource/newsreader`), nunca via `<link>` para CDN de terceiro — preserva o cache do service worker/offline-first (ADR-003/RNF-04, primeira infraestrutura real de web font deste projeto). Usar `font-display: swap` e pré-carregar os pesos críticos (corpo 400, título/logo 500) para minimizar `CLS`/`FOUT`. | **[OBRIGATÓRIA]** | `import "@fontsource/public-sans/400.css"` no bundle; nenhum `<link href="https://fonts.googleapis.com/...">` em `index.html`. |
+| DIR-44 | Toda tela redesenhada preserva integralmente as regras de `UX-SPEC.md` Seção 5, incluindo as 2 correções de contraste desta rodada: `--text-3` nunca aplicado a texto com informação real (só decorativo/`aria-hidden`); `--warn` nunca usado como cor de **texto** (só como preenchimento/ícone, sempre com `--text`/`--text-2` no texto ao lado). | **[OBRIGATÓRIA]** | Linha secundária de item de lista ("Categoria · Forma de pagamento") em `--text-2`, nunca `--text-3`; percentual de alerta ("87%") em `--text`/`--text-2`, com a barra de progresso (não o número) em `--warn`. |
+| DIR-45 | A suíte de teste completa já existente (`supabase/tests/*.test.sql` + `*.test.tsx` Vitest + `npm run build`) é reexecutada por inteiro a cada lote deste redesign, nunca escopada só às telas do lote em execução — consequência do blast radius global de componente-base/token (ADR-018, "Requisito de arquitetura decorrente"; RNF-18). | **[OBRIGATÓRIA]** | Fechamento do Lote 1 roda a suíte inteira (todos os domínios, migrados ou não), não só os testes de `DashboardPage`/`Num`. |
+| DIR-46 | **[Novo — 2026-09-04, `UX-03`/Achado 1]** Todo componente-base que representa estado (fundo de `Alert`, `Badge`, variante `destructive` de `Button`, badges de status como `OfflineSyncBadge`) usa exclusivamente os tokens semânticos `-soft`/de cor do `@theme` (`index.css`) para fundo/hover — nunca a rampa padrão do Tailwind (`red-*`/`green-*`/`amber-*`/`blue-*`) escrita diretamente na classe utilitária, mesmo que visualmente pareça equivalente hoje. | **[PROIBIDA]** (rampa padrão Tailwind em componente-base de estado) / **[OBRIGATÓRIA]** (token `-soft`/semântico) | `Alert` variant="danger" usa `bg-[var(--color-danger-soft)]` (ou classe `@theme` equivalente), nunca `bg-red-50`. |
+| DIR-47 | **[Novo — 2026-09-04, `UX-03`/Achado 2]** Todo gráfico com 3 ou mais séries/categorias (N > 2) usa a família de tokens `--color-chart-*` do `@theme` para sua paleta — nunca hex literal declarado no próprio componente. Gráficos de 2 séries (ex. `BarChart`, entradas/saídas) continuam usando os tokens semânticos existentes (`bg-income`/`bg-expense`), sem necessidade da família `--color-chart-*`. | **[PROIBIDA]** (hex literal de paleta em componente de gráfico) / **[OBRIGATÓRIA]** (`--color-chart-*` para N>2 séries) | `DonutChart.tsx` (N categorias) lê `PALETTE` de `--color-chart-1` a `--color-chart-8`; nenhum array `["#2563EB", ...]` hardcoded. |
+
 ---
 
 ## 2. Spikes Técnicos Identificados
@@ -535,6 +678,24 @@ mesma razão não é spike: a incerteza ali era de **desenho de solução/sequen
 já resolvida pelo Software Architect com confiança suficiente para estimar
 diretamente (Seção 3.4), não uma pergunta em aberto que um spike precisasse responder
 antes de estimar.
+
+**Nota — Redesign Visual "MyMoney v2.0" (Adendo B), 2026-09-04**: nenhum spike novo
+identificado para os Lotes 0-4 (Grupo A) desta rodada. As únicas incertezas técnicas
+reais desta iniciativa — onde o design system vive tecnicamente (pacote/monorepo vs.
+estrutura vigente), como Grupo A e Grupo B convivem sem duas linguagens visuais
+divergentes, e como a tipografia numérica seletiva é viabilizada sem migração atômica
+— já foram resolvidas com confiança pelo Software Architect via `ADR-017`, `ADR-018`
+e `ADR-019` respectivamente, cada uma com opções alternativas reais avaliadas e
+rejeitadas com racional explícito, aprovadas com ressalvas pelo CTO no Gate 2 desta
+iniciativa. Não resta incerteza de abordagem (múltiplas opções sem dado para
+decidir), tecnologia nova sem experiência prévia do time (React+Tailwind+tokens CSS
+já em produção desde o MVP), nem integração não testada (o mecanismo de propagação de
+token já foi validado empiricamente pela repaginada de 2026-09-04, citada como
+evidência em `ADR-017`). Os Lotes 5-13 (Grupo B) **não são decompostos em tarefa
+nesta rodada** (Seção 3.6) — nenhuma pergunta de spike se aplica a um lote que ainda
+não tem tarefa própria; o aprofundamento técnico completo de cada um, lote a lote,
+ocorrerá antes de sua própria execução, podendo então revelar necessidade de spike
+específica, não descartada aqui.
 
 ---
 
@@ -759,6 +920,136 @@ MVP/Fase 2/Fase 3.
 | QA-REF-04 | Casos de teste para a grade de `CategoryCard`, incluindo a navegação para `S-CAT-01a` e a preservação de editar/excluir | QA | RF-REF-05 AC1-AC4 | Card exibe os 4 dados exigidos sem clique adicional; clique abre a lista de subcategorias corretamente; editar/excluir categoria e subcategoria funcionam a partir do card e de dentro do modal, sem regressão em relação ao comportamento já existente | 0.5 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 11 (`FE-REF-06`, `QA-REF-04`): **Aprovado**, sem ressalva, nenhum bug de nenhuma severidade encontrado. `acceptance-criteria-validation` contra RF-REF-05 AC1-AC4/AMB-15 literal: os 4 dados (nome, ícone/cor, total gasto no mês somando saídas da categoria+subcategorias — mesmo cálculo de RF-MVP-06, número de subcategorias) confirmados exibidos sem clique adicional; clique no corpo do card confirmado abrindo `S-CAT-01a` com a lista de subcategorias corretas; editar categoria via ícone do card (sem passar pelo modal) e via botão "Editar categoria" dentro do modal, editar/excluir subcategoria dentro do modal, e RN-09 (bloqueio de exclusão) — todos confirmados sem regressão; "Excluir categoria" da categoria de topo-nível só dentro do modal — conferido contra o "ou" literal de RF-REF-05 AC4 ("acessíveis a partir do card **ou** da visão expandida"), não uma reinterpretação, apenas confirmação de leitura já correta e já registrada por `FE-REF-06`. `cross-platform-integration-testing`: confirmado por leitura direta que `listCategories()`/`getMonthlyCategorySummary()` são as mesmas funções/rotas já existentes antes deste lote (`GET /categories`, `POST /rpc/get_monthly_category_summary`, já publicadas em `API-CONTRACT.yaml`), consumidas em paralelo, sem chamada de API nova; suíte completa do Dashboard (mesma RPC) sem regressão. `non-functional-validation`: acessibilidade do Padrão C confirmada (clicável primário e botão "Editar" como irmãos nunca aninhados, `aria-label` descritivo, `aria-describedby` com o conteúdo real do total/contagem, ordem de tabulação primário-antes-do-secundário, alvo de toque `min-h-11 min-w-11` = 44×44px do botão "Editar"); grade 1→2→3→4 colunas confirmada pelas classes reais do container (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`, idênticas ao Padrão C). Execução própria desta rodada: `npx vitest run` (arquivos dedicados) 17/17 PASS, suíte completa 244/244 PASS (confirmado de forma independente, não só leitura do relato de `FE-REF-06`), `npx tsc -b` limpo, `npm run lint` sem erro novo. **Nenhum débito técnico novo registrado** — implementação e cobertura já estavam completas e corretas no momento desta validação. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada | Categorização (Fase 2.1) |
 | QA-REF-05 | Casos de teste para a grade de `BudgetCard`, incluindo os 3 estados de severidade (normal/alerta 80%/estouro >100%) e a ausência de card para categoria sem orçamento | QA | RF-REF-06 AC1-AC4 | Card exibe os 4 dados exigidos sem clique adicional; os 3 estados de severidade renderizam com destaque visual distinto (não só variação de cor, mesma exigência de acessibilidade já vigente); categoria sem orçamento no mês não gera card vazio; clique abre `S-BUD-02` sem regressão | 0.5 dia | **Concluída — 2026-09-04.** Veredito de lote completo em `QA-REPORT.md` Seção 12 (`FE-REF-07`, `QA-REF-05`): **Aprovado**, sem ressalva, nenhum bug de severidade alta/crítica encontrado. `acceptance-criteria-validation` contra RF-REF-06 AC1-AC4 literal: os 4 dados (categoria, gasto vs. teto, percentual, indicador de severidade) confirmados exibidos sem clique adicional; os 3 estados de severidade (normal/alerta/estouro) confirmados com destaque visual distinto entre si (`data-severity`, `backgroundColor`, `border-2`) e "não só variação de cor" (ícone+texto pré-existente do `ProgressBar` somado a `border-2`+fundo do card, 2 camadas não-cromáticas); categoria sem orçamento no mês confirmada sem gerar card vazio (AC4); clique confirmado abrindo `S-BUD-02` sem regressão. **Verificação dedicada do bug de fuso horário corrigido no fix-loop (Achado 1)**: rastreado o comportamento real, não só a passagem do teste novo — `get_budget_status()` resolve o mês corrente no servidor via `(now() at time zone 'America/Sao_Paulo')::date`, e o render/edição/exclusão do card foram confirmados 100% dirigidos pelo retorno dessa RPC (`BudgetStatusItem`), sem nenhum cruzamento residual com `listBudgets()`/`monthKey()` (cliente) no caminho crítico — a correção elimina estruturalmente a fonte da divergência de fuso perto da virada de mês, não é um remendo que só engana o teste. `cross-platform-integration-testing`: confirmado por leitura direta e `git diff HEAD --stat -- frontend/src/lib/api/` que `getBudgetStatus()`/`listBudgets()`/`listCategories()` são exatamente as mesmas rotas já existentes antes deste lote (`budget.ts`/`categories.ts` intocados nesta sessão) — nenhuma chamada de API nova. `non-functional-validation`: cálculo independente de contraste WCAG confirma os valores já reportados pela revisão de qualidade da própria tarefa (`text-neutral-600` sobre `warning-soft`/`danger-soft`: 6.81:1/6.39:1, PASS); achado à parte já sinalizado pelo revisor — percentual do `ProgressBar` em `warning` (`text-warning` sobre `warning-soft`) mede 2.86:1 (FAIL), confirmado por cálculo independente nesta rodada, e confirmado como problema de token pré-existente no projeto inteiro (mesma combinação sobre `color.surface` branco em `DashboardPage`, não tocado por este lote, já mede 3.19:1, também FAIL) — **não é regressão desta tarefa**, registrado como `QA-DEBT-012` (baixa, não-bloqueante, `QA-REPORT.md` Seção 12.4), sem reabrir esta tarefa. Execução própria desta rodada: `npx vitest run` (arquivos dedicados) 21/21 PASS, suíte completa 258/259 PASS (1 falha isolada de `UnlockPage.test.tsx` reexecutada sozinha nesta rodada e confirmada 3/3 PASS, mesma flakiness de timing já documentada, arquivo não tocado por este lote), `npx tsc -b` limpo, `npm run lint` sem erro novo. **Padrão recorrente? Não** — nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta rodada. | Orçamento (Fase 2.1) |
 
+### 3.5 Redesign Visual "MyMoney v2.0" — Grupo A (Lotes 0-4)
+
+**Nova subseção — 2026-09-04.** Decompõe `PRD-TECNICO.md` Adendo B (RF-RS-00 a 04) +
+`SDD.md` Adendo B + `ADR-017`/`ADR-018`/`ADR-019` + `UX-SPEC.md` Seção 3.0/3.1/3.2
+(tokens, primitivo `Num`) e os 4 blocos "Redesign visual v2.0" da Seção 2.2
+(mapeamento mockup → implementação, um por lote). Convenção de ID: `<fase>` = `RS`,
+numeração sequencial (não composta por lote, mesmo padrão simples já usado em
+`BE-REF-NN`/`FE-REF-NN` — ver `DET-17`). Coluna Status inicia `Não iniciada` para
+toda tarefa. **Nenhuma tarefa de Backend** (RNF-15/RN-19, `SDD.md` Adendo B Seção
+B.5: zero mudança de schema/RLS/Edge Function/contrato de API).
+
+#### Frontend
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-RS-01 | Substituir integralmente o bloco `@theme` (`frontend/src/index.css`) pelos tokens v2.0 (cor — `accent`/`income`/`expense`/`warn`/`danger`/`bg`/`surface`/`border`/escala de texto —, radius em 3 níveis, elevação, tipografia base `Public Sans` aplicada ao `body`) conforme `UX-SPEC.md` Seção 3.1 — substituição, não extensão (decisão já registrada pelo `ux-ui`, RF-RS-00 AC1). Instalar `@fontsource/public-sans` (pesos 400/500/600/700) self-hosted (`DIR-43`) | Frontend | `UX-SPEC.md` Seção 3.0/3.1; RF-RS-00 AC1; `ADR-017` | Todo valor de token do `@theme` bate com a tabela da `UX-SPEC.md` Seção 3.1; nenhum arquivo de componente é tocado só por causa da troca de valor (mesmo mecanismo já validado pela repaginada de 2026-09-04); grep confirma zero hex literal fora do bloco `@theme` nos componentes-base tocados por este redesign; `Public Sans` efetivamente carregada (Network/computed style), não apenas declarada | 0.75 dia | **Concluída — `QA-BUG-001` corrigido (2026-09-05).** `--color-neutral-500` (`frontend/src/index.css`) recalibrado de `#83857D` para `#6E726B`, priorizando contraste mínimo sobre a progressão relativa de luminância pura para os 5 níveis não-âncora (`UX-SPEC.md` só fixa 50/200/400/600/900) — permanece estritamente mais claro que `neutral-600` (`#6B6F68`), preservando a ordem monotônica da rampa. Contraste recalculado de forma independente (fórmula de luminância relativa WCAG, sRGB→linear, script Node dedicado, conferido duas vezes): **4,90:1 sobre `--surface`** (`#FFFFFF`) e **4,62:1 sobre `--bg`** (`#FAF8F3`) — ambos acima do limiar 4,5:1 exigido pelo WCAG 2.1 AA (`UX-SPEC.md` Seção 5, `PRD.md` N3). Nenhum dos 29 arquivos consumidores de `text-neutral-500` foi tocado (mesma propagação automática via token que causou a regressão agora corrige todos de uma vez). Corrigido também, oportunisticamente e no mesmo arquivo, `QA-DEBT-014` (`--shadow-elevation-md` agora `0 6px 20px rgba(31,36,32,.06)`, sem o 4º parâmetro `-2px` que divergia do literal da `UX-SPEC.md`). Suíte completa reexecutada após a correção: **316/316 `PASS`** (1 falha isolada de `UnlockPage.test.tsx` em rodada cheia confirmada como flake de timing, não relacionada — passa 3/3 isoladamente e em nova rodada completa), `npm run build` sem erro, `oxlint` sem warning novo. `FE-RS-02`/`03`/`04`/`14` não foram reabertas (já aprovadas, nenhum código próprio alterado). | Design System (Redesign v2.0) |
+| FE-RS-02 | Criar o primitivo `Num` (`components/base/Num.tsx`) conforme contrato mínimo de `UX-SPEC.md` Seção 3.2 (`<Num value format="currency"\|"percent"\|"count" />`, `Newsreader`+`font-variant-numeric: tabular-nums`, sempre um nó isolado); instalar `@fontsource/newsreader` (peso 500 + itálico) self-hosted (`DIR-43`); confirmar que o service worker (`vite-plugin-pwa`) inclui os novos arquivos de fonte (`.woff2`) no pré-cache | Frontend | `UX-SPEC.md` Seção 3.2; `ADR-019` | `Num.test.tsx` cobre os 3 formatos (moeda com símbolo BRL, percentual com "%", contagem inteira) e confirma que o valor nunca é concatenado a texto não-numérico no mesmo nó; `font-display: swap` configurado (`DIR-43`); glob pattern do Workbox confirmado cobrindo `**/*.woff2` (ajustado se necessário); nenhum ponto de chamada existente é migrado por esta tarefa (migração é por lote, `DIR-41`) | 1.0 dia | **Concluída — Aprovado, sem ressalva (`QA-REPORT.md` Seção 14.6).** | Design System (Redesign v2.0) |
+| FE-RS-03 | Restruturar `AppLayout`: navegação lateral desktop (4 grupos rotulados — "Visão geral"/"Lançamentos"/"Planejamento"/"Cartões" + grupo final sem rótulo —, logo "MyMoney" em `Newsreader` itálico, item ativo `accent-soft`/`accent`), navegação inferior mobile (4 destinos — Dashboard/Lançamentos/Orçamento/Mais —, ícone line-style via `lucide-react` substituindo emoji), botão "+ Novo lançamento" fixo no cabeçalho de cada tela substituindo o FAB flutuante — conforme `UX-SPEC.md` Seção 2.2 (nota de navegação) e Seção 6.2 revisada. **Decisão de sequenciamento (`DET-12`)**: feito neste lote, não no Lote 1, por ser componente único compartilhado por toda a aplicação | Frontend | `UX-SPEC.md` Seção 2.2 (nota de navegação, `Main.dc.html`), Seção 6.2 revisada | Sidebar desktop com os 4 grupos + item ativo destacado; bottom nav mobile com exatamente 4 destinos, ícones `lucide-react` (nenhum emoji restante); botão "+" no cabeçalho presente em toda tela autenticada, sem FAB flutuante; navegação por teclado (Tab/Enter) e foco visível preservados em toda a nova estrutura (WCAG, `UX-SPEC.md` Seção 5); nenhuma rota, permissão ou comportamento de navegação funcional é alterado (RN-20) | 1.5 dia | **Concluída — Aprovado com ressalva (`QA-REPORT.md` Seção 14.6).** Todo critério de aceite próprio passa; a ressalva é o token `--color-neutral-500` herdado de `FE-RS-01` (`QA-BUG-001`, reaberta) aplicado ao rótulo do destino inativo da barra inferior mobile — sem código próprio a corrigir aqui, autocorrige quando `FE-RS-01` for revalidada. | Design System (Redesign v2.0) |
+| FE-RS-04 | Aplicar as regras de layout anti-corte de `UX-SPEC.md` Seção 3.1.1 aos componentes-base compartilhados: `w-full` explícito em `Input`/`Select`/`DatePicker`/`CurrencyInput`; `min-w-0` em cada célula de `CategoryPicker` | Frontend | `UX-SPEC.md` Seção 3.1.1 | Os 4 componentes declaram `w-full` no próprio elemento, não dependem do container pai; `CategoryPicker` não ultrapassa a largura do contêiner com nome de categoria/subcategoria longo (teste com nome longo controlado); nenhuma regressão visual nos usos já existentes (suíte de teste dos 5 componentes, mais os formulários que os consomem) | 0.75 dia | **Concluída — Aprovado, sem ressalva (`QA-REPORT.md` Seção 14.6).** | Design System (Redesign v2.0) |
+| FE-RS-14 | **[Novo — 2026-09-04, `UX-03` Achado 1]** Corrigir os 4 componentes-base que usam a rampa padrão do Tailwind em vez dos tokens `-soft` do design system (12 ocorrências): `Alert.tsx:13-16` (`bg-blue-50`/`bg-amber-50`/`bg-red-50`/`bg-green-50` → tokens `-soft` correspondentes), `Badge.tsx:17-22` (`bg-green-100`/`bg-red-100`/`bg-amber-100`/`bg-blue-100` → idem), `Button.tsx:23` variante `destructive` (`hover:bg-red-800` → tom escurecido do token `danger`), `OfflineSyncBadge.tsx:45` (`bg-amber-100`/`hover:bg-amber-200` → token `warn-soft`) — `DIR-46`. Consome a família de tokens `-soft` (accent/income/expense/warn/danger) que `FE-RS-01` estabelece no novo bloco `@theme`; se `FE-RS-01` não redeclarar algum desses tokens (ex. `danger-soft`, hoje já usado corretamente por `BudgetCard.tsx`), esta tarefa reporta o gap via `BLOCKERS.md` antes de prosseguir, sem presumir | Frontend | `UX-SPEC.md` Seção 3.0.1, Achado 1 (`design-system-consistency-check`, `UX-03`) | Grep confirma zero ocorrência de `bg-red-*`/`bg-green-*`/`bg-amber-*`/`bg-blue-*`/`hover:bg-red-800` nos 4 arquivos; os 4 componentes usam exclusivamente o token `-soft`/semântico correspondente para fundo/hover de estado; `Alert variant="danger"` renderizado em ao menos 1 tela de CRUD (ex. `AccountsPage`) reflete a paleta v2.0 (terracota/danger), não vermelho Tailwind padrão; nenhuma regressão nos testes existentes de `Alert`/`Badge`/`Button`/`OfflineSyncBadge` | 0.5 dia | **Concluída — Aprovado, sem ressalva (`QA-REPORT.md` Seção 14.6).** | Design System (Redesign v2.0) |
+| FE-RS-05 | Redesign visual de `S-DASH-01` (desktop `Main.dc.html` + mobile `DashboardMobile.dc.html`): reorganizar `DashboardPage.tsx` — card de saldo hero (`--r-lg`/`--shadow-md`), 3 KPIs `grid-cols-3`, linha 2 colunas (donut+legenda \| orçamentos), "Últimos lançamentos" largura total abaixo — usando exclusivamente tokens/componentes do Lote 0, sem alterar dado/cálculo/navegação (RF-RS-01 AC1-4/RN-20) | Frontend | `UX-SPEC.md` Seção 2.2 ("`S-DASH-01` — Redesign visual v2.0"); RF-RS-01 AC1-6 | Composição segue o mapeamento linha a linha da `UX-SPEC.md` (ordem de blocos, grid 2 colunas a partir de `lg`); nenhum dado/cálculo/comportamento de navegação (toque na fatia do donut → lista filtrada) é alterado; mobile preserva single-column (RNF-10); 0 chamada de API nova | 2.0 dias | Não iniciada | Dashboard (Redesign v2.0) |
+| FE-RS-06 | Migrar para `<Num />` os pontos de chamada de `formatCentsToBRL()` já existentes em `DashboardPage.tsx` (saldo consolidado; 2 KPIs monetários, separando a seta ↑/↓ do valor em nós distintos; "Lançamentos" como `format="count"`) e em `DonutChart.tsx:93` (separar valor de moeda e percentual, hoje concatenados) — `ADR-019`, `DIR-41` | Frontend | `UX-SPEC.md` Seção 2.2 ("Migração `Num` neste lote"); `ADR-019` | Todo número do Dashboard renderiza via `<Num />`, nunca `{formatCentsToBRL(x)}` cru; seta e valor são nós DOM distintos; valor de moeda e percentual do donut são dois `<Num />` distintos, não uma `string` concatenada; nenhuma regressão de teste existente do Dashboard | 0.5 dia | Não iniciada | Dashboard (Redesign v2.0) |
+| FE-RS-15 | **[Novo — 2026-09-04, `UX-03` Achado 2]** Definir a família de tokens `--color-chart-1` a `--color-chart-8` em `frontend/src/index.css` (bloco `@theme`), derivada da paleta v2.0 (`FE-RS-01`), mantendo contraste ≥3:1 sobre `--surface`/`--bg` (elemento gráfico não-textual, `UX-SPEC.md` Seção 5); migrar `components/domain/DonutChart.tsx:16` (`PALETTE`, hoje 8 hex hardcoded) para consumir esses 8 tokens em vez de valor literal — `DIR-47` | Frontend | `UX-SPEC.md` Seção 3.0.1, Achado 2 (`design-system-consistency-check`, `UX-03`); RF-MVP-06 | `index.css` declara os 8 tokens `--color-chart-N`; `DonutChart.tsx` não contém mais nenhum hex literal (grep confirma); cada tom mantém contraste ≥3:1 contra o fundo do gráfico (cálculo registrado, não estimado); nenhuma mudança de dado/comportamento do donut (RF-MVP-06, toque na fatia → lista filtrada preservado); nenhuma regressão nos testes existentes de `DonutChart`/Dashboard | 0.5 dia | Não iniciada | Dashboard (Redesign v2.0) |
+| FE-RS-07 | Redesign visual de `S-TXN-01`/`S-TXN-02` (desktop `Lancamentos.dc.html` + mobile `LancamentosMobile.dc.html`): cabeçalho, filtros em chips, card de resumo do período, lista agrupada por dia com a hierarquia de RN-18 preservada (subcategoria linha 1 destaque `--text` semibold; descrição·forma de pagamento linha 2 em `--text-2`, nunca `--text-3`); `ShortcutBar`/`ShortcutChip` (RF-REF-03) obrigatório e composto visualmente na linguagem v2.0 mesmo ausente do mockup (AMB-19) | Frontend | `UX-SPEC.md` Seção 2.2 ("`S-TXN-01`/`S-TXN-02` — Redesign visual v2.0"); RF-RS-02 AC1-5; RN-18 (preservada) | Composição segue o mapeamento linha a linha; hierarquia RN-18 preservada exatamente (verificação explícita, não presumida); `ShortcutBar`/`ShortcutChip` presente e re-estilizado com tokens v2.0; nenhuma mudança em ranking de atalhos (RN-12), pré-preenchimento (RN-13), filtros disponíveis, ou formulário unificado (RF-REF-04) | 2.0 dias | Não iniciada | Lançamentos (Redesign v2.0) |
+| FE-RS-08 | Migrar para `<Num />` os pontos de chamada de `formatCentsToBRL()` em `TransactionsPage.tsx` (valor de cada item da lista; card de resumo do período) — `ADR-019`, `DIR-41` | Frontend | `UX-SPEC.md` Seção 2.2 ("Migração do primitivo `Num` neste lote"); `ADR-019` | Todo número de `S-TXN-01` renderiza via `<Num />`; nenhuma regressão de teste existente de Lançamentos | 0.25 dia | Não iniciada | Lançamentos (Redesign v2.0) |
+| FE-RS-09 | Redesign visual de `S-ACC-01/02/04` (desktop `ContasCartoes.dc.html` + mobile): migrar de Padrão A (lista) para Padrão C (grade de cards, `AccountCard` novo, mesma família visual de `CategoryCard`/`BudgetCard`) conforme recomendação da `UX-SPEC.md`, confirmada em `AMB-17` — `DET-15` | Frontend | `UX-SPEC.md` Seção 2.2 ("`S-ACC-01/02/04` + `S-CARD-01/02/03` — Redesign visual v2.0"); RF-RS-03 AC1/AC4; `AMB-17` | Grade de `AccountCard` (`iconChip`+rótulo do banco em `--text-2`+nome+saldo) substitui a lista Padrão A; grade colapsa 1→2→3→4 colunas (Padrão C); nenhuma mudança de dado/comportamento de RF-MVP-01/RN-08; ações de editar/inativar/excluir preservadas | 1.5 dias | Não iniciada | Contas & Cartões (Redesign v2.0) |
+| FE-RS-10 | Redesign visual de `S-CARD-01/02` (visão-resumo apenas — grade `grid-cols-2`, nome do cartão + vencimento, fatura atual em destaque, barra de limite usado com percentual+valor separados) — `InvoiceTimeline`/`S-CARD-03` **não é tocado** (permanece com o Lote 8, AMB-17 confirmado). Corrigir, no mesmo arquivo, o achado de consistência já registrado (`UX-SPEC.md` Seção 3.3): trocar o `Input type="number"` do campo "Limite (R$)" pelo `CurrencyInput` já designado — `DET-14` | Frontend | `UX-SPEC.md` Seção 2.2 (idem); RF-RS-03 AC1-4; achado de consistência 2026-09-04 (`UX-SPEC.md` Seção 3.3) | Grade de cartão conforme mapeamento; nenhuma mudança em RN-01 (fechamento)/RN-06 (limite)/horizonte de faturas/`InvoiceTimeline`; campo "Limite (R$)" de `S-CARD-02` usa `CurrencyInput`, não `Input` genérico (teste dedicado); 0 regressões de N3/N4, com atenção redobrada dado o risco de regressão mais alto do Grupo A (RF-RS-03 AC3) | 1.5 dias | Não iniciada | Contas & Cartões (Redesign v2.0) |
+| FE-RS-11 | Migrar para `<Num />` os pontos de chamada de `formatCentsToBRL()` em `AccountsPage.tsx` (saldo) e `CreditCardsPage.tsx` (fatura atual; limite usado, separando percentual e valor monetário hoje concatenados) — `ADR-019`, `DIR-41` | Frontend | `UX-SPEC.md` Seção 2.2 ("Migração `Num` neste lote"); `ADR-019` | Todo número de Contas & Cartões renderiza via `<Num />`; percentual e valor do "limite usado" são dois `<Num />` distintos; nenhuma regressão de teste existente | 0.5 dia | Não iniciada | Contas & Cartões (Redesign v2.0) |
+| FE-RS-12 | Aplicar os tokens v2.0 (cor/tipografia/radius/elevação da Seção 3.1) ao `CategoryCard` já existente (Padrão C) — **sem reverter para lista-árvore** (Bloqueio 023 resolvido, `RF-RS-04` AC1 reforçado): dado exibido, clique (expandir/navegar) e ações de edição/exclusão permanecem intocados (RF-RS-04 AC2) | Frontend | `UX-SPEC.md` Seção 2.2 ("`S-CAT-01` — Redesign visual v2.0"); RF-RS-04 AC1-2 | `CategoryCard` renderiza com os tokens v2.0 (cor/borda/elevação/tipografia), mantendo exatamente a mesma estrutura/comportamento já validado desde o Pacote de Refinamento; nenhuma regressão de teste existente de Categorias | 0.5 dia | Não iniciada | Categorias (Redesign v2.0) |
+| FE-RS-13 | Migrar para `<Num />` o valor monetário do `CategoryCard` (total gasto no mês) — `ADR-019`, `DIR-41` | Frontend | `UX-SPEC.md` Seção 2.2 (idem); `ADR-019` | Valor do card renderiza via `<Num format="currency" />`; nenhuma regressão de teste existente | 0.25 dia | Não iniciada | Categorias (Redesign v2.0) |
+
+> **Nota de execução — Lote 0 concluído pelo `frontend` (2026-09-04).**
+> `FE-RS-01`, `FE-RS-02`, `FE-RS-04`, `FE-RS-14` e `FE-RS-03` (nesta ordem de
+> dependência, Seção 4.5) implementados, testados (TDD) e com auto-revisão de
+> spec-compliance feita contra o critério de aceite de cada um antes de marcar
+> `Concluída`. Nenhuma tarefa deste lote depende de endpoint/mock (`SDD.md`
+> Adendo B B.5: zero Backend no redesign) — todas fecham como `Concluída` direto,
+> sem nota de mock pendente. Suíte completa reexecutada, não escopada ao Lote 0
+> (`DIR-45`/`ADR-018`): **316/316 testes `PASS`**, `npm run build` sem erro,
+> `oxlint` sem warning novo introduzido por este lote. Decisões de detalhe
+> tomadas dentro da autoridade normal de implementação do `frontend` (RF-RS-00
+> "não decidido aqui"), documentadas para rastreabilidade, nenhuma escalada:
+> 1. **`danger-soft`/`income-soft`/`danger-hover`** (`index.css`): ausentes do
+>    mockup (assim como o próprio `--danger`). `income-soft` reaproveita o valor
+>    de `accent-soft` (mesma fusão de valor, não de estrutura, já usada por
+>    `income`/`accent`, `adr/019...md` Parte 1). `danger-soft`/`danger-hover` são
+>    calculados pela mesma fórmula já usada em produção antes desta rodada
+>    (`-soft` = 10% de opacidade sobre `--surface`, pré-calculada como cor
+>    sólida; `-hover` = ~80% do valor original por canal, mesma proporção de
+>    `--color-primary-hover`). `FE-RS-01` redeclarou os 5 tokens `-soft`
+>    completos antes de `FE-RS-14` rodar — a contingência de escalar via
+>    `BLOCKERS.md` prevista no próprio `FE-RS-14` não chegou a ser acionada.
+> 2. **Escala `--color-neutral-50..900`** (`index.css`): recolorida por
+>    completo para a família verde/terracota sobre creme (mesma operação já
+>    validada em produção pela repaginada de 2026-09-04) — 5 pontos-âncora
+>    batem exatamente com a tabela da `UX-SPEC.md` (50=`--bg`, 200=`--border`,
+>    400=`--text-3`, 600=`--text-2`, 900=`--text`); os demais níveis são
+>    interpolados preservando a mesma progressão relativa de luminância da
+>    rampa anterior (não são literais da UX-SPEC, que não define uma escala de
+>    9 níveis). Necessário porque 197 ocorrências de `text|border|bg-neutral-N`
+>    em 52 arquivos dependem desse bloco para herdar a paleta v2.0 sem tocar
+>    nenhum componente (mesmo mecanismo do `ADR-017`/`ADR-018`).
+> 3. **`FE-RS-04` já estava satisfeito pelo código existente**: `git blame`
+>    confirma que `w-full`/`min-w-0` já foram aplicados a `Input`/`CategoryPicker`
+>    no commit do Pacote de Refinamento (`bbc603b`) anterior a este lote, e
+>    `Select`/`DatePicker`/`CurrencyInput` já tinham `w-full` desde a
+>    implementação original. Nenhuma mudança de código foi necessária — a tarefa
+>    fecha `Concluída` com os testes de regressão (antes ausentes) que travam
+>    esse comportamento agora, mais o teste dedicado de nome longo controlado
+>    exigido pelo critério de aceite.
+> 4. **`FE-RS-03`**: nenhum FAB flutuante foi encontrado no código antes desta
+>    tarefa (grep confirmado) — o critério "sem FAB flutuante" já estava
+>    satisfeito; o trabalho real foi agrupar a sidebar nos 4 grupos + 1 final
+>    (mapeamento de rota exato já publicado por `UX-SPEC.md` Seção 2.2, bloco
+>    "Desktop (`Main.dc.html`)", item 1 — nenhuma decisão de agrupamento
+>    inventada), aplicar `Newsreader` itálico ao logo, e tornar o botão
+>    "+ Novo lançamento" presente em toda tela autenticada (antes só desktop),
+>    com a variante circular só-ícone em mobile conforme a nota de navegação
+>    (`UX-SPEC.md` Seção 2.2). Mantido `min-h-11`/`min-w-11` (44px, convenção de
+>    toque WCAG já estabelecida no projeto) em vez do valor `40px` citado no
+>    mockup — pequeno desvio documentado, não escalado (acessibilidade
+>    não-negociável já estabelecida prevalece sobre um valor de pixel do
+>    mockup).
+
+#### QA
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| QA-RS-01 | Reexecutar a suíte completa existente (`supabase/tests/*.test.sql` + `*.test.tsx` Vitest + `npm run build`) após `FE-RS-01` a `FE-RS-04` e `FE-RS-14` — 0 regressões funcionais em toda a aplicação, não escopada às telas do Lote 0 (`DIR-45`, `ADR-018`) | QA | RNF-18; `ADR-018` ("Requisito de arquitetura decorrente") | 100% dos testes existentes `PASS`; `npm run build` gera bundle sem erro; nenhuma tela fora do escopo do Lote 0 apresenta erro visual óbvio de token ausente | 0.5 dia | Não iniciada | Design System (Redesign v2.0) |
+| QA-RS-02 | Introduzir checagem automatizada de acessibilidade (`vitest-axe` ou equivalente compatível com Vitest+Testing Library) na suíte já existente, cobrindo os componentes tocados pelo Lote 0 (`Num`, `Input`, `Select`, `DatePicker`, `CurrencyInput`, `AppLayout`/navegação) — resposta explícita à ressalva 1 do CTO no Gate 2 desta iniciativa (mecanismo hoje é manual, ver `DET-13`) | QA | `CTO-REVIEW.md` Gate 2 (Redesign Visual, Adendo B), ressalva 1; `UX-SPEC.md` Seção 5, nota ao Tech Lead | `npm test` inclui asserção automatizada (`toHaveNoViolations()` ou equivalente) para os 6 componentes listados, sem falha; documentado (comentário de setup ou `TEST-PLAN.md`, quando produzido) o que a ferramenta cobre (labels/roles/landmarks/foco alcançável) e o que não cobre (contraste real renderizado, foco/tab order em navegador real) | 0.75 dia | Não iniciada | Design System (Redesign v2.0) |
+| QA-RS-03 | Checklist manual de acessibilidade (`UX-SPEC.md` Seção 5) em navegador real sobre a mudança global do Lote 0, incluindo os 4 componentes corrigidos por `FE-RS-14`: contraste real dos tokens v2.0 aplicados aos componentes já existentes; navegação por teclado e foco visível da nova sidebar/bottom nav | QA | `UX-SPEC.md` Seção 5; `FL-09` | Checklist preenchido sem item pendente; qualquer achado de contraste real fora dos já corrigidos pela `UX-SPEC.md` (`--text-3`/`--warn`) é registrado e corrigido antes de o Lote 0 ser considerado pronto | 0.5 dia | Não iniciada | Design System (Redesign v2.0) |
+| QA-RS-04 | Fechamento do Lote 1 (Dashboard): (a) suíte completa (N4, `DIR-45`); (b) checagem automatizada (`QA-RS-02`) + checklist manual complementar de contraste/foco na tela (N3); (c) checklist de comparação linha a linha contra `Main.dc.html`/`DashboardMobile.dc.html`, assinado pelo stakeholder (N2); (d) `design-system-consistency-check` confirmando 100% aderência aos tokens/componentes do Lote 0, sem estilo ad-hoc (N1) — `FL-09` completo | QA | `FL-09`; RF-RS-01 AC5; RNF-17/18 | 0 regressões funcionais (N4) e de acessibilidade (N3); checklist N2 assinado; N1 sem divergência de token/componente | 1.0 dia | Não iniciada | Dashboard (Redesign v2.0) |
+| QA-RS-05 | Fechamento do Lote 2 (Lançamentos): mesmos 4 itens de `QA-RS-04` (N1-N4), aplicados a `S-TXN-01`/`S-TXN-02`, com atenção específica à hierarquia RN-18 (não regredir para o padrão do mockup) e ao `ShortcutBar`/`ShortcutChip` obrigatório | QA | `FL-09`; RF-RS-02 AC2-5; RN-18 | 0 regressões funcionais (N4) e de acessibilidade (N3); checklist N2 assinado contra `Lancamentos.dc.html`/`LancamentosMobile.dc.html`; N1 sem divergência; hierarquia RN-18 confirmada por teste dedicado, não presumida | 1.0 dia | Não iniciada | Lançamentos (Redesign v2.0) |
+| QA-RS-06 | Fechamento do Lote 3 (Contas & Cartões), com **atenção redobrada em N4** (RF-RS-03 AC3, risco de regressão mais alto do Grupo A): mesmos 4 itens (N1-N4), incluindo confirmação explícita de que RN-01 (fechamento)/RN-06 (limite) e o horizonte de faturas permanecem intocados, e que `InvoiceTimeline`/`S-CARD-03` não foi alterado | QA | `FL-09`; RF-RS-03 AC2-4 | 0 regressões funcionais (N4, com verificação explícita de RN-01/RN-06) e de acessibilidade (N3); checklist N2 assinado contra `ContasCartoes.dc.html`/mobile; N1 sem divergência | 1.25 dias | Não iniciada | Contas & Cartões (Redesign v2.0) |
+| QA-RS-07 | Fechamento do Lote 4 (Categorias): mesmos 4 itens (N1-N4); comparação N2 é contra os tokens/padrões consolidados do Lote 0 (não contra o artboard "Categorias" literal, que diverge — Bloqueio 023 resolvido), confirmando que o Padrão C foi preservado dentro da linguagem v2.0 | QA | `FL-09`; RF-RS-04 AC2-3 | 0 regressões funcionais (N4) e de acessibilidade (N3); checklist N2 confirma tokens v2.0 aplicados sobre `CategoryCard` sem reversão de padrão; N1 sem divergência | 0.5 dia | Não iniciada | Categorias (Redesign v2.0) |
+
+### 3.6 Redesign Visual "MyMoney v2.0" — Grupo B (Lotes 5-13, inventário e prioridade — sem tarefa nem estimativa nesta rodada)
+
+**Nova subseção — 2026-09-04.** Segue à risca a condição vinculante do CTO
+(`BLOCKERS.md` Bloqueio 021, item 1): **nenhuma tarefa (`FE-RS-NN`) é criada para os
+Lotes 5-13 nesta rodada**, e nenhum número de dias é comprometido. A tabela abaixo
+carrega adiante, sem reordenar, a classificação Now/Next/Later já fixada em `PRD.md`
+Seção B.5 e o inventário técnico de `PRD-TECNICO.md` Adendo B Seção B.1.2/`UX-SPEC.md`
+Seção 2.3 — não decompõe RF/RN/AC nem estima esforço, mesmo tratamento já usado por
+esses dois documentos.
+
+| Lote | Domínio | Prioridade (`PRD.md` Seção B.5) | Dependência estrutural | Estimativa |
+|---|---|---|---|---|
+| 5 | Autenticação/Sessão + Onboarding | **Next** | Lote 0 (consolidação de `AuthCard`/`AuthLayout`, especificação mínima já publicada em `UX-SPEC.md` Seção 3.2) | **Pendente de calibração** |
+| 6 | Orçamento | **Next** | Lote 0 + Lote 4 (Padrão C já validado em produção) | **Pendente de calibração** |
+| 9 | Recorrência, Parcelamento, Contas Fixas, Metas | **Later** | Lote 0 | **Pendente de calibração** |
+| 7 | Formas de Pagamento | **Later** | Lote 0 (forte sobreposição visual esperada com o Lote 3 — decisão de agrupamento delegada ao `ux-ui`/Tech Lead quando este lote for detalhado) | **Pendente de calibração** |
+| 10 | Notificações | **Later** | Lote 0 | **Pendente de calibração** |
+| 11 | Relatórios e Exportação | **Later** | Lote 0 + Lote 1 (herda tratamento visual de `DonutChart`/`BarChart` já redesenhados) | **Pendente de calibração** |
+| 13 | Configurações | **Later** | Lote 0 | **Pendente de calibração** |
+| 8 | Cartão & Fatura detalhado | **Later**, com nota de risco | Lote 0 + **Lote 3 validado em produção** (mesma classe de "tela com lógica de negócio sensível", `InvoiceTimeline`) | **Pendente de calibração** |
+| 12 | Captura Automatizada (Fase 3) | **Later**, com cautela adicional | Lote 0 + padrão de redesign maduro (demais lotes já executados) — RNF-01 é barreira arquitetural, não apenas visual | **Pendente de calibração** |
+
+Nenhuma tarefa desta subseção fica sem lote (todos os 9 domínios do Grupo B estão
+listados); nenhum é decomposto em `FE-RS-NN`/`QA-RS-NN` nesta rodada. Este vazio de
+tarefas satisfaz vacuamente o item "toda tarefa não-spike tem estimativa" do
+checklist de pronto — não há tarefa aqui para carecer de estimativa, mesmo princípio
+já usado por `PRD-TECNICO.md` Adendo B (Seção B.1.2) para o mesmo Grupo B. O
+aprofundamento técnico completo (RF/RN/AC, decomposição em tarefa, estimativa) de
+cada um ocorre lote a lote, junto do `ux-ui`/Tech Lead, pouco antes de cada lote
+iniciar execução — e, especificamente para a **estimativa agregada** desta tabela
+como um todo, só depois de o Lote 0 e o Lote 1 (Grupo A) estarem executados e
+validados em produção, usando a velocidade real observada como calibração
+(`BLOCKERS.md` Bloqueio 021, item 1 — ver Seção 4.5, Seção 5).
+
 ---
 
 ## 4. Dependências e Ordem de Execução
@@ -964,6 +1255,107 @@ FE-REF-04 → FE-REF-05 → QA-REF-03 → Bloqueio 013 Resolvido → BE-REF-06),
 tende a ser o último a fechar, especialmente se a confirmação do DevSecOps sobre o
 Bloqueio 013 atrasar — risco nomeado na Seção 5.
 
+### 4.5 Redesign Visual "MyMoney v2.0" (Lotes 0-4)
+
+**Nova subseção — 2026-09-04.** Mesma convenção completa de `tech-lead.md` já usada
+em 4.4 — uma subseção por lote. Diferente do Pacote de Refinamento (5 lotes mutuamente
+independentes), aqui **Lote 0 é pré-requisito estrutural de todos os demais** (RF-RS-00
+AC5, `SDD.md` Adendo B B.5.1); Lotes 1-4 não têm dependência técnica um do outro
+(nenhum consome artefato produzido por outro), mas seguem a ordem de prioridade fixada
+pelo PM (`PRD.md` Seção B.5), preservada aqui sem contestação.
+
+#### Lote 0 — Design System (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-01 | **Dependência de execução, não de código**: auditoria `design-system-consistency-check` completa pelo `ux-ui` (baseline de N1) deve existir antes do início real de qualquer tarefa deste lote — RF-RS-00 AC4 explicitamente proíbe considerar o Lote 0 iniciado sem ela (ver `UX-03`, Seção 6.1.1) | Bloqueio de execução (não de contrato/API) | FE-RS-02, FE-RS-04 |
+| FE-RS-02 | UX-03 (idem) | Bloqueio de execução | FE-RS-01, FE-RS-04 |
+| FE-RS-03 | UX-03 (idem); FE-RS-01 (tokens de cor/radius/elevação já disponíveis para estilizar a nova navegação) | Bloqueio de execução + Contrato | FE-RS-02, FE-RS-04 |
+| FE-RS-04 | UX-03 (idem) | Bloqueio de execução | FE-RS-01, FE-RS-02 |
+| FE-RS-14 | **[Novo — 2026-09-04, `UX-03` Achado 1]** UX-03 (idem); FE-RS-01 (consome a família de tokens `-soft` que o novo bloco `@theme` estabelece) | Bloqueio de execução + Contrato (tokens) | FE-RS-02, FE-RS-03, FE-RS-04 |
+| QA-RS-01 | FE-RS-01 a FE-RS-04, FE-RS-14 (implementação completa) | Implementação completa | QA-RS-02 |
+| QA-RS-02 | Nenhuma (infraestrutura de teste, independente do conteúdo do Lote 0) — pode começar antes do restante do lote | — | QA-RS-01, FE-RS-01 a 04, FE-RS-14 |
+| QA-RS-03 | FE-RS-01 a FE-RS-04, FE-RS-14 (implementação completa); QA-RS-02 (incorpora a automação já disponível à checagem manual) | Implementação completa | — |
+
+**Caminho crítico do lote**: `UX-03` (`ux-ui`) → (FE-RS-01 ∥ FE-RS-02 ∥ FE-RS-04) →
+(FE-RS-03 ∥ FE-RS-14) → (QA-RS-01 ∥ QA-RS-02, esta última pode começar antes) →
+QA-RS-03. Nenhuma tarefa de Lote 1-4 pode iniciar antes deste lote fechar (RF-RS-00
+AC5). `FE-RS-14` (novo, `UX-03` Achado 1) não altera o caminho crítico — corre em
+paralelo a `FE-RS-03` (arquivos distintos: `AppLayout` vs. `Alert`/`Badge`/`Button`/
+`OfflineSyncBadge`), então o comprimento do caminho crítico do Lote 0 é o mesmo de
+antes; o +0.5 dia de `FE-RS-14` só é absorvido no total sequencial porque a execução
+é solo/serial (Seção 5), não porque bloqueia o caminho crítico em si.
+
+#### Lote 1 — Dashboard (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-05 | Lote 0 completo (FE-RS-01 a 04, FE-RS-14) | Implementação completa | — |
+| FE-RS-06 | FE-RS-05 (mesmo arquivo/mesma composição) | Contrato/mesmo arquivo | — |
+| FE-RS-15 | **[Novo — 2026-09-04, `UX-03` Achado 2]** Lote 0 completo (FE-RS-01, paleta v2.0 base já disponível); FE-RS-06 (mesmo arquivo, `DonutChart.tsx` — sequenciado depois para evitar duas edições concorrentes no mesmo arquivo) | Contrato/mesmo arquivo | — |
+| QA-RS-04 | FE-RS-05, FE-RS-06, FE-RS-15 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: Lote 0 → FE-RS-05 → FE-RS-06 → FE-RS-15 → QA-RS-04.
+**Este é o lote de calibração exigido pelo `BLOCKERS.md` Bloqueio 021** — sua
+conclusão e validação em produção, junto do Lote 0, é a condição vinculante antes de
+qualquer estimativa agregada dos Lotes 5-13 (Seção 3.6, Seção 5). `FE-RS-15` (novo,
+`UX-03` Achado 2) entra no caminho crítico deste lote especificamente (diferente de
+`FE-RS-14` no Lote 0) porque toca o mesmo arquivo que `FE-RS-06` e antecede
+`QA-RS-04` — +0.5 dia no caminho crítico do Lote 1.
+
+#### Lote 2 — Lançamentos (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-07 | Lote 0 completo | Implementação completa | Lote 1 (tecnicamente independente) |
+| FE-RS-08 | FE-RS-07 (mesmo arquivo) | Contrato/mesmo arquivo | — |
+| QA-RS-05 | FE-RS-07, FE-RS-08 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: Lote 0 → FE-RS-07 → FE-RS-08 → QA-RS-05. Tecnicamente não
+depende do Lote 1 — a ordem Lote 1 → Lote 2 é a prioridade de execução do PM (`PRD.md`
+Seção B.5), preservada aqui sem contestação (fora da autoridade do Tech Lead reordenar
+prioridade de produto); como a execução é solo/serial (Declaração de capacidade do
+CTO, esforço tende ao somatório), essa ordem recomendada é, na prática, a ordem real.
+
+#### Lote 3 — Contas & Cartões (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-09 | Lote 0 completo (reaproveita o padrão de grade `CategoryCard`/`BudgetCard`/Padrão C já existente desde o Pacote de Refinamento) | Implementação completa | FE-RS-10 |
+| FE-RS-10 | Lote 0 completo | Implementação completa | FE-RS-09 |
+| FE-RS-11 | FE-RS-09, FE-RS-10 (mesmos arquivos) | Contrato/mesmo arquivo | — |
+| QA-RS-06 | FE-RS-09, FE-RS-10, FE-RS-11 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: Lote 0 → (FE-RS-09 ∥ FE-RS-10) → FE-RS-11 → QA-RS-06, com
+**atenção redobrada em QA-RS-06** (RF-RS-03 AC3 — risco de regressão mais alto do
+Grupo A; `InvoiceTimeline` não é tocado, mas o cálculo de limite/fechamento precisa
+ser reconfirmado intacto).
+
+#### Lote 4 — Categorias (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-12 | Lote 0 completo | Implementação completa | Qualquer outro lote deste adendo |
+| FE-RS-13 | FE-RS-12 (mesmo arquivo) | Contrato/mesmo arquivo | — |
+| QA-RS-07 | FE-RS-12, FE-RS-13 (implementação completa) | Implementação completa | — |
+
+**Caminho crítico do lote**: Lote 0 → FE-RS-12 → FE-RS-13 → QA-RS-07. Totalmente
+isolado dos demais lotes do Grupo A — menor esforço do grupo, consistente com a
+classificação `Later` do próprio `PRD.md`.
+
+**Caminho crítico do Grupo A completo**: Lote 0 é pré-requisito estrutural de todos os
+4 lotes seguintes (nenhum inicia sem ele, RF-RS-00 AC5); Lotes 1-4 não se bloqueiam
+tecnicamente entre si — a ordem 0→1→2→3→4 é a prioridade de execução fixada pelo PM
+(`PRD.md` Seção B.5), preservada integralmente. Esforço total sequencial estimado
+(dado execução solo/serial): **19.5 dias ideais** (↑ de 18.5 — `FE-RS-14`/`FE-RS-15`,
+`UX-03` Achado 1/Achado 2, Seção 5).
+
+**Grupo B (Lotes 5-13)**: nenhuma tarefa é decomposta nesta rodada (Seção 3.6).
+Dependência explícita e vinculante (`BLOCKERS.md` Bloqueio 021, resolução do CTO):
+**nenhuma estimativa agregada de prazo para os Lotes 5-13 antes de o Lote 0 e o Lote 1
+estarem executados e validados em produção**. Esta condição é carregada adiante
+integralmente, não decidida por este documento.
+
 ---
 
 ## 5. Riscos de Prazo Sinalizados
@@ -987,10 +1379,10 @@ esforço total do projeto desde o início.
 
 | Time | Esforço total estimado (dias ideais) | Capacidade conhecida | Risco |
 |---|---|---|---|
-| Backend | MVP: **17.5** (↑ de 16.75 — Bloqueio 015/SEC-DEBT-008: `BE-M-14` nova, 0.75 dia, retroativa/já concluída, correção sistêmica de `DEFAULT auth.uid()` em 13 tabelas "ownable"; anteriormente ↑ de 15.25 — Bloqueio 010/SEC-DEBT-002: `BE-M-13` nova, 1.5 dia, correção sistêmica de ownership de FK cross-tenant em `budget`/`transactions` + `SECURITY DEFINER` nos triggers RN-08/RN-09, determinada pelo CTO como pré-requisito de início de Fase 3; demais linhas inalteradas por esta resolução, ver Seção 3.1) · Fase 2: 14.5 · Fase 3: 19.5 (inclui `BE-F3-08` reestimada em 2.5, mais `BE-F3-09` 2 e `BE-F3-10` 0.5, novas por ADR-011) · Spikes remanescentes: SPK-002 3 + SPK-003 3 = 6 (`SPK-001`, 2 dias, já executado e Resolvido — não conta mais como esforço remanescente) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 5.0** (`BE-REF-01` 0.5 + `BE-REF-02` 1.5 + `BE-REF-03` 0.5 + `BE-REF-04` 1.5 + `BE-REF-05` 0.75 + `BE-REF-06` 0.25) · **Total remanescente ≈ 61.75** (↑ de 56.75 — todo o incremento é remanescente, nenhuma tarefa de Fase 2.1 executada ainda; histórico total, incluindo `SPK-001`/`BE-M-14` já gastos: ≈ 64.5) | Não informada | Ver riscos nomeados abaixo |
-| Frontend | MVP: 22 (↑ de 21 — Bloqueio 015/SEC-DEBT-008: `FE-M-13` nova, 1 dia, retroativa/já concluída, defesa em profundidade `withOwnerId()` em 12 funções `create*`) · Fase 2: 14.5 · Fase 3: 16 (inclui `FE-F3-09` 1 dia preliminar, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 7.0** (`FE-REF-01` 1 + `FE-REF-02` 0.75 + `FE-REF-03` 1.5 + `FE-REF-04` 1 + `FE-REF-05` 0.5 + `FE-REF-06` 1.25 + `FE-REF-07` 1) · **Total ≈ 58.5 remanescente** (↑ de 51.5; histórico ≈ 59.5) | Não informada | Ver riscos nomeados abaixo |
-| QA | MVP: 3 · Fase 2: 3.5 · Fase 3: 6.5 (inclui `QA-F3-04` 1 dia, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 3.5** (`QA-REF-01` 0.5 + `QA-REF-02` 1 + `QA-REF-03` 1 + `QA-REF-04` 0.5 + `QA-REF-05` 0.5) · **Total ≈ 16.5** (↑ de 13) | Não informada | Ver riscos nomeados abaixo |
-| **Total geral** | **Remanescente ≈ 136.75 dias ideais** (↑ de 121.25 — +15.5 dias integralmente atribuíveis ao Pacote de Refinamento, Fase 2.1, 100% trabalho futuro ainda não executado) · **Histórico ≈ 140.5** (inclui os 2 dias de `SPK-001` + 1.75 dia de `BE-M-14`/`FE-M-13`, Bloqueio 015, + os 15.5 dias remanescentes da Fase 2.1) — mudança líquida em relação ao total remanescente anterior (≈121.25): **+15.5 dias**. **Nota de materialidade**: diferente das reestimativas pontuais anteriores (Bloqueio 003/010/015, todas abaixo do limiar de ~1.5-1.75 dia), este é um incremento de escopo — um pacote de produto inteiro, não uma correção pontual — e portanto **exige `capacity-and-timeline-validation` completo do CTO no Gate 3 desta rodada**, não uma aprovação pontual de delta | Não informada | — |
+| Backend | MVP: **17.5** (↑ de 16.75 — Bloqueio 015/SEC-DEBT-008: `BE-M-14` nova, 0.75 dia, retroativa/já concluída, correção sistêmica de `DEFAULT auth.uid()` em 13 tabelas "ownable"; anteriormente ↑ de 15.25 — Bloqueio 010/SEC-DEBT-002: `BE-M-13` nova, 1.5 dia, correção sistêmica de ownership de FK cross-tenant em `budget`/`transactions` + `SECURITY DEFINER` nos triggers RN-08/RN-09, determinada pelo CTO como pré-requisito de início de Fase 3; demais linhas inalteradas por esta resolução, ver Seção 3.1) · Fase 2: 14.5 · Fase 3: 19.5 (inclui `BE-F3-08` reestimada em 2.5, mais `BE-F3-09` 2 e `BE-F3-10` 0.5, novas por ADR-011) · Spikes remanescentes: SPK-002 3 + SPK-003 3 = 6 (`SPK-001`, 2 dias, já executado e Resolvido — não conta mais como esforço remanescente) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 5.0** (`BE-REF-01` 0.5 + `BE-REF-02` 1.5 + `BE-REF-03` 0.5 + `BE-REF-04` 1.5 + `BE-REF-05` 0.75 + `BE-REF-06` 0.25) · **Redesign Visual "MyMoney v2.0" (Lotes 0-4, 2026-09-04): 0** (nenhuma tarefa de Backend nesta rodada — RNF-15/RN-19, `SDD.md` Adendo B Seção B.5) · **Total remanescente ≈ 61.75** (inalterado por esta rodada; histórico total, incluindo `SPK-001`/`BE-M-14` já gastos: ≈ 64.5) | Não informada | Ver riscos nomeados abaixo |
+| Frontend | MVP: 22 (↑ de 21 — Bloqueio 015/SEC-DEBT-008: `FE-M-13` nova, 1 dia, retroativa/já concluída, defesa em profundidade `withOwnerId()` em 12 funções `create*`) · Fase 2: 14.5 · Fase 3: 16 (inclui `FE-F3-09` 1 dia preliminar, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 7.0** (`FE-REF-01` 1 + `FE-REF-02` 0.75 + `FE-REF-03` 1.5 + `FE-REF-04` 1 + `FE-REF-05` 0.5 + `FE-REF-06` 1.25 + `FE-REF-07` 1) · **Redesign Visual "MyMoney v2.0" (Lotes 0-4, 2026-09-04): 14.0** (↑ de 13.0 — `FE-RS-14` 0.5 + `FE-RS-15` 0.5, novas por `UX-03` Achado 1/2: `FE-RS-01` 0.75 + `FE-RS-02` 1.0 + `FE-RS-03` 1.5 + `FE-RS-04` 0.75 + `FE-RS-14` 0.5 + `FE-RS-05` 2.0 + `FE-RS-06` 0.5 + `FE-RS-15` 0.5 + `FE-RS-07` 2.0 + `FE-RS-08` 0.25 + `FE-RS-09` 1.5 + `FE-RS-10` 1.5 + `FE-RS-11` 0.5 + `FE-RS-12` 0.5 + `FE-RS-13` 0.25) · **Total ≈ 72.5 remanescente** (↑ de 58.5 — +14.0 dias 100% novos, ainda não executados; histórico ≈ 73.5) | Não informada | Ver riscos nomeados abaixo |
+| QA | MVP: 3 · Fase 2: 3.5 · Fase 3: 6.5 (inclui `QA-F3-04` 1 dia, nova por ADR-011) · **Fase 2.1 (Pacote de Refinamento, 2026-09-04): 3.5** (`QA-REF-01` 0.5 + `QA-REF-02` 1 + `QA-REF-03` 1 + `QA-REF-04` 0.5 + `QA-REF-05` 0.5) · **Redesign Visual "MyMoney v2.0" (Lotes 0-4, 2026-09-04): 5.5** (`QA-RS-01` 0.5 + `QA-RS-02` 0.75 + `QA-RS-03` 0.5 + `QA-RS-04` 1.0 + `QA-RS-05` 1.0 + `QA-RS-06` 1.25 + `QA-RS-07` 0.5 — sem alteração: `FE-RS-14`/`FE-RS-15` não introduzem superfície de teste fora do que `QA-RS-01`/`03`/`04` já escopam, ver Nota de Atualização acima) · **Total ≈ 22.0** (↑ de 16.5) | Não informada | Ver riscos nomeados abaixo |
+| **Total geral** | **Remanescente ≈ 156.25 dias ideais** (↑ de 136.75 — +19.5 dias integralmente atribuíveis ao Redesign Visual "MyMoney v2.0", Lotes 0-4 (18.5 aprovados no Gate 3 original + 1.0 desta atualização, `FE-RS-14`/`FE-RS-15`), 100% trabalho futuro ainda não executado; Grupo B, Lotes 5-13, **ainda sem estimativa**, Seção 3.6) · **Histórico ≈ 160.0** (inclui os 2 dias de `SPK-001` + 1.75 dia de `BE-M-14`/`FE-M-13` + os 15.5 dias remanescentes da Fase 2.1 + os 19.5 dias remanescentes do Redesign Visual, Lotes 0-4) — mudança líquida em relação ao total remanescente anterior (≈136.75): **+19.5 dias**. **Nota de materialidade**: o incremento de +1.0 dia desta atualização (`FE-RS-14`/`FE-RS-15`) é marginal (5.4% do Grupo A) e não-estrutural — registrado para visibilidade do CTO no próximo ponto de contato, sem pausar a execução já liberada do Lote 0 por ele (ver Nota de Atualização, acima da Seção 1) | Não informada | — |
 
 ### Riscos nomeados
 
@@ -1159,6 +1551,61 @@ esforço total do projeto desde o início.
       volume maior que o esperado) — recomendação ao UX/UI e ao próprio Tech Lead
       (revisitar a estimativa de `FE-REF-06`) se o volume real, quando auditado,
       divergir significativamente da faixa de referência de RNF-09.
+12. **[Novo — 2026-09-04, Redesign Visual "MyMoney v2.0"]** Calibração de prazo do
+    Grupo B (`BLOCKERS.md` Bloqueio 021) depende inteiramente da execução real do
+    Lote 0 + Lote 1. A estimativa de 18.5 dias ideais para os Lotes 0-4 (Seção 3.5,
+    Seção 4.5) é a única base de comparação disponível para os Lotes 5-13 — nenhuma
+    extrapolação para o Grupo B deve ser feita a partir dela antes de esses 2 lotes
+    serem executados e validados em produção (condição vinculante do CTO, mantida
+    integralmente nesta rodada, não reaberta nem antecipada).
+13. **[Novo — 2026-09-04]** Pendência `UX-03` (auditoria `design-system-consistency-
+    check` completa, baseline de N1) pode atrasar o **início real** do Lote 0 sem
+    afetar a estimativa em si — mesma natureza do risco "baseline de rolagem" já
+    registrado no Pacote de Refinamento (risco 11, item 1). Sem data-alvo declarada
+    para essa auditoria neste momento.
+
+    > **Status (2026-09-04, `ux-ui`): pendência fechada.** Auditoria
+    > `design-system-consistency-check` completa executada sobre o estado ATUAL de
+    > `frontend/src/` (análise estática de código-fonte). Baseline de N1 publicado
+    > em `UX-SPEC.md` Seção 3.0.1 — 4 achados registrados (uso de rampa padrão do
+    > Tailwind em vez dos tokens `-soft` já existentes em `Alert`/`Badge`/`Button`/
+    > `OfflineSyncBadge`; paleta categórica hardcoded do `DonutChart`; duplicação de
+    > wrapper de card em 4 telas de Auth/Onboarding + 1 padrão estrutural divergente;
+    > e um controle positivo confirmando que o restante do design system segue um
+    > único padrão canônico por propósito). N1 aproximado por ocorrência de cor:
+    > ~92,6% (251/271); leitura por superfície (métrica oficial de `PRD.md` Adendo B
+    > B.3) é mais baixa, por conta da propagação do 1º achado a quase toda tela via
+    > o estado de Erro do Padrão A/B. Nenhum achado é conflito de arquitetura —
+    > registrados para reestimativa do Tech Lead onde aplicável (Lotes 0/1/5). RF-RS-00
+    > AC4 satisfeito; Lote 0 considerado iniciado quanto a esta dependência de
+    > execução.
+
+    > **Reestimativa aplicada (2026-09-04, Tech Lead)**: Achado 1 → `FE-RS-14` (Lote
+    > 0, 0.5 dia, `DET-19`); Achado 2 → `FE-RS-15` (Lote 1, 0.5 dia, `DET-20`);
+    > Achado 3 → sem tarefa nova, mantido para o Lote 5 (Grupo B) já registrado;
+    > Achado 4 → sem ação. Efeito líquido: Grupo A passa de 18.5 para **19.5 dias
+    > ideais** (Seção 3.5/4.5/5). Nenhuma das duas tarefas novas é spike (correção de
+    > implementação de escopo conhecido, sem incerteza de abordagem).
+14. **[Novo — 2026-09-04]** O mecanismo de acessibilidade automatizada introduzido
+    nesta rodada (`vitest-axe`, `QA-RS-02`, resposta à ressalva 1 do CTO no Gate 2
+    desta iniciativa) não substitui integralmente a checagem manual de contraste
+    real — `jsdom` não renderiza CSS computado de forma confiável para a regra
+    `color-contrast` do `axe-core`. O custo manual residual foi explicitado por lote
+    (`QA-RS-01`/`03`/`04`/`06`/`07` embutem essa checagem) — se o custo real
+    observado no Lote 0/Lote 1 divergir do estimado, é exatamente o tipo de dado que
+    deve entrar na calibração do Bloqueio 021 (risco 12).
+15. **[Novo — 2026-09-04]** Primeira infraestrutura real de carregamento de web font
+    do projeto (`Public Sans`/`Newsreader`, `FE-RS-02`) — risco de regressão de
+    performance percebida (CLS/FOUT) não presente em nenhuma tela até agora,
+    mitigado por `font-display: swap` + preload dos pesos críticos (`DIR-43`), mas
+    sem medição de baseline de performance real (Lighthouse/CLS) nesta rodada.
+    Recomendação ao QA: medir CLS do Dashboard (Lote 1) antes/depois como parte do
+    fechamento desse lote — não bloqueante.
+16. **[Novo — 2026-09-04]** Migração de `S-ACC-01` de Padrão A para Padrão C (Lote 3,
+    `FE-RS-09`, `DET-15`) é uma mudança de padrão de layout maior que uma simples
+    troca de token — risco de subestimativa se o número real de contas do usuário
+    for maior que o assumido (baixo, dado RNF-09 e uso pessoal, mas não auditado
+    nesta rodada).
 
 ---
 
@@ -1182,6 +1629,7 @@ resolvidas pelo Software Architect (com decisão estratégica do CTO no caso de
 |---|---|---|---|---|
 | **UX-01** | `ADR-011` delega explicitamente ao UX/UI o desenho do fluxo de tela de exclusão de conta ("Condição de revisão": "Fluxo de UI/UX do pedido de exclusão de conta ... fica a cargo do UX/UI e não é definido por esta ADR"). `UX-SPEC.md` ainda não tem essa tela — correto, já que a base arquitetural só existe desde a resolução de `CC-01`. Não é lacuna estrutural do `SDD.md` (não escala ao Software Architect); é um ponto de sincronização normal com o UX/UI, mesmo tratamento já usado para outras telas que dependem de decisão arquitetural prévia. | `adr/011-politica-retencao-descarte-dado-exclusao-conta.md`, "Condição de revisão" | `FE-F3-09` (Seção 3.3) | **Sinalizado ao UX/UI.** `FE-F3-09` segue com estimativa preliminar (1 dia, usando componentes já existentes) até `UX-SPEC.md` formalizar a tela definitiva; quando isso acontecer, a tarefa é reestimada conforme a regra geral de sincronização com UX/UI (não força o design a caber na estimativa preliminar). Não bloqueia o restante da Fase 3 nem o Gate 3. |
 | **UX-02** | **[Novo — 2026-09-04, Pacote de Refinamento]** `UX-SPEC.md` (RF-REF-01 AC4) delega explicitamente ao UX/UI a medição do baseline de `scrollHeight` de `S-DASH-01` (viewport 1440×900) **antes** do início da implementação de `FE-REF-01` — metodologia já fixada, mas a medição em si não foi executada nesta rodada (UX/UI não tinha, no seu próprio passo do pipeline, acesso a uma sessão com o app rodando). Não é lacuna estrutural do `SDD.md`; é ponto de sincronização normal com o UX/UI, mesmo tratamento de `UX-01`. | `UX-SPEC.md`, "`S-DASH-01` revisado para desktop", subseção "Dependência de execução em aberto" | `FE-REF-01` (Seção 3.4) | **Sinalizado ao UX/UI.** `FE-REF-01` está decomposta e estimada (1 dia), mas seu início fica condicionado à medição do baseline (Seção 4.4, dependência explícita) — não é uma reestimativa pendente, é uma pré-condição de execução. Não bloqueia os demais 4 lotes deste pacote, nenhum dos quais depende do dashboard. |
+| **UX-03** | **[Novo — 2026-09-04, Redesign Visual "MyMoney v2.0"]** RF-RS-00 AC4 exige que a auditoria `design-system-consistency-check` completa (baseline de N1) seja executada **antes de o Lote 0 ser considerado iniciado** — não apenas antes de estimado. `UX-SPEC.md` Seção 3.0 confirma que essa auditoria completa **não foi reexecutada** nesta rodada (usa como proxy só o "Achado de consistência 2026-09-04", pontual, não uma auditoria completa), registrando isso como "ação pendente explícita... sem impedir a estimativa do Tech Lead". Não é lacuna estrutural do `SDD.md`; é ponto de sincronização normal com o UX/UI, mesmo tratamento de `UX-01`/`UX-02`. | `UX-SPEC.md` Seção 3.0, "AC4"; `PRD-TECNICO.md` Adendo B, RF-RS-00 AC4 | `FE-RS-01` a `FE-RS-04` (Seção 3.5, Lote 0) | **Resolvido — 2026-09-04, por `ux-ui`.** Auditoria completa executada e publicada em `UX-SPEC.md` Seção 3.0.1 (4 achados, baseline de N1 ≈92,6% por ocorrência). RF-RS-00 AC4 satisfeito; Lote 0 considerado iniciado quanto a esta dependência de execução. Dois dos 4 achados exigiram reestimativa (Seção 5, risco 13; `DET-19`/`DET-20`): tarefas novas `FE-RS-14` (Lote 0) e `FE-RS-15` (Lote 1) criadas em consequência. |
 
 ### 6.2 Lacunas de detalhe (decididas pelo Tech Lead, documentadas — não escaladas)
 
@@ -1199,6 +1647,15 @@ resolvidas pelo Software Architect (com decisão estratégica do CTO no caso de
 | DET-09 | **[Novo — 2026-09-04, Pacote de Refinamento]** `ADR-016` Decisão 5 delega explicitamente ao Tech Lead "a mecânica exata (feature flag, PR separado, ordem de merge)" de sequenciamento entre a implementação do item 4 e o fechamento do Bloqueio 013 | Mecânica escolhida: **feature flag** (`payment_method_unification_enabled`, default `false` em produção), não PR separado nem ordem de merge especial — todo o código de `BE-REF-01` a `BE-REF-05`/`FE-REF-04`/`FE-REF-05` pode ser mesclado e implantado normalmente (inclusive em produção) com a flag desligada; `BE-REF-06` é o único ato que liga a flag, condicionado à confirmação do DevSecOps (DIR-39, Seção 4.4) | Feature flag é o mecanismo de menor atrito operacional para um time solo (nenhum branch de longa duração, nenhuma coordenação de ordem de merge entre Backend/Frontend) e separa limpamente "código pronto" de "exposição ao usuário" — exatamente a distinção que o próprio `ADR-016`/CTO fizeram entre implementação e deploy |
 | DET-10 | **[Novo — 2026-09-04, Pacote de Refinamento]** Nomenclatura e agrupamento dos 5 lotes desta rodada (Seção 3.4/4.4): itens 2 e 3 (RF-REF-02/03) e item 4 (RF-REF-04) tocam o mesmo bounded context "Ledger (Lançamentos)" e a mesma tela (`S-TXN-01`/`S-TXN-02`) — caberia agrupá-los em um único lote | Mantidos como **dois lotes separados**: "Lançamentos — Hierarquia & Atalhos" (itens 2+3) e "Formas de Pagamento Unificadas" (item 4, cujo entregável primário cruza para o bounded context "Contas & Formas de Pagamento" — trigger de seed em `payment_methods`, RN-15) | Um único lote "Lançamentos" faria o critério de fechamento de lote (Seção "Critério de Aprovação de Lote", `tech-lead.md`) reter o deploy de itens 2/3 (sem nenhum problema de segurança) até o Bloqueio 013 fechar — só porque compartilham bounded context/tela com o item 4. A separação em 2 lotes deixa itens 2/3 livres para fechar e ir a produção independentemente do prazo de confirmação do DevSecOps sobre o Bloqueio 013 (Seção 5, risco 11), sem violar a regra de que todo lote deriva de bounded context — o item 4 tem entregável estrutural (trigger em `payment_methods`) que justifica o bounded context "Contas & Formas de Pagamento" como critério primário, mesmo padrão já usado em `BE-M-01`/6.3 ("tarefa atribuída ao lote do seu entregável primário/estrutural") |
 | DET-11 | **[Novo — 2026-09-04, Pacote de Refinamento]** `CTO-REVIEW.md` Gate 2 desta rodada recomenda (não exige) que o Business Analyst corrija, na próxima revisão do `PRD-TECNICO.md`, a citação tecnicamente imprecisa de `credit_card_id` no texto de RF-REF-04 AC2 (achado do `ADR-016`: `credit_card_id` não resolve nenhuma conta) | Nenhuma tarefa de `TASK.md` criada para isso — é correção de precisão documental em outro artefato (`PRD-TECNICO.md`), fora do escopo de decomposição de implementação deste Tech Lead | O comportamento funcional prometido pelo AC2 já está integralmente coberto por `BE-REF-04` (fallback determinístico à conta ativa mais antiga) — a imprecisão é só na justificativa textual do requisito, não no comportamento entregue; não há nada para Backend/Frontend/QA implementar a mais por causa deste achado |
+| DET-12 | **[Novo — 2026-09-04, Redesign Visual "MyMoney v2.0"]** `UX-SPEC.md` descreve a restruturação de `AppLayout` (sidebar de 4 grupos, bottom nav de 4 destinos, botão "+" no cabeçalho) dentro da subseção "Dashboard" (`S-DASH-01`) — mas `AppLayout` é componente único compartilhado por toda a aplicação. Em que lote essa tarefa deveria viver: Lote 0 (fundação) ou Lote 1 (Dashboard, onde a `UX-SPEC.md` a documenta)? | **Lote 0** (`FE-RS-03`), não Lote 1 | `AppLayout` tem o mesmo blast radius de um componente-base/token (ADR-017/018) — qualquer lote que o tocasse primeiro o mudaria para toda a aplicação simultaneamente, migrada ou não; a `UX-SPEC.md` documentou o nav dentro da subseção "Dashboard" porque é onde o artboard o mostra visualmente (`Main.dc.html`), não como instrução de que a implementação pertence ao lote Dashboard. Decisão de estrutura de documento/sequenciamento, dentro da autoridade normal do Tech Lead (mesma classe de `DET-07`/`DET-10`) — não reabre nem contradiz `UX-SPEC.md`, só esclarece onde a implementação vive |
+| DET-13 | **[Novo — 2026-09-04]** `CTO-REVIEW.md` Gate 2 desta iniciativa (ressalva 1) delega explicitamente ao Tech Lead confirmar se a verificação de acessibilidade por lote (WCAG, "0 regressões", `ADR-018`) é automatizada ou manual, e computar o custo real na estimativa | **Confirmado: hoje é 100% manual** (nenhuma dependência `jest-axe`/`@axe-core`/`vitest-axe` existe em `frontend/package.json`; `TEST-PLAN.md` só descreve o requisito WCAG de forma narrativa, sem checador automatizado). Decisão: introduzir `vitest-axe` (ou equivalente) a partir do Lote 0 (`QA-RS-02`), automatizando a parte estrutural (labels/roles/landmarks/foco alcançável) — mantendo checagem manual complementar de contraste real em navegador e comparação com artboard, com custo explicitado por lote (`QA-RS-01`/`03`/`04`/`06`/`07`, Seção 3.5) | Responde à ressalva do CTO com um número real, não uma suposição — `jsdom` (ambiente do Vitest) não renderiza CSS computado de forma confiável para a regra `color-contrast` do `axe-core`, então a automação cobre a parte estrutural (verificável, barata) e a checagem manual cobre exatamente o que a ferramenta não cobre (contraste real, foco/tab order em navegador), sem inflar a automação além do que ela de fato garante |
+| DET-14 | **[Novo — 2026-09-04]** O achado de consistência já registrado em `UX-SPEC.md` Seção 3.3 (`CurrencyInput` ausente em `S-CARD-02`, `Input type="number"` usado no lugar) não tem tarefa própria em nenhum `TASK.md` anterior — em que lote corrigir? | Corrigido dentro de `FE-RS-10` (Lote 3, Contas & Cartões), que já toca o mesmo arquivo (`CreditCardsPage.tsx`) pelo redesign visual | Evita reabrir o mesmo arquivo duas vezes por dois motivos distintos (correção de consistência + redesign visual); o achado é preexistente ao redesign, não uma consequência dele — mas o custo marginal de corrigir junto é desprezível frente ao custo de uma tarefa isolada só para isso |
+| DET-15 | **[Novo — 2026-09-04]** `UX-SPEC.md` recomenda ao Tech Lead considerar migrar `S-ACC-01` de Padrão A (lista) para Padrão C (grade de cards), sem exigir isso como requisito — decisão delegada explicitamente | **Aceita** — `FE-RS-09` (Lote 3) implementa a migração para Padrão C (`AccountCard` novo) | Mudança de padrão de layout, não de dado/comportamento (RF-RS-03 AC2 preservado); a própria `UX-SPEC.md` já identificou isso como dentro do escopo de RF-RS-03, sem exigir escalonamento; migrar agora evita que o Lote 3 fique com um padrão de lista isolado, destoante de todo o resto do produto (Categorias e Orçamento já em Padrão C desde o Pacote de Refinamento) |
+| DET-16 | **[Novo — 2026-09-04]** `ADR-018` proíbe feature flag para este redesign — isso deveria virar guardrail formal (`GUARDRAILS.md`), como o CTO convidou este agente a avaliar? | **Não proposta como guardrail formal** — mantida só como diretriz prática (`DIR-42`, Seção 1.9) | Guardrails exigem ser inegociáveis para o projeto inteiro, sem escape hatch (`guardrails-drafting`); o próprio `ADR-018` já prevê reabertura condicionada a um requisito futuro do stakeholder ("se... expressar preferência explícita por esse mecanismo, isso é tratado como requisito novo") — não é uma regra absoluta, é uma decisão de arquitetura já registrada e imutável como ADR, com escape hatch documentado. Formalizá-la como guardrail duplicaria a mesma decisão em dois artefatos com semânticas de imutabilidade diferentes (ADR é histórico/imutável; guardrail é regra viva reaberta por proposta) sem ganho real de rastreabilidade |
+| DET-17 | **[Novo — 2026-09-04]** Convenção de ID desta rodada: numeração composta por lote (`FE-RS-00-01`, como o próprio SDD/PRD nomeiam "Lote 0"..."Lote 4") ou numeração sequencial simples? | Sequencial simples (`FE-RS-01`...`FE-RS-13`, `QA-RS-01`...`QA-RS-07`), com a coluna **Lote** (não o ID) indicando a qual dos 5 lotes cada tarefa pertence | Mesmo padrão simples já usado em `BE-REF-NN`/`FE-REF-NN` (Pacote de Refinamento) — a coluna Lote já cumpre o papel de agrupamento visual, tornando um ID composto redundante |
+| DET-18 | **[Novo — 2026-09-04]** Estratégia de carregamento das 2 fontes web novas — primeira infraestrutura real de web font do projeto (`ADR-019` já decide self-hosted vs. CDN, mas não a estratégia de exibição durante o carregamento) | `font-display: swap` + preload dos pesos críticos (corpo `Public Sans` 400, título/logo `Newsreader` 500) — `DIR-43` | Mitiga `CLS`/`FOUT` (risco 15, Seção 5) sem exigir nenhuma decisão de arquitetura nova — é detalhe de implementação de uma decisão de mecanismo (self-hosted) já tomada pelo `ADR-019` |
+| DET-19 | **[Novo — 2026-09-04, `UX-03` Achado 1]** `UX-SPEC.md` Seção 3.0.1 (auditoria `design-system-consistency-check`, baseline de N1) encontrou 4 componentes-base (`Alert.tsx`, `Badge.tsx`, `Button.tsx` variante `destructive`, `OfflineSyncBadge.tsx`) usando a rampa padrão do Tailwind em vez dos tokens `-soft` já existentes (12 ocorrências), propagado a ~18 telas de CRUD via `Alert variant="danger"` — não corrigido automaticamente pela troca de paleta de `FE-RS-01`. Corrigir agora, dentro do Lote 0, ou adiar para depois? | **Corrigir agora** — tarefa nova `FE-RS-14` (Lote 0, 0.5 dia), dependente de `FE-RS-01` (consome a família de tokens `-soft` que o novo `@theme` estabelece); `DIR-46` (Seção 1.9) formaliza a regra prática para não recorrer | O próprio propósito do Lote 0 é fazer do design system a única fonte de verdade de estilo — deixar 4 componentes-base amplamente reutilizados (confirmados por varredura de todos os call sites, presentes em quase toda tela do produto) continuando a usar cor fixa do Tailwind contradiz diretamente a meta N1 do próprio lote (`PRD.md` Adendo B B.3), e a `UX-SPEC.md` já confirmou que a troca de paleta de `FE-RS-01` sozinha não resolve. Adiar deixaria o estado de Erro — um dos 4 estados obrigatórios do Padrão A/B — fora do design system durante toda a execução dos Lotes 1-4, degradando a métrica "% de superfícies" que `PRD.md` exige medir lote a lote a partir de agora. Custo marginal baixo (0.5 dia, 12 ocorrências em 4 arquivos pequenos) frente ao custo de deixar a inconsistência se propagar por 4 lotes adicionais. Não escalado ao Software Architect — a própria `UX-SPEC.md` já classificou como correção de implementação, não conflito de arquitetura |
+| DET-20 | **[Novo — 2026-09-04, `UX-03` Achado 2]** `UX-SPEC.md` Seção 3.0.1 encontrou `DonutChart.tsx:16` com paleta categórica 100% hardcoded (8 hex), sem token `--color-chart-*` correspondente no design system — usado no Dashboard (Lote 1). Corrigir no Lote 0 (fundação) ou no Lote 1 (onde é consumido)? | **Lote 1** — tarefa nova `FE-RS-15` (0.5 dia), sequenciada depois de `FE-RS-06` (mesmo arquivo, `DonutChart.tsx`); `DIR-47` (Seção 1.9) formaliza a regra prática para qualquer gráfico futuro de N>2 séries | Diferente do Achado 1 (componentes-base com blast radius em toda a aplicação, mesma categoria de `FE-RS-01`/`02`/`03`/`04`), a paleta categórica hoje tem um único ponto de consumo em todo o código de produção (`DonutChart.tsx`, exclusivo de `S-DASH-01`) — não é componente-base compartilhado, é preocupação específica de uma tela, e essa tela é exatamente o escopo do Lote 1 (`BarChart`, o único outro gráfico, já usa `bg-income`/`bg-expense` corretamente, Achado 4/controle positivo, sem necessidade da família `--color-chart-*`). Definir o token no Lote 0 sem consumidor imediato adicionaria escopo à fundação sem ganho de reuso hoje. Colocar definição+migração juntas no Lote 1 também aproveita que este é o lote de calibração do Bloqueio 021 — captura o custo real deste ajuste dentro do lote de referência usado para calibrar os Lotes 5-13, em vez de diluir parte do custo em um Lote 0 que não será recalibrado |
 
 Nenhuma outra lacuna estrutural foi encontrada durante a decomposição — as três
 condições explicitamente citadas pelo CTO no Gate 2 (spike de schema legado, ressalva
@@ -1216,6 +1673,22 @@ foram traduzidas diretamente em tarefa/dependência mecânica (`BE-REF-06`, Seç
 `BE-REF-05`), não em lacuna a escalar. As 3 lacunas de detalhe encontradas nesta
 decomposição (`DET-09` a `DET-11`) são, todas, decisão de estrutura de documento
 dentro da autoridade normal do Tech Lead — nenhuma toca mérito de arquitetura.
+
+**Confirmação — Redesign Visual "MyMoney v2.0" (Adendo B), 2026-09-04**: nenhuma
+lacuna estrutural nova encontrada durante a decomposição dos Lotes 0-4. Os 3 ADRs
+(`ADR-017`/`018`/`019`) já resolveram, com confiança e racional explícito, as únicas
+questões de arquitetura desta rodada, aprovadas com ressalvas pelo CTO no Gate 2 desta
+iniciativa — as 3 ressalvas remanescentes (mecanismo de verificação de acessibilidade,
+formalização da fronteira de PR, gatilho objetivo para reavaliar Storybook) foram
+traduzidas diretamente em decisão executável (`DET-13`; `G-20`/`G-21`, respectivamente;
+ver `DET-13` também para o terceiro item — nenhum novo `DET` dedicado é necessário, o
+gatilho objetivo já fica registrado como recomendação ao próprio Tech Lead ao
+decompor os Lotes 5-13, quando chegar sua vez). As 9 lacunas de detalhe encontradas
+nesta decomposição (`DET-12` a `DET-20`, sendo `DET-19`/`DET-20` acrescentadas em
+2026-09-04 após a conclusão de `UX-03`) são, todas, decisão de estrutura de
+documento/sequenciamento dentro da autoridade normal do Tech Lead — nenhuma toca
+mérito de arquitetura nem reabre `UX-SPEC.md`/`SDD.md`. Nenhum `BLOCKERS.md` novo foi
+necessário nesta rodada.
 
 ### 6.3 Racional do Agrupamento em Lotes (Seção 3) — retroatividade documental, 2026-09-03
 
@@ -1343,6 +1816,41 @@ Nenhuma tarefa desta subseção ficou sem lote; nenhum dos 5 lotes cruza fase; a
 contagem soma exatamente as 18 tarefas novas de Seção 3.4 (6 Backend + 7 Frontend + 5
 QA).
 
+### 6.3.2 Racional do Agrupamento em Lotes — Redesign Visual "MyMoney v2.0", 2026-09-04
+
+Diferente das subseções 6.3/6.3.1 (onde o Tech Lead deriva o nome do lote a partir
+dos bounded contexts do `SDD.md` ou do critério mais próximo disponível), aqui **os 5
+nomes de lote (Lote 0 a Lote 4) já vêm fixados, com esses mesmos números, por
+`PRD.md`/`PRD-TECNICO.md`/`SDD.md`/`UX-SPEC.md` Adendo B** — não é um critério novo
+inventado por este Tech Lead, é a aplicação direta da regra "quando o `SDD.md` não
+particiona claramente, o Tech Lead define o lote pelo critério mais próximo
+disponível" (`tech-lead.md`, "Agrupamento em Lote") a um caso em que o critério mais
+próximo já é, ele mesmo, um agrupamento por lote explícito da própria iniciativa:
+
+- **Lote 0 — Design System (Redesign v2.0)**: `FE-RS-01` a `FE-RS-04`, `QA-RS-01` a
+  `QA-RS-03`. Não é bounded context do `SDD.md` Seção 2.2 — é o entregável
+  transversal que sustenta todos os 13 lotes seguintes (RF-RS-00), mesmo papel já
+  exercido pelo lote "Fundação Técnica & Infraestrutura" do MVP (Seção 6.3).
+- **Lote 1 — Dashboard (Redesign v2.0)**: `FE-RS-05`/`06`, `QA-RS-04`. Dashboard não é
+  bounded context próprio (mesma observação já registrada em 6.3) — usado como lote
+  próprio, disambiguado por rodada, mesmo padrão de "Dashboard (Fase 2.1)" (6.3.1).
+- **Lote 2 — Lançamentos (Redesign v2.0)**: `FE-RS-07`/`08`, `QA-RS-05`. Bounded
+  context "Ledger (Lançamentos)" (`SDD.md` Seção 2.2).
+- **Lote 3 — Contas & Cartões (Redesign v2.0)**: `FE-RS-09` a `11`, `QA-RS-06`.
+  Entregável cruza dois bounded contexts ("Contas & Formas de Pagamento" e "Cartão &
+  Fatura") — mantidos num único lote porque é assim que o próprio artboard
+  ("ContasCartoes.dc.html") e a spec de `PRD.md`/`UX-SPEC.md` já particionam esta
+  iniciativa (mesmo critério de "entregável primário/estrutural" já usado em 6.3 para
+  tarefas que tocam mais de um bounded context).
+- **Lote 4 — Categorias (Redesign v2.0)**: `FE-RS-12`/`13`, `QA-RS-07`. Bounded
+  context "Categorização" (`SDD.md` Seção 2.2).
+
+Nenhuma tarefa desta subseção ficou sem lote; nenhum dos 5 lotes cruza fase; a
+contagem soma exatamente as 20 tarefas novas de Seção 3.5 (13 Frontend + 7 QA). Os 9
+domínios do Grupo B (Seção 3.6) não recebem lote de tarefa nesta rodada — já têm seu
+número de lote (5 a 13) herdado dos mesmos artefatos upstream, sem tarefa associada
+ainda.
+
 ---
 
 ## 7. Log de Lotes Fechados
@@ -1370,7 +1878,8 @@ Dashboard") — ver racional em 7.3 abaixo. **Quarto lote fechado, mesma data**
 racional em 7.6 abaixo. **Sétimo lote fechado, mesma data** ("Categorização (Fase
 2.1)", Pacote de Refinamento) — ver racional em 7.7 abaixo. **Oitavo lote fechado,
 mesma data** ("Orçamento (Fase 2.1)", Pacote de Refinamento) — ver racional em 7.8
-abaixo.
+abaixo. **Nono lote fechado, 2026-09-05** ("Design System (Redesign v2.0), Lote 0")
+— ver racional em 7.9 abaixo.
 
 | Lote | Tarefas incluídas | Data de fechamento | Veredito QA | Veredito DevSecOps | Débitos registrados | Deploy |
 |---|---|---|---|---|---|---|
@@ -1382,6 +1891,7 @@ abaixo.
 | Lançamentos — Hierarquia & Atalhos (Fase 2.1) | BE-REF-02, FE-REF-02, FE-REF-03, QA-REF-02 | 2026-09-04 | Aprovado (3/3 sem ressalva individual — `QA-REPORT.md` Seção 10.6, "Veredito de lote: Aprovado") | Aprovado, sem débito novo (`SECURITY-REVIEW.md` Seção 1.18, "Veredito do lote: Aprovado, sem débito novo") | QA-DEBT-011 (baixa, recomendação de processo/tooling — smoke test manual real ainda não exercitado contra o Supabase linkado, e limitação pré-existente de replay local completo de migrations, `BLOCKERS.md` Bloqueio 011 — sem implicação de segurança, confirmado em `SECURITY-REVIEW.md` Seção 1.18; não é defeito funcional); nenhum débito de segurança novo — ver 7.6 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.8). Migration `be_ref_02` reconfirmada já aplicada (`supabase migration list --linked`, 39/39 remote=local), não reaplicada. Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Pipeline de CI/CD automatizado segue **não operacional** (GitHub Actions Secrets ainda não configurados; `BLOCKERS.md` Bloqueio 004, Parcialmente resolvido). 229/229 testes passando, nenhuma flakiness de `UnlockPage.test.tsx` observada nesta rodada. Deploy em produção: não realizado, pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
 | Categorização (Fase 2.1) | FE-REF-06, QA-REF-04 | 2026-09-04 | Aprovado (2/2 sem ressalva individual — `QA-REPORT.md` Seção 11.6, "Veredito de lote: Aprovado", Definition of Done Seção 11.7 100% marcada) | Aprovado com débito (`SECURITY-REVIEW.md` Seções 1.19/1.20, "Veredito do lote: Aprovado com débito") | SEC-DEBT-012 (baixa severidade, `category.color` usado como valor de CSS inline sem validação de formato — sem exploitabilidade prática hoje, nenhuma UI expõe campo para defini-lo, impacto sempre self-scoped por RLS mesmo num cenário futuro hipotético); nenhum débito de QA novo (`QA-REPORT.md` Seção 11.6, "nenhum débito técnico novo registrado") — ver 7.7 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.9). Sem migration própria (lote puramente frontend, confirmado via `supabase migration list --linked`). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. Débito de segurança `SEC-DEBT-012` (baixa severidade) não bloqueou o deploy, conforme decisão já registrada pelo DevSecOps. Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
 | Orçamento (Fase 2.1) | FE-REF-07, QA-REF-05 | 2026-09-04 | Aprovado (2/2 sem ressalva individual — `QA-REPORT.md` Seção 12.6, "Veredito de lote (`EXECUTION-FLOW.md`, 'QA — uma vez por lote'): Aprovado", Definition of Done Seção 12.7 100% marcada) | Aprovado, sem débito de segurança (`SECURITY-REVIEW.md` Seção 1.22, "Veredito do lote: Aprovado, sem débito de segurança") | QA-DEBT-012 (baixa, contraste WCAG do texto de percentual do `ProgressBar` em estado `warning` sobre o novo fundo `warning-soft` do card — mede ≈2.86:1, abaixo de 4.5:1; confirmado por QA e reconfirmado de forma independente por DevSecOps como débito de token de design `--color-warning` pré-existente ao projeto inteiro — mesma combinação já falha hoje em `DashboardPage`, tela não tocada por este lote —, não introduzido nem agravado por `FE-REF-07`, e sem componente de segurança, `finding-severity-classification`, Seção 1.22); nenhum débito de segurança novo — ver 7.8 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.10). Sem migration própria (lote puramente frontend, confirmado via `supabase migration list --linked`, 40/40 remote=local, e `git status --porcelain supabase/migrations` sem arquivo novo). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. 259/259 testes passando nesta rodada (sem a flakiness isolada de `UnlockPage.test.tsx` observada por QA em execução paralela). Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
+| Design System (Redesign v2.0, Lote 0) | FE-RS-01, FE-RS-02, FE-RS-03, FE-RS-04, FE-RS-14 | 2026-09-05 | Aprovado (5/5, nenhuma ressalva em aberto — `QA-REPORT.md` Seção 14.8.6, "Veredito consolidado do Lote 0... Aprovado (5/5)"; reverte o Reprovado da rodada 2026-09-04, Seção 14.6, após correção e revalidação pontual de `QA-BUG-001` em 14.8) | Aprovado, sem débito (`SECURITY-REVIEW.md` Seções 1.23/1.24, "Veredito final do Lote 0... do ponto de vista de DevSecOps: Aprovado, sem débito") | Nenhum débito aberto — `QA-DEBT-014` (valor de `--shadow-elevation-md` divergente do literal da `UX-SPEC.md`) fechado na própria revalidação (`QA-REPORT.md` Seção 14.8.4); `BLOCKERS.md` Bloqueios 021, 022 e 023 (únicos abertos por esta iniciativa antes do início real do lote) todos `Resolvido` — nenhum aberto afetando este lote — ver 7.9 | **Concluído em staging** (2026-09-05, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.11). Sem migration própria (lote 100% frontend/apresentação, confirmado via `git status --porcelain supabase/migrations`, vazio). Mesmo projeto Vercel `mymoney` já linkado (`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`), sem mudança de infraestrutura. 316/316 testes passando (1 falha isolada de `UnlockPage.test.tsx` na rodada cheia, mesmo flake já documentado por QA/DevOps em rodadas anteriores, confirmada não-relacionada por reexecução isolada 3/3). Deploy em produção: **não realizado** — pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
 
 ### 7.1 Racional de fechamento — Bloqueio 007 e Bloqueio 012 (não impedem o registro do lote)
 
@@ -2328,6 +2838,106 @@ ainda que exposto por ele num local novo. Mesmo padrão de deploy pendente de 7.
 este registro; este registro de Seção 7 é o que libera o DevOps para realizar esse
 primeiro deploy, não a confirmação de um deploy já feito.
 
+### 7.9 Racional de fechamento — lote "Design System (Redesign v2.0), Lote 0" —
+reprovação intermediária de `FE-RS-01` (`QA-BUG-001`) corrigida e revalidada antes
+do fechamento
+
+Apliquei o "Critério de Aprovação de Lote" (`tech-lead.md`) item a item, verificando
+eu mesmo cada evidência nos artefatos originais (`TASK.md` Seção 3.5, `QA-REPORT.md`
+Seções 14.1-14.8, `SECURITY-REVIEW.md` Seções 1.23/1.24, `BLOCKERS.md` completo) —
+mesmo rigor de 7.1-7.8. Este é o primeiro lote do Grupo A (Redesign v2.0) a fechar, e
+o único até aqui em que o próprio veredito de QA passou por uma **reprovação real**
+(não ressalva) numa rodada, revertida numa rodada de revalidação pontual subsequente
+— por isso mereço registrar o racional de aceitar o veredito revertido como
+definitivo, não apenas o veredito final isolado.
+
+1. **Toda tarefa do lote `Concluída` no `TASK.md`**: confirmado por leitura direta da
+   Seção 3.5 — as 5 tarefas (`FE-RS-01`, `02`, `03`, `04`, `14`) têm status
+   `Concluída`. `FE-RS-01` traz nota explícita de que só chegou a este estado depois
+   de uma correção pontual em 2026-09-05 (`QA-BUG-001`); `FE-RS-03` teve sua ressalva
+   herdada resolvida na mesma correção, sem código próprio alterado. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas para toda tarefa**: a rodada de
+   2026-09-04 (Seção 14.6) registrou **Reprovado** para o lote como um todo
+   (`FE-RS-01` Reprovado por `QA-BUG-001`, Alta — regressão de contraste WCAG 2.1 AA
+   em `--color-neutral-500`, propagada a 29 arquivos de produção). Não teria passado
+   neste ponto. A rodada de revalidação pontual de 2026-09-05 (Seção 14.8, escopo
+   restrito à correção reportada, conforme o próprio protocolo de reprovação parcial
+   de `EXECUTION-FLOW.md` — não repete as 5 skills sobre o lote inteiro, só sobre o
+   que mudou) recalcula o contraste de forma **independente** do script do Frontend
+   (14.8.1: 4,903:1 e 4,620:1, ambos ≥4,5:1), confirma a ordem monotônica da rampa
+   neutra preservada (14.8.2), confirma a ressalva de `FE-RS-03` resolvida sem código
+   próprio tocado (14.8.3), fecha `QA-DEBT-014` (14.8.4) e reexecuta a suíte completa
+   de forma independente 2x (14.8.5: 316/316, 1 flake isolado de `UnlockPage.test.tsx`
+   confirmado não-relacionado por reexecução em 3/3). Veredito final, textual
+   (14.8.6): "**Aprovado (5/5), nenhuma ressalva em aberto**". Passa — no estado
+   corrigido/revalidado, que é o estado real do código hoje, não no estado
+   intermediário da rodada anterior.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito para o lote**: Seções 1.23
+   (SAST, em paralelo ao QA, antes da correção de `QA-BUG-001`) e 1.24 (auditoria
+   completa) — texto literal "**Veredito final do Lote 0... do ponto de vista de
+   DevSecOps: Aprovado, sem débito.**" DevSecOps avaliou explicitamente os 2 achados
+   de QA (`QA-BUG-001`/`QA-DEBT-014`) e concluiu que nenhum dos dois tem componente
+   de segurança — nem LGPD, nem exposição de dado sensível, nem achado que bloqueie
+   deploy. Reclassificação já feita pelo agente competente, não presumida por mim.
+   Nenhum `SEC-DEBT-*` novo gerado por este lote. Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: os 3 bloqueios abertos
+   especificamente por esta iniciativa antes do início real da execução do Lote 0 —
+   Bloqueio 021 (dependência de `UX-03` completa antes do início), Bloqueio 022
+   (token `--danger` distinto de `--expense`) e Bloqueio 023 (3 divergências entre
+   artboards e regras já fixadas RN-18/RF-REF-03/RF-REF-05) — estão todos
+   `Resolvido`, o primeiro pelo `cto`, o segundo pelo `software-architect`, o
+   terceiro pelo `business-analyst`, cada um dentro da própria autoridade. Nenhum
+   bloqueio aberto hoje cita `FE-RS-01` a `04`/`14`, `index.css`, `AppLayout.tsx`,
+   `Num.tsx`, `Alert.tsx`/`Badge.tsx`/`Button.tsx`/`OfflineSyncBadge.tsx`, nem por
+   nome nem por conteúdo — confirmado por leitura direta do documento completo, não
+   só dos 3 bloqueios já esperados. `QA-BUG-001` em si nunca gerou entrada própria em
+   `BLOCKERS.md` — foi reportado, corrigido e revalidado inteiramente dentro do
+   ciclo QA↔Frontend↔QA, sem necessidade de escalar (mesmo padrão de bug isolado,
+   1 ciclo de correção, sem escalonamento, confirmado em `QA-REPORT.md` Seção 14.6,
+   "Padrão recorrente? Não"). Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: `DIR-41`
+   (migração de `formatCentsToBRL()` para `<Num />` só por lote, não migrada
+   atomicamente no Lote 0 — não se aplica ainda, `FE-RS-05`/`06`/`08`/`11`/`13` são
+   de lotes seguintes, não deste), `DIR-43` (fontes self-hosted, `@fontsource`,
+   `font-display: swap`) confirmada cumprida por `FE-RS-01`/`FE-RS-02` (QA Seção
+   14.5, `non-functional-validation` de lote), `DIR-46` (tokens `-soft` em vez da
+   rampa padrão do Tailwind) confirmada cumprida por `FE-RS-14` (grep zero
+   ocorrência, critério de aceite literal), `DIR-15` (WCAG 2.1 AA) é exatamente o
+   que `QA-BUG-001` violou temporariamente — mas já **corrigido**, não uma exceção a
+   registrar como débito permanente (diferente do padrão de 7.1-7.8, onde a exceção
+   ficava aberta como débito; aqui a violação foi fechada, não perdoada). Nenhuma
+   diretriz segue violada no estado final do código. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 5 tarefas somam 4.5
+   dias ideais estimados (0.75 + 1.0 + 1.5 + 0.75 + 0.5, Seção 3.5) para a
+   implementação em si — cumprido dentro do previsto, concluído em 2026-09-04. A
+   correção de `QA-BUG-001` (2026-09-05) é esforço adicional **não previsto** na
+   estimativa original, gerado por uma regressão introduzida pela própria tarefa
+   `FE-RS-01` (interpolação da escala neutra), não por escopo mal-dimensionado.
+   **Aprendizado registrado, sem reabrir a estimativa**: mudança de token de cor de
+   base (`@theme`) com propagação automática a dezenas de arquivos consumidores é
+   uma classe de tarefa em que a verificação de contraste (`DIR-15`) precisa ser
+   parte do próprio critério de aceite testado *antes* de marcar `Concluída` — não
+   só verificado depois pelo QA — dado o raio de propagação (29 arquivos afetados
+   por 1 token). Recomendo essa checagem explícita nas próximas tarefas de token de
+   cor do Grupo A (ex. `FE-RS-15`, tokens de gráfico). Não gero novo `BLOCKERS.md`
+   por isso — é aprendizado de processo, não um desvio de escopo que exija
+   replanejamento; o fix-loop coube em 1 dia (2026-09-05) e não deslocou a data de
+   conclusão das demais 4 tarefas.
+
+**Diferença em relação a 7.1-7.8**: primeiro lote em que o veredito de QA passou por
+uma **reprovação de lote real** (não apenas ressalva) antes de fechar — decido tratar
+o veredito revalidado (14.8) como o que vale para este registro, não o intermediário
+(14.6), pelo mesmo racional já usado para tratar débitos fechados como não-bloqueantes
+em 7.1-7.8: o estado real do código hoje é o corrigido, verificado de forma
+independente por QA duas vezes (script próprio + recálculo do QA) e por DevSecOps
+uma vez, sem nenhum achado remanescente de qualquer severidade. Nenhum deploy — nem
+staging, nem produção — foi realizado para este lote até este registro; este
+registro de Seção 7 é o que libera o DevOps para realizar esse primeiro deploy do
+Grupo A (Redesign v2.0), não a confirmação de um deploy já feito. Como Lote 0 é
+pré-requisito estrutural de todos os demais lotes do Grupo A (Seção 4.5), este
+fechamento também remove o bloqueio em cascata que `QA-REPORT.md` Seção 14.6 havia
+sinalizado sobre o fechamento de Lote 1 em diante.
+
 ---
 
 ## Checklist de Pronto (auto-verificação do Tech Lead) — reabertura de 2026-09-02 (Bloqueio 003)
@@ -2418,3 +3028,93 @@ Nenhuma tarefa já `Concluída` de MVP/Fase 2/Fase 3 é reaberta por mérito por
 inclusão. Não é considerado final até aprovação (Aprovado ou Aprovado com ressalvas)
 do CTO nesta rodada — reprovação pontual reabre só a(s) tarefa(s)/risco(s)
 apontado(s), não o pacote inteiro nem o restante do documento.
+
+---
+
+## Checklist de Pronto — Adendo (Redesign Visual "MyMoney v2.0") — 2026-09-04
+
+- [x] Toda tarefa tem dono/time responsável (Frontend; QA cobre os 5 lotes) — Seção
+      3.5, 20 tarefas novas (13 Frontend, 7 QA); **nenhuma tarefa de Backend**
+      (RNF-15/RN-19, confirmado)
+- [x] Toda tarefa tem critério de aceite testável, rastreado a AC de
+      `PRD-TECNICO.md` Adendo B, a comportamento/mapeamento de `UX-SPEC.md`, ou a
+      Decisão de `ADR-017`/`ADR-018`/`ADR-019` — Seção 3.5
+- [x] Toda tarefa não-spike tem estimativa de esforço; nenhuma tarefa dos Lotes 0-4
+      atende aos 4 critérios de `technical-spike-identification` (nota ao final da
+      Seção 2) — nenhuma marcada como spike. Os Lotes 5-13 (Grupo B, Seção 3.6) não
+      têm nenhuma tarefa nesta rodada (condição vinculante do CTO, Bloqueio 021) —
+      satisfeito vacuamente, não é lacuna
+- [x] Toda dependência entre tarefas está mapeada, com o que pode rodar em paralelo
+      explícito — Seção 4.5, uma subseção por lote (Lote 0 a Lote 4), incluindo a
+      **dependência de execução (não de contrato)** exigida por RF-RS-00 AC4
+      (`UX-03`) e a reafirmação explícita do bloqueio de estimativa agregada do
+      Grupo B (Bloqueio 021)
+- [x] Toda tarefa está associada a exatamente um lote, coerente com os bounded
+      contexts do `SDD.md` (ou o critério mais próximo documentado — aqui, os
+      próprios números de lote já fixados por `PRD.md`/`SDD.md`/`UX-SPEC.md`) —
+      nenhum dos 5 lotes cruza fase; racional completo em Seção 6.3.2
+- [x] Toda diretriz de implementação relevante está traduzida em regra prática, não
+      só citação do ADR — Seção 1.9 (`DIR-40` a `DIR-45`), derivadas de
+      `ADR-017`/`ADR-018`/`ADR-019`
+- [x] Toda lacuna estrutural encontrada no `SDD.md` está sinalizada na Seção 6,
+      nunca decidida em silêncio — nenhuma lacuna estrutural nova encontrada
+      (confirmação explícita ao final da Seção 6.2); toda lacuna de detalhe tem a
+      decisão documentada (`DET-12` a `DET-18`); pendência de sincronização com
+      UX/UI registrada (`UX-03`, Seção 6.1.1); nenhum `BLOCKERS.md` novo necessário
+- [x] Nenhuma das 7 seções está vazia ou com placeholder (Seção 7 permanece vazia
+      para os 5 lotes novos, por definição — só é preenchida durante a execução)
+- [x] Rascunho de `.md/GUARDRAILS.md` produzido (skill `guardrails-drafting`) e
+      submetido ao CTO junto deste `TASK.md` — 2 regras novas propostas (`G-20`,
+      `G-21`, nova Seção 9), 1 avaliada e não proposta com justificativa (`DET-16`)
+
+**Esta inclusão do `TASK.md`** (Seção 1.9, Seção 2 nota, Seção 3.5/3.6, Seção 4.5,
+Seção 5 — totais recalculados + riscos 12 a 16, Seção 6.1.1 `UX-03`, Seção 6.2
+`DET-12` a `DET-18`, Seção 6.3.2) **é um rascunho pronto para o Gate 3 desta rodada do
+CTO** (`capacity-and-timeline-validation` sobre os +18.5 dias ideais de esforço dos
+Lotes 0-4 — Seção 5; **nenhuma estimativa do Grupo B, Lotes 5-13, existe ainda para
+ser validada** — Seção 3.6, condição vinculante do Bloqueio 021). Nenhuma tarefa já
+`Concluída` de MVP/Fase 2/Fase 3/Fase 2.1 é reaberta por mérito por esta inclusão.
+Não é considerado final até aprovação (Aprovado ou Aprovado com ressalvas) do CTO
+nesta rodada — reprovação pontual reabre só a(s) tarefa(s)/risco(s) apontado(s), não
+o pacote inteiro nem o restante do documento.
+
+---
+
+## Checklist de Pronto — Adendo (`UX-03` fechada, `FE-RS-14`/`FE-RS-15`) — 2026-09-04
+
+**Este checklist não substitui o anterior** (Gate 3, Redesign Visual Grupo A, já
+"Aprovado com ressalvas" por `CTO-REVIEW.md`) — qualifica apenas o incremento
+descrito na "Nota de Atualização" logo antes da Seção 1: 2 tarefas novas
+(`FE-RS-14`, `FE-RS-15`) decorrentes da conclusão de `UX-03`.
+
+- [x] Toda tarefa tem dono/time responsável — `FE-RS-14`/`FE-RS-15`, ambas Frontend
+- [x] Toda tarefa tem critério de aceite testável — Seção 3.5, ambas com AC
+      verificável por grep/teste automatizado, sem ambiguidade
+- [x] Toda tarefa não-spike tem estimativa de esforço — 0.5 dia cada, sem incerteza
+      de abordagem (correção de escopo conhecido); nenhuma das duas atende aos 4
+      critérios de `technical-spike-identification`
+- [x] Toda dependência está mapeada — Seção 4.5 (Lote 0 e Lote 1), incluindo o
+      efeito (ou ausência de efeito) no caminho crítico de cada lote
+- [x] Toda tarefa associada a exatamente um lote, coerente com o agrupamento já
+      fixado (`FE-RS-14` → Design System/Lote 0; `FE-RS-15` → Dashboard/Lote 1,
+      onde `DonutChart` é consumido)
+- [x] Diretriz prática correspondente adicionada — `DIR-46`/`DIR-47` (Seção 1.9),
+      para não recorrer o mesmo padrão em código futuro
+- [x] Nenhuma lacuna estrutural — ambos os achados de origem já confirmados pela
+      `UX-SPEC.md` como correção de implementação, não conflito de arquitetura;
+      decisão e racional documentados (`DET-19`, `DET-20`, Seção 6.2)
+- [x] Nenhuma tarefa já `Concluída`/já aprovada é reaberta por mérito
+- [x] Nenhuma tarefa nova de `GUARDRAILS.md` decorre desta atualização — nenhuma das
+      duas correções atende aos critérios de `guardrails-drafting` (não é regra
+      inegociável de projeto, é correção pontual de 2 arquivos/famílias de token)
+
+**Transparência sobre o gate**: este incremento (+1.0 dia sobre os 18.5 já validados
+no Gate 3, Redesign Visual Grupo A — 5.4%) é registrado para visibilidade do CTO no
+próximo ponto de contato formal, mas não é submetido como nova rodada de
+`capacity-and-timeline-validation` — não é incremento de escopo de produto (mesmo
+padrão que motivou nova validação para a Fase 2.1/Pacote de Refinamento), é a
+finalização de uma condição de acompanhamento que o próprio CTO já previu e aceitou
+antecipadamente (Gate 3, Redesign Visual Grupo A, avaliação do risco 13: "bloqueio de
+execução, não de planejamento... Não bloqueia este Gate 3"). Reabertura pontual pelo
+CTO, se ele discordar desta leitura, afeta só `FE-RS-14`/`FE-RS-15` e os totais da
+Seção 5, não o restante do `TASK.md` já aprovado.

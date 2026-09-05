@@ -29,4 +29,9 @@ describe("Select", () => {
     expect(screen.getByLabelText("Tipo de conta")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByRole("status")).toHaveTextContent("Selecione um tipo");
   });
+
+  it("declares w-full on its own element — UX-SPEC.md Seção 3.1.1 (FE-RS-04), never depends on the parent container's width", () => {
+    render(<Select label="Tipo de conta" options={OPTIONS} />);
+    expect(screen.getByLabelText("Tipo de conta").className).toContain("w-full");
+  });
 });

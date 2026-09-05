@@ -61,4 +61,9 @@ describe("CurrencyInput", () => {
     expect(screen.getByLabelText("Valor")).toHaveAttribute("aria-invalid", "true");
     expect(screen.getByRole("status")).toHaveTextContent("Informe um valor maior que zero");
   });
+
+  it("declares w-full on its own element — UX-SPEC.md Seção 3.1.1 (FE-RS-04), never depends on the parent container's width", () => {
+    render(<Harness />);
+    expect(screen.getByLabelText("Valor").className).toContain("w-full");
+  });
 });

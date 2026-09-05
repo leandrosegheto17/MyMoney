@@ -2004,6 +2004,325 @@ satisfeitas** — `BE-REF-06` pode prosseguir, sujeito à observação de
 
 ---
 
+## 14. Veredito de Lote — "Design System (Redesign v2.0, Lote 0)" (2026-09-04)
+
+**Gatilho**: `TASK.md` Seção 3.5 (subseção Frontend) + Seção 4.5 ("Lote 0 — Design
+System (Redesign v2.0)"). 5 tarefas confirmadas `Concluída` no `TASK.md` no momento
+deste veredito, nenhuma delas com veredito próprio anterior em `QA-REPORT.md`:
+`FE-RS-01` (substituição integral do bloco `@theme`, fontes self-hosted), `FE-RS-02`
+(primitivo `Num`), `FE-RS-03` (navegação v2.0 — sidebar 4+1 grupos desktop, bottom
+nav 4 destinos mobile, botão "+ Novo lançamento" no cabeçalho), `FE-RS-04` (`w-full`/
+`min-w-0` anti-corte nos 5 componentes de formulário), `FE-RS-14` (correção dos 4
+componentes-base que usavam a rampa padrão do Tailwind em vez dos tokens `-soft`,
+`UX-03` Achado 1). Nenhuma tarefa de Backend/Mobile neste lote (`SDD.md` Adendo B
+B.5, RN-19/RN-20 — confirmado por diff, Seção 14.3). Esta é, ao mesmo tempo, a
+execução das 3 linhas de QA do lote (`QA-RS-01`/`QA-RS-02`/`QA-RS-03`, ainda `Não
+iniciada` no `TASK.md` no início desta rodada) — o veredito consolidado abaixo fecha
+a validação do lote conforme `EXECUTION-FLOW.md` ("QA — uma vez por lote"), mas
+**não fecha o lote como um todo** porque um bug de severidade Alta foi encontrado
+(Seção 14.4) — ver veredito consolidado, Seção 14.6.
+
+### 14.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `cd frontend && npm test -- --run` (suíte completa Vitest) | **316/316 PASS** — confirma de forma independente o número já reportado pelo `frontend` na nota de execução do lote (`TASK.md` Seção 3.5) |
+| `cd frontend && npm run build` | Build limpo, sem erro; `dist/` gera os arquivos de fonte `@fontsource/public-sans`/`@fontsource/newsreader` (`.woff2`/`.woff`, múltiplos subsets) referenciados por `index.css`, e `index-*.css` inclui as declarações `@font-face` correspondentes — confirma que as fontes estão de fato empacotadas, não só declaradas |
+| `cd frontend && npm run lint` (`oxlint`) | Nenhum warning novo nos arquivos deste lote (`index.css`, `Num.tsx`, `Alert.tsx`, `Badge.tsx`, `Button.tsx`, `OfflineSyncBadge.tsx`, `AppLayout.tsx`, `Input.tsx`/`Select.tsx`/`DatePicker.tsx`/`CurrencyInput.tsx`/`CategoryPicker.tsx`); os únicos warnings existentes (`react(set-state-in-effect)` em 9 páginas, `react(only-export-components)` em `Toast.tsx`/`AuthContext.tsx`) são pré-existentes, em arquivos não tocados por este lote |
+| `grep -rn` por `.woff2` em `frontend/vite.config.ts` | `globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"]` — confirma que o service worker (`vite-plugin-pwa`) pré-cacheia os novos arquivos de fonte (`FE-RS-02` AC) |
+| `grep -nE "bg-(red\|green\|amber\|blue)-[0-9]+\|hover:bg-red-800"` nos 4 arquivos de `FE-RS-14` | 0 ocorrências fora de comentário — confirma o critério de aceite literal |
+| `grep -nE "#[0-9a-fA-F]{3,6}"` em todos os componentes/arquivos tocados por este lote | 0 ocorrências — confirma "zero hex literal fora do bloco `@theme`" (`FE-RS-01` AC) |
+| Leitura direta + cálculo independente de contraste WCAG (fórmula de luminância relativa, sRGB→linear, script Node dedicado desta rodada) sobre todo token novo/alterado de `index.css` | Ver Seção 14.5 — 1 achado novo confirmado (regressão em `--color-neutral-500`), demais tokens conferem com os valores já calculados/publicados em `UX-SPEC.md` Seção 3.0/3.1 |
+| `git diff --stat` (estado de trabalho completo desta rodada, ainda não commitado) | Escopo do diff de código confirmado restrito a `frontend/src/components/**`, `frontend/src/index.css`, `frontend/src/layout/AppLayout.tsx`, `frontend/package.json`/`package-lock.json` (dependências de fonte) — nenhum arquivo de `supabase/**`, `frontend/src/lib/api/**`, `frontend/src/lib/auth/**` ou `API-CONTRACT.yaml` tocado (Seção 14.3) |
+| `git log --oneline -- frontend/src/index.css` | Nenhum commit ainda — todo o lote está em working tree, não commitado; QA validou o estado de trabalho real (não um relato), mesma prática já usada em rodadas anteriores que tiveram acesso direto ao código |
+
+### 14.2 `acceptance-criteria-validation` de lote
+
+Critério de aceite literal de cada uma das 5 tarefas (`TASK.md` Seção 3.5), verificado
+individualmente:
+
+| Tarefa | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| FE-RS-01 | Todo valor de token do `@theme` bate com a tabela de `UX-SPEC.md` Seção 3.1 | Conferido linha a linha: `--color-primary`/`-hover`/`-soft`, `--color-income`, `--color-expense`/`-soft`, `--color-warning`/`-soft`, `--color-danger` (`#752f26`, contraste recalculado de forma independente = 9,03:1 sobre `--bg`, bate com o valor publicado), `--color-surface`/`-alt`, `--radius-*` (3 níveis), `--shadow-elevation-sm`/`-md` — todos batem com a tabela, exceto o achado da Seção 14.5 (não é um valor da tabela, é um token interpolado fora dela) | Passa (com ressalva não-bloqueante de baixa severidade, Seção 14.5, e o achado de Seção 14.4 tratado à parte, fora do escopo literal deste critério) |
+| FE-RS-01 | Nenhum arquivo de componente tocado só por causa da troca de valor | `git diff` confirma que `FE-RS-01` em si só toca `frontend/src/index.css` — as mudanças em `Alert`/`Badge`/`Button`/`OfflineSyncBadge` pertencem a `FE-RS-14` (tarefa distinta), e as de `AppLayout` a `FE-RS-03` | Passa |
+| FE-RS-01 | Grep confirma zero hex literal fora do `@theme` nos componentes-base tocados | Confirmado (Seção 14.1) | Passa |
+| FE-RS-01 | `Public Sans` efetivamente carregada (não só declarada) | `@import "@fontsource/public-sans/{400,500,600,700}.css"` presente; `npm run build` gera os arquivos de fonte reais no bundle, referenciados pelo CSS final; `body { font-family: var(--font-sans) }` aplica a variável globalmente | Passa (verificação estática + artefato de build; sem sessão de navegador real nesta rodada para inspecionar a aba Network/computed style ao vivo — mesma limitação de ambiente já registrada em rodadas anteriores, não é um gap introduzido por este QA) |
+| FE-RS-02 | `Num.test.tsx` cobre os 3 formatos e confirma nó isolado (nunca concatenado) | 12 casos de teste, incluindo nó `<span>` único com exatamente 1 `TEXT_NODE` filho, `format="percent"` com casas decimais, truncamento de `format="count"` | Passa |
+| FE-RS-02 | `font-display: swap`; glob do Workbox cobrindo `**/*.woff2` | `@fontsource/*` já vem com `font-display: swap` por padrão; `vite.config.ts` confirmado (Seção 14.1) | Passa |
+| FE-RS-02 | Nenhum ponto de chamada existente migrado por esta tarefa | `grep "<Num "` só retorna `Num.test.tsx` — nenhum uso em produção ainda, migração é por lote (`DIR-41`), conforme o próprio critério exige | Passa |
+| FE-RS-03 | Sidebar desktop com 4 grupos + item ativo destacado; bottom nav mobile com exatamente 4 destinos, ícones `lucide-react` (nenhum emoji); botão "+" no cabeçalho em toda tela autenticada, sem FAB flutuante; navegação por teclado/foco visível preservados; RN-20 (nenhuma rota/permissão/comportamento muda) | `AppLayout.test.tsx` — 10 testes dedicados cobrindo os 4 grupos + 13 rotas preservadas, destaque do item ativo (`aria-current="page"`, tokens `bg-primary-soft`/`text-primary`/`font-semibold`), logo `Newsreader` itálico, botão "+ Novo lançamento" apontando para `/lancamentos` em ambos os formatos (retangular desktop/circular mobile), ausência de bottom nav no desktop e vice-versa, exatamente 4 destinos mobile com `<svg>` (não emoji) em cada um, ausência de FAB flutuante (seletor `[class*="fixed"][class*="bottom"][class*="rounded-full"]`), navegação por Tab confirmada movendo o foco entre links da sidebar | Passa (com ressalva não-bloqueante — o bottom nav herda a regressão de contraste de `--color-neutral-500` reportada na Seção 14.4, não uma falha de `FE-RS-03` em si) |
+| FE-RS-04 | `w-full` nos 4 campos; `min-w-0` no `CategoryPicker`; nome longo controlado não estoura o contêiner; nenhuma regressão nos usos existentes | Testes dedicados em `Input.test.tsx`/`Select.test.tsx`/`DatePicker.test.tsx`/`CurrencyInput.test.tsx` (presença de `w-full`) e `CategoryPicker.test.tsx` (2 testes: `w-full`+`min-w-0` nas células, e o caso de nome longo controlado, ambos com asserção explícita de `min-w-0`/`w-full` nos elementos reais) | Passa |
+| FE-RS-14 | Grep confirma zero `bg-red-*`/`bg-green-*`/`bg-amber-*`/`bg-blue-*`/`hover:bg-red-800` nos 4 arquivos; uso exclusivo do token `-soft`/semântico; `Alert variant="danger"` numa tela de CRUD real reflete a paleta v2.0; nenhuma regressão nos testes existentes | Confirmado por grep (Seção 14.1); `AccountsPage.tsx` usa `<Alert variant="danger">` em 2 pontos (erro de carregamento/erro de salvamento) — component behavior confirmado por teste dedicado em `feedback.test.tsx` (`it.each` para os 4/5 tons de `Alert`/`Badge` + o teste específico "renders a real v2.0 (terracota) danger palette... in a CRUD screen error state (ex. AccountsPage)") | Passa |
+
+**Veredito de aceite literal das 5 tarefas: Passa em todos os itens escritos no
+`TASK.md`.** O bug de severidade Alta da Seção 14.4 não é uma falha do critério de
+aceite *literal* de nenhuma das 5 linhas (nenhuma delas pede explicitamente "preservar
+o contraste de `--color-neutral-500`") — é uma falha de um requisito não-funcional
+transversal e não-negociável (WCAG 2.1 AA, `UX-SPEC.md` Seção 5; N3, `PRD.md` Adendo
+B), verificado à parte na Seção 14.4/14.5, dentro do mandato de QA de validar
+requisito não-funcional independentemente do texto literal de cada linha de tarefa.
+
+### 14.3 `cross-platform-integration-testing` de lote
+
+**Confirmado: este lote não tem nenhuma dependência cruzada Backend/Mobile — a
+checagem abaixo existe para provar isso, não para pular a etapa.**
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Nenhuma tarefa de Backend/Mobile no lote | `TASK.md` Seção 3.5: "**Nenhuma tarefa de Backend** (RNF-15/RN-19, `SDD.md` Adendo B Seção B.5: zero mudança de schema/RLS/Edge Function/contrato de API)"; `SDD.md` Adendo B B.5/B.7 confirma a mesma restrição; papel `mobile` não é acionado neste projeto (PWA web, ADR-003) | Confirmado |
+| `API-CONTRACT.yaml` sem alteração | `git status --porcelain -- supabase API-CONTRACT.yaml` — vazio, nenhuma mudança | Confirmado |
+| Nenhum arquivo de `supabase/migrations/**`/`supabase/functions/**` tocado | `git diff --stat -- 'supabase/**'` — vazio | Confirmado (G-20) |
+| Nenhum arquivo de `frontend/src/lib/api/**`/`frontend/src/lib/auth/**` tocado | `git diff --stat` completo (Seção 14.1) não lista nenhum arquivo desses 2 diretórios | Confirmado (G-21) |
+| Escopo do diff restrito a arquivos de apresentação, 1:1 com o Lote 0 | `frontend/src/components/base/**`, `frontend/src/components/domain/OfflineSyncBadge.tsx`, `frontend/src/index.css`, `frontend/src/layout/AppLayout.tsx`, `frontend/package.json`/`package-lock.json` (deps de fonte `@fontsource/*`, ativo de fonte, não lógica) — nenhum arquivo de `DashboardPage.tsx`/`DonutChart.tsx` (Lote 1, `FE-RS-05`/`06`/`15`, ainda "Não iniciada") misturado neste diff | Confirmado — nenhuma mistura de lote (G-21) |
+| **Observação não-bloqueante para o Tech Lead**: `G-21` enumera os caminhos permitidos como `frontend/src/components/**`, `frontend/src/pages/**`, `frontend/src/index.css`, assets de fonte/ícone — `frontend/src/layout/AppLayout.tsx` (tocado por `FE-RS-03`) não está literalmente em nenhum desses 3 caminhos, embora seja inequivocamente um arquivo de apresentação/navegação, mesma natureza que `G-21` pretende cobrir (`SDD.md` Adendo B B.1, princípio 3). Não é um bug de código nem uma violação de guardrail em espírito — é uma lacuna textual na enumeração de `G-21`, sinalizada aqui para o Tech Lead considerar adicionar `frontend/src/layout/**` na próxima revisão do guardrail, não bloqueia este veredito | — |
+
+**Conclusão**: nenhum ponto de integração cruzada real existe neste lote — confirmado
+por evidência direta (diff, `API-CONTRACT.yaml`, `TASK.md`/`SDD.md`), não presumido a
+partir da ausência de menção. G-20 e G-21 (`GUARDRAILS.md` Seção 9) cumpridos, com 1
+observação textual não-bloqueante sobre a enumeração de caminhos de `G-21`.
+
+### 14.4 `bug-documentation` de lote
+
+**1 bug de severidade Alta, novo, encontrado nesta rodada** (nenhuma tarefa anterior
+do produto havia tocado este token da forma que expôs o problema):
+
+| ID | Severidade | Componente/token | Passos de reprodução | Esperado | Obtido |
+|---|---|---|---|---|---|
+| QA-BUG-001 | **Alta** | `--color-neutral-500` (`frontend/src/index.css`, definido por `FE-RS-01`) — consumido como `text-neutral-500` em **29 arquivos** de produção (mais 2 arquivos de teste que só travam o valor da classe, não afetam o contraste real), incluindo texto informacional real (não decorativo): `FieldChrome.tsx` (mensagem de apoio de todo campo de formulário do produto), `EmptyState.tsx` (descrição), rótulos de KPI do Dashboard, cabeçalho de dia e linha secundária de item da lista de Lançamentos, contagem de subcategorias do `CategoryCard`, texto de `InvoiceTimeline`, e o rótulo do destino inativo da barra de navegação inferior mobile (`AppLayout.tsx`, `FE-RS-03`) | 1. Abrir qualquer tela autenticada do produto (ex. qualquer formulário com campo obrigatório, `EmptyState`, ou o Dashboard) com o Lote 0 aplicado. 2. Observar qualquer texto renderizado com a classe `text-neutral-500` (helper text de campo, rótulo de KPI, linha secundária de item de lista, rótulo do destino não-ativo da barra inferior mobile). 3. Calcular o contraste real do token contra o fundo onde é usado (`--color-surface` `#FFFFFF` ou `--color-surface-alt`/`--bg` `#FAF8F3`) | WCAG 2.1 AA, `UX-SPEC.md` Seção 5 ("Contraste de cor"): todo texto normal (< 18px, ou < 14px bold) atinge ≥ 4,5:1. `PRD.md` Adendo B, métrica N3: "0 regressões [de acessibilidade] identificadas... em qualquer lote" | `--color-neutral-500` (`#83857D`, valor novo deste lote) mede **3,74:1 sobre `--surface`** e **3,52:1 sobre `--bg`** — falha o limiar de 4,5:1 em ambos os fundos onde é usado. **Confirmado como regressão, não um débito pré-existente**: o valor anterior de `--color-neutral-500` (`#64748B`, paleta índigo/slate pré-Lote 0) media 4,76:1/4,55:1 — **passava** nos dois fundos antes deste lote. Nenhum dos 29 arquivos de produção que usam `text-neutral-500` teve seu próprio código tocado por este lote (o valor do token mudou por baixo, mesmo mecanismo de "trocar valor sem tocar componente" que `ADR-017` já valida como benefício — aqui, o mesmo mecanismo propagou uma regressão de contraste sem que nenhum arquivo consumidor precisasse ser revisado por quem definiu o novo valor) |
+
+**Status: Corrigido pelo `frontend` e revalidado por este QA em 2026-09-05 — ver Seção
+14.8 (fechamento).**
+
+**Cálculo de contraste** (fórmula de luminância relativa WCAG, sRGB→linear,
+reproduzido de forma independente nesta rodada, mesma metodologia já usada por
+`UX-SPEC.md` Seção 3.0 AC3): `contraste(c1, c2) = (L1 + 0,05) / (L2 + 0,05)`, `L1 ≥
+L2`. Script Node dedicado, valores conferidos duas vezes.
+
+**Causa raiz**: `FE-RS-01` recolore a escala `--color-neutral-*` inteira (`index.css`)
+interpolando 5 pontos-âncora dados por `UX-SPEC.md` (`50`/`200`/`400`/`600`/`900`) —
+decisão dentro da autoridade normal de implementação do `frontend`, já documentada na
+nota de execução do lote (`TASK.md` Seção 3.5, item 2: "os demais níveis são
+interpolados preservando a mesma progressão relativa de luminância da rampa
+anterior"). O nível `500` (não-âncora, escolhido por interpolação) resultou num tom
+mais claro que o suficiente para texto real — a interpolação preservou a
+*progressão relativa* da rampa antiga, mas não teve como meta preservar o *contraste
+absoluto* dos tons intermediários já consumidos como texto em produção. Não é uma
+falha de execução da fórmula (a progressão de luminância está correta) — é a ausência
+de uma verificação de contraste sobre os valores interpolados antes de fechar a
+tarefa, quando pelo menos 1 deles (`neutral-500`) já era consumido como texto real em
+29 arquivos de produção antes deste lote.
+
+**Por que Alta, não Média/Baixa (guardrail de severidade)**: propagação comparável ou
+maior que o próprio Achado 1 de `UX-03` (que motivou `FE-RS-14` neste mesmo lote) —
+atinge texto informacional real em virtualmente toda tela do produto (todo formulário
+via `FieldChrome`, todo estado vazio, o Dashboard, a listagem de Lançamentos, e a
+navegação inferior mobile recém-redesenhada por `FE-RS-03`). Diferente do precedente
+`QA-DEBT-012` (contraste de `--color-warning` em texto, classificado Baixa porque
+**pré-existente ao projeto inteiro, não introduzido por nenhum lote**), aqui o dado
+histórico (`#64748B` → 4,76:1, passava) prova que este é um **regressão real
+introduzida por este lote**, não um débito herdado — WCAG 2.1 AA é tratado como
+"critério não-negociável... nenhuma exceção 'se sobrar tempo'" pelo próprio
+`UX-SPEC.md` Seção 5, e a superfície afetada é ampla o bastante para não se qualificar
+como achado isolado de baixo impacto.
+
+**1 achado adicional, severidade Baixa, registrado como débito (não bloqueia)**:
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-014 | `--shadow-elevation-md` (`index.css`, `FE-RS-01`) foi declarada como `0 6px 20px -2px rgba(31, 36, 32, 0.06)` — um parâmetro `spread-radius` de `-2px` que não existe no valor literal publicado por `UX-SPEC.md` Seção 3.1 (`--shadow-md:0 6px 20px rgba(31,36,32,.06)`, sem 4º parâmetro, equivalente a spread `0`). Efeito visual sutil (sombra ligeiramente mais contida) em todo consumidor do token (`Modal`, `Toast`, os 4 wrappers de card de Auth/Onboarding — nenhum ainda no escopo redesenhado do Lote 0/1). Não é uma regressão funcional nem de acessibilidade, é uma imprecisão de valor de token frente ao critério de aceite literal de `FE-RS-01` ("todo valor bate com a tabela") | Baixa | `FE-RS-01` | Antes do fechamento do Lote 1 (mesmo arquivo, `index.css`, provável de ser tocado de novo pela correção de `QA-BUG-001`) | Não bloqueia nenhuma tarefa — registrado para correção oportunista junto da correção de `QA-BUG-001`, evitando 2 idas separadas ao mesmo arquivo |
+
+**Achado de contraste pré-existente, não deste lote (registrado só para não ser
+confundido com `QA-BUG-001`)**: `text-neutral-400` em `OfflineSyncBadge.tsx:29`
+("Tudo sincronizado", estado ocioso) mede 2,78:1 — falha, mas o valor **anterior**
+(`#94A3B8`) já media 2,56:1 (também falha) antes deste lote. Confirmado por cálculo
+independente que este achado é uma dívida de contraste que já existia antes do
+Redesign Visual (piorou marginalmente, mas já era uma falha) — não é atribuível a
+nenhuma das 5 tarefas deste lote, mesmo tratamento já dado pelo próprio `frontend` a
+achados equivalentes fora do escopo de uma tarefa específica. Não registrado como novo
+QA-DEBT (seria duplicar um débito pré-existente ao produto, fora do escopo desta
+rodada) — sinalizado aqui só para transparência de que foi visto e não ignorado.
+
+**Padrão recorrente? Não.** `QA-BUG-001` e `QA-DEBT-014` têm a mesma causa raiz
+(decisões de valor de token dentro de `FE-RS-01`/`index.css`), mas isso não configura
+um "padrão recorrente entre tarefas" no sentido do guardrail de escalonamento ao
+Tech Lead (que existe para apontar problema de decomposição de tarefa ou diretriz de
+implementação malformada) — é a mesma tarefa, mesmo arquivo, 2 achados de qualidade de
+execução pontuais. Nenhum escalonamento a `tech-lead`/`BLOCKERS.md` gerado por esta
+rodada.
+
+### 14.5 `non-functional-validation` de lote
+
+| Requisito | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| WCAG 2.1 AA — contraste de cor (N3, `PRD.md` Adendo B) | Recalculado de forma independente todo token de cor novo/alterado por `FE-RS-01` usado como texto real nos componentes deste lote | `--color-danger` (9,03:1), `--color-primary`/`-income` (5,93:1 sobre `--bg`), `--color-expense` (5,03–5,34:1), `--color-neutral-900`/`-600` (`--text`/`--text-2`, 14,8:1/4,83–5,12:1) — todos conferem com `UX-SPEC.md` Seção 3.0 AC3. **1 regressão encontrada**: `--color-neutral-500` (`QA-BUG-001`, Seção 14.4) | Falha parcial (bloqueante, ver Seção 14.6) |
+| WCAG 2.1 AA — não depender só de cor | `Alert`/`Badge` continuam combinando ícone (`aria-hidden`) + texto + cor (nenhuma mudança de estrutura por `FE-RS-14`, só o token de fundo) | Leitura direta de `Alert.tsx`/`Badge.tsx` (Seção 14.2) | Passa |
+| WCAG 2.1 AA — navegação por teclado / foco visível | `AppLayout.test.tsx` — foco inicial + `Tab` move corretamente entre links da sidebar; anel de foco global (`:focus-visible`) preservado em `index.css`, não removido pela substituição do bloco `@theme` | Teste dedicado (Seção 14.2) + leitura direta de `index.css` linhas 144-151 | Passa |
+| WCAG 2.1 AA — alvo de toque ≥ 44×44px | Botão "+ Novo lançamento" circular mobile (`min-h-11 min-w-11`), itens do bottom nav (`min-h-11`), botão do `OfflineSyncBadge` (`min-h-11`) | Leitura direta de `AppLayout.tsx`/`OfflineSyncBadge.tsx` — `min-h-11`/`min-w-11` = 44px (convenção Tailwind 4px/unidade), mantido deliberadamente acima do valor `40px` do mockup, conforme nota de execução do `frontend` (`TASK.md` Seção 3.5, item 4) | Passa |
+| N1 (aderência ao design system) — comparação contra o baseline de `UX-SPEC.md` Seção 3.0.1 | Baseline pré-Lote 0 (`UX-03`): 251/271 ≈ 92,6% no nível de ocorrência (12 do Achado 1 + 8 do Achado 2 não-token); "Parcial" em quase toda superfície por causa do Achado 1. Recontagem pós-`FE-RS-14`: as 12 ocorrências do Achado 1 (`Alert`/`Badge`/`Button`/`OfflineSyncBadge`) confirmadas migradas para token `-soft` (Seção 14.1/14.2) — Achado 2 (`DonutChart`, 8 ocorrências) **não** faz parte do escopo do Lote 0 (adiado para `FE-RS-15`, Lote 1, conforme `TASK.md`/`UX-SPEC.md` já registravam) | **N1 pós-Lote 0 (nível ocorrência) ≈ (251+12)/271 = 263/271 ≈ 97,05%** — melhoria real e verificada, não presumida. No nível "% de superfícies" (a métrica oficial de `PRD.md` B.3): as ~18 telas de CRUD + navegação deixam de ser "Parcial" só por causa do Achado 1 — permanecem "Parcial" apenas as superfícies não tocadas por este lote (Auth/Onboarding, Achado 3, fora do escopo do Lote 0; Dashboard, ainda com Achado 2 pendente de `FE-RS-15`). Nenhuma superfície nova de divergência introduzida por este lote — exceto o próprio `QA-BUG-001`, que é um achado de **contraste**, não de **token/componente divergente** (não conta contra N1, conta contra N3) | Melhora confirmada, dentro do esperado para o lote |
+| N4 (não regressão funcional) | Suíte completa + build (Seção 14.1) | 316/316 `PASS`, build limpo, `lint` sem warning novo | Passa |
+| Responsividade (RNF-10, `UX-SPEC.md` Seção 6) | Sidebar desktop (`≥1024px`) vs. bottom nav mobile (`<1024px`) — mutuamente exclusivos, confirmado por teste dedicado ("does not render the mobile bottom navigation on desktop" / ausência de "Mais" no desktop) | `AppLayout.test.tsx` | Passa |
+
+### 14.6 Veredito de lote consolidado
+
+**[ATUALIZADO em 2026-09-05 — ver Seção 14.8 para a revalidação completa da
+correção de `QA-BUG-001`. Tabela abaixo mantida como registro histórico da rodada
+de 2026-09-04; o veredito de `FE-RS-01`/lote vigente é o de 14.8.]**
+
+| Tarefa | Veredito de tarefa (fixado na rodada 2026-09-04) |
+|---|---|
+| FE-RS-01 | **Reprovado** — `QA-BUG-001` (Alta, Seção 14.4): regressão de contraste WCAG 2.1 AA em `--color-neutral-500`, introduzida pela interpolação da escala neutra desta tarefa, propagada a 29 arquivos de produção com texto real. Volta a `Em andamento` no `TASK.md`. **Corrigido e reaprovado em 2026-09-05, Seção 14.8.** |
+| FE-RS-02 | Aprovado, sem ressalva |
+| FE-RS-03 | Aprovado com ressalva — todo critério de aceite próprio (sidebar, bottom nav, FAB, teclado/foco, RN-20) passa; a ressalva é exclusivamente o token herdado de `FE-RS-01` (`QA-BUG-001`) no rótulo do destino inativo da barra inferior mobile, que se autocorrige quando `FE-RS-01` for corrigida — nenhuma mudança de código própria de `AppLayout.tsx` é esperada. **Ressalva resolvida em 2026-09-05, Seção 14.8.3.** |
+| FE-RS-04 | Aprovado, sem ressalva |
+| FE-RS-14 | Aprovado, sem ressalva |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"), rodada
+2026-09-04: Reprovado — bloqueado por `QA-BUG-001` (severidade Alta em
+`FE-RS-01`).** Este foi o primeiro bug de severidade Alta encontrado pelo próprio
+QA neste produto (todos os anteriores haviam sido encontrados e corrigidos pelo
+time de implementação em fix-loop antes da validação de QA) — não configurou um
+padrão recorrente entre tarefas/lotes (Seção 14.4), não foi escalado ao Tech Lead,
+retornou diretamente ao `frontend`, dono de `FE-RS-01`.
+
+**Efeito em cascata, dado que "Lote 0 é pré-requisito estrutural de todos os demais"
+(`TASK.md` Seção 4.5)**: nenhuma linha de QA do Lote 1 (`QA-RS-04`) ou de qualquer
+lote seguinte pode ser considerada "lote fechado" enquanto este veredito estiver
+`Reprovado` — a correção de `--color-neutral-500` (e, oportunisticamente,
+`QA-DEBT-014`) precisava ser aplicada e revalidada por este QA antes de o Lote 0 (e,
+por consequência, qualquer fechamento formal de Lote 1+) ser considerado `Aprovado`.
+**Essa revalidação foi concluída em 2026-09-05 — ver Seção 14.8: Lote 0 está agora
+`Aprovado`.**
+
+**Sugestão de correção que havia sido dada (não vinculante, decisão de valor era do
+`frontend`)**: ajustar `--color-neutral-500` para um tom que mantenha ≥ 4,5:1 contra
+`--surface`/`--bg`, **ou** migrar os consumidores de texto real para
+`text-neutral-600` componente a componente. O `frontend` seguiu a 1ª opção
+(recalibração pontual de `--color-neutral-500`, sem migrar nenhum consumidor) — ver
+Seção 14.8.
+
+### 14.7 Definition of Done — checklist de lote
+
+**[ATUALIZADO em 2026-09-05 — checklist fechado 100% após a revalidação da Seção
+14.8. Estado abaixo é o vigente.]**
+
+- [x] Todo critério de aceite das 5 tarefas foi testado e está passando
+      (Seção 14.2 — literalmente, os 5 critérios escritos no `TASK.md` passam)
+- [x] **Nenhum bug de severidade alta/crítica em aberto** — `QA-BUG-001` (Alta,
+      Seção 14.4) corrigido pelo `frontend` e revalidado de forma independente por
+      este QA em 2026-09-05 (Seção 14.8); nenhum bug alta/crítica novo encontrado
+      na revalidação
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo —
+      `QA-DEBT-014` (Seção 14.4) foi corrigido oportunisticamente junto de
+      `QA-BUG-001` (confirmado em 14.8.4, sem necessidade de manter o débito aberto)
+- [x] Testes de integração cruzada — confirmado que não há nenhum a executar neste
+      lote (Seção 14.3), não presumido
+- [x] Requisito não funcional relevante validado (Seção 14.5) — WCAG 2.1 AA
+      (contraste, não depender só de cor, teclado/foco, alvo de toque), N1
+      (aderência ao design system, melhoria confirmada), N4 (regressão funcional),
+      responsividade
+
+**Checklist 100% — Lote 0 ("Design System, Redesign v2.0") formalmente `Aprovado`
+em 2026-09-05, ver veredito consolidado em 14.8.5.**
+
+### 14.8 Revalidação pontual de `QA-BUG-001` (2026-09-05) — fechamento do Lote 0
+
+**Escopo desta rodada**: revalidação **apenas** da correção reportada por
+`FE-RS-01` (nota de `TASK.md`, "Concluída — `QA-BUG-001` corrigido (2026-09-05)").
+Não repetida a bateria completa das 5 skills sobre o lote inteiro (protocolo de
+reprovação parcial, `EXECUTION-FLOW.md`) — as 4 tarefas já aprovadas em 14.6
+(`FE-RS-02`/`03`/`04`/`14`) não tiveram código próprio alterado por esta correção e
+não são reexecutadas.
+
+#### 14.8.1 Recálculo independente de contraste (`--color-neutral-500` → `#6E726B`)
+
+Fórmula de luminância relativa WCAG (sRGB→linear, `contraste(c1,c2) = (L1+0,05) /
+(L2+0,05)`, `L1 ≥ L2`), recalculada por este QA de forma independente do script do
+`frontend`, a partir dos valores hex lidos diretamente de
+`frontend/src/index.css:100-109`:
+
+| Par | L (claro) | L (escuro) | Contraste calculado | Limiar | Resultado |
+|---|---|---|---|---|---|
+| `#6E726B` vs `--color-surface` (`#FFFFFF`, L=1,0) | 1,0 | 0,16413 | **4,903:1** | ≥4,5:1 | Passa |
+| `#6E726B` vs `--color-surface-alt`/`--bg` (`#FAF8F3`, L=0,93936) | 0,93936 | 0,16413 | **4,620:1** | ≥4,5:1 | Passa |
+
+Ambos os valores batem, com diferença de arredondamento apenas na 3ª casa decimal,
+com os reportados pelo `frontend` na nota de `TASK.md` (4,90:1/4,62:1) — cálculo
+confirmado por fonte independente, não apenas conferido o número reportado.
+
+#### 14.8.2 Ordem monotônica da rampa neutra (400/500/600)
+
+Luminância relativa calculada para os 3 níveis (mesma fórmula):
+
+| Token | Hex | L (luminância relativa) |
+|---|---|---|
+| `--color-neutral-400` | `#9A9C93` | 0,32765 |
+| `--color-neutral-500` | `#6E726B` | 0,16413 |
+| `--color-neutral-600` | `#6B6F68` | 0,15496 |
+
+`L(400) > L(500) > L(600)` — ordem estritamente decrescente preservada (rampa vai
+de mais clara/50 a mais escura/900). `neutral-500` permanece estritamente mais claro
+que `neutral-600` (diferença pequena, 0,16413 vs 0,15496, mas sem empate nem
+inversão) e mais escuro que `neutral-400`. **Confirmado: a mudança isolada em `500`
+não quebrou a monotonicidade da rampa.**
+
+#### 14.8.3 Ressalva de `FE-RS-03` (`AppLayout.tsx`)
+
+`frontend/src/layout/AppLayout.tsx:174` confirmado ainda usando
+`isActive ? "text-primary" : "text-neutral-500"` para o rótulo do destino inativo
+da barra de navegação inferior mobile — nenhuma linha própria de `AppLayout.tsx`
+foi tocada pela correção (consistente com a nota de `TASK.md`: "nenhum dos 29
+arquivos consumidores... foi tocado"). Como o token em si agora mede 4,90:1/4,62:1
+(14.8.1), o texto herda automaticamente o contraste corrigido sem qualquer mudança
+de código em `FE-RS-03`. **Ressalva de `FE-RS-03` considerada resolvida.**
+`FE-RS-03` passa de "Aprovado com ressalva" para **Aprovado, sem ressalva**.
+
+#### 14.8.4 `QA-DEBT-014` (`--shadow-elevation-md`)
+
+`frontend/src/index.css:138` confirmado como
+`--shadow-elevation-md: 0 6px 20px rgba(31, 36, 32, 0.06)` — sem o 4º parâmetro
+`-2px` de spread-radius que divergia do literal de `UX-SPEC.md` Seção 3.1. Corrigido
+oportunisticamente junto de `QA-BUG-001`, conforme já sinalizado como prazo/nota em
+14.4. **`QA-DEBT-014` fechado, não precisa permanecer como débito em aberto.**
+
+#### 14.8.5 Suíte de teste completa
+
+`npm test -- --run` executado 2x de forma independente por este QA (não reaproveitado
+o número reportado pelo `frontend`):
+
+- 1ª rodada: 315/316 `PASS` — 1 falha isolada em `src/pages/auth/UnlockPage.test.tsx`
+  (timeout em `findByText(/Muitas tentativas/)`, cenário de bloqueio por tentativas).
+- `UnlockPage.test.tsx` reexecutado isoladamente: **3/3 `PASS`**.
+- 2ª rodada completa: **316/316 `PASS`**.
+
+Confirma, de forma independente, o mesmo diagnóstico do `frontend`: a falha da 1ª
+rodada é um flake de timing do temporizador de bloqueio (`UnlockPage`), não uma
+regressão introduzida pela correção de `--color-neutral-500`/`--shadow-elevation-md`
+(nenhum dos dois tokens é consumido por `UnlockPage.tsx`/`UnlockPage.test.tsx`).
+`npm run build` não reexecutado nesta rodada pontual (escopo da revalidação é
+CSS/token puro, já coberto por `oxlint`/build na rodada de 2026-09-04 do `frontend`;
+nenhuma mudança de código TSX/JS nesta correção que justifique novo build).
+
+#### 14.8.6 Veredito
+
+| Item | Veredito |
+|---|---|
+| `QA-BUG-001` | **Corrigido e revalidado** — contraste real recalculado de forma independente confirma ≥4,5:1 nos 2 fundos consumidos (14.8.1); nenhuma inversão de ordem na rampa neutra (14.8.2) |
+| `FE-RS-01` | **Aprovado** (reverte o "Reprovado" de 14.6/rodada 2026-09-04) |
+| `FE-RS-03` | **Aprovado, sem ressalva** (ressalva resolvida, 14.8.3) |
+
+**Veredito consolidado do Lote 0 — "Design System (Redesign v2.0)" (`FE-RS-01`,
+`FE-RS-02`, `FE-RS-03`, `FE-RS-04`, `FE-RS-14`): Aprovado (5/5), nenhuma ressalva em
+aberto.** Fecha a validação funcional do lote — checklist da Seção 14.7 100%. Nenhum
+bug de severidade alta/crítica em aberto; `QA-DEBT-014` fechado; nenhum novo achado
+nesta revalidação pontual. O bloqueio em cascata sobre o fechamento de Lote 1+
+(Seção 14.6) está removido: lotes seguintes podem agora ser fechados/deployados
+sem dependência pendente do Lote 0.
+
+Nenhum padrão recorrente identificado nesta rodada (1 bug isolado, já corrigido em
+1 ciclo) — nenhum escalonamento a `tech-lead`/`BLOCKERS.md`.
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -2021,3 +2340,5 @@ satisfeitas** — `BE-REF-06` pode prosseguir, sujeito à observação de
 | 2026-09-04 (veredito de lote) | Lote "Categorização (Fase 2.1)": FE-REF-06 (1) + QA-REF-04 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (1/1), nenhuma ressalva | 0 | Nenhum novo |
 | 2026-09-04 (veredito de lote) | Lote "Formas de Pagamento Unificadas (Fase 2.1)": BE-REF-01, BE-REF-03, BE-REF-04, BE-REF-05, FE-REF-04, FE-REF-05 (6) + QA-REF-03 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (6/6), nenhuma ressalva individual | 0 | QA-DEBT-013 (baixa, observação de processo/release-readiness — `BE-REF-06` ainda não tem nenhuma flag real no código para "desligar", apesar de `DIR-39` pressupor uma já existente a ser ligada) |
 | 2026-09-04 (veredito de lote) | Lote "Orçamento (Fase 2.1)": FE-REF-07 (1) + QA-REF-05 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (1/1), nenhuma ressalva | 0 | QA-DEBT-012 (baixa, débito de design token pré-existente — contraste `text-warning`/`warning-soft` do `ProgressBar`, não é regressão desta tarefa) |
+| 2026-09-04 (veredito de lote) | Lote "Design System (Redesign v2.0, Lote 0)": FE-RS-01, FE-RS-02, FE-RS-03, FE-RS-04, FE-RS-14 (5) | **Reprovado** (lote) — Aprovado (3/5 — FE-RS-02/04/14), Aprovado com ressalva (1/5 — FE-RS-03, herda o achado abaixo), **Reprovado (1/5 — FE-RS-01)** — `QA-REPORT.md` Seção 14.6 | **1 (`QA-BUG-001`, Alta — regressão de contraste WCAG 2.1 AA em `--color-neutral-500`, introduzida por `FE-RS-01`, propagada a 29 arquivos de produção)** | QA-DEBT-014 (baixa, valor de `--shadow-elevation-md` diverge do literal de `UX-SPEC.md`) |
+| 2026-09-05 (revalidação pontual — só `QA-BUG-001`) | Lote "Design System (Redesign v2.0, Lote 0)": revalidação de `FE-RS-01` (correção de `--color-neutral-500` → `#6E726B`) + ressalva herdada de `FE-RS-03` | **Aprovado** (lote, fecha o Reprovado de 2026-09-04) — Aprovado (5/5 — FE-RS-01 reaprovado, FE-RS-03 sem mais ressalva, FE-RS-02/04/14 mantidos) — `QA-REPORT.md` Seção 14.8 | 0 (contraste recalculado de forma independente confirma ≥4,5:1 nos 2 fundos; ordem monotônica da rampa 400/500/600 preservada; 316/316 testes, 1 flake isolado de `UnlockPage.test.tsx` não relacionado, confirmado por reexecução) | `QA-DEBT-014` fechado (correção confirmada no mesmo arquivo) |

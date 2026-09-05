@@ -2088,3 +2088,708 @@ ressalva de rastreabilidade (item 1) é uma recomendação de processo ao dono d
 partir daqui volta a ser por escalonamento (bloqueio reportado por outro agente,
 incluindo a confirmação de fechamento do Bloqueio 013) ou pelos pontos fixos
 remanescentes do pipeline.
+
+---
+
+## Gate 1 (Nova Iniciativa — Redesign Visual "MyMoney v2.0") — 2026-09-04
+
+**Skill aplicada**: `tech-strategy-review`.
+**Input avaliado**: briefing de negócio recebido diretamente do stakeholder (verbatim,
+sem `PRD.md`/`PRD-TECNICO.md`/`SDD.md`/`UX-SPEC.md`/`TASK.md` específicos para esta
+iniciativa ainda — é ideia nova, não continuação de trabalho já aprovado em gate
+anterior). O "artefato" de briefing, neste caso, é atípico em relação ao Gate 1
+original: não é uma frase de problema, é um canvas de design ("MyMoney v2.0 —
+Mockups") com 8 artboards prontos — Main/Dashboard, Lançamentos, Contas & Cartões,
+Categorias, cada uma em versão desktop e Mobile.
+**Contexto herdado**: MVP + Fase 2 + Pacote de Refinamento (Fase 2.1) já entregues e em
+produção real (`https://mymoney-lsm.vercel.app`), 1 usuário real, dado real em
+produção. Nenhum bloqueio `Aberto` relevante a esta iniciativa em `BLOCKERS.md` (único
+item aberto é débito técnico pontual de trigger de banco, não relacionado a
+redesign/UI). `GUARDRAILS.md` vigente (G-01 a G-18 aprovados, G-19 ainda pendente de
+veredito em rodada separada, não relacionada a este gate).
+
+### Objetivo de negócio
+
+**Gap real, a registrar sem meio-termo**: diferente do Gate 1 original — onde o
+stakeholder nomeou o problema em uma frase própria ("hoje uso planilha e perco o
+controle") — aqui não há, em nenhum lugar do briefing recebido, uma frase equivalente
+para o redesign. O que existe é o resultado de um trabalho de design já feito (8
+artboards cobrindo as 4 telas principais, web e mobile), não a razão de ele existir.
+Isso é estruturalmente diferente de "orçamento/prazo não declarados" (que registrei
+como ressalva não-bloqueante no Gate 1 original) — ali a ausência era de um dado
+acessório à execução; aqui a ausência é do próprio motivo de a iniciativa existir, que
+é exatamente o que este gate existe para checar antes de liberar o PM
+(`AGENT-TEMPLATE.md`, Inputs Esperados: "Bloqueia: CTO não libera o PM sem um objetivo
+de negócio explícito").
+
+Não trato isso como bloqueio total, por três razões concretas, não por complacência:
+
+1. **O canvas de mockups é, ele mesmo, evidência de um briefing genuíno** — 8
+   artboards para as 4 telas centrais do produto, em dois breakpoints cada, é um
+   volume de trabalho de design deliberado, não um placeholder ou uma ideia solta.
+   Satisfaz a exigência formal de "existe um briefing" (`AGENT-TEMPLATE.md`, tabela de
+   Inputs Esperados), mesmo sem uma frase de problema equivalente à do Gate 1
+   original.
+2. **O nome do próprio artefato** ("MyMoney v2.0") já implica uma hipótese de
+   continuidade de produto (evolução, não substituição por outro produto), o que é
+   coerente com o histórico deste projeto e não contradiz nada já aprovado.
+3. **Este projeto é solo, sem stakeholder externo a convencer** — diferente de uma
+   iniciativa em empresa com múltiplos interessados, aqui não há risco de eu liberar o
+   PM para investir tempo de terceiros sem justificativa. O único "custo" de avançar
+   sem a razão declarada é o próprio tempo do stakeholder — que ele já decidiu investir
+   ao produzir os 8 mockups.
+
+Dito isso, **não aceito "porque os mockups existem" como substituto de um objetivo de
+negócio no `PRD.md`**. Um redesign sem problema nomeado tende a virar troca de
+verniz sem critério de sucesso mensurável (Critério de Pronto do Gate 1: "objetivo de
+negócio está declarado explicitamente, não é só 'fazer um app'" — aqui, o equivalente
+seria "não é só 'trocar o visual'"). Registro como **condição de aceite do próximo
+gate, não deste**: a primeira tarefa do PM, antes de qualquer decomposição de escopo
+no `PRD.md`, é extrair do stakeholder — em conversa direta, fora da cadeia de agentes,
+mesmo mecanismo já usado por mim no Bloqueio 003/004 desta esteira — qual das
+hipóteses abaixo (ou outra) é o motivo real, porque cada uma implica um `PRD.md`
+diferente:
+
+- **(a) Modernização visual pura** (o produto funciona bem, mas o design atual
+  parece datado/inconsistente) → critério de sucesso é subjetivo/qualitativo
+  (percepção do próprio stakeholder), PRD mais enxuto, foco em design system e
+  consistência visual.
+- **(b) Problema de usabilidade concreto** (alguma tela é lenta de usar, exige
+  cliques demais, esconde informação importante) → PRD precisa nomear a tela e o
+  sintoma específico, com critério de aceite comportamental (ex.: "reduzir X cliques
+  para Y ação"), não só visual — mesmo padrão que o UX/UI já aplicou no Pacote de
+  Refinamento (RF-REF-01, meta de redução de rolagem do dashboard, ver Gate 3 "Pacote
+  de Refinamento").
+- **(c) Consistência/maturidade de design system** (telas foram implementadas em
+  momentos diferentes — MVP, Fase 2, Fase 2.1 — e divergiram visualmente entre si) →
+  PRD foca em unificar tokens/componentes de `UX-SPEC.md` Seção 3 ("Design System e
+  Componentes"), não em redesenhar cada tela do zero.
+- **(d) Preparação para uso além do stakeholder único** (ex.: eventual
+  compartilhamento do produto, ou simplesmente elevar o padrão para uso próprio mais
+  frequente) → muda a proporcionalidade do investimento a fazer, coerente com a régua
+  já usada desde o Gate 1 original ("evitar arquitetura/decisão desproporcional a
+  projeto pessoal de usuário único" — aqui aplicada ao esforço de redesign, não à
+  arquitetura).
+
+Não decido qual é — não tenho essa informação, e não é uma decisão que o CTO tome por
+inferência. Fixo isto como ressalva de carregar ao `PRD.md`, não como bloqueio deste
+gate, pelas três razões acima.
+
+### Alinhamento com roadmap
+
+Alinhado. Esta não é uma iniciativa concorrente com nada em andamento — MVP, Fase 2 e
+Pacote de Refinamento (Fase 2.1) estão todos entregues e em produção
+(`CTO-REVIEW.md`, Gate 3 original e Gate 3 "Pacote de Refinamento"), sem nenhum
+`TASK.md` aberto em execução no momento. Redesign visual das telas centrais é uma
+evolução plausível de produto depois de um ciclo de refinamento funcional — mesma
+lógica de sequenciamento (funcional primeiro, polimento depois) que o próprio Pacote
+de Refinamento já seguiu em relação ao MVP/Fase 2. Nenhum orçamento/prazo formal segue
+declarado em nenhum artefato upstream (mesmo fato desde o Gate 1 original) — não há
+"roadmap de longo prazo" formal contra o qual medir incompatibilidade, e esta
+iniciativa não contradiz nada que já esteja nele.
+
+### Risco de escopo — redesign das 4 telas de uma vez é o tamanho certo?
+
+**Não, recomendo faseamento explícito — mesma régua já usada no Gate 1 original para
+o escopo do MVP.** Motivos concretos:
+
+1. **Declaração de capacidade já fixada neste projeto**: desde o Gate 3 original,
+   está registrado como fato assumido para todo planejamento — "este projeto é de
+   execução solo... o esforço total decorrido tende a se aproximar do somatório de
+   esforço, não do caminho crítico mais curto". Isso não mudou, e o próprio Pacote de
+   Refinamento (Gate 3, "Pacote de Refinamento") confirmou essa declaração com
+   evidência real de entrega, não só hipótese. Um redesign de 4 telas × 2 breakpoints
+   simultaneamente é, por natureza, um escopo largo e paralelo — o tipo de escopo que
+   mais sofre com a realidade solo/serial já demonstrada.
+2. **Precedente de tamanho comparável já entregue**: o Pacote de Refinamento (5 lotes,
+   ~15,5 dias ideais) tratou de ajustes pontuais e localizados em telas já
+   existentes, e ainda assim foi corretamente desenhado como "5 lotes mutuamente
+   independentes" para não criar um caminho crítico único cruzando todas as telas. Um
+   redesign visual completo das 4 telas centrais é, em volume de superfície de UI
+   tocada, maior que o Pacote de Refinamento — a mesma lógica de decompor em lotes
+   independentes (por tela, ou por camada — design system/tokens primeiro, depois
+   telas) se aplica com ainda mais força aqui, não menos.
+3. **Risco de regressão funcional escondido em redesign visual**: como cada uma das 4
+   telas já tem funcionalidade real em produção (lançamentos, contas/cartões,
+   categorização, dashboard — os 4 domínios centrais do produto, cobertos por MVP +
+   Fase 2 + Fase 2.1), redesenhar todas de uma vez maximiza a superfície de regressão
+   testável em um único ciclo, em vez de permitir validar uma tela redesenhada em uso
+   real antes de avançar para a próxima. Faseamento por tela (ou por par
+   desktop/mobile de uma mesma tela) reduz esse risco sem custo adicional de
+   arquitetura.
+
+Recomendação (para o PM formalizar, não decisão minha de escopo tático): tratar as 4
+telas como fases/lotes independentes no `PRD.md`/`TASK.md`, com uma ordem sugerida
+começando pela tela de maior uso ou maior tempo de tela aberta (`get_month_provision`/
+Dashboard é a mais citada como alvo de otimização no histórico deste projeto — ver
+Gate 3 "Pacote de Refinamento", RF-REF-01), em vez de assumir corte único "tudo pronto
+ao mesmo tempo". Isso não bloqueia o Gate 1 — é ressalva para o levantamento, no mesmo
+padrão já usado para o faseamento MVP/Fase 2/Fase 3 do Gate 1 original.
+
+### Impacto em usuários e dados já em produção
+
+Diferente do MVP original (onde não havia nada em produção para quebrar), esta
+iniciativa nasce sobre um produto real, em uso real, com dado real de um usuário —
+isso muda o perfil de risco em relação ao Gate 1 original, mesmo sendo "só" redesign
+visual. Pontos a fixar como condição de aceite para o Software Architect/UX-UI, não
+para o PM decidir sozinho:
+
+1. **Escopo declarado como camada de apresentação, não modelo de dados.** Um redesign
+   visual não deveria, por definição, exigir mudança de schema/contrato de API
+   (`SDD.md`, `API-CONTRACT.yaml`) — mas "redesign" é historicamente um dos disfarces
+   mais comuns para mudança de regra de negócio não planejada ("já que estamos
+   mexendo na tela X, vamos mudar o fluxo Y também"). Fixo isto como guardrail
+   candidato a propor ao Tech Lead quando `GUARDRAILS.md` for revisado para esta
+   iniciativa: toda mudança de comportamento/regra de negócio que apareça junto com o
+   redesign visual precisa ser nomeada explicitamente como requisito funcional novo no
+   `PRD.md`, nunca absorvida silenciosamente como "parte do redesign".
+2. **Stack e design system existentes são o ponto de partida, não uma decisão em
+   aberto.** `SDD.md` Seção 3 já fixa React + TypeScript + Tailwind CSS como stack de
+   UI (ADR correspondente, sem reabertura); `UX-SPEC.md` Seção 3 ("Design System e
+   Componentes") já define tokens/componentes vigentes. Este redesign é, por padrão,
+   uma **evolução** desse design system (nova versão de tokens/componentes,
+   `UX-SPEC.md` v2 ou seção nova), não uma reescrita de stack — não haveria decisão de
+   build-vs-buy nova aqui a menos que o Software Architect identifique necessidade
+   real de trocar de framework de UI, o que nada no briefing sugere.
+3. **"Mobile" nos mockups precisa de confirmação explícita de significado.** O
+   histórico deste projeto já decidiu, via `ADR-003`, web responsivo/PWA em vez de app
+   nativo — os 4 artboards "Mobile" do canvas muito provavelmente representam
+   breakpoints responsivos da mesma PWA, não uma frente de app nativo nova (que
+   reabriria `ADR-003` e o papel `mobile` do roster, hoje não acionado). Não presumo
+   — registro como pergunta a confirmar com o stakeholder antes do PM formalizar
+   escopo, para não gerar ambiguidade tipo Bloqueio 001 (mesma classe de problema:
+   suposição razoável mas não confirmada, com custo real se errada).
+4. **Continuidade de produção durante a transição.** Como há hoje 1 usuário real
+   dependendo do produto no dia a dia (mesma natureza de risco que motivou `ADR-004`/
+   `ADR-009`, RPO/backup), qualquer estratégia de corte (big-bang vs. gradual por
+   tela/feature flag) deve ser uma decisão explícita do Software Architect no `SDD.md`
+   desta iniciativa, não uma omissão. Dado que o projeto é de usuário único sem SLA
+   formal (já registrado desde o Gate 1 original), um corte direto por tela (deploy
+   tela a tela) é provavelmente proporcional — mas não decido isso aqui, é matéria de
+   Gate 2.
+5. **Acessibilidade (WCAG) não pode regredir.** `UX-SPEC.md` já trata acessibilidade
+   como requisito (convenção herdada de todas as telas existentes) — um redesign
+   visual não é licença para relaxar esse padrão; UX/UI deve tratar isso como critério
+   de aceite de cada tela redesenhada, não como revisão à parte.
+
+Nenhum destes 5 pontos bloqueia o Gate 1 — são condições de aceite que carrego para o
+Gate 2 (quando o Software Architect produzir `SDD.md`/ADR desta iniciativa) e para a
+revisão de `GUARDRAILS.md` que o Tech Lead deverá propor.
+
+### Gap de roster
+
+Nenhum gap crítico. Papéis envolvidos: `pm`, `business-analyst` (se o levantamento
+precisar formalizar RN/RF além do puramente visual), `software-architect` (decisão de
+faseamento técnico e estratégia de corte), `ux-ui` (dono natural desta iniciativa —
+mockups já são, na prática, um rascunho avançado do que seria o próximo
+`UX-SPEC.md`), `tech-lead`, `frontend`, `qa`. Duas observações, não bloqueantes:
+
+1. **`mobile` segue não acionado**, condicionado à confirmação do ponto 3 da seção
+   anterior (Mobile = breakpoint responsivo, não app nativo). Se a resposta do
+   stakeholder contrariar essa hipótese, isso deixa de ser uma questão de roster e
+   vira reabertura de `ADR-003` — escalada a mim no Gate 2, não decidida pelo PM.
+2. **Proporcionalidade do processo formal ao tamanho da mudança**: como este é
+   majoritariamente um esforço de camada de apresentação sobre domínios de negócio já
+   modelados e estáveis (nenhuma entidade nova, nenhuma regra de negócio nova
+   presumida), recomendo ao PM e ao Business Analyst avaliar se `PRD-TECNICO.md`
+   precisa de um tratamento completo novo ou se pode referenciar/herdar as RNs já
+   formalizadas nos `PRD-TECNICO.md`/ADRs existentes, tratando apenas o que for
+   genuinamente novo (ex.: item (b)/(c) da lista de hipóteses acima, se confirmado).
+   Não é uma decisão que eu tome no lugar deles — é uma sugestão de proporcionalidade,
+   mesma régua já usada desde o Gate 1 original ("não superdimensionar a solução").
+
+### Questões a esclarecer com o stakeholder antes do PM iniciar o levantamento
+
+Consolidando os pontos acima em uma lista objetiva, para que o PM leve isso à primeira
+conversa, antes de escrever a primeira linha do `PRD.md`:
+
+1. Qual das hipóteses (a)-(d) da seção "Objetivo de negócio" (ou outra) é o motivo real
+   do redesign — e qual é o critério de sucesso correspondente?
+2. As 4 telas devem ser entregues como um corte único ou em fases/lotes
+   independentes? (Recomendo fases; decisão final é do PM/stakeholder.)
+3. O redesign é estritamente visual (camada de apresentação) ou também muda
+   comportamento/fluxo de alguma tela? Se mudar, isso precisa virar requisito
+   funcional nomeado, não "parte do redesign".
+4. As versões "Mobile" dos mockups são breakpoints responsivos da mesma PWA (hipótese
+   assumida, coerente com `ADR-003`) ou sinalizam intenção de app nativo?
+5. Existe alguma hipótese de orçamento/prazo para esta iniciativa (mesma lacuna já
+   registrada como não-bloqueante desde o Gate 1 original, reafirmada aqui)?
+
+### Veredito: Aprovado com ressalvas
+
+O PM está liberado para iniciar o levantamento detalhado desta iniciativa (redesign
+visual "MyMoney v2.0"). Ressalvas a carregar, sem bloquear o início do trabalho:
+
+1. Antes de decompor escopo no `PRD.md`, o PM deve extrair do stakeholder o motivo de
+   negócio real do redesign (uma das hipóteses (a)-(d) da seção "Objetivo de negócio",
+   ou outra), com critério de sucesso correspondente — isto substitui, para esta
+   iniciativa, a exigência padrão de "objetivo de negócio declarado explicitamente" do
+   Gate 1, que hoje só está satisfeita indiretamente pelo volume de mockups já
+   produzidos, não por uma frase de problema equivalente à do Gate 1 original.
+2. `PRD.md` deve propor faseamento explícito por tela (ou por camada de design
+   system, se aplicável) em vez de assumir entrega simultânea das 4 telas × 2
+   breakpoints — mesma lógica já usada para o faseamento MVP/Fase 2/Fase 3 original.
+3. Escopo desta iniciativa deve ser declarado, por padrão, como camada de
+   apresentação — qualquer mudança de regra de negócio/comportamento que apareça
+   junto precisa ser nomeada como requisito funcional novo, nunca absorvida
+   silenciosamente "porque já estamos mexendo na tela".
+4. Confirmar explicitamente com o stakeholder se "Mobile" nos mockups significa
+   breakpoint responsivo (hipótese assumida, coerente com `ADR-003` já aprovado) ou
+   app nativo — se for a segunda opção, isso escala a mim como reabertura de `ADR-003`
+   no Gate 2, não é decisão do PM.
+5. Estratégia de corte em produção (big-bang vs. gradual por tela) e não-regressão de
+   acessibilidade (WCAG) ficam para o Software Architect/UX-UI resolverem e
+   justificarem no `SDD.md`/`UX-SPEC.md` desta iniciativa — revisão minha no Gate 2.
+6. Nenhum gap de roster bloqueia o início; `mobile` segue não acionado, condicionado à
+   ressalva 4.
+
+Nenhum bloqueio a registrar em `BLOCKERS.md` neste gate — as questões em aberto são
+esclarecimentos a levantar pelo PM na descoberta, não um conflito entre agentes.
+
+### Nota de acompanhamento — 2026-09-04 (Bloqueio 021, pulso de capacidade/prazo)
+
+**Não reabre este Gate.** O veredito acima ("Aprovado com ressalvas") permanece
+válido e inalterado para tudo o que ele efetivamente avaliou — objetivo de negócio,
+natureza de camada de apresentação, faseamento por lote, "Mobile" = breakpoint
+responsivo. Registro aqui apenas o resultado do pulso de capacidade/prazo pedido pelo
+PM em `BLOCKERS.md`, Bloqueio 021, sobre um fato novo posterior a este gate: o
+stakeholder corrigiu o escopo do redesign de "4 telas com mockup" para "todo o
+projeto" (`PRD.md`, Adendo B, Seções B.4/B.5 — 14 lotes, Grupo A = Lotes 0-4 com
+mockup direto, Grupo B = Lotes 5-13, ~9 domínios adicionais, redesenhados por
+extrapolação do design system do Lote 0). A análise de risco de execução acima (seção
+"Risco de escopo") foi construída sobre o dimensionamento original — este pulso
+estende essa análise ao dimensionamento ampliado, sem alterá-la.
+
+**Resumo do parecer** (resolução completa em `BLOCKERS.md`, Bloqueio 021):
+
+1. **Viabilidade**: a "Declaração de capacidade" do Gate 3 original (execução solo/
+   serial, esforço tende ao somatório, não ao caminho crítico) se aplica sem exceção a
+   14 lotes — não reprovo o escopo ampliado, pela mesma razão já registrada no Gate 3
+   original (não há restrição de prazo/orçamento externa a violar). Mas não endosso
+   uma extrapolação aritmética linear do histórico da Fase 2.1 (~15,5 dias/5 lotes) para
+   os 14 lotes — o Grupo B carrega uma carga de decisão de design (extrapolação ainda
+   não validada, B6.11 do `PRD.md`) e lotes de tamanho não-uniforme (Lote 9 agrega 4
+   sub-domínios, Lote 12 agrega 9 telas) que o histórico de refinamento pontual da Fase
+   2.1 não tinha. Condição vinculante ao Tech Lead: nenhuma estimativa agregada de
+   prazo para os Lotes 5-13 em `TASK.md` antes de o Lote 0 e ao menos um lote do Grupo
+   A estarem executados e validados em produção, usando velocidade real observada como
+   calibração.
+2. **Nível de detalhe do Grupo B**: recomendo detalhamento mais leve que o Grupo A —
+   inventário + restrições conhecidas por domínio, não RN/RF completos tela a tela —
+   com aprofundamento incremental lote a lote, próximo à execução de cada um. Motivo:
+   o design system a extrapolar ainda não foi validado em produção, e o próprio
+   `PRD.md` já delega ao `ux-ui`/Tech Lead liberdade de reagrupar os Lotes 5-13, o que
+   tornaria detalhamento antecipado completo um risco de retrabalho descartável.
+   Concordo com a classificação Now/Next/Later proposta pelo PM para o Grupo B, sem
+   reordenação adicional.
+3. **BA pode prosseguir agora**: sim, com `PRD-TECNICO.md` cobrindo o Grupo A em
+   detalhamento padrão completo e o Grupo B em nível de inventário/conteúdo (não
+   descoberta técnica completa). Não é necessária uma rodada de descoberta separada
+   para o Grupo B — o aprofundamento acontece lote a lote, junto com `ux-ui`/Tech
+   Lead, antes de cada lote específico iniciar.
+
+Este pulso não altera nenhuma ressalva já registrada acima nem gera novo veredito de
+gate — é orientação de processo para a execução, resolvendo o Bloqueio 021 como
+`Resolvido`.
+
+---
+
+## Gate 2 (Redesign Visual "MyMoney v2.0", Adendo B) — 2026-09-04
+
+**Skills aplicadas**: `architecture-decision-review` (ADR-017 e ADR-018 integralmente),
+`build-vs-buy-analysis` (componente do próprio ADR-017 — pacote/monorepo e Storybook
+como "buy"/adoção de ferramenta nova vs. reaproveitar o que já existe),
+`risk-and-compliance-check` (`SDD.md` Adendo B, Seção B.7, e riscos B.6.1/B.6.2).
+**Input avaliado**: `SDD.md` Adendo B (Seções B.1-B.7 + Checklist de Pronto),
+`.md/adr/017-...md`, `.md/adr/018-...md`, lidos por inteiro.
+**Contexto herdado (não redecidido, só usado como referência)**: `PRD.md` Adendo B,
+`PRD-TECNICO.md` Adendo B (RF-RS-00 a 04, RNF-15/16/18/19, RN-19/20),
+`CTO-REVIEW.md` "Gate 1 (Nova Iniciativa — Redesign Visual 'MyMoney v2.0')" e sua nota
+de acompanhamento sobre o Bloqueio 021, `BLOCKERS.md` Bloqueio 021 (resolução do próprio
+CTO sobre capacidade/prazo dos 14 lotes). Nenhum destes três é reaberto aqui.
+
+### 1. ADR-017 — sem pacote separado, sem Storybook: acoplamento é risco real ou decisão sólida?
+
+**Sólida.** Três motivos concretos, não apenas concordância de princípio:
+
+- **A premissa central não é hipotética, é empírica.** A "repaginada visual" de
+  2026-09-04 (`UX-SPEC.md` Seção 3.1) já provou, em produção real, que o mecanismo de
+  token único em `@theme` se propaga para toda a árvore de componentes sem tocar em
+  nenhum arquivo de componente. Isso é a evidência mais forte que este projeto pode
+  produzir para a pergunta "o design system atual aguenta 14 lotes de reuso?" —
+  diferente de uma promessa de arquitetura ainda não testada, já foi testada, com o
+  volume real de superfície do produto inteiro, não uma amostra.
+- **A alternativa rejeitada (Opção 2, pacote/monorepo) resolveria um problema que
+  este projeto não tem.** Extração para pacote npm interno se paga quando existem
+  múltiplos consumidores com necessidade de versionamento independente — este projeto
+  tem exatamente um frontend. Eu mesmo fixei essa régua no Gate 1 desta iniciativa
+  ("não haveria decisão de build-vs-buy nova aqui a menos que o Software Architect
+  identifique necessidade real de trocar de framework de UI, o que nada no briefing
+  sugere") — ADR-017 aplica essa régua corretamente, não a contorna.
+- **O "acoplamento" real dos 14 lotes à mesma estrutura não é um risco novo introduzido
+  por esta decisão — é uma característica que já existe desde o MVP**, porque
+  `components/base/*`/`components/domain/*` já são compartilhados por construção entre
+  MVP, Fase 2 e Pacote de Refinamento. ADR-017 não cria esse acoplamento, só decide não
+  desfazê-lo às pressas por causa do volume do Grupo B. O blast radius de uma mudança
+  de componente-base já era igual à aplicação inteira antes deste redesign existir —
+  formalizar isso como requisito explícito de regressão completa (ADR-018) é a resposta
+  correta, não extração de pacote.
+
+Concordo, também, com a decisão de não introduzir Storybook nesta rodada: nenhum RF/RNF
+do Adendo B pede catálogo executável de componente, e a combinação
+`UX-SPEC.md` Seção 3 (documentação tabular) + suíte `*.test.tsx` já existente cobre o
+papel de "onde ver o comportamento esperado de cada componente" para um único
+desenvolvedor. Não é uma porta fechada em definitivo (B.6.2 registra condição de
+revisão) — mas concordo que o gatilho hoje é hipotético demais para justificar
+ferramenta nova. Ressalva não-bloqueante: a condição de revisão registrada
+("se o volume real do Grupo B revelar necessidade concreta") é vaga o suficiente para
+nunca disparar sozinha — recomendo ao Tech Lead, ao decompor `TASK.md`, anexar um
+gatilho objetivo (ex.: "se 2 lotes consecutivos do Grupo B reportarem retrabalho
+mensurável por falta de isolamento de componente"), não decisão minha de impor agora.
+
+### 2. ADR-018 — corte direto sem feature flag: precedente do projeto e custo da regressão completa
+
+**Verifiquei especificamente o precedente de feature flag pedido**: este projeto já usa
+feature flag em produção duas vezes — `DIR-26`/`BE-F3-04` (Open Finance, flag desligada
+até `SPK-003` ser resolvido) e `DIR-36`/`DIR-39` + Bloqueio 013 (formulário de forma de
+pagamento unificado, flag condicionada ao fechamento de um achado de segurança do
+DevSecOps antes do deploy). **Em ambos os casos, a flag existe para conter risco
+funcional/de segurança de uma mudança de comportamento ainda não validada** — não para
+alternância cosmética. O redesign visual é, por confirmação explícita e verificável do
+próprio SDD (Seção B.5, "nenhuma mudança de modelo de dados"; Seção B.7, "nenhuma
+mudança de arquitetura de segurança"), estruturalmente diferente dessa classe de risco:
+não há comportamento novo, não há dado novo, não há política de RLS nova a validar antes
+de expor. **O precedente deste projeto não sustenta a necessidade de feature flag
+aqui — sustenta o oposto**: o projeto já reserva feature flag para quando há risco
+funcional/segurança real a conter, e ADR-018 aplica esse mesmo critério corretamente ao
+concluir que este caso não se qualifica. Concordo com o racional: `git revert` +
+redeploy via pipeline já existente é proporcional quando não há dado a corrigir, só
+apresentação a reverter.
+
+**Custo da regressão completa obrigatória em 14 lotes vs. capacidade solo/serial**:
+esta era minha maior preocupação ao abrir esta revisão, e fui verificar diretamente o
+que "suíte completa" custa neste projeto antes de aceitar a premissa do ADR.
+`TEST-PLAN.md` confirma que a "suíte completa" já é, por convenção estabelecida desde o
+MVP (não uma novidade introduzida por este ADR), a reexecução automatizada de
+`supabase/tests/*.test.sql` + `*.test.tsx` (Vitest) + `npm run build` — não uma
+varredura manual tela a tela. Isso muda materialmente minha avaliação de risco: o custo
+recorrente que ADR-018 impõe a cada um dos 14 lotes é o tempo de rodar uma suíte
+automatizada já em uso rotineiro em todas as tarefas do projeto, não um novo processo de
+QA manual multiplicado por 14. Nesse sentido, o requisito é compatível com a capacidade
+solo/serial já registrada — não introduz um multiplicador de esforço proporcional ao
+número de lotes, como uma varredura manual completa introduziria.
+
+Ressalva não-bloqueante, a carregar para o Gate 3 (`TASK.md`): não encontrei, em nenhum
+dos dois ADRs nem no Adendo B, confirmação explícita de que a verificação de
+acessibilidade (WCAG, "0 regressões... de acessibilidade", texto do próprio ADR-018) é
+igualmente automatizada (ex. `jest-axe` ou equivalente já embutido nos testes
+`*.test.tsx`) ou se depende de checagem manual adicional a cada lote. Se for a segunda
+opção, o custo por lote deixa de ser desprezível e precisa entrar explicitamente na
+calibração de velocidade real que eu mesmo fixei como condição vinculante no Bloqueio
+021 (Lote 0 + 1 lote do Grupo A antes de qualquer estimativa agregada dos Lotes 5-13).
+Não bloqueio este Gate 2 por isso — é uma pergunta de execução para o Tech Lead/QA
+confirmarem ao decompor `TASK.md`, não uma falha de arquitetura.
+
+### 3. Os ADRs estão fundamentados o suficiente para virar decisão final?
+
+**Sim, sem ressalva quanto à forma.** Os dois ADRs seguem a mesma disciplina já exigida
+desde os ADRs anteriores deste projeto: Contexto, Decision Drivers rastreados a
+requisito/artefato de origem (não genéricos), opções alternativas reais com prós/contras
+explícitos (inclusive as rejeitadas), racional escrito por trade-off (não só a escolha
+final), consequências positivas e negativas nomeadas, e — no caso de ADR-018 em
+particular — uma seção própria só para o requisito de arquitetura decorrente (regressão
+completa) que poderia facilmente ter sido deixado implícito e não foi. Ambos citam
+evidência verificável (a repaginada de 2026-09-04) em vez de argumento só teórico, e
+ambos têm seção "Links" nomeando consumidores downstream (`ux-ui`, `tech-lead`,
+`frontend`, `qa`) — condição que uso desde os primeiros ADRs deste projeto para
+considerar um ADR pronto para virar decisão vinculante, não rascunho.
+
+### 4. Segurança e compliance (nível estratégico)
+
+Confirmo a leitura do próprio SDD (Seção B.7): risco mínimo. Nenhuma policy de RLS nova,
+nenhuma mudança de autenticação/autorização/criptografia/isolamento multi-tenant,
+nenhum dado pessoal novo coletado, nenhuma integração externa nova — o inventário do
+Lote 5 confirma explicitamente que RF-MVP-08 e a remoção do 2º fator por e-mail
+(`ADR-014`) não são tocados por este redesign. Sob a ótica de LGPD, um redesign
+puramente de camada de apresentação, sem novo campo de formulário coletando dado
+pessoal e sem novo destino de dado, não muda a superfície de tratamento de dado pessoal
+já avaliada nos ADRs de segurança anteriores (`ADR-005`, `ADR-010`, `ADR-013`,
+`ADR-014`). Não há achado aqui que substitua a análise tática do DevSecOps — não
+identifico, no nível estratégico que me cabe, nenhum risco que justifique acionar
+`devsecops-engineer` fora do fluxo normal de revisão de cada lote.
+
+### Veredito: Aprovado com ressalvas
+
+**ADR-017 e ADR-018 tornam-se decisões finais.** Nenhuma das duas exige correção do
+Software Architect antes de seguir — as ressalvas abaixo são condições de
+acompanhamento para o Gate 3 (`tech-lead`/`TASK.md`), não bloqueios a este gate:
+
+1. Ao decompor `TASK.md`, o Tech Lead deve confirmar explicitamente se a verificação de
+   acessibilidade por lote (WCAG, exigida por ADR-018) é automatizada (embutida na
+   suíte já existente) ou manual — se manual, esse custo deve entrar na calibração real
+   de velocidade exigida pela condição vinculante do Bloqueio 021 (Lote 0 + 1 lote do
+   Grupo A antes de qualquer estimativa agregada dos Lotes 5-13), não ser tratado como
+   custo zero por analogia à suíte automatizada.
+2. A recomendação do Software Architect de "fronteira de PR = fronteira de camada de
+   apresentação" (`SDD.md` Adendo B, B.1 item 3) é boa prática concreta para tornar
+   RNF-15/RN-19 auditável por diff — recomendo ao Tech Lead formalizá-la como entrada
+   em `GUARDRAILS.md` antes do início do Lote 0, não deixá-la como recomendação solta
+   sem rastro. Se proposta, será avaliada por mim como qualquer mudança de
+   `GUARDRAILS.md` (governança ad hoc).
+3. A condição de revisão de ADR-017 sobre Storybook ("se o volume real revelar
+   necessidade concreta") é vaga demais para funcionar como gatilho por si só —
+   recomendo ao Tech Lead anexar um critério objetivo ao decompor os lotes do Grupo B,
+   sem reabrir o ADR para isso.
+4. Nenhuma das ressalvas acima altera a confirmação de B.5/B.7: zero mudança de
+   backend, schema, RLS ou modelo de segurança nesta rodada — reafirmo essa leitura do
+   Software Architect sem qualquer divergência.
+
+Nenhum bloqueio a registrar em `BLOCKERS.md` neste gate — não há conflito entre agentes,
+só condições de acompanhamento que sigo pelo mecanismo normal de ressalva de gate.
+
+---
+
+## Gate 3 (Redesign Visual "MyMoney v2.0", Grupo A — Lotes 0-4) — 2026-09-04
+
+**Skills aplicadas**: `capacity-and-timeline-validation` (`TASK.md`, restrito aos Lotes
+0-4 — nenhuma estimativa do Grupo B existe ainda para validar, `BLOCKERS.md` Bloqueio
+021), `guardrails-governance` (`GUARDRAILS.md` Seção 9, `G-20`/`G-21`).
+**Input avaliado**: `TASK.md` — Nota de Inclusão (Adendo B), Seção 1.9 (`DIR-40` a
+`DIR-45`), Seção 2 (nota de spikes), Seção 3.5/3.6, Seção 4.5, Seção 5 (riscos 12-16),
+Seção 6.1.1 (`UX-03`), Seção 6.2 (`DET-12` a `DET-18`), Seção 6.3.2, Checklist de
+Pronto do Adendo — + `GUARDRAILS.md` Seção 9 (`G-20`/`G-21` propostos).
+**Contexto herdado (não redecidido)**: `CTO-REVIEW.md` "Gate 1 (Nova Iniciativa —
+Redesign Visual 'MyMoney v2.0')" + nota de acompanhamento (Bloqueio 021), "Gate 2
+(Redesign Visual 'MyMoney v2.0', Adendo B)"; `BLOCKERS.md` Bloqueios 021/022/023;
+`ADR-017`/`018`/`019`.
+
+### Retomada de pendências desde o Gate 2 desta iniciativa
+
+| Pendência | Origem | Como foi endereçada | Avaliação do CTO |
+|---|---|---|---|
+| Ressalva 1 (mecanismo de verificação de acessibilidade automatizado ou manual) | Gate 2 desta iniciativa | `DET-13`: confirmado que hoje é 100% manual (nenhuma dependência `jest-axe`/`vitest-axe` existente); `vitest-axe` introduzido a partir do Lote 0 (`QA-RS-02`, 0.75 dia) para a parte estrutural (labels/roles/landmarks/foco alcançável); checagem manual complementar de contraste real explicitada e custeada por lote (`QA-RS-01`/`03`/`04`/`06`/`07`) | **Atendida com precisão, não com suposição.** Respondi pedindo um número real em vez de uma presunção de custo zero — o Tech Lead entregou exatamente isso, com o racional técnico correto (`jsdom` não renderiza `color-contrast` de forma confiável) e o custo residual manual mantido explícito, não escondido dentro de uma estimativa de automação otimista. |
+| Ressalva 2 (formalizar "fronteira de PR" como guardrail) | Gate 2 desta iniciativa | `G-20`/`G-21` propostos em `GUARDRAILS.md` Seção 9, submetidos junto deste `TASK.md` | **Atendida.** Avaliação completa abaixo (`guardrails-governance`). |
+| Ressalva 3 (gatilho objetivo para reavaliar Storybook) | Gate 2 desta iniciativa | Não gerou `DET` dedicado — registrado como recomendação ao próprio Tech Lead para quando decompuser os Lotes 5-13 | **Aceito por ora, não bloqueante** — mas ver ressalva 3 do meu veredito abaixo: não deixo isso solto indefinidamente. |
+| Condição vinculante do Bloqueio 021 (nenhuma estimativa agregada do Grupo B antes de Lote 0 + Lote 1 em produção) | `BLOCKERS.md` Bloqueio 021 (minha própria resolução) | Seção 3.6 não decompõe nenhuma tarefa do Grupo B; Seção 4.5 e Seção 5 reafirmam a condição explicitamente; Checklist de Pronto confirma "satisfeito vacuamente, não é lacuna" | **Respeitada à risca, sem tentativa de contorno.** Não há decomposição parcial, estimativa "informal" ou pré-comprometimento de prazo para o Grupo B em nenhum lugar do documento — exatamente o que fixei como condição vinculante. |
+| Bloqueio 022 (Software Architect, `ADR-019` — primitivo `Num`, paleta confirmada sem reabrir `ADR-017`) | `BLOCKERS.md` Bloqueio 022 | `DIR-41` (Seção 1.9), `FE-RS-02` (criação do primitivo, 1.0 dia) e migração incremental por lote (`FE-RS-06`/`08`/`11`/`13`, 1.5 dia agregado) incorporadas à Seção 3.5/Seção 5 | **Custo real incorporado, não descartado.** O esforço de introduzir infraestrutura de web font + primitivo `Num` pela primeira vez no projeto está dentro dos 13.0 dias de Frontend, não tratado como "custo zero" — coerente com o achado do próprio `ADR-019` de que a premissa original do `ADR-017` não cobria esse caso. |
+| Bloqueio 023 (Business Analyst, RN-18/RF-REF-03/RF-REF-05 preservados, mockup julgado desatualizado) | `BLOCKERS.md` Bloqueio 023 | `FE-RS-07` (AC explícito de preservação de RN-18 e obrigatoriedade de `ShortcutBar`/`ShortcutChip`), `FE-RS-12` (preservação explícita do Padrão C de `CategoryCard`, "sem reverter para lista-árvore") | **Incorporada com verificação, não com presunção.** O critério de aceite de `FE-RS-07` exige confirmação por teste dedicado da hierarquia de RN-18, não apenas a declaração de que ela "deveria" ser preservada — mesmo padrão de rigor que já exijo desde o Gate 1 original. |
+
+Nenhuma pendência ficou sem resposta ou foi resolvida por fora do mecanismo correto
+(`BLOCKERS.md`/`DET`/ressalva de gate).
+
+### `capacity-and-timeline-validation` — `TASK.md` (restrito aos Lotes 0-4)
+
+#### Completude da decomposição
+
+Confirmo por leitura completa: as 20 tarefas novas (13 Frontend + 7 QA, **zero
+Backend** — confirmado de forma consistente em três pontos independentes do
+documento: Nota de Inclusão, cabeçalho da Seção 3.5 e a linha "Backend" da Seção 5,
+"Redesign Visual... 0") têm dono de papel, critério de aceite testável rastreado a
+`RF-RS-00` a `04`/`UX-SPEC.md`/`ADR-017`-`019`, e estimativa em dias ideais — nenhuma
+atende aos 4 critérios de spike (nota ao final da Seção 2, com racional explícito
+para os três pontos de incerteza técnica real desta iniciativa já resolvidos pelos
+3 ADRs). Dependências mapeadas por lote (Seção 4.5), com **Lote 0 corretamente
+tratado como pré-requisito estrutural de todos os demais** (RF-RS-00 AC5) — diferente
+do Pacote de Refinamento, onde os 5 lotes eram mutuamente independentes; aqui a
+diferença de topologia está corretamente refletida, não copiada por inércia do
+padrão anterior. A dependência de **execução, não de contrato** (`UX-03`, auditoria
+`design-system-consistency-check` completa antes do início real do Lote 0) está
+isolada corretamente como bloqueio de execução, não de estimativa — concordo com essa
+distinção, é textualmente o que RF-RS-00 AC4 exige.
+
+Zero tarefa de Backend confirmada três vezes de forma independente é, na prática, a
+evidência mais forte disponível hoje de que `G-20` (nenhuma mudança de schema/RLS/
+Edge Function/contrato de API) está sendo respeitado *antes mesmo* de entrar em
+vigor como guardrail formal — exatamente o tipo de verificação que eu pedi no Gate 1
+desta iniciativa quando registrei "redesign é um dos disfarces mais comuns para
+mudança de regra de negócio não planejada".
+
+#### Declaração de capacidade — plausibilidade dos 18.5 dias
+
+Reafirmo, sem exceção, a "Declaração de capacidade" fixada desde o Gate 3 original e
+já confirmada com evidência real de entrega pelo Pacote de Refinamento (Fase 2.1):
+execução solo/serial, esforço decorrido tende ao somatório de esforço estimado, não
+ao caminho crítico mais curto. Avalio a plausibilidade dos 18.5 dias ideais (13.0
+Frontend + 5.5 QA) contra esse histórico real, não contra uma intuição:
+
+1. **Comparação direta com o precedente mais próximo (Fase 2.1)**: o Pacote de
+   Refinamento entregou 5 lotes, ~15.5 dias ideais remanescentes, incluindo 5.0 dias
+   de Backend. Este Grupo A também tem 5 lotes, mas **zero Backend** (camada de
+   apresentação pura, por definição RNF-15/RN-19) e 18.5 dias só de Frontend+QA — a
+   granularidade das tarefas individuais é consistente com o precedente: a maior
+   tarefa isolada (`FE-RS-05`, redesign do Dashboard, 2.0 dias) está na mesma ordem
+   de grandeza das maiores tarefas de `FE-REF-*` (0.75-1.5 dia cada), sem nenhum
+   outlier que sugira subestimativa grosseira ou superestimativa artificial para
+   "sobrar folga".
+2. **O custo de infraestrutura nova (fonte web, primitivo `Num`) está explicitado, não
+   diluído.** Como já registrado na "Retomada de pendências" acima, o achado do
+   Bloqueio 022 (nenhuma infraestrutura de web font existe hoje; `formatCentsToBRL()`
+   consumida em 17 arquivos/25+ pontos de chamada) poderia facilmente ter sido
+   absorvido silenciosamente dentro de uma estimativa genérica "criar componentes
+   base" — em vez disso, `FE-RS-02` isola esse custo (1.0 dia) e a migração
+   incremental por lote está distribuída e nomeada tarefa a tarefa. Isso é evidência
+   de estimativa feita com informação real, não por analogia otimista.
+3. **Os riscos 14/15/16 (Seção 5) são exatamente o tipo de fonte de subestimativa que
+   eu esperaria ver nomeada, e estão.** Custo residual manual de acessibilidade
+   (risco 14), ausência de baseline de performance para a primeira infraestrutura
+   real de web font (risco 15), e risco de subestimativa da migração de `S-ACC-01`
+   para Padrão C se o volume real de contas divergir (risco 16) são riscos concretos
+   e nomeados, não uma lista genérica de "pode dar errado". Nenhum deles é motivo de
+   devolução — são precisamente os dados que devem alimentar a calibração real do
+   Bloqueio 021 quando Lote 0 e Lote 1 forem concluídos, o que o próprio risco 12 já
+   amarra explicitamente.
+
+**Conclusão**: os 18.5 dias ideais são uma estimativa plausível e bem-fundamentada
+para o Grupo A, dado o histórico de capacidade solo/serial já demonstrado por este
+projeto (MVP, Fase 2, Fase 2.1) — não vejo elemento que justifique reprovação ou
+devolução para reestimativa. **Isso não é o mesmo que endossar qualquer extrapolação
+aritmética a partir dela para o Grupo B** — resposta abaixo.
+
+#### Riscos nomeados (12 a 16) — avaliação do CTO
+
+| Risco | Avaliação |
+|---|---|
+| 12. Calibração do Grupo B depende de Lote 0 + Lote 1 em produção | **Concordo, sem ressalva.** É a correta reafirmação da minha própria condição vinculante do Bloqueio 021 — não decidida por este documento, só carregada adiante integralmente, como deveria ser. |
+| 13. `UX-03` pode atrasar o início real do Lote 0 sem afetar a estimativa | **Concordo com a classificação.** Mesma natureza do risco "baseline de rolagem" já visto no Pacote de Refinamento (`UX-02`) — bloqueio de execução, não de planejamento. Não bloqueia este Gate 3. |
+| 14. Acessibilidade automatizada não cobre contraste real; custo manual residual explicitado por lote | **Concordo, e recomendo captura de dado real** — ver ressalva 2 do meu veredito abaixo. |
+| 15. Primeira infraestrutura de web font sem baseline de performance (CLS/FOUT) medido | **Concordo com o tratamento como não-bloqueante**, com a recomendação já registrada pelo próprio Tech Lead de medir CLS no fechamento do Lote 1 — não exijo mais que isso agora. |
+| 16. Migração de `S-ACC-01` para Padrão C pode estar subestimada se o volume real de contas divergir | **Risco baixo e corretamente qualificado** (RNF-09, uso pessoal) — não bloqueante, sem ação adicional exigida. |
+
+Nenhum dos 5 riscos exige devolução do `TASK.md` ao Tech Lead.
+
+#### Prazo x restrição de negócio conhecida
+
+Nenhuma restrição de prazo/orçamento declarada em nenhum artefato upstream — critério
+satisfeito por ausência de contradição, mesmo padrão de todos os gates anteriores
+deste projeto.
+
+#### Nenhuma tarefa crítica sem dono
+
+Confirmado — todas as 20 tarefas têm Time preenchido (Frontend ou QA), coerente com
+RNF-15/RN-19 (zero Backend nesta rodada).
+
+#### Veredito — `capacity-and-timeline-validation`: **Aprovado com ressalvas**
+
+1. Os 18.5 dias ideais são a estimativa correta e a **única** base de comparação
+   disponível hoje — mas reafirmo, sem exceção, que ela não pode virar insumo de
+   extrapolação aritmética para o Grupo B antes de a calibração real (Lote 0 + Lote 1
+   executados e validados em produção) ocorrer. O Tech Lead respeitou essa condição
+   à risca nesta rodada, sem nenhuma tentativa de contorno — friso isso porque é
+   exatamente o comportamento que eu exigi no Bloqueio 021.
+2. Recomendo ao QA registrar explicitamente, ao fechar o Lote 0 e o Lote 1, o tempo
+   real gasto no checklist manual de acessibilidade (`QA-RS-02`/`03`/`04`) **separado**
+   do tempo da suíte automatizada — dado explícito necessário para a calibração do
+   risco 12/14 (Bloqueio 021), não algo a ser inferido depois por aproximação.
+3. O gatilho objetivo para reavaliar Storybook (ressalva 3 do Gate 2 desta iniciativa)
+   segue sem critério numérico anexado. Aceito como está por ora — não bloqueia este
+   Gate 3 — mas fixo como condição de acompanhamento: deve ser resolvido pelo Tech
+   Lead **antes** de decompor o primeiro lote do Grupo B, não depois, para não repetir
+   o mesmo padrão de "recomendação solta sem rastro" que já motivou a ressalva 2 do
+   Gate 2 (fronteira de PR).
+
+### `guardrails-governance` — `GUARDRAILS.md` Seção 9 (`G-20`/`G-21`)
+
+#### Critérios aplicados (`guardrails-drafting`, 4 critérios)
+
+| Regra | Inegociável | Origem rastreável | Verificável objetivamente | Abrangência (iniciativa inteira, não tarefa isolada) |
+|---|---|---|---|---|
+| `G-20` (redesign é camada de apresentação) | Sim — nenhuma mudança de regra de negócio/modelo de dado/contrato de API em nenhum PR do redesign, sem exceção | Sim — RN-19/RN-20/RNF-15 (`PRD-TECNICO.md` Adendo B), `SDD.md` Adendo B B.5/B.7, e a minha própria condição de aceite 1 no Gate 1 desta iniciativa | Sim — diff não toca `supabase/migrations/**`, `supabase/functions/**` nem `API-CONTRACT.yaml`, checável por leitura direta do diff | Sim — cobre todos os 14 lotes (Grupo A e B), não uma tarefa isolada; mesmo padrão de escopo restrito-a-uma-iniciativa já aceito em `G-08` (Fase 3/Open Finance) |
+| `G-21` (fronteira de PR) | Sim — todo PR deste redesign é restrito a arquivos de apresentação e a exatamente um lote | Sim — `SDD.md` Adendo B B.1 item 3 (recomendação do Software Architect) e a minha própria ressalva 2 no Gate 2 desta iniciativa | Sim — diff restrito aos caminhos de apresentação listados + correspondência 1:1 PR↔lote da Seção 3 do `TASK.md`, checável por leitura direta | Sim — mesma cobertura de `G-20` |
+
+Nenhuma das duas decide alocação nominal de pessoas, nem substitui a análise tática
+do DevSecOps, nem contradiz nada já aprovado nos Gates 1/2 desta iniciativa ou em
+qualquer guardrail vigente (`G-01` a `G-18`) — confirmo por leitura cruzada. Zero
+diluição em relação à minha própria recomendação no Gate 2 (ressalva 2): a redação
+final de `G-21` inclui exatamente a correspondência 1:1 PR↔lote que eu pedi, não uma
+versão genérica de "não misturar coisas diferentes".
+
+#### Veredito — `guardrails-governance`: **Aprovado**
+
+`G-20` e `G-21` tornam-se regras vigentes de `GUARDRAILS.md`, Seção 9, sem devolução
+ao Tech Lead e sem diluição de texto. Atualizo (edição restrita à minha própria
+autoria, conforme meu guardrail de escopo): os rótulos `[PROPOSTA — aguardando
+aprovação do CTO]` de `G-20`/`G-21` para `[APROVADO]`, o parágrafo de Status do
+documento, e a linha correspondente do Log de Alterações — nenhuma palavra do texto
+de mérito das duas regras (de autoria do Tech Lead) é alterada por mim. `G-19`
+(Seção 8) **permanece pendente** — não é objeto desta rodada, e não decido isso por
+inferência apenas porque tenho contexto suficiente; fica como nota de acompanhamento
+para um próximo ponto de contato formal (não é bloqueio deste Gate 3, que é
+especificamente sobre a iniciativa de redesign).
+
+### Avaliação da não-formalização da proibição de feature flag como guardrail (`DET-16`)
+
+**Aceito a decisão do Tech Lead de não propor uma regra nova agora, mas não aceito
+integralmente o racional apresentado sem qualificar um ponto.** Concordo com o
+mérito de fundo — a proibição de feature flag para este redesign está corretamente
+fundamentada (reafirmo minha própria análise do Gate 2: este projeto já reserva flag
+para risco funcional/segurança real, nunca para alternância cosmética, e `ADR-018`
+aplica esse critério corretamente). O que qualifico é o argumento específico do
+`DET-16` de que o "escape hatch" do próprio `ADR-018` (reabertura condicionada a
+requisito explícito futuro do stakeholder) desqualificaria a regra do critério
+"inegociável, sem exceção" de `guardrails-drafting`:
+
+1. **Esse mesmo tipo de escape hatch já existe em guardrails que eu aprovei sem
+   objeção** — `G-02` ("nenhum `ALTER`/`DROP` destrutivo... sem revisão explícita do
+   CTO") tem, na prática, o mesmo mecanismo: a regra vale até uma condição específica
+   (minha revisão explícita) ser satisfeita. "Ter uma condição de reabertura
+   documentada" não é, por si só, o que desqualifica uma regra como guardrail — do
+   contrário, `G-02`, `G-08` e `G-19` também não qualificariam.
+2. **O precedente que eu mesmo criei na ressalva 2 do Gate 2 desta iniciativa aponta
+   na direção oposta do racional do `DET-16`.** Pedi a formalização de `G-21` mesmo a
+   "fronteira de PR" já existindo como recomendação documentada em `SDD.md` Adendo B —
+   exatamente pelo motivo de não deixá-la "como recomendação solta sem rastro". O
+   mesmo argumento se aplica, com a mesma força, à proibição de feature flag: hoje ela
+   vive só como `DIR-42` (Seção 1.9 do `TASK.md`), de autoria e revisão exclusivas do
+   Tech Lead, sem o mecanismo de governança vinculante de `GUARDRAILS.md` (aprovação/
+   exceção só por mim) — diferente de uma regra em `GUARDRAILS.md`, o Tech Lead pode,
+   em uma futura revisão de `TASK.md`, reescrever ou remover `DIR-42` sem meu
+   envolvimento, mesmo sem qualquer requisito novo do stakeholder por trás.
+
+**Não reprovo por isso, nem exijo que `G-20`/`G-21` sejam reabertos para incluir uma
+terceira regra agora** — o Tech Lead não propôs isso, e não decido pela criação de
+uma regra à revelia de quem tem a autoria (`guardrails-drafting` é dele, não meu).
+Fixo, em vez disso, uma **condição de governança de acompanhamento, vinculante**:
+qualquer revisão futura de `TASK.md` que enfraqueça, remova ou crie exceção a
+`DIR-42` (incluindo introduzir feature flag em qualquer lote do Grupo A ou B deste
+redesign) deve ser escalada a mim antes de ser aplicada — trato `DIR-42`, na prática,
+com o mesmo rigor de governança de uma regra de `GUARDRAILS.md`, mesmo que ela
+continue formalmente em `TASK.md`, dado (a) a firmeza com que `ADR-018` fixa essa
+decisão, (b) o precedente que eu mesmo criei ao exigir a formalização de `G-21`, e
+(c) a superfície ainda por vir no Grupo B (9 domínios, incluindo o Lote 12 — captura
+automatizada —, onde a tentação de usar flag por risco funcional real é maior, não
+menor, do que no Grupo A). Convido o Tech Lead a, se concordar com esta leitura,
+propor formalmente uma terceira regra (`G-22`) em uma próxima rodada de
+`GUARDRAILS.md`; se discordar, que registre o racional da divergência no próximo
+ponto de contato, em vez de a condição ficar só implícita neste parecer.
+
+### Veredito consolidado — Gate 3 (Redesign Visual, Grupo A): **Aprovado com ressalvas**
+
+- `TASK.md` (Nota de Inclusão + Seções 1.9/2/3.5/3.6/4.5/5/6.1.1/6.2/6.3.2, Checklist
+  de Pronto do Adendo): **Aprovado com ressalvas** (ver ressalvas 1-3 acima) — deixa
+  de ser rascunho e vira versão final desta rodada de planejamento.
+- `GUARDRAILS.md` Seção 9 (`G-20`/`G-21`): **Aprovado, sem diluição** — em vigor
+  imediatamente, vinculantes para todo PR deste redesign a partir deste registro.
+- Decisão de não formalizar a proibição de feature flag como guardrail (`DET-16`):
+  aceita por ora, com a condição de governança de acompanhamento registrada acima
+  (escalonamento obrigatório de qualquer enfraquecimento futuro de `DIR-42`).
+
+Nenhum bloqueio novo a registrar em `BLOCKERS.md` neste gate — nenhum conflito entre
+agentes, só ressalvas e uma condição de acompanhamento, ambas seguidas pelo mecanismo
+normal de ressalva de gate.
+
+**Este é o último gate do planejamento desta rodada.** Com o veredito "Aprovado com
+ressalvas", a iniciativa Redesign Visual "MyMoney v2.0" está **liberada para a fase
+de execução, restrita ao Grupo A**: Lotes 0 a 4, a partir de `FE-RS-01`, respeitada a
+dependência de execução (não de contrato) de `UX-03` — nenhuma tarefa de `FE-RS-01` a
+`FE-RS-04` deve iniciar antes de a auditoria `design-system-consistency-check`
+completa existir. **O Grupo B (Lotes 5-13) permanece integralmente fora de liberação
+de execução** — este Gate 3 libera apenas o inventário/priorização já produzidos
+(`PRD.md` Seção B.5, `TASK.md` Seção 3.6), não nenhuma tarefa de implementação; a
+liberação de execução do Grupo B depende de uma rodada de planejamento própria,
+futura, depois que a calibração do Bloqueio 021 (Lote 0 + Lote 1 em produção)
+estiver disponível. Meu envolvimento a partir daqui volta a ser por escalonamento
+(bloqueio reportado por outro agente) ou pelos pontos fixos remanescentes do
+pipeline: revisão de qualquer mudança futura em `GUARDRAILS.md` (incluindo a
+condição de acompanhamento sobre `DIR-42` registrada acima), o registro de
+fechamento no Gate 4 de cada lote após o deploy do DevOps, e a futura rodada de
+planejamento do Grupo B quando a calibração estiver pronta.

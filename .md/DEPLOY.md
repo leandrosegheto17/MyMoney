@@ -1619,10 +1619,128 @@ agente sobre este débito, é de dono frontend/design.
 atualizada nesta mesma rodada para "Concluído em staging". **Nenhuma promoção
 a produção foi executada** — fora do escopo autorizado deste dispatch.
 
+### 9.11 Execução — 2026-09-05 (lote "Design System (Redesign v2.0), Lote 0")
+
+**Gatilho**: `TASK.md` Seção 7 (linha "Design System (Redesign v2.0, Lote 0)",
+`FE-RS-01`/`02`/`03`/`04`/`14`) registrou o fechamento do nono lote com dupla
+aprovação confirmada — verifiquei eu mesmo, na fonte, não só por leitura do
+`TASK.md`: `QA-REPORT.md` Seção 14.8.6 ("Veredito consolidado do Lote 0...
+**Aprovado (5/5), nenhuma ressalva em aberto**", revertendo o **Reprovado**
+intermediário da Seção 14.6 depois da correção e revalidação pontual de
+`QA-BUG-001` em 2026-09-05) e `SECURITY-REVIEW.md` Seções 1.23/1.24 ("Veredito
+final do Lote 0... do ponto de vista de DevSecOps: **Aprovado, sem débito.**").
+Nenhum `SEC-DEBT-*` novo gerado por este lote — os 2 achados de QA
+(`QA-BUG-001`/`QA-DEBT-014`) foram avaliados explicitamente por DevSecOps
+(Seção 1.24, `finding-severity-classification`) e reclassificados como sem
+componente de segurança, já corrigidos e fechados antes desta rodada. Coluna
+"Deploy" da linha do lote em `TASK.md` Seção 7 registrava "Pendente — este
+registro libera o DevOps para o deploy do lote" — este é o gatilho explícito
+para este dispatch. Escopo autorizado: **staging apenas** — deploy em
+produção é pausa obrigatória do orquestrador, fora do escopo desta rodada.
+
+**0. Migrations — confirmado que não há nenhuma deste lote.** Rodei
+`git status --porcelain supabase/migrations`: saída vazia, nenhum arquivo novo
+ou modificado sob `supabase/migrations/`. Coerente com a natureza do lote —
+100% camada de apresentação/design system (`frontend/src/index.css` — tokens
+v2.0; `Num.tsx` — primitivo novo; `Alert.tsx`/`Badge.tsx`/`Button.tsx`/
+`OfflineSyncBadge.tsx` — migração de cor para tokens `-soft`;
+`AppLayout.tsx` — navegação), confirmado também por `QA-REPORT.md` Seção 14.3
+(`cross-platform-integration-testing` de lote: "nenhuma dependência cruzada
+Backend/Mobile") e `SECURITY-REVIEW.md` Seção 1.24 (G-20/G-21, zero arquivo em
+`supabase/migrations/**`/`supabase/functions/**`/`API-CONTRACT.yaml`). Nenhuma
+pendência de schema.
+
+**Disciplina de pré-deploy (mesmos 3 estágios do pipeline, executados
+localmente antes de deployar, mesmo padrão dos 8 lotes anteriores)**:
+
+| Etapa | Comando | Resultado |
+|---|---|---|
+| Instalação de dependências | `npm ci` (`frontend/`) | OK — 466 pacotes, 0 vulnerabilidades |
+| Lint | `npm run lint` (oxlint) | OK, exit code 0 — só os mesmos *warnings* não-bloqueantes já registrados nos lotes anteriores (`react(set-state-in-effect)` em 9 páginas, `react(only-export-components)` em `Toast.tsx`/`AuthContext.tsx`), nenhum warning novo nos arquivos deste lote |
+| Build de produção | `npm run build` (`tsc -b && vite build`) | OK — `dist/` gerado; arquivos de fonte `@fontsource/public-sans`/`@fontsource/newsreader` (`.woff2`/`.woff`, múltiplos subsets) efetivamente empacotados no bundle, referenciados por `index-*.css`; PWA (`vite-plugin-pwa`) pré-cacheia 33 entradas (987 KiB), incluindo os novos arquivos de fonte; mesmo aviso não-bloqueante de tamanho de chunk (>500 kB) já registrado nos lotes anteriores |
+| Teste automatizado | `npm test -- --run` (vitest) | **56/57 arquivos, 315/316 testes na rodada cheia** — 1 falha isolada em `UnlockPage.test.tsx` (mesmo teste/mesma classe de flake de timing já documentada por QA em `QA-REPORT.md` Seção 14.8.5 e por este agente em rodadas anteriores, `DEPLOY.md` §9.4/§9.5). Reexecutei apenas esse arquivo isoladamente (`npx vitest run src/pages/auth/UnlockPage.test.tsx`): **3/3 PASS** — confirma, de forma independente, que não é uma regressão introduzida por este lote |
+
+**Nenhuma mudança de infraestrutura foi necessária** — mesmo projeto Vercel
+`mymoney` já linkado (`frontend/.vercel/project.json`:
+`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`, `team_LGMpqv4TnLt60QJ52AKDqQI9`, idêntico
+aos lotes anteriores, reconfirmado por `vercel whoami` autenticado como
+`leandrosegheto17`) — só uma build nova do código já presente na árvore de
+trabalho (working tree ainda não commitado, mesma prática já usada em rodadas
+anteriores que tiveram acesso direto ao código, confirmado por
+`QA-REPORT.md` Seção 14.1, "todo o lote está em working tree, não commitado").
+
+**Deploy real executado**:
+
+```
+cd frontend && vercel deploy --yes
+```
+
+| Campo | Valor |
+|---|---|
+| Status | `READY` |
+| Deployment ID | `dpl_9LzunZqPXzfUbLudvXqWC61cCXAi` |
+| Target | `preview` (confirmado via `vercel inspect`; **não** produção — nenhum `--prod`/`vercel promote` executado, conforme escopo autorizado) |
+| URL da deployment | `https://mymoney-l93hmmyvo-leandrosegheto17s-projects.vercel.app` |
+
+**Alias de staging atualizado**:
+
+```
+vercel alias set mymoney-l93hmmyvo-leandrosegheto17s-projects.vercel.app mymoney-staging.vercel.app
+  Success! https://mymoney-staging.vercel.app now points to mymoney-l93hmmyvo-leandrosegheto17s-projects.vercel.app
+```
+
+Confirmado via `vercel alias ls`: `mymoney-staging.vercel.app` →
+`mymoney-l93hmmyvo-leandrosegheto17s-projects.vercel.app`.
+
+**Smoke test básico (mesma limitação já registrada nos lotes anteriores, sem
+sessão autenticada real)**: build limpo (tabela acima) e deployment `READY`
+(`vercel inspect`, `target: preview`, `status: Ready`) são as duas
+confirmações mecânicas disponíveis sem burlar a proteção SSO do projeto.
+`curl -I https://mymoney-staging.vercel.app` retorna `302` para
+`vercel.com/sso-api` — mesmo comportamento herdado já registrado em
+§9.2-9.5/§9.8-9.10, não uma regressão desta rodada.
+
+**Observação de transparência, reconfirmação do já sinalizado em §9.8-9.10,
+sem mudança**: `vercel ls mymoney --scope leandrosegheto17s-projects` mostra
+deployments `Production` mais antigas (5h-23h atrás no momento desta rodada,
+incluindo as mesmas `Error`/`Ready` já sinalizadas), sem nenhuma deployment
+`Production` nova desde a promoção registrada em §9.6 — confirma que este
+dispatch (staging apenas) não alterou produção. A pendência de investigação
+sinalizada em §9.8 (origem das deployments `Error`) segue em aberto, sem ação
+nesta rodada (fora do escopo autorizado).
+
+**Nenhum achado novo de infraestrutura nesta rodada.** Pendências que seguem
+carregadas, sem mudança nesta rodada: (a) `VERCEL_TOKEN` não gerado; (b)
+GitHub Actions Secrets/`Variable` não configurados — pipeline automático segue
+inoperante para push em `main`; (c) proteção "Required reviewers" do
+Environment `production` do GitHub, pendente desde a primeira rodada; (d)
+plano de teste de rollback (§6.2) não executado — exigiria promover para
+produção, fora do escopo autorizado desta rodada; (e) Disaster Recovery (§6.3)
+segue com pré-condições não satisfeitas (Bloqueios 007/011/012); (f) débito de
+processo `QA-DEBT-011` segue sem ação; (g) `QA-DEBT-012` (baixa severidade,
+contraste WCAG do texto de percentual do `ProgressBar`, herdado de lote
+anterior) segue sem ação, dono frontend/design, sem componente de
+infraestrutura; nenhum achado novo de nenhum dos 2 achados deste lote
+(`QA-BUG-001`/`QA-DEBT-014`) chega a este agente como pendência — ambos já
+corrigidos e fechados por Frontend/QA antes deste dispatch (`QA-REPORT.md`
+Seção 14.8.4/14.8.6), nenhuma ação de infraestrutura cabia a eles em nenhum
+momento (débitos de token de cor/sombra, não de segurança nem de deploy).
+
+**Resultado desta rodada: deploy real de staging do lote "Design System
+(Redesign v2.0), Lote 0" concluído com sucesso.**
+`https://mymoney-staging.vercel.app` serve `dpl_9LzunZqPXzfUbLudvXqWC61cCXAi`
+(`READY`, confirmado por `vercel inspect`/`curl`). `TASK.md` Seção 7, coluna
+"Deploy" da linha "Design System (Redesign v2.0, Lote 0)", atualizada nesta
+mesma rodada para "Concluído em staging". Este é o primeiro deploy do Grupo A
+(Redesign v2.0) — remove o bloqueio em cascata que impedia o fechamento de
+staging de qualquer lote seguinte do redesign (Lote 1 em diante,
+`TASK.md` Seção 4.5). **Nenhuma promoção a produção foi executada** — fora do
+escopo autorizado deste dispatch (pausa obrigatória do orquestrador).
+
 ## 10. Incidentes Pós-Deploy
 
-**Staging**: nenhum incidente registrado nos 7 deploys realizados (§9.2-9.5,
-§9.8-9.10).
+**Staging**: nenhum incidente registrado nos 8 deploys realizados (§9.2-9.5,
+§9.8-9.11).
 
 **Produção**: primeiro deploy real de produção deste pipeline executado em
 2026-09-03 (§9.6). Janela de observação pós-deploy (padrão 24h, `devops.md`)
@@ -1659,14 +1777,15 @@ fechamento de ciclo completo.
 - [x] Gate de produção exige ação manual (`workflow_dispatch`) + Environment
       protection pendente de configuração (registrado em `BLOCKERS.md`) — nunca
       deploy automático
-- [x] Build em staging — **concluído em 2026-09-03/04**: lote "Fundação Técnica
-      & Infraestrutura" (§9.2), lote "Contas & Formas de Pagamento" (§9.3), lote
-      "Ledger & Dashboard" (§9.4), lote "Categorização" (§9.5), lote
-      "Lançamentos — Hierarquia & Atalhos" (Fase 2.1, §9.8, 2026-09-04), lote
-      "Categorização (Fase 2.1)" (§9.9, 2026-09-04) e lote "Orçamento (Fase
-      2.1)" (§9.10, 2026-09-04), todos publicados em
-      `mymoney-staging.vercel.app` (alias realiasado para a deployment mais
-      recente a cada lote)
+- [x] Build em staging — **concluído em 2026-09-03/04/05**: lote "Fundação
+      Técnica & Infraestrutura" (§9.2), lote "Contas & Formas de Pagamento"
+      (§9.3), lote "Ledger & Dashboard" (§9.4), lote "Categorização" (§9.5),
+      lote "Lançamentos — Hierarquia & Atalhos" (Fase 2.1, §9.8, 2026-09-04),
+      lote "Categorização (Fase 2.1)" (§9.9, 2026-09-04), lote "Orçamento
+      (Fase 2.1)" (§9.10, 2026-09-04) e lote "Design System (Redesign v2.0),
+      Lote 0" (§9.11, 2026-09-05 — primeiro deploy do Grupo A/Redesign v2.0),
+      todos publicados em `mymoney-staging.vercel.app` (alias realiasado para
+      a deployment mais recente a cada lote)
 - [x] Build em produção — **concluído em 2026-09-03 (§9.6)**, primeira
       promoção real deste pipeline, `mymoney-pink-phi.vercel.app` confirmado
       `READY`/`200 OK` servindo `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`. Ressalva de

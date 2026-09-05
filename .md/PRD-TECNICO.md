@@ -930,3 +930,488 @@ princípio já fixado no documento original.
 - [x] Nenhuma das 7 seções deste adendo está vazia ou com placeholder
 
 **Adendo A ao PRD-TECNICO.md pronto — liberado para o Software Architect.**
+
+---
+
+# Adendo B ao PRD-TECNICO.md — Redesign Visual ("MyMoney v2.0")
+
+**Dono**: Business Analyst
+**Data**: 2026-09-04
+**Gate de entrada**: `PRD.md`, Adendo B (liberado pelo PM em 2026-09-04); `CTO-REVIEW.md`,
+"Gate 1 (Nova Iniciativa — Redesign Visual 'MyMoney v2.0') — 2026-09-04", veredito
+**Aprovado com ressalvas**; `BLOCKERS.md`, Bloqueio 021 (divergência de dimensionamento
+de escopo identificada pelo próprio PM, escalada ao CTO e **Resolvida em 2026-09-04**
+via pulso de capacidade/prazo, sem reabertura do Gate 1).
+**Fonte**: `PRD.md` Adendo B (Seções B.1-B.7) + `CTO-REVIEW.md` Gate 1 desta iniciativa
+e sua "Nota de acompanhamento" (Bloqueio 021) + `BLOCKERS.md` Bloqueio 021 (resolução
+completa do CTO) + `UX-SPEC.md` (Seções 2.2 "Telas por domínio", 3 "Design System e
+Componentes", 5 "Requisitos de Acessibilidade", 6 "Comportamento Responsivo" — estado
+vigente antes deste redesign) + `PRD-TECNICO.md` original e Adendo A (RF/RNF/RN já
+fixados, reaproveitados sem alteração) + inspeção direta do código-fonte
+(`frontend/src/pages/**`, `frontend/src/components/**`) para o inventário do Grupo B,
+conforme orientação explícita recebida para esta rodada.
+**Consumidor imediato**: `software-architect` (base de arquitetura para o `SDD.md`
+desta iniciativa); `ux-ui` (consumidor primário do Grupo A — dono natural da extração
+detalhada dos mockups para a próxima versão de `UX-SPEC.md`, e da extrapolação do
+Grupo B); contexto para `tech-lead` e `cto` (Gate 2).
+
+**Natureza deste adendo**: aditivo ao `PRD-TECNICO.md` original — as Seções 1-7 e o
+Adendo A permanecem vigentes e não são reescritos. Este adendo cobre o Redesign
+Visual "MyMoney v2.0" em sua totalidade (14 lotes, Grupo A + Grupo B, conforme escopo
+corrigido do `PRD.md` Adendo B), seguindo a mesma estrutura fixa de 7 seções,
+prefixadas `B.1`-`B.7`.
+
+**Nível de detalhamento diferenciado por grupo — seguido à risca, conforme resolução
+do CTO ao Bloqueio 021 (item 2), que tem precedência sobre o padrão usual deste
+documento nesta rodada específica**:
+- **Grupo A (Lotes 0-4)**: detalhamento técnico completo e padrão — RF com critério de
+  aceite testável (EARS), regras de negócio com racional, fluxos, dependências — mesmo
+  rigor do documento original e do Adendo A.
+- **Grupo B (Lotes 5-13)**: detalhamento mais leve — inventário de telas/domínios já
+  existentes (o que já existe hoje em produção, quais componentes/padrões visuais usam
+  atualmente) + restrições conhecidas por domínio (regras de negócio que não podem
+  mudar, dependências de dado) + dependência esperada do design system consolidado no
+  Lote 0. **Nenhum RF/RN/AC tela a tela é produzido para o Grupo B nesta rodada** — o
+  aprofundamento técnico completo de cada domínio ocorre lote a lote, junto do
+  `ux-ui`/Tech Lead, pouco antes de cada lote iniciar execução, fora do escopo deste
+  documento (`BLOCKERS.md` Bloqueio 021, resolução do CTO, itens 2 e 3).
+
+**Convenção de IDs deste adendo**: `RF-RS-NN` (requisitos funcionais do Grupo A,
+Lotes 0-4 — "RS" de "Redesign"), `RNF-NN` (não-funcionais, numeração contínua a partir
+de RNF-15), `RN-NN` (regras de negócio, numeração contínua a partir de RN-19), `FL-NN`
+(fluxos, numeração contínua a partir de FL-08), `AMB-NN` (interpretações registradas,
+numeração contínua a partir de AMB-16). O Grupo B não recebe IDs de RF/RN próprios
+nesta rodada — ver Seção B.1.2. Nenhuma integração externa nova (Seção B.5.2).
+
+**Nota de escopo herdado**: nenhuma decisão de arquitetura é tomada aqui — em
+particular, (a) estratégia de corte em produção (big-bang vs. gradual), (b) decisão
+de substituir vs. estender os tokens vigentes de 2026-09-04, e (c) mecanismo técnico
+de qualquer natureza permanecem com o Software Architect/UX-UI, revisados pelo CTO no
+Gate 2 desta iniciativa. **Nenhuma mudança de regra de negócio, modelo de dados ou
+contrato de API é presumida** — este documento aplica, de ponta a ponta, o guardrail
+central do `PRD.md` Adendo B (Seção B.4): qualquer coisa que pareça mudar
+comportamento, encontrada durante a extração dos mockups ou a extrapolação do Grupo
+B, deve virar requisito funcional nomeado em rodada própria, nunca ser absorvida
+silenciosamente como "parte do redesign" — formalizado adiante como RN-19/RNF-15.
+
+---
+
+## B.1 Requisitos Funcionais
+
+### B.1.1 Grupo A — Lotes 0-4 (detalhamento completo, RF com critério de aceite testável)
+
+#### RF-RS-00 — Fundação de Design System (Lote 0)
+Pré-requisito estrutural de todos os lotes seguintes, Grupo A e Grupo B — dependência
+já nomeada no `PRD.md` Seção B.5. Diferente dos demais RFs deste adendo, não descreve
+comportamento de uma tela de usuário final, mas o entregável/processo de trabalho do
+`ux-ui` que libera todo o restante da iniciativa — mesmo tratamento que o `PRD.md` já
+dá ao Lote 0 ("pré-requisito comum... trabalho do `ux-ui`").
+
+- **AC1**: Quando o `ux-ui` concluir a extração dos 8 artboards, `UX-SPEC.md` Seção 3
+  (nova versão) deve conter, no mínimo, tokens de cor, tipografia, espaçamento, raio,
+  elevação e ícones derivados dos mockups, cada um explicitamente marcado como
+  "substituindo" ou "estendendo" o conjunto vigente de 2026-09-04 — nunca deixado
+  implícito (RN-19, risco B6.4).
+- **AC2**: `UX-SPEC.md` Seção 3 (nova versão) deve documentar padrões de componente
+  reutilizáveis suficientes para cobrir, no mínimo, as quatro classes de superfície que
+  os 4 artboards não mostram literalmente — formulário isolado pré-sessão (Auth),
+  tabela/timeline de fatura, elemento de captura por voz/foto, e grade de card de
+  resumo — não apenas os componentes literalmente visíveis nos mockups (risco B6.11).
+- **AC3**: Antes de o Lote 0 ser considerado pronto, a nova paleta de cor deve ser
+  validada quanto a contraste ≥ 4,5:1 (texto normal) / ≥ 3:1 (texto grande, ícones de
+  estado) sobre `color.surface`, preservando o requisito já vigente em `UX-SPEC.md`
+  Seção 5 (meta N3, risco B6.10).
+- **AC4**: Se a auditoria de aderência ao design system vigente
+  (`design-system-consistency-check`) que serve de baseline de N1 ainda não tiver sido
+  executada, então o Lote 0 não deve ser considerado iniciado (risco B6.5).
+- **AC5**: Quando o Lote 0 for concluído e `UX-SPEC.md` Seção 3 publicado em nova
+  versão, nenhum lote de tela (Grupo A ou Grupo B) deve iniciar implementação antes
+  dessa publicação — dependência estrutural, ver Seção B.5.1.
+- **Não decidido aqui**: se os tokens de 2026-09-04 são substituídos integralmente ou
+  estendidos — decisão do `ux-ui`, que deve ser documentada explicitamente (RN-19,
+  RNF-16), não deste documento.
+
+#### RF-RS-01 — Redesign de Dashboard (Lote 1)
+Aplica-se a `S-DASH-01` (`UX-SPEC.md` Seção 2.2), reaproveitando integralmente o
+dado/cálculo já existente (RF-MVP-05, RF-MVP-06, RF-MVP-07 quando aplicável) e o
+comportamento funcional já fixado por RF-REF-01 (Adendo A — grid multi-coluna
+desktop, preservação mobile). Este RF **não reabre** RF-MVP-05/06/07 nem RF-REF-01 —
+troca apenas a camada visual sobre o mesmo comportamento (RN-20).
+
+- **AC1**: Quando `S-DASH-01` for redesenhado, o sistema deve seguir exclusivamente os
+  tokens/componentes publicados em `UX-SPEC.md` Seção 3 (versão consolidada no Lote 0),
+  sem estilo inline/ad-hoc divergente (meta N1).
+- **AC2**: Quando `S-DASH-01` (desktop) for redesenhado, o sistema deve seguir o
+  artboard "Main" como referência de layout linha a linha, incluindo a disposição de
+  blocos (saldo, KPIs, gráfico de distribuição, orçamentos-resumo, últimos
+  lançamentos) — critério de aprovação por checklist (meta N2).
+- **AC3**: Quando `S-DASH-01` (mobile) for redesenhado, o sistema deve seguir o
+  artboard "MainMobile" como referência (meta N2), preservando a ordem/hierarquia de
+  blocos já funcional (single-column, RNF-10).
+- **AC4**: O sistema não deve, em nenhuma hipótese, alterar o dado exibido, o cálculo
+  de saldo/entradas/saídas/distribuição por categoria, ou o comportamento de
+  navegação (toque na fatia do donut → lista filtrada) como consequência deste
+  redesign — qualquer divergência encontrada durante a extração deve ser reportada
+  como RF novo (RN-19), nunca implementada silenciosamente.
+- **AC5**: Quando o Lote 1 for considerado pronto, o sistema deve ter 0 regressões na
+  suíte de testes existente (meta N4) e 0 regressões no checklist de acessibilidade
+  WCAG 2.1 AA já vigente (meta N3, `UX-SPEC.md` Seção 5).
+- **AC6**: Se o artboard "Main" especificar uma proporção/disposição de coluna
+  diferente da que RF-REF-01 deixava como decisão aberta de implementação do
+  `frontend`, então o artboard passa a ter precedência sobre essa decisão ainda não
+  tomada (AMB-16) — o comportamento já fixado por RF-REF-01 AC1-AC4 permanece válido,
+  apenas a proporção deixa de ser decisão livre do `frontend`.
+
+#### RF-RS-02 — Redesign de Lançamentos (Lote 2)
+Aplica-se a `S-TXN-01` (lista, com `ShortcutBar`) e `S-TXN-02` (formulário),
+reaproveitando integralmente o comportamento já fixado por RF-MVP-04 e pelos itens do
+Pacote de Refinamento (RF-REF-02, RF-REF-03, RF-REF-04, quando implementado) — RN-12 a
+RN-18 permanecem válidas sem alteração (RN-20).
+
+- **AC1**: Quando `S-TXN-01`/`S-TXN-02` forem redesenhados, o sistema deve seguir
+  exclusivamente os tokens/componentes do Lote 0 (meta N1), incluindo o componente
+  `ShortcutChip`/`ShortcutBar` já especificado (`UX-SPEC.md` Seção 3.3), sem introduzir
+  um padrão visual paralelo. Este componente é obrigatório na implementação do Lote 2
+  mesmo que os artboards de referência ("Lancamentos"/"LancamentosMobile") não o
+  exibam literalmente — a ausência no mockup é lida como lacuna do material de
+  referência, não como instrução de remoção (`BLOCKERS.md` Bloqueio 023, AMB-19);
+  cabe ao `ux-ui` compor visualmente o componente dentro da linguagem v2.0.
+- **AC2**: Quando `S-TXN-01` (desktop e mobile) for redesenhado, o sistema deve seguir
+  os artboards "Lancamentos"/"LancamentosMobile" como referência linha a linha (meta
+  N2), preservando a hierarquia visual já fixada por RN-18 (subcategoria como maior
+  destaque). Se o artboard retratar uma ordem diferente (ex.: descrição do lançamento
+  como linha de maior destaque e "Categoria · Forma de pagamento" como linha
+  secundária), a hierarquia de RN-18 prevalece sobre a leitura literal do artboard — a
+  camada visual v2.0 (tokens de cor/tipografia/espaçamento) é aplicada sobre a
+  hierarquia já fixada, nunca sobre uma reordenação de conteúdo (`BLOCKERS.md`
+  Bloqueio 023, AMB-18).
+- **AC3**: O sistema não deve alterar o critério de ranking dos atalhos (RN-12), o
+  pré-preenchimento (RN-13), a ordem cronológica da lista, os filtros disponíveis, ou
+  qualquer outro comportamento funcional já fixado, como consequência deste redesign.
+- **AC4**: Quando o Lote 2 for considerado pronto, o sistema deve ter 0 regressões de
+  N3/N4 (mesma disciplina de RF-RS-01 AC5).
+- **AC5**: Se a extração do mockup revelar qualquer elemento que pareça alterar
+  comportamento (ex.: reordenação com efeito funcional, campo novo, remoção de campo
+  além do já decidido em RF-REF-04), então isso deve ser formalizado como RF novo
+  nomeado, nunca absorvido como "parte do redesign" (RN-19).
+
+#### RF-RS-03 — Redesign de Contas & Cartões (Lote 3)
+Aplica-se a `S-ACC-01/02/04` (contas) e `S-CARD-01/02/03` (cartão/fatura), na medida
+em que o artboard "ContasCartoes" os retrata — ver AMB-17 para o limite entre este
+lote e o Lote 8 (Grupo B). Reaproveita integralmente RF-MVP-01/RN-08 (contas) e
+RF-F2-01/RF-F2-05/RN-01/RN-06 (cartão/fatura) sem alteração (RN-20).
+
+- **AC1**: Quando `S-ACC-01/02/04` e `S-CARD-01/02/03` forem redesenhados, o sistema
+  deve seguir exclusivamente os tokens/componentes do Lote 0 (meta N1) e os artboards
+  "ContasCartoes"/"ContasCartoesMobile" como referência (meta N2).
+- **AC2**: O sistema não deve alterar o cálculo de limite disponível (RN-06), a regra
+  de fechamento de fatura (RN-01), o horizonte de faturas exibidas, ou qualquer
+  comportamento de `InvoiceTimeline` como consequência deste redesign —
+  `InvoiceTimeline` é explicitamente identificado como lógica de negócio sensível
+  (`PRD.md` Seção B.4, Lote 8) e só deve ser tocado na camada puramente visual.
+- **AC3**: Quando o Lote 3 for considerado pronto, o sistema deve ter 0 regressões de
+  N3/N4, com atenção redobrada a N4 dado o risco de regressão funcional alto já
+  sinalizado pelo PM (`PRD.md` Seção B.5, matriz do Grupo A).
+- **AC4**: Se o artboard cobrir apenas a visão-lista/resumo de cartão e fatura (não o
+  detalhamento de múltiplas abas/timeline completo), então o detalhamento visual da
+  parte não coberta permanece com o Lote 8 (Grupo B), sem que o Lote 3 precise
+  resolvê-la antecipadamente (AMB-17).
+
+#### RF-RS-04 — Redesign de Categorias (Lote 4)
+Aplica-se a `S-CAT-01/02/03`, reaproveitando integralmente RF-MVP-03/RN-09 e o
+comportamento já fixado por RF-REF-05 (Padrão C, grade de cards) — sem alteração
+(RN-20).
+
+- **AC1**: Quando `S-CAT-01` for redesenhado, o sistema deve seguir exclusivamente os
+  tokens/componentes do Lote 0 (meta N1) e os artboards "Categorias"/"CategoriasMobile"
+  como referência (meta N2), incluindo o padrão de `CategoryCard` já especificado
+  (`UX-SPEC.md` Seção 2.1, Padrão C). Se o artboard retratar um padrão de lista-árvore
+  expansível em vez da grade de `CategoryCard`, o padrão de grade de cards (RF-REF-05,
+  Padrão C) prevalece — a camada visual v2.0 (tokens de cor/tipografia/espaçamento/
+  iconografia) é aplicada sobre esse padrão já fixado, nunca sobre uma reversão ao
+  padrão de lista anterior ao Pacote de Refinamento (`BLOCKERS.md` Bloqueio 023,
+  AMB-20).
+- **AC2**: O sistema não deve alterar o dado exibido no card (nome, ícone/cor, total
+  gasto no mês, número de subcategorias — RF-REF-05 AC2), o comportamento de clique
+  (expandir/navegar) ou as ações de edição/exclusão já existentes.
+- **AC3**: Quando o Lote 4 for considerado pronto, o sistema deve ter 0 regressões de
+  N3/N4.
+
+### B.1.2 Grupo B — Lotes 5-13 (inventário e restrições conhecidas — sem RF/RN/AC tela a tela nesta rodada)
+
+**Nota metodológica**: segue à risca a resolução do CTO ao Bloqueio 021 (item 2) —
+esta subseção não define requisito funcional nem critério de aceite por tela. Define o
+que já existe hoje (levantado por inspeção direta do código-fonte,
+`frontend/src/pages/**` e `frontend/src/components/**`, cruzado com `UX-SPEC.md`
+Seção 2.2) e as restrições que qualquer detalhamento futuro deve respeitar. O
+aprofundamento técnico completo (RF/RN/AC) de cada domínio ocorre lote a lote, junto
+do `ux-ui`/Tech Lead, pouco antes de cada lote iniciar execução — fora do escopo
+deste documento.
+
+| Lote | Domínio | Telas (`UX-SPEC.md` Seção 2.2) | Página(s)/componente(s) já implementados (`frontend/src/**`) | Padrão visual atual | Restrições conhecidas (não pode mudar) | Dependência esperada do Lote 0 |
+|---|---|---|---|---|---|---|
+| 5 | Autenticação/Sessão + Onboarding | S-AUTH-01/03/04/05 (S-AUTH-02 descontinuada, `ADR-014`), S-ONB-01/02 | `pages/auth/LoginPage.tsx`, `UnlockPage.tsx`, `PinSetupPage.tsx`; `pages/onboarding/FirstAccountPage.tsx`, `TaxonomyReviewPage.tsx`; `components/domain/PinPad.tsx` | Telas isoladas pré-sessão, card centralizado, sem navegação lateral, `PinPad` numérico grande | RF-MVP-08 (login seguro) e a remoção definitiva do 2º fator por e-mail (`ADR-014`) não podem ser tocados; onboarding preserva RF-MVP-01/RF-MVP-03/RN-09 | Padrão de formulário isolado pré-sessão ainda não coberto literalmente pelos 4 artboards — depende de o Lote 0 abstraí-lo (risco B6.11, RF-RS-00 AC2) |
+| 6 | Orçamento | S-BUD-01/02 | `pages/budget/BudgetPage.tsx`; `components/domain/BudgetCard.tsx`, `ProgressBar.tsx` | Já em grade de cards (Padrão C) desde o Pacote de Refinamento (RF-REF-06) | RN-04 (limiares 80%/100%+) e o cálculo de RF-MVP-07 não podem mudar | Extensão incremental do Padrão C já validado no Lote 4 (Categorias) — menor esforço de extrapolação esperado |
+| 7 | Formas de Pagamento | S-PAY-01/02 | `pages/paymentMethods/PaymentMethodsPage.tsx` | Padrão A (lista + formulário) | RN-14/RN-15/RN-16 (rótulo desambiguado, geração automática por conta, campo "conta" removido do formulário de lançamento) preservadas; RF-REF-04 segue bloqueado pelas 3 pré-condições do risco A3 (Adendo A), independentemente deste redesign | Forte sobreposição visual esperada com o Lote 3 (Contas) — decisão final de agrupamento delegada ao `ux-ui`/Tech Lead (`PRD.md` Seção B.5) |
+| 8 | Cartão & Fatura detalhado | S-CARD-01/02/03, parte não coberta pelo Lote 3 | `pages/creditCards/CreditCardsPage.tsx`; `components/domain/InvoiceTimeline.tsx`; `components/base/Tabs.tsx` | Abas por competência (`Tabs`), `InvoiceTimeline` lista os lançamentos de cada fatura | `InvoiceTimeline` é lógica de negócio sensível — RN-01 (fechamento), RN-06 (limite disponível), FL-02 não podem ser alterados pelo redesign | Depende de o Lote 3 já ter validado, em produção, o padrão de "tela com lógica de negócio sensível" antes de avançar (`PRD.md` Seção B.5, nota de risco) |
+| 9 | Recorrência, Parcelamento, Contas Fixas, Metas | S-REC-01..04, S-INST-01/02, S-FIX-01..03, S-GOAL-01..04 | `pages/recurring/RecurringPage.tsx`, `installments/InstallmentsPage.tsx`, `fixedBills/FixedBillsPage.tsx`, `goals/GoalsPage.tsx`; `components/domain/InstallmentProgress.tsx`, `GoalProgressBar.tsx` | Padrão A + Padrão B (confirmação de reajuste, `S-REC-03`) | RN-02 (reajuste prospectivo com confirmação obrigatória) e RN-07 (preservação de histórico ao cancelar) não podem mudar | Lote agrega 4 sub-domínios de tamanho desigual — Tech Lead pode subdividir sem reabrir o `PRD.md` (Seção B.5, nota) |
+| 10 | Notificações | S-NOT-01 | `components/domain/NotificationBell.tsx` (sem rota própria hoje — renderizado inline no `AppLayout`) | Sino no topo + painel/lista suspensa | RF-F2-09 AC2 (histórico sempre acessível independentemente de push) preservado | Componente relativamente simples — baixo esforço de extrapolação esperado |
+| 11 | Relatórios e Exportação | S-REP-01/02/03 | `pages/reports/IncomeExpenseReportPage.tsx` (S-REP-01); **S-REP-02 e S-REP-03 ainda não implementados em produção** (RF-F3-05/RF-F3-06 são Fase 3, não construída) | `components/domain/BarChart.tsx`, `DonutChart.tsx` reaproveitados | RF-F2-10 AC2 (não preencher com zero quando há menos de 6 meses de dado disponível) | Gráficos herdam boa parte do estilo do Dashboard (Lote 1) uma vez redesenhado (`PRD.md` Seção B.5) |
+| 12 | Captura Automatizada (Fase 3) | S-CAP-01 a 09 | **Nenhuma página implementada em produção** — Fase 3 (RF-F3-01 a 04) ainda não construída, confirmado por inspeção de `frontend/src/pages/**` | Não aplicável (tela ainda não existe) | RNF-01 (confirmação humana obrigatória) é barreira arquitetural, não apenas visual — redesign não pode alterá-la (risco B6.9); WCAG 2.2.1 (sem limite de tempo em confirmação) também não pode regredir, quando a tela existir | Deliberadamente por último (`PRD.md` Seção B.5) — padrão de redesign deve estar maduro antes de tocar a superfície mais sensível do produto |
+| 13 | Configurações | S-SET-01/02/03 | `pages/settings/SettingsPage.tsx` | Padrão A simplificado (perfil, toggles, formulário de limiares) | Nenhuma regra de negócio sensível identificada nesta rodada | Baixo esforço de extrapolação esperado |
+
+---
+
+## B.2 Requisitos Não-Funcionais
+
+#### RNF-15 — Camada de Apresentação por Padrão (guardrail funcional, NÃO-NEGOCIÁVEL)
+Nenhuma mudança de regra de negócio, modelo de dados ou contrato de API decorre deste
+redesign, em nenhum lote (Grupo A ou Grupo B). Qualquer divergência encontrada durante
+a extração dos mockups ou a extrapolação do Grupo B deve virar RF nomeado em rodada
+própria — nunca absorção silenciosa. Herdado da ressalva 3 do Gate 1 desta iniciativa
+(`PRD.md` Seção B.4) e formalizado como regra rastreável em RN-19.
+
+#### RNF-16 — Fonte Única de Design System
+A partir da publicação da nova versão de `UX-SPEC.md` Seção 3 (Lote 0), toda tela
+redesenhada (Grupo A e, quando chegar sua vez, Grupo B) deve usar exclusivamente os
+tokens/componentes ali documentados — nenhuma tela mantém, deliberadamente, o
+conjunto de tokens anterior (2026-09-04) depois de redesenhada, evitando coexistência
+ambígua dentro da própria Seção 3 (risco B6.4).
+
+#### RNF-17 — Não-Regressão de Acessibilidade (WCAG 2.1 AA) — meta N3
+Toda tela redesenhada deve preservar integralmente as regras já formalizadas em
+`UX-SPEC.md` Seção 5, reaplicadas explicitamente como critério de aceite de cada lote
+— inclui, sem se limitar a, contraste mínimo, não depender só de cor, navegação por
+teclado, foco visível, e WCAG 2.2.1 (sem limite de tempo em confirmação, com atenção
+particular ao Lote 12, onde essa regra reforça diretamente RNF-01).
+
+#### RNF-18 — Não-Regressão Funcional (suíte de testes existente) — meta N4
+Cada lote deve ser considerado pronto somente após a suíte de testes existente ser
+reexecutada sem novas falhas — 0 regressões por lote (`PRD.md` Seção B.3, meta N4).
+Estratégia de execução da suíte (cobertura, ambiente) é decisão do Tech Lead/QA, não
+decidida aqui.
+
+#### RNF-19 — Estratégia de Corte em Produção (big-bang vs. gradual) — NÃO decidido aqui
+Decisão do Software Architect no `SDD.md` desta iniciativa (`PRD.md` Seção B.3, risco
+B6.6). Este documento registra apenas a exigência de que a transição não deve
+degradar a continuidade de uso do produto em produção real, com 1 usuário ativo
+dependendo dele no dia a dia.
+
+#### RNF-20 — "Mobile" = Breakpoint Responsivo (herdado, não presumido)
+Confirmado diretamente pelo stakeholder (`PRD.md` Seção B.2, risco B6.2) — todo lote
+deste adendo, Grupo A ou Grupo B, trata "mobile" como breakpoint responsivo da mesma
+PWA (`ADR-003`), nunca como frente de app nativo. Reabertura, se necessária, é decisão
+exclusiva do CTO, não deste documento.
+
+---
+
+## B.3 Regras de Negócio
+
+| ID | Regra | Racional | Exceção |
+|---|---|---|---|
+| RN-19 | Nenhuma regra de negócio nova decorre deste redesign, em nenhum lote (Grupo A ou Grupo B) — toda mudança de comportamento identificada durante a extração dos mockups ou a extrapolação vira RF nomeado, nunca implementada como "parte do redesign" | Formalização, com ID rastreável, do guardrail central da ressalva 3 do Gate 1 desta iniciativa (`PRD.md` Seção B.4) — dá ao Software Architect/Tech Lead uma referência concreta a citar quando avaliarem se algo viola esta regra, em vez de depender só de um princípio narrativo | Nenhuma — se uma mudança de comportamento for genuinamente necessária, ela sai deste guardrail e vira um RF novo em rodada própria, nunca uma exceção silenciosa a esta regra |
+| RN-20 | Toda regra de negócio já fixada em RF-MVP-xx, RF-F2-xx, RF-F3-xx (documento original) e RF-REF-xx (Adendo A) permanece válida sem alteração durante os Lotes 0-4 deste redesign — RN-01 a RN-18 não são reabertas | Consequência direta de RN-19: um redesign de camada de apresentação não tem, por definição, motivo para alterar regra de negócio já fixada e testada em produção real | Nenhuma identificada nesta rodada |
+
+---
+
+## B.4 Fluxos de Usuário/Processo
+
+### FL-08 — Processo de Extração e Liberação do Design System (Lote 0)
+
+```mermaid
+flowchart TD
+    A[UX/UI acessa os 8 artboards do canvas MyMoney v2.0] --> B[Extrai tokens - cor, tipografia, espacamento, raio, elevacao, icones]
+    B --> C[Documenta padroes de componente reutilizaveis, incluindo superficies nao mostradas literalmente nos mockups - Auth, fatura, captura, cards de resumo]
+    C --> D{Nova paleta atende contraste minimo sobre color.surface - RF-RS-00 AC3?}
+    D -- Nao --> E[UX/UI ajusta o tom da paleta sem descaracterizar a referencia visual] --> D
+    D -- Sim --> F{Tokens vigentes de 2026-09-04 sao substituidos ou estendidos?}
+    F --> G[UX/UI documenta a decisao explicitamente em UX-SPEC.md Secao 3 - RN-19]
+    G --> H[Publica UX-SPEC.md nova versao - Lote 0 considerado concluido]
+    H --> I[Libera inicio dos Lotes 1-4 - Grupo A - e do levantamento incremental dos Lotes 5-13 - Grupo B]
+```
+
+### FL-09 — Fluxo de Aprovação por Lote (metas N1/N2/N3/N4, aplicável a cada lote do Grupo A e, por extensão, a cada lote futuro do Grupo B)
+
+```mermaid
+flowchart TD
+    A[Lote implementado seguindo tokens/padroes do Lote 0] --> B[QA reexecuta a suite de testes existente]
+    B --> C{0 regressoes funcionais identificadas - meta N4?}
+    C -- Nao --> D[Ajuste no lote ate zerar regressoes] --> B
+    C -- Sim --> E[UX/UI reaplica o checklist de acessibilidade WCAG 2.1 AA]
+    E --> F{0 regressoes de acessibilidade identificadas - meta N3?}
+    F -- Nao --> G[Ajuste de contraste/semantica ate zerar regressoes] --> E
+    F -- Sim --> H["Stakeholder compara a tela contra o artboard - Grupo A - ou contra os tokens/padroes consolidados - Grupo B - checklist meta N2"]
+    H --> I{Checklist de aprovacao assinado pelo stakeholder?}
+    I -- Nao --> J[Ajuste conforme apontamento do checklist] --> H
+    I -- Sim --> K[Auditoria design-system-consistency-check - meta N1]
+    K --> L{100% de aderencia aos tokens/componentes do Lote 0, sem estilo ad-hoc?}
+    L -- Nao --> M[Remove estilo divergente, reaplica tokens do Lote 0] --> K
+    L -- Sim --> N[Lote considerado pronto - avanca para o proximo lote]
+```
+
+### FL-10 — Renderização Responsiva Unificada do Grupo A (breakpoint desktop/mobile)
+
+```mermaid
+flowchart TD
+    A[Tela do Grupo A - Lotes 1 a 4 - e renderizada] --> B{Largura de tela maior ou igual ao breakpoint desktop - lg, 1024px?}
+    B -- Nao --> C[Layout mobile - referencia: artboard xMobile do lote correspondente]
+    B -- Sim --> D[Layout desktop - referencia: artboard x do lote correspondente]
+    C --> E[Comportamento funcional ja fixado - RF-MVP/RF-F2/RF-REF conforme o dominio - permanece sem alteracao - RN-20]
+    D --> E
+    E --> F[Dado/calculo exibido reaproveitado sem mudanca]
+```
+
+**Nota sobre o Grupo B**: por decisão explícita do CTO (Bloqueio 021, item 2), nenhum
+fluxo de tela do Grupo B é diagramado nesta rodada — o fluxo de aprovação por lote
+(FL-09) já é genérico o suficiente para se aplicar também aos Lotes 5-13 quando cada
+um for detalhado; fluxos específicos de tela do Grupo B (ex.: navegação dentro de
+`S-CAP-01` a `09`) ficam para o levantamento incremental lote a lote.
+
+---
+
+## B.5 Dependências entre Requisitos e Integrações Externas
+
+### B.5.1 Dependências internas (o que bloqueia o quê)
+
+| Requisito | Depende de | Motivo |
+|---|---|---|
+| RF-RS-00 (Lote 0) | Auditoria `design-system-consistency-check` (baseline de N1, risco B6.5) | Sem essa auditoria, o Lote 0 não tem baseline para medir a meta N1 ao final de cada lote seguinte |
+| RF-RS-01 a RF-RS-04 (Lotes 1-4) | RF-RS-00 (Lote 0) | Nenhum lote de tela pode iniciar implementação antes da publicação da nova versão de `UX-SPEC.md` Seção 3 — dependência estrutural já nomeada no `PRD.md` Seção B.5 |
+| RF-RS-01 (Dashboard) | RF-MVP-05, RF-MVP-06, RF-MVP-07 (quando aplicável), RF-REF-01 | Reorganiza apresentação de dado/comportamento já existente; não introduz cálculo novo |
+| RF-RS-02 (Lançamentos) | RF-MVP-04, RF-REF-02, RF-REF-03, RF-REF-04 (Adendo A) | Reaproveita integralmente o comportamento já fixado, incluindo atalhos e hierarquia visual já implementados |
+| RF-RS-03 (Contas & Cartões) | RF-MVP-01, RF-F2-01, RF-F2-04, RF-F2-05 (fatura projetada) | Reorganiza apresentação de domínio com lógica de negócio sensível (`InvoiceTimeline`) — risco de regressão mais alto do Grupo A, exige validação redobrada (RF-RS-03 AC3) |
+| RF-RS-04 (Categorias) | RF-MVP-03, RF-REF-05 | Reorganiza apresentação de dado/cálculo já existente (Padrão C já validado desde o Pacote de Refinamento) |
+| Todo lote do Grupo B (Lotes 5-13) | RF-RS-00 (Lote 0) consolidar princípios genuinamente reutilizáveis (não apenas as 4 aplicações literais aos artboards) | Risco B6.11 — se o Lote 0 não abstrair além do que os mockups mostram, a extrapolação para o Grupo B fica sujeita a interpretação divergente lote a lote |
+| Estimativa agregada de prazo dos Lotes 5-13 em `TASK.md` (Tech Lead) | Lote 0 **e** pelo menos 1 lote do Grupo A executados e validados em produção | Condição vinculante fixada pelo CTO na resolução do Bloqueio 021 (item 1) — não decidida por este documento, apenas carregada adiante |
+| Lote 8 (Cartão & Fatura detalhado, Grupo B) | Lote 3 (Contas & Cartões, Grupo A) validado em produção | Mesma classe de "tela com lógica de negócio sensível" (`InvoiceTimeline`) — o PM deliberadamente sequenciou o Lote 8 depois do Lote 3 (`PRD.md` Seção B.5) |
+| Lote 12 (Captura Automatizada, Grupo B) | Padrão de redesign maduro (lotes anteriores já executados) | RNF-01 (confirmação humana) é barreira arquitetural — o PM deliberadamente adiou este lote para depois de o padrão de redesign estar validado (`PRD.md` Seção B.5) |
+
+**Ordem de execução do Grupo A** (decisão do PM, não revisada por este documento):
+Lote 0 → Lote 1 (Dashboard) → Lote 2 (Lançamentos) → Lote 3 (Contas & Cartões) →
+Lote 4 (Categorias), conforme a classificação Now/Next/Later do `PRD.md` Seção B.5.
+
+### B.5.2 Integrações externas necessárias
+
+**Nenhuma integração externa nova identificada nesta rodada.** Os 14 lotes reaproveitam
+integralmente a infraestrutura já existente (mesma conclusão já registrada no Adendo A)
+— é redesign de camada de apresentação, sem novo provedor externo em nenhum lote,
+incluindo o Grupo B (RNF-15). O canvas Claude Design ("MyMoney v2.0 — Mockups") é
+ferramenta de trabalho do `ux-ui` durante o Lote 0, não uma integração de runtime do
+produto — registrado aqui explicitamente para não ser confundido com um `EXT-0x` da
+Seção 5.2 do documento original.
+
+---
+
+## B.6 Premissas e Riscos Resolvidos
+
+### B.6.1 Premissas/riscos herdados do `PRD.md` Seção B.6 — status após checagem do BA
+
+| # | Premissa/Risco (`PRD.md` Seção B.6) | Status | Evidência/Racional da checagem |
+|---|---|---|---|
+| B6.1 | Motivo de negócio é a combinação confirmada (a)+(c) — modernização visual + consistência de design system | **Validado com evidência textual** | `PRD.md` Seção B.1 já registra a confirmação direta do stakeholder, colhida pelo PM antes de decompor escopo (ressalva 1 do Gate 1). BA carrega adiante sem reabrir |
+| B6.2 | "Mobile" = breakpoint responsivo, coerente com `ADR-003`, confirmado pelo stakeholder | **Validado com evidência textual** | Mesma confirmação direta registrada em `PRD.md` Seção B.2; formalizado como RNF-20 |
+| B6.3 | PM não teve acesso visual direto aos 8 artboards; extração detalhada delegada ao `ux-ui` | **Fora do escopo de resolução do BA — corretamente delegado** | BA também não tem acesso visual ao canvas nesta rodada (mesma limitação técnica registrada no `PRD.md`); carregado adiante como RF-RS-00 AC1/AC2 (responsabilidade do `ux-ui`) |
+| B6.4 | Dois conjuntos de tokens (2026-09-04 e este redesign) podem coexistir sem decisão explícita | **Fora do escopo de resolução do BA — decisão do `ux-ui`** | Registrado como exigência de decisão explícita e documentada (RF-RS-00 AC1, RNF-16) |
+| B6.5 | Baseline de N1 (aderência ao design system) desconhecido | **Fora do escopo de resolução do BA — dono é UX/UI** | Carregado como dependência bloqueante de RF-RS-00 (AC4, Seção B.5.1) |
+| B6.6 | Estratégia de corte em produção não definida | **Fora do escopo de resolução do BA — dono é Software Architect** | Carregado como RNF-19, decisão até o Gate 2 desta iniciativa |
+| B6.7 | Orçamento/prazo desta iniciativa segue não confirmado | **Não pode ser validado nem refutado nesta rodada** | Mesma lacuna histórica desde a Seção 6 do `PRD.md` original, nunca fechada; dono permanece PM/stakeholder |
+| B6.8 | Execução solo/serial (14 lotes) tende a somar esforço, não paralelizar | **Resolvido operacionalmente pelo CTO** | Pulso de capacidade (`BLOCKERS.md` Bloqueio 021, resolução, item 1) — CTO não reprova o escopo, mas recusa validar extrapolação aritmética ingênua do histórico; condição vinculante carregada adiante (Seção B.5.1) |
+| B6.9 | Risco de mudança de comportamento disfarçada de "só visual" | **Endereçado nesta rodada** | RN-19/RNF-15 formalizam o guardrail com ID rastreável; a verificação real em si é um processo contínuo (FL-09), não um fato que este documento resolve de uma vez |
+| B6.10 | Nova paleta de cor pode não atender contraste ≥ 4.5:1 | **Endereçado nesta rodada como critério de aceite, não resolvido com valor numérico real** | RF-RS-00 AC3 fixa a validação como condição de conclusão do Lote 0; BA não tem acesso visual à paleta real para validar o número agora — mesma limitação de B6.3 |
+| B6.11 | Lote 0 precisa abstrair além do que os 4 artboards mostram literalmente, para servir de fundação ao Grupo B | **Endereçado nesta rodada** | RF-RS-00 AC2 nomeia explicitamente as 4 superfícies não cobertas literalmente pelos mockups (Auth, fatura, captura, cards de resumo) como escopo mínimo de abstração exigido |
+| B6.12 | Expansão de escopo (4 telas → todo o projeto) ocorreu depois do Gate 1, que avaliou risco sobre o dimensionamento anterior | **Resolvido pelo CTO, sem reabertura do Gate 1** | `BLOCKERS.md` Bloqueio 021, resolução — pulso de capacidade pontual; condição vinculante ao Tech Lead carregada adiante (mesma de B6.8) |
+
+### B.6.2 Perguntas do `PRD.md` Seção B.7 — status de resolução
+
+| # | Pergunta | Como foi resolvida | Referência |
+|---|---|---|---|
+| 1 | Para cada lote, levantar com o UX/UI se algo muda comportamento, não só aparência | Endereçado como processo contínuo, não uma checagem única — RN-19 formaliza o guardrail; FL-09 formaliza o ponto de verificação recorrente a cada lote | RN-19, FL-09, RNF-15 |
+| 2 | Critério exato do checklist de aprovação (meta N2) | Parcialmente endereçado — RF-RS-01 a 04 (AC2/AC3) fixam "comparação linha a linha contra o artboard" (paleta, tipografia, espaçamento, iconografia, disposição de componentes) como critério mínimo para o Grupo A; o conteúdo detalhado do checklist em si (formulário de verificação) não é fechado nesta rodada — recomendação registrada ao `ux-ui` para formalizá-lo junto de `UX-SPEC.md` v3 (Lote 0) | RF-RS-01 AC2, RF-RS-02 AC2, RF-RS-03 AC1, RF-RS-04 AC1 |
+| 3 | Preferência de manter tela antiga como "fallback" durante a transição | **Não pode ser validado nesta rodada** — falta de acesso direto ao stakeholder; registrado como pergunta em aberto para o PM confirmar antes de o Software Architect decidir a estratégia de corte | RNF-19 |
+| 4 | Ordem Dashboard → Lançamentos → Contas & Cartões → Categorias é aceitável? | **Não pode ser validado nesta rodada** — mesma limitação de acesso; BA preserva a ordem já justificada tecnicamente pelo PM (matriz de risco/frequência, `PRD.md` Seção B.5) sem contestar, por não ser ambiguidade de detalhe | Seção B.5.1 |
+| 5 | Revisão de copy/texto de UI além do que aparece nos mockups | **Resolvido por herança direta do `PRD.md`** — já fechado como "Fora do escopo" na Seção B.4; texto que aparece literalmente no mockup é seguido (meta N2), o restante é preservado sem revisão | `PRD.md` Seção B.4 |
+| 6 | Nova paleta mantém contraste ≥ 4.5:1? | Endereçado como critério de aceite (RF-RS-00 AC3), não resolvido com valor numérico real — falta de acesso visual à paleta | RF-RS-00 AC3, risco B6.10 |
+| 7 | Ordem/agrupamento indicativo do Grupo B | **Não pode ser validado nesta rodada** (mesma limitação de acesso ao stakeholder) — BA adota a classificação Now/Next/Later do PM como estava, já confirmada explicitamente pelo CTO no pulso de capacidade ("concordo com a classificação Now/Next/Later proposta... nenhuma reordenação por risco não capturado") | `PRD.md` Seção B.5, `BLOCKERS.md` Bloqueio 021 |
+
+---
+
+## B.7 Interpretações Registradas
+
+| ID | Ambiguidade original | Interpretação escolhida | Racional | Risco residual |
+|---|---|---|---|---|
+| AMB-16 | RF-REF-01 (Adendo A) deixava a proporção exata de colunas do grid do dashboard como decisão de implementação do `frontend`, não pixel-fixada — o artboard "Main" agora existe como referência visual formal para a mesma tela | O artboard "Main" (Lote 1) passa a ter precedência sobre a decisão de proporção ainda não tomada pelo `frontend` | É justamente esse o papel de uma "referência visual formal" (`PRD.md` Seção B.1); não há reabertura de nada já decidido, apenas preenchimento de uma lacuna que RF-REF-01 deixou deliberadamente aberta antes de o mockup existir como referência | Baixo — se o `frontend` já tiver implementado uma proporção específica em produção, o Lote 1 pode exigir ajuste incremental de proporção, não retrabalho estrutural de comportamento |
+| AMB-17 | O limite exato entre o que o Lote 3 (mockup "ContasCartoes") cobre de `S-CARD-01/02/03` e o que fica para o Lote 8 (Grupo B, "detalhado") não é explicitado pelo `PRD.md` além de "na parte não coberta pelo Lote 3" | Lote 3 cobre a visão-lista/resumo de contas e cartões (o que um artboard de card/lista tipicamente retrata); o detalhamento fino de múltiplas abas de fatura e o comportamento completo de `InvoiceTimeline` ficam para o Lote 8, preservando a cautela de "lógica de negócio sensível" já nomeada pelo PM | Leitura mais conservadora possível — evita que o Lote 3 precise, sem mockup detalhado disponível ao BA, redesenhar uma superfície que o próprio PM já identificou como sensível e reservou deliberadamente para depois | Médio-baixo — se o artboard "ContasCartoes" efetivamente mostrar o detalhamento de fatura completo, o `ux-ui` (com acesso visual real) deve tratar isso como já coberto pelo Lote 3, reduzindo correspondentemente o escopo do Lote 8; confirmação real só é possível com acesso visual direto ao artboard, fora do alcance do BA nesta rodada |
+| AMB-18 | `BLOCKERS.md` Bloqueio 023 (`ux-ui`): os artboards "Lancamentos"/"LancamentosMobile" e o bloco "Últimos lançamentos" de "Main"/"DashboardMobile" retratam a descrição do lançamento como linha 1 (maior destaque) e "Categoria · Forma de pagamento" como linha 2 (secundária) — o oposto literal de RN-18, que RF-RS-02 AC2 já pedia para preservar | RN-18 prevalece: a subcategoria continua como elemento de maior destaque visual; descrição e forma de pagamento seguem secundárias. O artboard é lido como referência de tokens visuais (paleta, tipografia, espaçamento) a aplicar sobre a hierarquia já fixada — não como instrução de reordenar o conteúdo | RN-18 foi fixada com racional de negócio concreto e verificável (problema real de reconhecimento relatado em uso de produção, `PRD.md` Adendo A.1 item 2), validado pelo PM antes do Pacote de Refinamento. Reverter reintroduziria um problema de UX já corrigido sem nenhuma evidência de intenção deliberada do stakeholder — nem `PRD.md` Adendo B nem `CTO-REVIEW.md` Gate 1 desta iniciativa mencionam essa reversão. Este ponto não ocorre isolado: os 3 pontos do Bloqueio 023 regridem, em conjunto, para o estado anterior ao Pacote de Refinamento — mais consistente com "mockup produzido sem conhecimento das decisões do Pacote de Refinamento" do que com uma intenção de produto nova e coerente (nenhum dos 3 introduz algo novo, todos regridem) — exatamente o cenário que RN-19/RN-20 foram desenhadas para proteger | Baixo-médio — se o stakeholder de fato quiser essa reordenação como mudança deliberada, o Lote 2 precisa ser refeito neste ponto específico; RF-RS-02 AC2 (reforçado) e o fallback já aplicado pelo `ux-ui` em `UX-SPEC.md` minimizam o custo de retrabalho caso a hipótese esteja errada. Qualquer agente que discordar entendendo que há motivo de negócio real para a reversão deve escalar novo bloqueio ao BA/PM, não implementar silenciosamente |
+| AMB-19 | `BLOCKERS.md` Bloqueio 023 (`ux-ui`): nenhum dos artboards "Lancamentos"/"LancamentosMobile" mostra a `ShortcutBar`/`ShortcutChip` (RF-REF-03), que RF-RS-02 AC1 já esperava que o mockup incluísse | A ausência no mockup é lida como lacuna do material de referência, não como instrução de remover o componente. RF-REF-03 permanece obrigatório no Lote 2 — cabe ao `ux-ui` compor visualmente o componente dentro da linguagem v2.0, ainda que o artboard não o retrate literalmente | RF-REF-03 é funcionalidade já especificada e presumivelmente implementada em rodada anterior (Pacote de Refinamento), com meta de produto própria (M6) e RN-12/RN-13 já fixadas com racional de negócio próprio. Nenhuma evidência em `PRD.md` Adendo B ou `CTO-REVIEW.md` Gate 1 desta iniciativa menciona remoção desse componente — o próprio RF-RS-02 AC1 já antecipava sua presença como requisito, não como algo condicionado ao mockup. Hipótese mais simples, consistente com AMB-18/AMB-20: quem produziu os 8 artboards não tinha esse componente específico em mente ao desenhar a tela | Baixo — manter um componente funcional já validado não introduz risco de regressão; o único custo é o esforço do `ux-ui` em encaixar visualmente o componente na composição do artboard "Lancamentos", já antecipado como responsabilidade dele em RF-RS-02 AC1 |
+| AMB-20 | `BLOCKERS.md` Bloqueio 023 (`ux-ui`): os artboards "Categorias"/"CategoriasMobile" mostram categoria + subcategorias em lista-árvore expansível (duas colunas Despesas/Receitas no desktop, abas segmentadas no mobile) — o padrão anterior ao Pacote de Refinamento, que RF-REF-05 substituiu pela grade de `CategoryCard` (Padrão C) | RF-REF-05 (Padrão C, grade de cards) prevalece. O artboard é lido como referência de tokens visuais (paleta, tipografia, espaçamento, iconografia) a aplicar sobre a grade de cards já fixada — não como instrução de reverter para lista-árvore | Mesmo racional agregado de AMB-18/AMB-19 — RF-REF-05 tem meta de produto e racional de negócio já registrados (`PRD.md` Adendo A), e reverter para lista-árvore não tem nenhuma justificativa de negócio nova registrada em `PRD.md` Adendo B ou `CTO-REVIEW.md` desta iniciativa. É o terceiro de três pontos que regridem coincidentemente ao mesmo estado anterior ao Pacote de Refinamento — reforça a hipótese "mockup genérico/desatualizado" sobre a hipótese alternativa "reversão deliberada", que exigiria evidência específica hoje inexistente | Baixo-médio, mesma natureza de AMB-18 — se houver de fato intenção deliberada do stakeholder de simplificar/reverter esse padrão, o Lote 4 precisa ser refeito; RF-RS-04 AC1 (reforçado) e a mesma via de escalonamento (`BLOCKERS.md`) ficam disponíveis caso a hipótese seja contestada com evidência |
+
+**Nenhuma das cinco ambiguidades acima toca escopo ou objetivo de negócio do
+`PRD.md`** — todas são interpretação de detalhe sobre requisitos/decisões já fechados
+pelo PM/CTO neste Adendo B ou no Pacote de Refinamento (Adendo A). Em particular,
+AMB-18/AMB-19/AMB-20 (resolução do `BLOCKERS.md` Bloqueio 023) tratam de fidelidade
+literal do mockup a comportamento já fixado (RN-18, RF-REF-03, RF-REF-05) — não de
+"o que é o produto", que permaneceria intocado independentemente da resposta. (A
+divergência de dimensionamento de escopo identificada nesta rodada — mudança de "4
+telas" para "todo o projeto" — **não foi decidida pelo BA**: foi identificada pelo
+próprio PM, registrada como `BLOCKERS.md` Bloqueio 021, e já resolvida pelo CTO antes
+deste documento ser produzido; nenhuma escalação nova é necessária). Se o Software
+Architect, o `ux-ui` ou o CTO discordarem de qualquer uma das cinco interpretações por
+entenderem que tocam escopo/objetivo de negócio, o encaminhamento correto é reportar
+em `BLOCKERS.md` como bloqueio ao BA, não reinterpretar silenciosamente — mesmo
+princípio já fixado no documento original e no Adendo A.
+
+---
+
+### Stakeholder Alignment Check (BA, Adendo B)
+
+Checklist comparado item a item contra `PRD.md` Adendo B e `CTO-REVIEW.md` Gate 1
+desta iniciativa (incluindo a nota de acompanhamento do Bloqueio 021):
+
+- **Objetivo de negócio e natureza de camada de apresentação**: preservados
+  integralmente — RN-19/RNF-15 formalizam o guardrail central sem alterá-lo. Sem
+  divergência.
+- **Faseamento por lote, Grupo A com detalhamento completo / Grupo B com inventário**:
+  seguido à risca conforme resolução do CTO ao Bloqueio 021 (item 2) — este documento
+  não antecipa RF/RN do Grupo B. Sem divergência.
+- **"Mobile" = breakpoint responsivo**: preservado (RNF-20). Sem divergência.
+- **Não-regressão de WCAG/funcional (N3/N4)**: carregadas como RNF-17/RNF-18 e como
+  critério de aceite explícito em cada RF-RS-0x. Sem divergência.
+- **Dimensionamento do escopo (14 lotes)**: a única divergência real desta iniciativa
+  já foi identificada pelo PM, escalada ao CTO (`BLOCKERS.md` Bloqueio 021) e
+  **resolvida antes deste documento ser produzido** — nenhuma divergência nova
+  identificada pelo BA nesta checagem. A condição vinculante do CTO (nenhuma
+  estimativa agregada dos Lotes 5-13 antes de Lote 0 + 1 lote do Grupo A validados em
+  produção) é carregada adiante integralmente (Seção B.5.1, B.6.1 B6.8/B6.12), não
+  reaberta nem reinterpretada por este documento.
+
+**Resultado: nenhuma divergência nova identificada pelo BA nesta rodada.** Nenhum
+registro adicional em `BLOCKERS.md` é necessário — a única divergência desta
+iniciativa (dimensionamento de escopo) já está registrada e resolvida (Bloqueio 021).
+Adendo B do `PRD-TECNICO.md` liberado para o Software Architect e para o `ux-ui`.
+
+---
+
+## Checklist de Pronto — Adendo B (auto-verificação do BA)
+
+- [x] Todo requisito funcional tem critério de aceite testável (EARS) — Seção B.1.1
+      (5 requisitos do Grupo A, 24 critérios de aceite no total). O Grupo B (Seção
+      B.1.2) **não produz RF/AC nesta rodada por decisão explícita do CTO**
+      (`BLOCKERS.md` Bloqueio 021, item 2) — condição satisfeita vacuamente, não uma
+      lacuna: o aprofundamento ocorre lote a lote, fora do escopo deste documento.
+- [x] Toda regra de negócio tem racional declarado — Seção B.3 (RN-19, RN-20)
+- [x] Todo fluxo de usuário/processo relevante tem pontos de decisão e caminhos
+      alternativos mapeados — Seção B.4 (FL-08, FL-09, FL-10, todos com múltiplos
+      `{decisão}`); fluxos específicos de tela do Grupo B deliberadamente adiados
+      (mesma nota da Seção B.4)
+- [x] Toda dependência entre requisitos nomeia o que bloqueia o quê; toda integração
+      externa está nomeada (nenhuma nova) — Seção B.5
+- [x] Toda premissa/risco herdado do PM (`PRD.md` Seção B.6, B6.1-B6.12) foi validado
+      ou refutado com evidência citada — Seção B.6.1 (12/12 itens com veredito
+      explícito)
+- [x] Toda ambiguidade resolvida pelo BA está registrada na Seção B.7, com a
+      interpretação escolhida e o porquê — 5 interpretações (AMB-16 a AMB-20; AMB-18/
+      AMB-19/AMB-20 adicionadas na resolução do `BLOCKERS.md` Bloqueio 023)
+- [x] Nenhuma das 7 seções deste adendo está vazia ou com placeholder
+
+**Adendo B ao PRD-TECNICO.md pronto — liberado para o Software Architect e para o
+`ux-ui`.**

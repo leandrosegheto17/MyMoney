@@ -30,4 +30,9 @@ describe("Input", () => {
     expect(status).toHaveTextContent("Campo obrigatório");
     expect(status).toHaveAttribute("aria-live", "polite");
   });
+
+  it("declares w-full on its own element — UX-SPEC.md Seção 3.1.1 (FE-RS-04), never depends on the parent container's width", () => {
+    render(<Input label="Descrição" />);
+    expect(screen.getByLabelText("Descrição").className).toContain("w-full");
+  });
 });

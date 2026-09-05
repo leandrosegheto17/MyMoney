@@ -42,7 +42,11 @@ export function OfflineSyncBadge({ syncClient }: OfflineSyncBadgeProps) {
         type="button"
         onClick={() => setIsDetailOpen(true)}
         aria-describedby={labelId}
-        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-warning hover:bg-amber-200 focus-visible:outline-2 focus-visible:outline-primary"
+        // FE-RS-14 (`UX-03` Achado 1): usa o token `-soft` do design system para o
+        // fundo, nunca a rampa padrão do Tailwind (`bg-amber-100`/`hover:bg-amber-200`).
+        // O hover usa uma leve sobreposição do próprio token semântico `warning`
+        // (não um segundo tom `-soft` dedicado, que o design system não declara).
+        className="inline-flex min-h-11 items-center gap-2 rounded-full bg-warning-soft px-3 py-1 text-xs font-medium text-warning hover:bg-warning/15 focus-visible:outline-2 focus-visible:outline-primary"
       >
         <span aria-hidden="true">⏳</span>
         <span id={labelId}>{statusText}</span>
