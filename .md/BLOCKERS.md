@@ -1279,6 +1279,48 @@ quem reportou.
   (ex. `APP_ORIGIN`) se o escopo de origem permitida for diferente.
 - **Status**: **Aberto.**
 
+- **Atualização — 2026-09-05 (validador, chapéu DevSecOps, auditoria completa
+  do lote "Autenticação & Segurança", `SECURITY-REVIEW.md` Seção 1.25)**:
+  reconfirmei que `auth-email-mfa` continua com CORS `"*"` — o código não
+  mudou desde a abertura deste bloqueio. O que muda é o contexto: o `ADR-014`
+  (2026-09-04, remoção definitiva do 2º fator por e-mail) confirma que esta
+  function está **órfã** (zero chamada real no caminho de execução do app,
+  `QA-REPORT.md` Seção 15.1) mas **segue implantada em produção** —
+  `ADR-014` decidiu explicitamente não removê-la nesta rodada ("fica órfã...
+  remover é limpeza opcional futura, sem urgência").
+
+  **Não fecho este bloqueio** — o achado técnico (CORS wildcard num endpoint
+  ainda ativo) continua real. Mas **reclassifico a severidade de Média para
+  Baixa** (`SECURITY-REVIEW.md` `SEC-DEBT-001`, seção 1.25,
+  `finding-severity-classification`): explorar este endpoint hoje não produz
+  nenhum efeito na postura de segurança do produto, porque
+  `custom_access_token_hook` já emite `app_email_mfa_verified=true`
+  incondicionalmente desde o `ADR-014`, independente do que
+  `auth-email-mfa`/`email_mfa_challenges` reportem. O racional original de
+  severidade Média (Bearer token limita exploitabilidade, sem PII na
+  resposta) segue válido; o que muda é que mesmo uma exploração bem-sucedida
+  não abre nenhum caminho de escalonamento de privilégio ou acesso a dado —
+  antes havia ao menos a teoria de interferir num gate de MFA real, hoje esse
+  gate nem existe mais do lado do servidor.
+
+  **Recomendação atualizada, substituindo a original**: como o arquivo está
+  formalmente órfão e não deve receber manutenção de rotina (ninguém deve
+  "tocá-lo de novo" no curso normal do trabalho — era essa a condição
+  original, "corrigir no próximo toque no arquivo", que hoje é pouco
+  provável de ocorrer naturalmente), recomendo ao Coordenador/DevOps avaliar
+  **decommissioning** (`supabase functions delete auth-email-mfa` + remoção
+  do diretório do repositório) como correção definitiva, em vez de aplicar
+  um patch de CORS num arquivo que tende a ser descartado de qualquer forma.
+  `API-CONTRACT.yaml` já marca o endpoint `deprecated: true` e pode
+  permanecer como registro histórico independentemente da function ser
+  removida ou não. Se a decisão for manter a function por mais tempo (ex.:
+  valor de referência/possibilidade de rollback do `ADR-014`), o patch
+  trivial de CORS (`_shared/cors.ts`) continua sendo a alternativa de menor
+  esforço, sem mudança de racional.
+- **Status**: **Aberto — severidade reclassificada de Média para Baixa,
+  recomendação de correção atualizada (decommissioning preferencial).** Não
+  bloqueia o lote "Autenticação & Segurança" nem nenhum deploy.
+
 ---
 
 ## Bloqueio 010 — 2026-09-03

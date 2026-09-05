@@ -74,6 +74,15 @@ completo, incluindo observação de transparência sobre deployments de produç�
 não registradas encontradas durante a rodada, em §9.8; nenhuma seção anterior
 deste documento foi reaberta. **Nenhum deploy em produção foi executado** —
 fora do escopo autorizado deste dispatch.
+**Atualização incremental — 2026-09-05 (2)**: execução direta de `BE-REF-06`
+(lote "Formas de Pagamento Unificadas", Fase 2.1) — criação da feature flag
+`VITE_PAYMENT_METHOD_UNIFICATION_ENABLED` (default seguro `false`, gate do
+formulário unificado de conta/forma de pagamento, `ADR-016` Decisão 5/DIR-39),
+ativação em produção (`vercel env add ... production` = `true`) e **deploy
+direto em produção** (`vercel deploy --prod`, sem passar por staging antes),
+autorizado explicitamente pelo orquestrador/stakeholder como ato único desta
+tarefa. Detalhe completo em §9.12; nenhuma outra seção deste documento foi
+reaberta.
 **Gate de entrada**: `SDD.md` aprovado com ressalvas no Gate 2 do CTO (2026-09-02).
 Conforme `EXECUTION-FLOW.md` ("DevOps prepara desde o início, deploya só no fim") e
 `devops.md`, `infrastructure-as-code-provisioning` e `cicd-pipeline-configuration`
@@ -1736,6 +1745,103 @@ mesma rodada para "Concluído em staging". Este é o primeiro deploy do Grupo A
 staging de qualquer lote seguinte do redesign (Lote 1 em diante,
 `TASK.md` Seção 4.5). **Nenhuma promoção a produção foi executada** — fora do
 escopo autorizado deste dispatch (pausa obrigatória do orquestrador).
+
+### 9.12 Execução — 2026-09-05 (tarefa `BE-REF-06`, lote "Formas de Pagamento Unificadas", Fase 2.1)
+
+**Gatilho**: `BE-REF-06` — "Gate de deploy em produção do item 4: feature flag
+`payment_method_unification_enabled` (default `false` em produção), ligada em
+produção somente após `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo
+DevSecOps". Bloqueio 013 confirmado `Resolvido` desde 2026-09-04;
+`QA-REPORT.md` Seção 13.6 confirma "`BE-REF-06` pode prosseguir". Diferente de
+todas as execuções anteriores desta seção, o próprio orquestrador (não um
+dispatch de `validador`/chapéu DevOps) executou este ato, com autorização
+explícita do stakeholder colhida em duas perguntas diretas nesta mesma rodada
+— a primeira sobre proceder apesar do achado de que a flag nunca tinha sido
+implementada, a segunda, já sabendo que a ativação real exige rebuild +
+deploy direto em produção (Vite embute env em build-time — só setar a
+variável não muda o bundle já publicado), sobre pular o staging e ir direto
+para produção como ato único. Resposta em ambas: prosseguir agora.
+
+**0. Achado prévio que mudou o escopo da tarefa**: investigação (leitura,
+sem alterar estado) confirmou que a flag **nunca existiu no código** —
+`QA-REPORT.md` já registrava isso como `QA-DEBT-013` ("a flag em si ainda
+precisa ser criada como parte do escopo de `BE-REF-06`, não é um bloqueio, é
+o próprio trabalho da tarefa"). A tarefa passou a incluir a implementação do
+mecanismo, não só o ato de ativação.
+
+**1. Implementação** (Executor, revisada inline pelo orquestrador contra
+`git diff` antes do deploy — spec-compliance + qualidade de código,
+`code-review`): env var Vite `VITE_PAYMENT_METHOD_UNIFICATION_ENABLED`, lida
+via `isPaymentMethodUnificationEnabled()` (`frontend/src/lib/env.ts`) —
+`true` só se o valor for literalmente a string `"true"`; ausente/qualquer
+outro valor = `false` (default seguro). Gate aplicado em
+`TransactionFormModal.tsx`: com a flag `false` (comportamento hoje em
+produção, preservado), o formulário reexibe o campo "Conta" obrigatório e
+envia `account_id` explícito; com `true`, mantém o comportamento atual
+(campo "Conta" ausente, `account_id` resolvido server-side). Testes novos:
+`env.test.ts` (4 casos: ausente/false/mal-formado/true) e
+`TransactionsPage.test.tsx` (describe `BE-REF-06`, 3 casos: flag off exige
+conta e bloqueia submit sem ela; flag off envia `account_id` explícito; flag
+on preserva comportamento atual sem `account_id`). Suíte completa:
+`npx vitest run` — **322/323 PASS** (1 falha isolada em `UnlockPage.test.tsx`,
+mesma classe de flake de timing já documentada em §9.4/§9.5/§9.11, confirmada
+não-relacionada por reexecução isolada = PASS). `npx tsc -b` limpo, `oxlint`
+sem erro novo. Revisão inline do orquestrador: **aprovada sem achado**,
+nenhum fix-loop necessário.
+
+**2. Ativação em produção**:
+
+```
+cd frontend && vercel env add VITE_PAYMENT_METHOD_UNIFICATION_ENABLED production
+  (valor: true)
+```
+
+Confirmado via `vercel env ls production` antes e depois — variável ausente
+antes, presente (`Encrypted`, `Production`) depois.
+
+**3. Deploy real executado — direto em produção, sem passar por staging**
+(diferente de todos os deploys anteriores desta seção; decisão explícita do
+orquestrador/stakeholder nesta rodada, dado o escopo minúsculo e já validado
+localmente por teste):
+
+```
+cd frontend && vercel deploy --prod --yes
+```
+
+| Campo | Valor |
+|---|---|
+| Status | `READY` |
+| Deployment ID | `dpl_FHeVLsoMiPEHdgqtUT79CsfuJiEN` |
+| Target | `production` (confirmado via `vercel inspect`) |
+| URL da deployment | `https://mymoney-ms7q2j87x-leandrosegheto17s-projects.vercel.app` |
+| Aliases | `mymoney-pink-phi.vercel.app`, `mymoney-leandrosegheto17s-projects.vercel.app` |
+
+**Smoke test**: `curl -I https://mymoney-pink-phi.vercel.app` → `200 OK`.
+`mymoney-lsm.vercel.app` (alias legado, já não realiasado desde a promoção de
+§9.6) não foi tocado nesta rodada — mesmo achado de §9.6 item 5, sem mudança.
+
+**Nota de processo — desvio do fluxo padrão deste documento**: esta é a
+primeira execução de deploy real de produção registrada nesta seção que não
+passou pelo ciclo completo `/validar` → `/deploy` do `EXECUTION-FLOW.md`
+(Comando 3, que reserva promoção a produção como pausa obrigatória do
+orquestrador com dupla confirmação QA+DevSecOps de véspera). `BE-REF-06` em
+si já é, por desenho do `ADR-016` Decisão 5/DIR-39, uma tarefa que empacota
+o próprio ato de ativação em produção como seu critério de aceite —
+mecânica de sequenciamento delegada ao Tech Lead, não ao processo padrão de
+`/deploy`. Ainda assim, registrado aqui com total transparência: nenhum
+`QA-REPORT.md`/`SECURITY-REVIEW.md` cobre especificamente este ato de deploy
+(a auditoria de segurança da implementação em si é responsabilidade de uma
+rodada futura de `/validar` sobre o lote "Formas de Pagamento Unificadas",
+ainda pendente — ver `BLOCKERS.md`/`.md/TASK.md` Seção 7, lote sem entrada
+formal de fechamento).
+
+**Código-fonte**: deployado a partir da working tree local, ainda não
+commitado no momento deste registro (mesma prática já usada em rodadas
+anteriores com acesso direto ao código, `DEPLOY.md` §9.11).
+
+**Resultado desta rodada: flag `payment_method_unification_enabled` ativa em
+produção.** `TASK.md` Seção 3, célula de Status de `BE-REF-06`, atualizada
+para `Concluída` nesta mesma rodada.
 
 ## 10. Incidentes Pós-Deploy
 

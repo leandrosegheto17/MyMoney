@@ -2323,6 +2323,233 @@ Nenhum padrão recorrente identificado nesta rodada (1 bug isolado, já corrigid
 
 ---
 
+## 15. Veredito de Lote — "Autenticação & Segurança" (2026-09-05)
+
+**Gatilho**: primeira aplicação da convenção de lote (`EXECUTION-FLOW.md`) ao lote
+"Autenticação & Segurança" (`TASK.md` Seção 3.1, coluna "Lote"; Seção 6.3, racional
+de agrupamento). Tarefas do lote, todas `Concluída` no `TASK.md` no momento deste
+veredito: `BE-M-09`, `BE-M-11`, `BE-M-12`, `BE-M-13`, `BE-M-14`, `FE-M-04`,
+`FE-M-12`, `FE-M-13`, `QA-M-02` (9 tarefas).
+
+**Nota de processo — validação retroativa de lote já em produção**: diferente de
+todo veredito de lote anterior (Seções 3-7, 10-14), este lote nunca passou por
+`/validar` como unidade — cada tarefa foi auditada individualmente ao longo de
+2026-09-02/03/04 (Seções 2, 8, 9 deste documento cobrem partes dele), mas nenhuma
+tinha, até agora, um veredito de **lote** consolidado. Nesse meio tempo, o
+stakeholder promoveu este lote (junto de outros lotes de Fase 2) a produção sem
+esperar este gate formal — decisão explícita, documentada como "desvio de processo
+consciente" em `DEPLOY.md` Seção 9.6, não uma falha deste QA. Esta rodada trata o
+lote com o mesmo rigor de qualquer outro (todo critério de aceite testado contra o
+`TASK.md`, toda suíte automatizada relevante executada), mas o resultado é uma
+confirmação/auditoria **a posteriori** de um build já ativo em produção, não um
+gate pré-deploy. Nenhuma ação de rollback é sugerida por esta rodada — se algo
+fosse encontrado como crítico, o protocolo seria o mesmo de qualquer reprovação
+(reverter `Em andamento` no `TASK.md`, escalar ao Executor), com a nota adicional
+de que o código já está live.
+
+### 15.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+| Comando/verificação | Resultado |
+|---|---|
+| `cd frontend && npm test` (`vitest run`, suíte completa) | **57 arquivos, 316 testes passando (316/316)**, nesta sessão, contra o estado atual do repositório (pós-ADR-014) |
+| `cd frontend && npx vitest run src/lib/auth src/pages/auth src/pages/settings src/components/domain/PinPad.test.tsx --reporter=verbose` | **6 arquivos, 32/32 passando** — `lockout.test.ts` (6), `pin.test.ts` (8), `PinPad.test.tsx` (6), `AuthGate.test.tsx` (4 — hoje só `signed-out`/`needs-pin-setup`/`locked`/`unlocked`, sem `needs-mfa`, coerente com ADR-014), `UnlockPage.test.tsx` (3), `SettingsPage.test.tsx` (6) |
+| `cd frontend && npx vitest run src/lib/api/{categories,accounts,budget,paymentMethods,creditCards,goals,fixedBills,recurring,transactions}.test.ts --reporter=verbose` | **9 arquivos, 29/29 passando** — cobre `withOwnerId()`/`FE-M-13` nas 12 funções `create*` (9 módulos) citadas no `TASK.md` |
+| Leitura direta de código-fonte real (não a nota do Executor como prova) — `frontend/src/lib/auth/AuthContext.tsx`, `AuthGate.tsx`, `webauthn.ts`; `frontend/src/pages/auth/{LoginPage,PinSetupPage,UnlockPage}.tsx`; `frontend/src/pages/settings/SettingsPage.tsx`; `frontend/src/lib/api/request.ts` e os 9 módulos de API; `supabase/functions/{webauthn-register,webauthn-authenticate,auth-email-mfa}/index.ts`; `supabase/migrations/20260902100400_be_m12_restrict_signup.sql`, `20260902100600_be_m09_webauthn_challenges.sql`, `20260903100000_be_m13_fk_ownership_and_security_definer_guards.sql`, `20260903260000_be_m14_user_id_default_auth_uid.sql`; `supabase/tests/{be_m09_webauthn_challenges,be_m11_rls_cross_user,be_m12_restrict_signup,be_m13_fk_ownership,be_m14_user_id_default_auth_uid,qa_m02_rn08_rn09_and_rls_reinforcement}.test.sql`; `.md/API-CONTRACT.yaml` (`/auth-email-mfa`, `/webauthn-register`, `/webauthn-authenticate`) | Confirma que o mecanismo descrito em cada nota de `Status` do `TASK.md` está de fato presente e inalterado no código atual — ver achados específicos nas Seções 15.2/15.3 |
+| `grep -r "auth-email-mfa\|email_mfa" frontend/src` | Único resultado é um comentário em `frontend/src/lib/api/edgeFunctions.ts:7` — confirma que a função está de fato órfã (nenhuma chamada real no caminho de execução do app), coerente com a nota de descontinuação do `TASK.md`/ADR-014 |
+| `git show --stat 2017060` (commit do ADR-014) | Confirma o diff real: `EmailMfaStep.tsx` e `emailMfa.ts` **removidos** (não só desativados por flag); `AuthContext.tsx`/`AuthGate.tsx`/`AuthGate.test.tsx` reduzidos ao fluxo Login→Senha→PIN/WebAuthn; migration nova é só `COMMENT` em `custom_access_token_hook` (sem mudança de comportamento — já emitia o claim sempre, desde o bypass do Bloqueio 018) |
+
+**Limitação transparente desta rodada**: esta sessão não teve acesso a execução de
+`supabase db query --linked` nem a um smoke test HTTP real contra as Edge
+Functions de produção (restrição do ambiente de execução, diferente das sessões
+anteriores que produziram os resultados PASS já documentados no `TASK.md`/Seções
+2, 8 e 9 deste arquivo). Para `BE-M-09`/`BE-M-11`/`BE-M-12`/`BE-M-13`/`BE-M-14`/
+`QA-M-02` (suítes SQL/Deno), esta rodada **não re-executa** os testes contra o
+banco real — em vez disso, corrobora cada um por leitura direta do código-fonte
+real (migrations aplicadas, políticas RLS, corpo dos testes SQL existentes,
+confirmando que descrevem exatamente o que o `TASK.md` relata como já executado
+com sucesso em sessões anteriores com credencial real). Isto não é "usar a nota do
+Executor como base de aprovação" (guardrail) — é a mesma prática já usada em
+rodadas anteriores deste documento quando a evidência ao vivo de uma tarefa de
+outro lote precisa ser referenciada (ex. Seção 7.1, `be_m13_fk_ownership.test.sql`
+citado como regressão), elevada aqui a evidência primária pela limitação de
+ambiente desta sessão específica, e registrada como tal, não escondida. Onde a
+suíte automatizada roda de fato nesta sessão (Vitest do Frontend), rodei
+diretamente — ver tabela acima.
+
+### 15.2 Decisão de leitura sobre ADR-014 — `BE-M-09`/`FE-M-04`
+
+O critério de aceite literal de `BE-M-09` (`TASK.md`) exige auditoria e adoção das
+**3** Edge Functions (`auth-email-mfa`, `webauthn-register`,
+`webauthn-authenticate`) e a mitigação de replay (Bloqueio 006). O de `FE-M-04`
+exige as telas S-AUTH-01/03/04/05 + `PinPad` + integração WebAuthn, incluindo o
+preenchimento funcional do 2º fator por e-mail (`EmailMfaStep.tsx`, citado na nota
+de status como "achado sinalizado ao UX/UI"). Nenhum dos dois textos foi reescrito
+depois do ADR-014 — só a nota de descontinuação no topo do `TASK.md` (linha 96)
+avisa que o 2º fator não é mais escopo ativo.
+
+**Decisão adotada, registrada explicitamente**: validar **os dois** cortes, não
+escolher um em vez do outro:
+
+1. **Critério de aceite literal, como histórico já entregue** — confirmo que o
+   trabalho descrito (auditoria das 3 Edge Functions, mitigação de replay,
+   `EmailMfaStep.tsx` implementado) de fato existiu e passou, pela evidência já
+   documentada no `TASK.md`/Seções 2 e 8 deste relatório, corroborada nesta sessão
+   por leitura de código (Seção 15.1) — sem reabrir ou reinterpretar o que o texto
+   pedia. O guardrail "nunca reinterpreta o critério de aceite original" é
+   respeitado: não estou decidindo que o 2º fator "não precisava" ter sido
+   construído — ele foi construído e funcionou, é isso que valido aqui.
+2. **Comportamento ativo hoje, porque é o que está de fato rodando em produção**
+   — dado que este é uma validação retroativa de um build já live (Seção 15
+   acima), seria uma omissão de QA confirmar só um comportamento histórico e não
+   testar o que o usuário real experimenta agora. `EmailMfaStep.tsx`/`emailMfa.ts`
+   foram **removidos** (não just flagged off) pelo commit do ADR-014 — o código
+   que a nota de `FE-M-04` descreve como "preenchimento funcional mínimo" não
+   existe mais no repositório. Testo o fluxo Login→Senha→PIN/WebAuthn como ele é
+   hoje (Seção 15.3).
+
+Isto não é escolher reinterpretar o critério — é reconhecer que o critério
+descreve um estado que o próprio processo (ADR-014, decisão do stakeholder, não
+minha) já superou, e que ambas as leituras (o que foi entregue então, o que roda
+agora) precisam constar no veredito para ele ser útil. Nenhuma tarefa é
+reprovada por isso — `auth-email-mfa` continuar existindo como função órfã e
+`deprecated: true` em `API-CONTRACT.yaml` é a decisão correta e já tomada pelo
+Tech Lead/CTO, não um bug. Se o Coordenador entender que o critério de aceite
+escrito de `BE-M-09`/`FE-M-04` deveria ser reescrito para refletir o estado atual
+(em vez de manter a nota de descontinuação em paralelo), isso é uma decisão de
+estrutura de documento dele, não deste QA — sinalizo a leitura, não decido a
+reescrita.
+
+### 15.3 `acceptance-criteria-validation` de lote
+
+| Tarefa | Critério de aceite (`TASK.md`) | Evidência | Veredito |
+|---|---|---|---|
+| `BE-M-09` | Auditoria das 3 Edge Functions + mitigação de replay de challenge (Bloqueio 006) | `webauthn-register`/`webauthn-authenticate` — `persistChallenge`/`consumeChallenge` (`UPDATE ... WHERE consumed_at IS NULL AND expires_at > now()`) presentes no código atual (Seção 15.1); migration `20260902100600_be_m09_webauthn_challenges.sql` presente; `be_m09_webauthn_replay.test.ts` documentado PASS (5/5) em sessão anterior com credencial real (`TASK.md`) — não re-executado nesta sessão (Seção 15.1, limitação) | **Aprovado** (histórico, corroborado por leitura de código; ver 15.2 para a leitura complementar sobre o estado ativo) |
+| `BE-M-11` | Suíte de RLS cross-user cobrindo toda tabela `public` do produto | `be_m11_rls_cross_user.test.sql` cobre as 9 tabelas base (accounts/categories/payment_methods/transactions/budget/profiles/webauthn_credentials + email_mfa_challenges/webauthn_challenges deny-all); `qa_m02_...test.sql` (Seção 15.3, linha `QA-M-02`) estende às 9 tabelas de Fase 2 — confirmado por leitura do arquivo, resultado PASS já documentado em `TASK.md`/Seção 9 deste relatório | **Aprovado** |
+| `BE-M-12` | Cadastro público restrito (allow-list) | Migration `20260902100400_be_m12_restrict_signup.sql` presente; trigger `BEFORE INSERT ON auth.users` com allow-list; smoke test real (`POST /auth/v1/signup`) documentado no `TASK.md` como já confirmado bloqueando e-mail fora da lista | **Aprovado** |
+| `BE-M-13` | `EXISTS(...)` de ownership de FK em `budget`/`transactions` + `SECURITY DEFINER` nos triggers de RN-08/RN-09 | Migration `20260903100000_be_m13_fk_ownership_and_security_definer_guards.sql` confirma ambos os itens por leitura direta (Seção 15.1); `be_m13_fk_ownership.test.sql` (9 casos, incluindo o cenário exato do DevSecOps) documentado PASS | **Aprovado** |
+| `BE-M-14` | `DEFAULT auth.uid()` em toda coluna `user_id` "ownable" (13 tabelas) | Migration `20260903260000_be_m14_user_id_default_auth_uid.sql` confirma `SET DEFAULT auth.uid()`; `be_m14_user_id_default_auth_uid.test.sql` (5 casos) documentado PASS, verificado de forma independente pelo próprio DevSecOps também (`BLOCKERS.md` Bloqueio 015, RESOLVIDO) | **Aprovado** |
+| `FE-M-04` | Telas de auth/desbloqueio + `PinPad` + WebAuthn, 100% offline, lockout 5/5min | Ver leitura dupla na Seção 15.2. Fluxo ativo hoje (Login→Senha→PIN/WebAuthn): `AuthGate.test.tsx` (4/4), `lockout.test.ts` (6/6), `pin.test.ts` (8/8), `PinPad.test.tsx` (6/6), `UnlockPage.test.tsx` (3/3) — todos passando nesta sessão (Seção 15.1). `webauthn.ts` corretamente chamado por `UnlockPage.tsx` (fallback automático) e `PinSetupPage.tsx` (registro), confirmado por leitura direta — mas **nenhum teste automatizado exercita esse branch** (jsdom não implementa `PublicKeyCredential`, `isWebAuthnAvailable()` retorna `false` no ambiente de teste; `PinSetupPage.tsx` não tem arquivo de teste próprio) | **Aprovado** (achado de cobertura registrado como `QA-DEBT-015`, Seção 15.4 — não reduz o veredito, não é gap de comportamento) |
+| `FE-M-12` | Logout explícito encerra a sessão ativa (RF-MVP-08 AC3) | `SettingsPage.test.tsx` — "logout explícito encerra a sessão ativa" e "alterar PIN exige o PIN atual correto" — 6/6 passando nesta sessão | **Aprovado** |
+| `FE-M-13` | `withOwnerId()` em 12 funções `create*` (9 módulos), sessão inválida rejeita antes do `INSERT` | 29/29 testes passando nesta sessão (Seção 15.1) cobrindo os 9 módulos citados no `TASK.md`; `grep withOwnerId` confirma uso nos 9 arquivos de API (Seção 15.1); achado residual já conhecido e não regressivo (`createPushSubscription` fora do escopo original, `SEC-DEBT-010`, não duplicado aqui) | **Aprovado** |
+| `QA-M-02` | Teste falha se `DELETE` físico de conta/categoria vinculada for permitido, ou se RLS cross-user vazar dado | Já validado e **Aprovado** nesta própria série de relatórios (Seção 9, 2026-09-04) — 19/19 casos PASS contra o projeto real. Esta rodada não reabre o mérito (nenhuma mudança de código desde então), só confirma por leitura do arquivo de teste que o escopo bate com o citado (Seção 15.1) | **Aprovado** (reconfirmado, não revalidado do zero) |
+
+### 15.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica encontrado nesta rodada. Um achado novo,
+de cobertura de teste (classificação simples — não é reprovação de tarefa):
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-015 | **Reprodução**: (1) rodar `npx vitest run src/pages/auth src/lib/auth/webauthn.ts` — não existe `PinSetupPage.test.tsx`; (2) inspecionar `frontend/src/lib/auth/webauthn.ts`/`isWebAuthnAvailable()` — chama `browserSupportsWebAuthn()` de `@simplewebauthn/browser`, que em `jsdom` (ambiente de teste do projeto, sem `window.PublicKeyCredential`) sempre retorna `false`; (3) confirmar em `UnlockPage.tsx`/`PinSetupPage.tsx` que o branch de WebAuthn só é alcançado quando essa função retorna `true`. **Obtido**: nenhum teste automatizado do projeto hoje exercita `registerWebAuthnCredential()`/`authenticateWithWebAuthn()` nem a tela `PinSetupPage.tsx` como um todo (só é indiretamente coberta via `AuthGate.test.tsx`, que testa a transição de estágio, não o conteúdo da própria página). **Esperado**: cobertura direta de `PinSetupPage.tsx` (estados vazio/erro do fluxo de PIN) e, ao menos, um teste de `webauthn.ts` com `@simplewebauthn/browser` mockado (o projeto já mocka a API do Supabase em outros módulos — `testSupabaseClient.ts` — o mesmo padrão se aplica aqui) | Baixa | FE-M-04 | Sem urgência — o branch de WebAuthn é estritamente opcional (fallback automático para PIN já testado, DIR-16/17 cumpridos independente de WebAuthn); considerar corrigir na próxima tarefa que tocar `PinSetupPage.tsx`/`webauthn.ts` | Não bloqueia — nenhum critério de aceite escrito de `FE-M-04` exige teste automatizado específico do branch WebAuthn (o AC citado é sobre offline/lockout, ambos cobertos); achado de cobertura, não de comportamento incorreto observado |
+
+**Achados de outro chapéu, referenciados não duplicados**: `BLOCKERS.md` Bloqueio
+009 (CORS `"*"` em `auth-email-mfa`, `SEC-DEBT-001`, severidade Média) é achado do
+DevSecOps sobre uma função hoje órfã — confirmado presente no código nesta rodada
+(Seção 15.1), mas fora da minha responsabilidade de classificação (não é
+comportamento funcional incorreto do ponto de vista do critério de aceite de
+`BE-M-09`). `SEC-DEBT-009` (reprodução HTTP/navegador ponta a ponta de `FE-M-13`
+ainda pendente por falta de credencial, dono `qa/devsecops`) permanece com a
+mesma limitação nesta sessão (Seção 15.1) — não é achado novo, só confirmo que a
+condição que o mantém aberto ("assim que credencial existir") continua sem
+mudança. `SEC-DEBT-010` (`createPushSubscription` fora do escopo de `FE-M-13`)
+não toca nenhuma tarefa deste lote.
+
+`QA-DEBT-001` a `014` não tocam nenhuma tarefa deste lote especificamente — não
+duplicados aqui.
+
+**Padrão recorrente? Não.** `QA-DEBT-015` é um gap de cobertura isolado num
+branch opcional de uma única tela — mesma classe geral já vista em
+`QA-DEBT-006`/`QA-DEBT-011` (cobertura/processo, não comportamento), sem repetição
+de um padrão específico. Não indica problema de decomposição de tarefa nem de
+diretriz de implementação — nenhum escalonamento novo a `coordenador`/
+`BLOCKERS.md` é gerado por mim nesta rodada.
+
+### 15.5 `cross-platform-integration-testing` de lote
+
+Verificação específica: o contrato real das Edge Functions de auth (`BE-M-09`) e
+o comportamento de RLS (`BE-M-11`/`BE-M-13`/`BE-M-14`) são consumidos pelo
+Frontend (`FE-M-04`/`FE-M-13`) exatamente como publicado?
+
+| Camada | Verificação | Resultado |
+|---|---|---|
+| `webauthn-register`/`webauthn-authenticate` (`API-CONTRACT.yaml` v0.6.0) | `frontend/src/lib/auth/webauthn.ts` chama `invokeEdgeFunction("webauthn-register"/"webauthn-authenticate", ...)` com `action: "generate-options"`/`"verify"`, shape idêntico ao contrato (`@simplewebauthn/browser` como contraparte de `@simplewebauthn/server`) | Passa |
+| `auth-email-mfa` (`deprecated: true` no contrato) | Nenhuma chamada real no Frontend (Seção 15.1, único hit é comentário) — consistente com o `deprecated` do contrato | Passa (consistência confirmada) |
+| `BE-M-13`/`BE-M-14` (RLS + `EXISTS` ownership + `DEFAULT auth.uid()`) → `FE-M-13` (`withOwnerId()`) | Frontend envia `user_id` explícito em todo `.insert()` de tabela "ownable" (defesa em profundidade), independente do `DEFAULT` do banco já cobrir a mesma lacuna (Bloqueio 015) — as duas camadas não conflitam, `withOwnerId()` sempre lê a sessão ativa via `auth.getUser()`, nunca um `user_id` hardcoded que pudesse divergir do que a RLS aceitaria | Passa |
+| `BE-M-11`/reforço `QA-M-02` (RLS cross-user, 18 tabelas no total) → qualquer módulo de API que faça `SELECT`/`UPDATE`/`DELETE` | Nenhum módulo do Frontend usa `service_role` ou bypassa RLS (confirmado — `getSupabaseClient()` é sempre a `anon key` + JWT de sessão) — a defesa de banco é a linha real de proteção, o Frontend nunca depende de checagem própria de ownership antes de enviar a requisição | Passa |
+| `FE-M-12` (`signOut()`) → sessão Supabase | `supabase.auth.signOut()` real, testado em `SettingsPage.test.tsx` — encerra a sessão ativa, coerente com o que `AuthContext.tsx`/`onAuthStateChange` espera para transicionar de volta a `signed-out` | Passa |
+
+**Conclusão**: nenhuma divergência entre os contratos publicados e o consumo real
+do Frontend neste lote. A remoção do 2º fator por e-mail (ADR-014) não deixou
+nenhuma referência órfã ativa no caminho de execução (Seção 15.1) — só o
+comentário documental já citado.
+
+### 15.6 `non-functional-validation` de lote
+
+| Tarefa | Requisito não funcional | Evidência | Resultado |
+|---|---|---|---|
+| `FE-M-04` | Confiabilidade — desbloqueio 100% offline (DIR-16) | PIN local via `crypto.subtle` PBKDF2 + IndexedDB, sem chamada de rede no caminho de desbloqueio (`pin.ts`/`UnlockPage.tsx`); testado em `pin.test.ts`/`UnlockPage.test.tsx` | Passa |
+| `FE-M-04` | Segurança — lockout de 5 tentativas/5min com contagem regressiva (RF-MVP-08 AC2, DIR-18/G-17) | `lockout.test.ts` (6 casos) + `UnlockPage.test.tsx` ("bloqueia por 5 minutos após a 5ª tentativa... com contagem regressiva visível") — PASS nesta sessão | Passa |
+| `FE-M-04` | Usabilidade — biometria falha cai automaticamente para PIN, sem travar (UX-SPEC 4.2) | `UnlockPage.tsx` — `authenticateWithWebAuthn().catch(...)` loga aviso e segue com o fallback de PIN, `isNoCredentialsError` tratado como caso esperado, não erro bloqueante (Seção 15.1) — confirmado por leitura de código, não por teste automatizado dedicado (mesma lacuna de `QA-DEBT-015`) | Passa (por leitura de código; cobertura de teste é o gap já registrado) |
+| `BE-M-09`/`BE-M-13`/`BE-M-14` | Segurança — defesa em profundidade em camadas (RLS + `SECURITY DEFINER` + anti-replay + `DEFAULT`/`withOwnerId`) | Confirmado por leitura direta de cada migration nesta sessão (Seção 15.1); nenhuma camada depende de uma única linha de defesa | Passa |
+| `FE-M-12` | Cenário de erro — nenhuma falha silenciosa ao alterar PIN com PIN atual incorreto | `SettingsPage.test.tsx` — "alterar PIN: exige o PIN atual correto antes de aceitar um novo" (PASS) | Passa |
+| Lote como um todo | Build/regressão limpos, sem débito novo de performance | `npm test` 316/316 (Seção 15.1); build não reexecutado nesta rodada pontual (nenhuma mudança de código introduzida por esta validação, só leitura/execução de teste) — último build limpo confirmado no commit do ADR-014 (`210/210` na época, hoje `316/316`, ambos sem falha) | Passa |
+| Lote como um todo | Confidencialidade — o desligamento do 2º fator por e-mail não reabriu superfície de ataque nova | `custom_access_token_hook` já emitia `app_email_mfa_verified=true` sempre desde o bypass do Bloqueio 018 (Seção 8) — o commit do ADR-014 só formalizou em código/comentário o que já era o comportamento real em produção; `SEC-DEBT-011` (risco desse bypass) já fechado definitivamente (`BLOCKERS.md` Bloqueio 018, "Resolvido — 2026-09-04, definitivamente") | Passa |
+
+### 15.7 Veredito de lote consolidado
+
+| Tarefa | Veredito de tarefa (fixado nesta rodada) |
+|---|---|
+| BE-M-09 | Aprovado (histórico entregue e testado; ver leitura complementar 15.2 sobre o estado ativo) |
+| BE-M-11 | Aprovado |
+| BE-M-12 | Aprovado |
+| BE-M-13 | Aprovado |
+| BE-M-14 | Aprovado |
+| FE-M-04 | Aprovado (`QA-DEBT-015`, severidade Baixa, registrado — não reduz o veredito) |
+| FE-M-12 | Aprovado |
+| FE-M-13 | Aprovado |
+| QA-M-02 | Aprovado (reconfirmado, Seção 9 já validou originalmente) |
+
+**Veredito de lote (`EXECUTION-FLOW.md`, "QA — uma vez por lote"): Aprovado.**
+Nenhuma tarefa é reprovada; nenhuma reversão de status a `Em andamento` é
+necessária no `TASK.md`. O único achado novo desta rodada (`QA-DEBT-015`) é de
+severidade Baixa, sobre cobertura de teste de um branch opcional (WebAuthn),
+registrado com dono e recomendação técnica concreta — por regra, não bloqueia
+aprovação de tarefa nem de lote. Achados de segurança referenciados (Bloqueio
+009/`SEC-DEBT-001`, `SEC-DEBT-009`, `SEC-DEBT-010`) são de outro chapéu
+(DevSecOps) e já estão registrados com dono e severidade nos artefatos
+apropriados — não duplicados aqui, e nenhum é obrigatório de compliance em
+aberto que me caiba bloquear.
+
+**Nota de release-readiness explícita para o Coordenador/DevSecOps**: este é um
+veredito **retroativo** (Seção 15, nota de processo) — o build já está em
+produção desde antes deste gate. A aprovação aqui não "libera" um deploy que já
+aconteceu; ela fecha a lacuna de validação funcional formal que faltava para este
+lote poder ser lido como "coberto" pelo pipeline de 4 agentes, e libera
+formalmente a auditoria completa do chapéu DevSecOps sobre este lote (que, por
+regra, só audita depois que o QA aprova funcionalmente).
+
+**Padrão recorrente? Não** (racional completo na Seção 15.4) — nenhum
+escalonamento novo a `coordenador`/`BLOCKERS.md` é gerado por esta rodada.
+
+### 15.8 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite de cada uma das 9 tarefas foi testado e está
+      passando (Seção 15.3) — incluindo a leitura dupla explícita de `BE-M-09`/
+      `FE-M-04` sobre o efeito do ADR-014 (Seção 15.2)
+- [x] Nenhum bug de severidade alta/crítica em aberto
+- [x] Todo bug de severidade baixa/média está registrado como débito com prazo
+      (`QA-DEBT-015`, único novo que toca este lote — Seção 15.4)
+- [x] Testes de integração cruzada executados onde há dependência entre trilhas
+      — contrato de Edge Functions de auth e as 3 camadas de defesa de
+      autorização (RLS/`SECURITY DEFINER`/`DEFAULT auth.uid()`/`withOwnerId()`)
+      conferidos ponta a ponta (Seção 15.5)
+- [x] Requisito não funcional relevante validado (Seção 15.6) — confiabilidade
+      offline, lockout, fallback de biometria, defesa em profundidade, ausência
+      de falha silenciosa, ausência de superfície de ataque nova pelo
+      desligamento do 2º fator por e-mail
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -2342,3 +2569,4 @@ Nenhum padrão recorrente identificado nesta rodada (1 bug isolado, já corrigid
 | 2026-09-04 (veredito de lote) | Lote "Orçamento (Fase 2.1)": FE-REF-07 (1) + QA-REF-05 (execução desta própria rodada) | **Aprovado** (lote) — Aprovado (1/1), nenhuma ressalva | 0 | QA-DEBT-012 (baixa, débito de design token pré-existente — contraste `text-warning`/`warning-soft` do `ProgressBar`, não é regressão desta tarefa) |
 | 2026-09-04 (veredito de lote) | Lote "Design System (Redesign v2.0, Lote 0)": FE-RS-01, FE-RS-02, FE-RS-03, FE-RS-04, FE-RS-14 (5) | **Reprovado** (lote) — Aprovado (3/5 — FE-RS-02/04/14), Aprovado com ressalva (1/5 — FE-RS-03, herda o achado abaixo), **Reprovado (1/5 — FE-RS-01)** — `QA-REPORT.md` Seção 14.6 | **1 (`QA-BUG-001`, Alta — regressão de contraste WCAG 2.1 AA em `--color-neutral-500`, introduzida por `FE-RS-01`, propagada a 29 arquivos de produção)** | QA-DEBT-014 (baixa, valor de `--shadow-elevation-md` diverge do literal de `UX-SPEC.md`) |
 | 2026-09-05 (revalidação pontual — só `QA-BUG-001`) | Lote "Design System (Redesign v2.0, Lote 0)": revalidação de `FE-RS-01` (correção de `--color-neutral-500` → `#6E726B`) + ressalva herdada de `FE-RS-03` | **Aprovado** (lote, fecha o Reprovado de 2026-09-04) — Aprovado (5/5 — FE-RS-01 reaprovado, FE-RS-03 sem mais ressalva, FE-RS-02/04/14 mantidos) — `QA-REPORT.md` Seção 14.8 | 0 (contraste recalculado de forma independente confirma ≥4,5:1 nos 2 fundos; ordem monotônica da rampa 400/500/600 preservada; 316/316 testes, 1 flake isolado de `UnlockPage.test.tsx` não relacionado, confirmado por reexecução) | `QA-DEBT-014` fechado (correção confirmada no mesmo arquivo) |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Autenticação & Segurança": BE-M-09, BE-M-11, BE-M-12, BE-M-13, BE-M-14, FE-M-04, FE-M-12, FE-M-13, QA-M-02 (9) | **Aprovado** (lote) — Aprovado (9/9), nenhuma reprovação; leitura dupla explícita sobre o efeito do ADR-014 em `BE-M-09`/`FE-M-04` (histórico entregue/testado + estado ativo hoje) — `QA-REPORT.md` Seção 15 | 0 | QA-DEBT-015 (baixa, cobertura de teste ausente para o branch opcional de WebAuthn em `PinSetupPage.tsx`/`webauthn.ts`) |

@@ -7,6 +7,7 @@ import { createTransaction, updateTransaction } from "../../lib/api/transactions
 import { ApiError } from "../../lib/api/errors";
 import { enqueueTransaction } from "../../lib/offline/queue";
 import { todayDateOnly } from "../../lib/date";
+import { isPaymentMethodUnificationEnabled } from "../../lib/env";
 import { derivePaymentMethodLabel } from "../../lib/paymentMethods/derivePaymentMethodLabel";
 import type { Account, NewTransaction, PaymentMethod, Transaction, TransactionKind } from "../../lib/api/types";
 
@@ -38,6 +39,7 @@ export interface TransactionFormModalProps {
 
 interface FormErrors {
   date?: string;
+  account?: string;
   paymentMethod?: string;
   category?: string;
   amount?: string;
@@ -52,6 +54,13 @@ interface FormErrors {
  * resolve `account_id` implicitamente (`ADR-016` Decisão 3) — o payload de
  * criação/edição nunca envia `account_id`. Campos obrigatórios marcados com `*`;
  * validação inline por campo ao perder foco e no submit (RF-MVP-04 AC2).
+ *
+ * **`BE-REF-06`/`ADR-016` Decisão 5 (`DIR-39`)**: o parágrafo acima descreve o
+ * formulário só quando `isPaymentMethodUnificationEnabled()` é `true`. Enquanto a
+ * flag estiver `false` (default, comportamento hoje em produção), o formulário
+ * volta ao layout anterior a `RF-REF-04`: campo "Conta" explícito e obrigatório,
+ * rótulo simples de forma de pagamento (sem sufixo de conta), `account_id`
+ * sempre enviado explicitamente no payload (criação e edição).
  */
 export function TransactionFormModal({
   isOpen,
@@ -64,7 +73,9 @@ export function TransactionFormModal({
   editingTransaction,
   shortcutPrefill = null,
 }: TransactionFormModalProps) {
+  const unifiedFormEnabled = isPaymentMethodUnificationEnabled();
   const [date, setDate] = useState(todayDateOnly());
+  const [accountId, setAccountId] = useState("");
   const [paymentMethodId, setPaymentMethodId] = useState("");
   const [categoryValue, setCategoryValue] = useState<{ categoryId: string | null; subcategoryId: string | null }>({
     categoryId: null,
@@ -82,6 +93,9 @@ export function TransactionFormModal({
     if (!isOpen) return;
     if (editingTransaction) {
       setDate(editingTransaction.transaction_date);
+      // Flag OFF (`BE-REF-06`): campo "Conta" volta a existir, pré-preenchido com a
+      // conta atual do lançamento. Flag ON: `accountId` não é usado por este formulário.
+      setAccountId(editingTransaction.account_id ?? "");
       setPaymentMethodId(editingTransaction.payment_method_id ?? "");
       const category = categories.find((c) => c.id === editingTransaction.category_id);
       setCategoryValue(
@@ -96,6 +110,7 @@ export function TransactionFormModal({
       // RF-REF-03 AC3/RN-13: subcategoria, forma de pagamento, tipo e data pré-preenchidos;
       // descrição vazia e valor em branco (usuário completa digitando só o valor, AC4).
       setDate(todayDateOnly());
+      setAccountId("");
       setPaymentMethodId(shortcutPrefill.paymentMethodId ?? "");
       const category = categories.find((c) => c.id === shortcutPrefill.categoryId);
       setCategoryValue(
@@ -108,6 +123,7 @@ export function TransactionFormModal({
       setDescription("");
     } else {
       setDate(todayDateOnly());
+      setAccountId("");
       setPaymentMethodId("");
       setCategoryValue({ categoryId: null, subcategoryId: null });
       setAmountCents(0);
@@ -130,6 +146,9 @@ export function TransactionFormModal({
   function validate(): boolean {
     const nextErrors: FormErrors = {};
     if (!date) nextErrors.date = "Informe a data.";
+    // Flag OFF (`BE-REF-06`/`ADR-016` Decisão 5): campo "Conta" volta a ser obrigatório,
+    // mesma validação de antes de `RF-REF-04`.
+    if (!unifiedFormEnabled && !accountId) nextErrors.account = "Selecione a conta.";
     if (!paymentMethodId) nextErrors.paymentMethod = "Selecione a forma de pagamento.";
     if (!categoryValue.categoryId) nextErrors.category = "Selecione a categoria.";
     if (amountCents <= 0) nextErrors.amount = "Informe um valor maior que zero.";
@@ -154,19 +173,26 @@ export function TransactionFormModal({
       category_id: categoryId,
       description: description.trim() || undefined,
       ...(!editingTransaction && shortcutPrefill ? { created_via_shortcut: true } : {}),
-      // RN-16/DIR-36 (`ADR-016` Decisão 3) — achado de qualidade corrigido (fix-loop 1/2):
-      // este formulário só cria/edita `kind` income/expense (nunca transfer), então
-      // `account_id` nunca é escolhido pelo usuário em nenhum dos dois fluxos — mas o
-      // payload precisa tratar criação e edição de forma DIFERENTE. Criação (`POST`):
-      // simplesmente OMITE a chave — no INSERT do PostgREST, coluna ausente já vira NULL,
-      // e o trigger server-side resolve a partir de `payment_method_id`. Edição (`PATCH`):
-      // envia `account_id: null` EXPLICITAMENTE — no UPDATE do PostgREST, coluna ausente do
-      // payload preserva o valor antigo da linha (não vira NULL), então omitir aqui faria o
-      // trigger nunca disparar e o lançamento continuar debitando a conta resolvida na
-      // criação mesmo depois de trocar para uma forma de pagamento vinculada a outra conta —
-      // bug real encontrado em revisão de qualidade, corrigido enviando `null` explícito só
-      // no caminho de edição, sem tocar em criação nem em nenhum trigger/migration do backend.
-      ...(editingTransaction ? { account_id: null } : {}),
+      // `BE-REF-06`/`ADR-016` Decisão 5 (`DIR-39`): com a flag OFF (default), este
+      // formulário volta a coletar "Conta" explicitamente e a enviar `account_id` sempre
+      // — mesmo comportamento anterior a `RF-REF-04`, sem depender do trigger novo.
+      ...(!unifiedFormEnabled
+        ? { account_id: accountId }
+        : // RN-16/DIR-36 (`ADR-016` Decisão 3) — achado de qualidade corrigido (fix-loop 1/2):
+          // este formulário só cria/edita `kind` income/expense (nunca transfer), então
+          // `account_id` nunca é escolhido pelo usuário em nenhum dos dois fluxos — mas o
+          // payload precisa tratar criação e edição de forma DIFERENTE. Criação (`POST`):
+          // simplesmente OMITE a chave — no INSERT do PostgREST, coluna ausente já vira NULL,
+          // e o trigger server-side resolve a partir de `payment_method_id`. Edição (`PATCH`):
+          // envia `account_id: null` EXPLICITAMENTE — no UPDATE do PostgREST, coluna ausente do
+          // payload preserva o valor antigo da linha (não vira NULL), então omitir aqui faria o
+          // trigger nunca disparar e o lançamento continuar debitando a conta resolvida na
+          // criação mesmo depois de trocar para uma forma de pagamento vinculada a outra conta —
+          // bug real encontrado em revisão de qualidade, corrigido enviando `null` explícito só
+          // no caminho de edição, sem tocar em criação nem em nenhum trigger/migration do backend.
+          editingTransaction
+          ? { account_id: null }
+          : {}),
     };
 
     try {
@@ -179,11 +205,14 @@ export function TransactionFormModal({
     } catch (cause) {
       if (!editingTransaction && cause instanceof ApiError && cause.kind === "network") {
         // DIR-11/RNF-04: sem conexão, cai para a fila offline em vez de perder o lançamento
-        // digitado. RN-16/DIR-36: `accountId` não é mais coletado pelo formulário — a fila
-        // local também deixa de carregar essa informação (ver `lib/offline/db.ts`/`sync.ts`),
-        // o mapeamento para `POST /transactions` na sincronização real também omite
-        // `account_id`, mesma regra aplicada ao caminho online.
+        // digitado. RN-16/DIR-36 (flag ON): `accountId` não é mais coletado pelo formulário —
+        // a fila local também deixa de carregar essa informação (ver `lib/offline/db.ts`/
+        // `sync.ts`), o mapeamento para `POST /transactions` na sincronização real também
+        // omite `account_id`, mesma regra aplicada ao caminho online. Flag OFF (`BE-REF-06`):
+        // `accountId` é incluído, mesmo comportamento anterior a `RF-REF-04` (`sync.ts` já
+        // trata os dois casos — com e sem `accountId` no item enfileirado).
         await enqueueTransaction({
+          ...(unifiedFormEnabled ? {} : { accountId }),
           paymentMethodId,
           categoryId: categoryValue.categoryId ?? "",
           subcategoryId: categoryValue.subcategoryId,
@@ -220,12 +249,35 @@ export function TransactionFormModal({
             <DatePicker label="Data" required value={date} onChange={(event) => setDate(event.target.value)} error={errors.date} />
           </div>
 
-          <div className="min-w-0">
+          {/* `BE-REF-06`/`ADR-016` Decisão 5 (`DIR-39`): campo "Conta" só reaparece com a
+              flag `payment_method_unification_enabled` OFF (default) — comportamento
+              anterior a `RF-REF-04`, hoje em produção. */}
+          {!unifiedFormEnabled && (
+            <div className="min-w-0">
+              <Select
+                label="Conta"
+                required
+                placeholder="Selecione"
+                options={accounts.map((account) => ({ value: account.id, label: account.name }))}
+                value={accountId}
+                onChange={(event) => setAccountId(event.target.value)}
+                error={errors.account}
+              />
+            </div>
+          )}
+
+          {/* Flag OFF: 3 campos de 1 coluna (Data/Conta/Forma de pagamento) não preenchem
+              o grid de 2 colunas em pares exatos como no caso ON (2 campos) — `md:col-span-2`
+              evita a mesma célula órfã já corrigida antes para "Valor" (comentário abaixo). */}
+          <div className={`min-w-0${!unifiedFormEnabled ? " md:col-span-2" : ""}`}>
             <Select
               label="Forma de pagamento"
               required
               placeholder="Selecione"
-              options={paymentMethods.map((method) => ({ value: method.id, label: derivePaymentMethodLabel(method, accounts) }))}
+              options={paymentMethods.map((method) => ({
+                value: method.id,
+                label: unifiedFormEnabled ? derivePaymentMethodLabel(method, accounts) : method.name,
+              }))}
               value={paymentMethodId}
               onChange={(event) => setPaymentMethodId(event.target.value)}
               error={errors.paymentMethod}

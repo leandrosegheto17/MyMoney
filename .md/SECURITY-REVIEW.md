@@ -1375,7 +1375,7 @@ achado desta rodada tem relevância estratégica que exija nova sinalização.
 
 | ID | Achado | Severidade | Bloqueia? | Prazo/condição | Dono da correção |
 |---|---|---|---|---|---|
-| SEC-DEBT-001 | CORS wildcard em `auth-email-mfa` | Média | Não | Antes do próximo deploy que tocar o arquivo; recomendado imediato (custo trivial) | backend |
+| SEC-DEBT-001 | CORS wildcard em `auth-email-mfa` | ~~Média~~ **Baixa (reclassificado em 1.25, 2026-09-05)** | Não | ~~Antes do próximo deploy que tocar o arquivo~~ **Recomendação atualizada (1.25): decommissioning da function (preferencial, já que é código órfão sem manutenção de rotina prevista) ou, alternativamente, o patch trivial de CORS se a function for mantida** | coordenador/devops (decommissioning) ou executor (patch de CORS, se mantida) |
 | SEC-DEBT-002 | Sem validação de ownership de FK (`category_id`/`account_id`/etc.) em INSERT/UPDATE de `budget`/`transactions`; trigger RN-09 não `SECURITY DEFINER` | Alta (impacto) / baixa exploitabilidade hoje | Não hoje — **bloqueio automático condicional** (ver 1.2) | Antes de 2º e-mail em `allowed_signup_emails`, antes de remover o trigger de signup, ou antes de qualquer feature multiusuário; recomendado corrigir antes da Fase 3 | backend |
 | SEC-DEBT-003 | E-mail do stakeholder hardcoded em migration | Baixa | Não | Confirmar repo privado; corrigir antes de tornar público/compartilhar acesso | devops (confirmação) / backend (correção se necessário) |
 | SEC-DEBT-004 | Rótulo desatualizado em G-01/G-02 (`GUARDRAILS.md`) | Baixa | Não | Próximo toque no documento | tech-lead / cto |
@@ -1421,6 +1421,20 @@ todo achado anterior "Aprovado com débito" (que descrevia código já concluíd
 de um lote normal), este débito nasce de uma decisão de risco aceito já em
 produção — o prazo de 7 dias/condição de causa-raiz-resolvida é o mecanismo de
 controle, não uma correção de código pendente de agendamento.
+
+**Atualização 1.25 (auditoria completa de lote, primeira aplicação formal —
+"Autenticação & Segurança")**: `SEC-DEBT-001` reclassificado de Média para
+Baixa — o `ADR-014` (remoção definitiva do 2º fator por e-mail) confirma que
+explorar `auth-email-mfa` hoje não produz nenhum efeito na postura de
+segurança real do produto (`custom_access_token_hook` já emite
+`app_email_mfa_verified=true` incondicionalmente, independente do resultado
+desse endpoint). Recomendação de correção atualizada de "corrigir no próximo
+toque no arquivo" para "avaliar decommissioning" (ver 1.25 e `BLOCKERS.md`
+Bloqueio 009). Nenhum débito novo gerado por esta rodada —
+`security-requirement-validation`, `compliance-validation` e
+`sensitive-data-exposure-check` não encontraram nenhum achado novo sobre
+`BE-M-09`/`11`/`12`/`13`/`14`/`FE-M-04`/`12`/`13`/`QA-M-02`. Veredito do lote:
+**Aprovado com débito** (`SEC-DEBT-001`, Baixa, não bloqueante).
 
 ## 3. Achados que bloqueiam algo
 
@@ -3182,3 +3196,226 @@ já registradas na Seção 5 permanecem válidas e não são reabertas por esta 
 **Veredito final do Lote 0 ("Design System, Redesign v2.0") do ponto de vista de
 DevSecOps: Aprovado, sem débito.** Nenhuma pré-condição de deploy pendente por
 parte de segurança/compliance.
+
+---
+
+### 1.25 — Auditoria completa (veredito de lote, primeira aplicação formal como
+unidade) — "Autenticação & Segurança" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 15 aprovou (Aprovado, 9/9, nenhuma reprovação)
+`BE-M-09`, `BE-M-11`, `BE-M-12`, `BE-M-13`, `BE-M-14`, `FE-M-04`, `FE-M-12`,
+`FE-M-13`, `QA-M-02`. Libera minha auditoria completa, respeitando meu próprio
+gate de entrada.
+
+**Nota de processo — validação retroativa, mesma natureza da Seção 15 do
+`QA-REPORT.md`**: este build já está em produção desde antes de qualquer gate
+formal de lote existir (`DEPLOY.md` Seção 9.6, decisão consciente do
+stakeholder). Esta rodada é uma auditoria *a posteriori*, não um gate pré-deploy
+— trato com o mesmo rigor de qualquer outra (leitura direta de código-fonte
+real, nunca a nota do Executor como prova), mas nenhuma ação de rollback é
+sugerida por si só; se um achado crítico aparecesse, o protocolo seria o mesmo
+de qualquer bloqueio (reverter a tarefa a `Em andamento`, escalar ao Executor),
+com a nota adicional de que o código já está live.
+
+**Nota de escopo — por que esta rodada não repete a auditoria geral já feita
+peça por peça em rodadas anteriores**: diferente de todo lote anterior deste
+documento (que recebia sua primeira auditoria de segurança junto do primeiro
+`/validar`), as tarefas deste lote já foram tocadas, individualmente, pela
+Seção 0 (achados #1/#2/#5, triagem de um `code-review` anterior) e por
+`BLOCKERS.md` Bloqueios 006/010/015 (mitigação de replay, `SEC-DEBT-002`/G-19,
+`SEC-DEBT-008`/`DEFAULT auth.uid()`) — todos já resolvidos e reconfirmados em
+rodadas subsequentes (1.9/1.10/1.13/1.14/1.15/1.18). Não relI-los aqui; uso como
+insumo e só reconfirmo o que muda. O que esta rodada faz de **novo**: (a) a
+primeira leitura de código-fonte real, linha a linha, das duas Edge Functions
+de WebAuthn (`webauthn-register`/`webauthn-authenticate`) e da camada de
+autenticação do Frontend (`AuthContext.tsx`, `pin.ts`, `lockout.ts`,
+`webauthn.ts`, `UnlockPage.tsx`, `PinSetupPage.tsx`, `SettingsPage.tsx`,
+`request.ts`) — nenhuma delas tinha sido lida integralmente por mim em uma
+rodada de `static-security-analysis` formal (a Seção 1.7 excluiu
+explicitamente "WebAuthn" do escopo, remetendo para os Achados #1/#2 que não
+cobrem a lógica de verificação em si); (b) o veredito de lote formal com as 4
+skills de auditoria completa, nunca feito para este conjunto de 9 tarefas como
+unidade; (c) reavaliação do efeito do `ADR-014` (remoção definitiva do 2º
+fator por e-mail) sobre a classificação de `SEC-DEBT-001`.
+
+#### `static-security-analysis` — primeira leitura formal de `webauthn-register`/`webauthn-authenticate` e da camada de auth do Frontend
+
+Li integralmente `supabase/functions/webauthn-register/index.ts` e
+`supabase/functions/webauthn-authenticate/index.ts` (não apenas o trecho de
+CORS já triado no Achado #1) e `frontend/src/lib/auth/{AuthContext,pin,lockout,
+webauthn}.ts`, `frontend/src/pages/auth/{UnlockPage,PinSetupPage}.tsx`,
+`frontend/src/pages/settings/SettingsPage.tsx`, `frontend/src/lib/api/
+request.ts`.
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Mitigação de replay de challenge (Bloqueio 006) é atômica e ocorre antes de qualquer validação criptográfica | `consumeChallenge()` — `UPDATE ... WHERE consumed_at IS NULL AND expires_at > now() RETURNING id`, chamado antes de `verifyRegistrationResponse`/`verifyAuthenticationResponse` em ambas as functions | `webauthn-register/index.ts:478-509`, `webauthn-authenticate/index.ts:531-564` — nenhuma linha afetada retorna 409 sem sequer tentar validar a assinatura | Passa |
+| Origem (CORS/`expectedOrigin`) e RP ID validados por allowlist, nunca wildcard, em ambas as functions WebAuthn (diferente de `auth-email-mfa`, já triado no Achado #1) | `ALLOWED_ORIGINS` (array de `WEBAUTHN_ORIGIN`), usado tanto em `corsHeaders()` quanto em `expectedOrigin` de `verify*Response` | `webauthn-register/index.ts:65-70,106-114,516`, `webauthn-authenticate/index.ts:52-56,92-100,572` | Passa |
+| Credencial pertence ao usuário autenticado antes de aceitar a assertion (`webauthn-authenticate`) | Lookup por `credential_id`, depois checagem explícita `credentialRowTyped.user_id !== user.id` → 404 genérico (não vaza se a credencial existe e pertence a outro usuário) | `webauthn-authenticate/index.ts:472-513` | Passa |
+| Contador anti-clonagem (`sign_count`) persistido após verificação bem-sucedida | `verifyAuthenticationResponse` retorna `newCounter`; `UPDATE ... sign_count = newCounter` | `webauthn-authenticate/index.ts:599-609` — biblioteca `@simplewebauthn/server` rejeita internamente uma assertion cujo `newCounter` não avança quando o autenticador reporta contador não-zero (comportamento padrão da lib, não reimplementado aqui) | Passa |
+| Falha ao atualizar `sign_count`/`last_used_at` não derruba um desbloqueio já validado criptograficamente | Erro da `UPDATE` final é só logado, resposta ainda `200 {success:true}` | `webauthn-authenticate/index.ts:611-624`, comentário explícito no código | Passa — decisão de disponibilidade correta (a assinatura já provou posse da chave privada; falha de auditoria não deveria travar o usuário) |
+| Nenhum dado sensível (`public_key`/`attestationResponse`/`assertionResponse` brutos) vai a log estruturado | `log()` só recebe `requestId`/`userId`/`credential_id`/`db_error_code` como `extra` em todo `call site` das duas functions | Grep dirigido (`log(` — todas as chamadas) nas duas functions | Passa |
+| `handle_new_user()` só roda para e-mail já aprovado (`BE-M-12`) | Trigger `auth_users_before_insert_restrict_signup` (`BEFORE INSERT`) roda e pode abortar antes do `AFTER INSERT` que dispara `handle_new_user()` | `20260902100400_be_m12_restrict_signup.sql:44-58` — `SECURITY DEFINER`, `search_path` fixo, `raise exception` com `errcode 42501` se e-mail fora de `allowed_signup_emails` | Passa — reconfirma o Achado #5 original, sem gap novo |
+| PIN local — algoritmo/parâmetros de hashing | `crypto.subtle.deriveBits` PBKDF2-SHA256, salt aleatório 16 bytes por dispositivo, 100.000 iterações, nunca transmitido (100% local, `IndexedDB`) | `frontend/src/lib/auth/pin.ts:5,15-22,36-49` | Passa, com observação não-bloqueante: 100.000 iterações está abaixo da recomendação atual da OWASP Password Storage Cheat Sheet para PBKDF2-HMAC-SHA256 (≥600.000) — mitigado integralmente pelo modelo de ameaça real (verificação 100% local, sem endpoint de rede para força bruta remota; DIR-18/G-17 já limita tentativa física a 5/5min). Não registro como `SEC-DEBT` novo — é um parâmetro de robustez adicional, não um gap de requisito do `SDD.md` (que não especifica contagem de iteração), e o vetor de exploração (acesso físico ao dispositivo já desbloqueado no SO) já é o mesmo cenário que `ADR-005`/Bloqueio 001 tratam como fora do modelo de ameaça deste produto |
+| `console.*` na camada de auth do Frontend | Um resultado: `UnlockPage.tsx:77`, loga a `ApiError` (mensagem amigável + `status`/`code`, nunca o `assertionResponse` bruto) quando a autenticação WebAuthn falha por motivo inesperado (não "sem credencial") | `frontend/src/pages/auth/UnlockPage.tsx:70-79`; `ApiError`/`toEdgeFunctionError` (`errors.ts`, `edgeFunctions.ts`) confirmam que o objeto logado contém só `message`/`status`/`code`/`kind`, nunca payload de credencial | Passa — visível só no console do próprio dispositivo do usuário, sem dado sensível; nota, não achado |
+| Dependências novas deste lote (`@simplewebauthn/server`, `@simplewebauthn/browser`) | `npm audit --omit=dev` (frontend) e `deno.lock` (Edge Functions) | `npm audit`: 0 vulnerabilidades na árvore de produção do Frontend; `deno.lock` das duas functions resolve `@simplewebauthn/server` da mesma versão/hash, sem lockfile divergente entre as duas | Passa |
+
+**Nenhum achado novo de severidade alta/crítica.** A implementação de
+`webauthn-register`/`webauthn-authenticate` é sólida: replay mitigado de forma
+atômica antes de qualquer verificação criptográfica, origem/RP ID por
+allowlist (nunca wildcard, ao contrário de `auth-email-mfa`), ownership de
+credencial verificado antes de aceitar assertion, contador anti-clonagem
+persistido, timeouts explícitos em toda chamada de Auth/Postgres, e nenhum
+segredo/payload bruto em log estruturado.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md` G-04/G-05/G-07/G-17/G-19
+
+| Requisito | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| `G-07`/DIR-19 — `unlocked` nunca substitui `session`; API sem `session` falha por RLS independente do PIN local | `AuthContext.tsx` deriva `stage` de duas fontes independentes (`session`, `pinConfigured`+`unlocked`); nenhum módulo de `lib/api/**` consulta `stage`/`unlocked` para decidir se envia a requisição | `frontend/src/lib/auth/AuthContext.tsx:1-21,60-68`; grep de `useAuth()`/`stage` em `lib/api/**` — zero ocorrência | Passa |
+| `G-17` — lockout 5 tentativas/5min, 100% local/offline, número não alterável por Backend/Frontend | `MAX_ATTEMPTS = 5`, `LOCKOUT_MS = 5*60*1000`, comentário cita G-17 explicitamente; nenhuma chamada de rede em `lockout.ts` | `frontend/src/lib/auth/lockout.ts:9-10` | Passa — valor não foi alterado desde a aprovação original |
+| `G-19` (ownership de FK cruzada) aplicável a `BE-M-13` — origem desta própria regra | `budget_insert_own`/`_update_own`/`transactions_insert_own`/`_update_own` com `EXISTS(...)` de ownership; triggers RN-08/RN-09 `SECURITY DEFINER` | `20260903100000_be_m13_fk_ownership_and_security_definer_guards.sql` — já confirmado em 1.10/1.13/1.14/1.15/1.18, reconfirmado por leitura direta nesta rodada, sem regressão | Passa. **Nota de governança, não achado novo**: `GUARDRAILS.md` G-19 segue `[PROPOSTA — aguardando aprovação do Coordenador/Gestor]` (linha 231), 2 dias após a proposta original e depois de 6 lotes subsequentes já terem sido auditados assumindo o padrão como vigente — já registrado em rodadas anteriores (1.9, 1.13) sem gerar bloqueio; não repito a escalada, só reconfirmo que o *código* cumpre o padrão que a regra formalizaria, independentemente do veredito de aprovação formal pendente |
+| `DEFAULT auth.uid()` (`BE-M-14`, origem `SEC-DEBT-008`/Bloqueio 015) em toda coluna `user_id` "ownable" | 13/13 tabelas confirmadas | `20260903260000_be_m14_user_id_default_auth_uid.sql` — já verificado ao vivo pelo próprio DevSecOps em rodada anterior (Bloqueio 015, Resolvido); reconfirmado por leitura da migration nesta rodada, sem regressão | Passa |
+| `withOwnerId()` (`FE-M-13`) nas 12 chamadas `create*` dos 9 módulos citados no `TASK.md` | `grep withOwnerId` nos 9 módulos + leitura de `request.ts` — sempre lê `auth.getUser()` no momento da chamada, nunca estado em memória potencialmente obsoleto | `frontend/src/lib/api/{accounts,budget,categories,creditCards,fixedBills,goals,paymentMethods,recurring,transactions}.ts`, `frontend/src/lib/api/request.ts:38-55` | Passa — reconfirma `QA-REPORT.md` Seção 15.1/15.3 por leitura própria, não aceito a nota do Executor/QA como prova única |
+| `SDD.md` Seção 7, "Isolamento Multi-Tenant" (RNF-09, allow-list de signup como mitigação primária) | `allowed_signup_emails` com 1 único e-mail (o stakeholder); trigger `BEFORE INSERT` bloqueia qualquer outro | `20260902100400_be_m12_restrict_signup.sql:20-58` — sem alteração desde a auditoria original (Achado #5) | Passa |
+
+**Nenhum requisito de arquitetura de segurança da Seção 7 do `SDD.md`/
+`GUARDRAILS.md` aplicável a este lote está implementado de forma diferente do
+especificado.**
+
+#### `compliance-validation` — LGPD
+
+| Verificação | Evidência | Resultado |
+|---|---|---|
+| Dado pessoal novo introduzido por este lote | Nenhum campo de PII novo — `webauthn_credentials` (`credential_id`/`public_key`/`sign_count`/`device_label`) é dado de dispositivo/segurança, não dado financeiro; `allowed_signup_emails` já triado (Achado #5/`SEC-DEBT-003`) | Passa |
+| Minimização | `device_label` é opcional, truncado a 255 chars (`webauthn-register/index.ts:457`); nenhuma coluna além do necessário para a cerimônia WebAuthn | Passa |
+| Base legal/titular | Mesmo enquadramento já assentado (autoprocessamento do próprio titular, produto de usuário único) — nenhuma mudança | Passa |
+| Retenção/descarte (`ADR-011`) | `webauthn_credentials`/`webauthn_challenges` seguem o ciclo de vida de exclusão de conta (`ON DELETE CASCADE` por `user_id`, mesmo mecanismo já auditado para as demais tabelas); `webauthn_challenges` consumidos/expirados não têm job de expurgo próprio ainda — volume desprezível (linhas de 90s de vida útil, usuário único) para justificar prioridade, mas registro para consistência futura, não como débito de segurança (é higiene de armazenamento, não exposição) | Passa, com observação de baixa prioridade não registrada como `SEC-DEBT` (sem exposição de dado, só acúmulo de linhas já expiradas) |
+| Direito ao esquecimento | Exclusão de conta remove `webauthn_credentials` via `ON DELETE CASCADE` de `user_id` | Passa |
+
+**Nenhum achado de compliance obrigatório (LGPD) não resolvido neste lote.**
+
+#### `sensitive-data-exposure-check`
+
+| Superfície | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| Payload de API (`webauthn-register`/`webauthn-authenticate`) | Resposta nunca inclui `public_key`/chave privada — só `{options}` (dados públicos da cerimônia) ou `{success, credentialId}` | Leitura direta dos `jsonResponse(...)` de ambas as functions | Passa |
+| Mensagens de erro | Genéricas (`"Sessão inválida ou expirada."`, `"Credencial não reconhecida."`) — nunca distinguem "credencial não existe" de "credencial de outro usuário" (ambas retornam 404 idêntico) | `webauthn-authenticate/index.ts:495-513` | Passa — evita enumeração de credenciais de terceiro |
+| Logs client-side/servidor | Já coberto na tabela de `static-security-analysis` acima — zero payload bruto | — | Passa |
+| Armazenamento local (PIN) | Hash PBKDF2 + salt em IndexedDB, nunca o PIN em texto puro, nunca transmitido | `frontend/src/lib/auth/pin.ts:36-49` | Passa |
+| Sessão Supabase (JWT) | Persistida pelo próprio `@supabase/supabase-js` (comportamento padrão da lib, não modificado por este lote) — fora do escopo de mudança de `FE-M-04`/`FE-M-12`/`FE-M-13`, já aceito como modelo de ameaça do produto (Bloqueio 001/`ADR-005`: acesso físico ao dispositivo desbloqueado já está fora do perímetro que PIN/WebAuthn se propõem a mitigar) | Passa (sem mudança, fora de escopo) |
+
+**Nenhum vazamento de dado sensível via API, log, armazenamento local ou
+mensagem de erro neste lote.**
+
+#### `finding-severity-classification` — reavaliação de `SEC-DEBT-001`/Bloqueio 009 à luz do `ADR-014`
+
+`QA-REPORT.md` Seção 15.4 confirmou, por leitura de código nesta mesma janela
+de tempo, que `auth-email-mfa` está de fato órfã (zero chamada real no
+caminho de execução do app) desde o `ADR-014` — mas **segue implantada em
+produção** como Edge Function ativa (`ADR-014`, item 3: "não removida... fica
+órfã... remover é limpeza opcional futura, sem urgência"), continuando
+alcançável por qualquer requisição HTTP com um JWT válido de sessão (Bearer
+AAL1), exatamente como na análise original da Seção 1.1.
+
+Reavaliei a exploitabilidade sob essa luz nova:
+
+- **O que não mudou**: o modelo de autenticação por Bearer token (não cookie)
+  continua limitando a exploitabilidade de CORS wildcard — um invasor
+  precisaria já ter o JWT por outro canal (o próprio CORS wildcard não
+  "empresta" a sessão automaticamente).
+- **O que mudou, a favor de menor severidade**: hoje, mesmo que um invasor
+  com um JWT já obtido explore o CORS wildcard e complete `action:"request"`/
+  `"verify"` contra `auth-email-mfa`, **isso não produz nenhum efeito
+  funcional na postura de segurança do produto** — `custom_access_token_hook`
+  já emite `app_email_mfa_verified=true` sempre, incondicionalmente, como
+  comportamento definitivo do `ADR-014` (não depende mais do resultado de
+  `auth-email-mfa`). O endpoint hoje só consome `email_mfa_challenges`
+  (leitura/escrita de linhas em uma tabela que não gate nenhuma outra),
+  sem nenhum caminho de escalonamento de privilégio ou acesso a dado
+  adicional resultante de explorá-lo.
+- **Reclassificação**: rebaixo `SEC-DEBT-001` de **Média** para **Baixa** —
+  o achado técnico (inconsistência de padrão de CORS num endpoint ainda
+  ativo) continua real e vale corrigir, mas o impacto de uma exploração
+  bem-sucedida hoje é efetivamente nulo (função sem efeito colateral de
+  segurança), não só "de baixa probabilidade" como antes. Isto é uma
+  reclassificação técnica baseada em fato novo (decisão de arquitetura do
+  `ADR-014`), não uma diluição de critério.
+- **Recomendação atualizada, substituindo a anterior**: como o arquivo está
+  formalmente órfão e não deve receber manutenção de rotina (ninguém "vai
+  tocá-lo de novo" no curso normal do trabalho, ao contrário do que a
+  condição original de `SEC-DEBT-001` assumia — "corrigir no próximo toque no
+  arquivo"), recomendo ao Coordenador/DevOps avaliar **decommissioning**
+  (`supabase functions delete auth-email-mfa` + remoção do diretório, com o
+  contrato em `API-CONTRACT.yaml` mantido só como registro histórico, já
+  `deprecated: true`) como a correção definitiva, em vez de aplicar o patch
+  de CORS num arquivo que será descartado de qualquer forma. Se a decisão for
+  manter a function por mais tempo (ex.: valor de referência/rollback), o
+  patch trivial de CORS (`_shared/cors.ts`) continua válido como alternativa
+  de menor esforço. Detalhe completo da atualização em `BLOCKERS.md` Bloqueio
+  009 (não fechado — reclassificado e com recomendação atualizada).
+- **`QA-DEBT-015`** (cobertura de teste ausente para o branch WebAuthn de
+  `PinSetupPage.tsx`/`webauthn.ts`, `QA-REPORT.md` Seção 15.4): **classificação
+  de segurança: nenhuma.** É lacuna de cobertura de teste automatizado sobre
+  um branch opcional já lido/auditado por mim nesta rodada (linha a linha,
+  tabela de `static-security-analysis` acima) sem achado de comportamento
+  incorreto — não há exposição, bypass ou vazamento associado. Permanece
+  corretamente classificado como débito de QA/processo, não gera `SEC-DEBT`
+  novo.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado — nada pendente como débito.
+- **Exposição de dado sensível**: nenhum achado.
+- **Débito reclassificado nesta rodada**: `SEC-DEBT-001` (CORS wildcard em
+  `auth-email-mfa`) rebaixado de Média para Baixa, recomendação atualizada
+  para decommissioning como opção preferencial (ver
+  `finding-severity-classification` acima e Seção 2, atualização 1.25).
+  `BLOCKERS.md` Bloqueio 009 atualizado no mesmo sentido, **não fechado**.
+- **Débitos de outras rodadas que tocam este lote, reconfirmados sem
+  regressão**: `SEC-DEBT-002`/G-19 (corrigido para `budget`/`transactions`
+  desde `BE-M-13`), `SEC-DEBT-008`/`009`/`010` (`DEFAULT auth.uid()`/
+  `withOwnerId()`, `BE-M-14`/`FE-M-13` — `009` segue com a mesma limitação de
+  ambiente sem credencial de rede real para o smoke test HTTP ponta a ponta,
+  não é achado novo; `010` não toca nenhuma tarefa deste lote).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — a
+  recomendação de decommissioning de `auth-email-mfa` (acima) é a única ação
+  operacional nova sugerida por esta rodada, já registrada em `BLOCKERS.md`
+  Bloqueio 009 e na Seção 4 (não duplico aqui).
+
+**Veredito do lote: Aprovado, com débito (`SEC-DEBT-001`, agora Baixa, não
+bloqueante).** As 9 tarefas (`BE-M-09`, `BE-M-11`, `BE-M-12`, `BE-M-13`,
+`BE-M-14`, `FE-M-04`, `FE-M-12`, `FE-M-13`, `QA-M-02`) estão liberadas para o
+fechamento formal do lote pelo Coordenador (`TASK.md` Seção 7) do ponto de
+vista de segurança. Nenhuma pré-condição de deploy pendente — nota de
+release-readiness igual à do QA (Seção 15): esta aprovação não "libera" um
+deploy que já aconteceu (`DEPLOY.md` Seção 9.6); fecha a lacuna de auditoria
+de segurança formal por lote que faltava para este conjunto de 9 tarefas.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma nova. A
+reclassificação de `SEC-DEBT-001` é decisão técnica dentro da minha alçada
+(severidade de achado), não uma questão de risco de negócio — não presume
+nenhuma anuência de bloqueio anterior do Gestor, já que o achado nunca
+bloqueou nada. As sinalizações já registradas na Seção 5 permanecem válidas e
+não são reabertas por esta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Todo critério de aceite de segurança relevante às 9 tarefas testado
+      contra o código real (não a nota do Executor) — tabelas acima
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/dono —
+      `SEC-DEBT-001` (reclassificado, Baixa, dono Coordenador/DevOps via
+      `BLOCKERS.md` Bloqueio 009)
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além da recomendação de decommissioning já registrada
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza nesta rodada
+
+**Veredito final do lote "Autenticação & Segurança" do ponto de vista de
+DevSecOps: Aprovado, com débito de baixa severidade (`SEC-DEBT-001`,
+reclassificado nesta rodada), não bloqueante.**

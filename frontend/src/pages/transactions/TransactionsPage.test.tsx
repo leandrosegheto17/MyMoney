@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../components/base/Toast";
 import { ApiError } from "../../lib/api/errors";
 import { offlineDb } from "../../lib/offline/db";
@@ -64,6 +64,16 @@ beforeEach(async () => {
   // RF-REF-03 AC2: sem atalhos por padrão — cada teste que precisar de chips sobrescreve.
   shortcutsMock.getTransactionShortcuts.mockResolvedValue([]);
   await offlineDb.pendingTransactions.clear();
+  // `BE-REF-06`/`ADR-016` Decisão 5 (`DIR-39`): toda a suíte pré-existente deste arquivo
+  // (FE-REF-02 a FE-REF-05) exercita o formulário unificado (RF-REF-04) — comportamento
+  // só ativo com a flag `payment_method_unification_enabled` `true`. Default global aqui
+  // é `true` para não reescrever essas dezenas de casos; o describe `BE-REF-06` abaixo
+  // sobrescreve para `false`/ausente especificamente para testar o gate em si.
+  vi.stubEnv("VITE_PAYMENT_METHOD_UNIFICATION_ENABLED", "true");
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
 });
 
 describe("TransactionsPage — S-TXN-01/02 (RF-MVP-04 AC5)", () => {
@@ -452,5 +462,65 @@ describe("FE-REF-05 — derivePaymentMethodLabel() consistente entre item de lis
     const chip = await screen.findByRole("button", { name: "Lançar em Restaurante" });
     expect(chip).toHaveTextContent("Restaurante");
     expect(chip).not.toHaveTextContent(PAYMENT_METHOD.name);
+  });
+});
+
+describe("BE-REF-06 — feature flag payment_method_unification_enabled (ADR-016 Decisão 5, DIR-39)", () => {
+  it("flag ausente/false: comportamento antigo se mantém — campo 'Conta' volta a existir e é obrigatório no formulário de lançamento", async () => {
+    vi.stubEnv("VITE_PAYMENT_METHOD_UNIFICATION_ENABLED", undefined);
+    transactionsMock.listTransactions.mockResolvedValue([]);
+    renderPage();
+    await screen.findByText("Nenhum lançamento neste período");
+
+    await userEvent.click(screen.getAllByRole("button", { name: "+ Novo lançamento" })[0]);
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByLabelText("Conta", { exact: false })).toBeInTheDocument();
+
+    // Sem selecionar a conta, submit deve reportar erro de validação e NUNCA chamar a API.
+    await userEvent.selectOptions(dialog.getByLabelText("Forma de pagamento", { exact: false }), PAYMENT_METHOD.id);
+    await userEvent.selectOptions(dialog.getByLabelText(/^Categoria/), CATEGORY.id);
+    await userEvent.type(dialog.getByLabelText("Valor", { exact: false }), "4500");
+    await userEvent.click(dialog.getByRole("button", { name: "Salvar" }));
+    expect(await dialog.findByText("Selecione a conta.")).toBeInTheDocument();
+    expect(transactionsMock.createTransaction).not.toHaveBeenCalled();
+  });
+
+  it("flag ausente/false: payload de criação envia account_id explícito (comportamento anterior a RF-REF-04)", async () => {
+    vi.stubEnv("VITE_PAYMENT_METHOD_UNIFICATION_ENABLED", "false");
+    transactionsMock.listTransactions.mockResolvedValue([]);
+    transactionsMock.createTransaction.mockResolvedValue(TRANSACTION);
+    renderPage();
+    await screen.findByText("Nenhum lançamento neste período");
+
+    await userEvent.click(screen.getAllByRole("button", { name: "+ Novo lançamento" })[0]);
+    const dialog = within(screen.getByRole("dialog"));
+    await userEvent.selectOptions(dialog.getByLabelText("Conta", { exact: false }), ACCOUNT.id);
+    await userEvent.selectOptions(dialog.getByLabelText("Forma de pagamento", { exact: false }), PAYMENT_METHOD.id);
+    await userEvent.selectOptions(dialog.getByLabelText(/^Categoria/), CATEGORY.id);
+    await userEvent.type(dialog.getByLabelText("Valor", { exact: false }), "4500");
+    await userEvent.click(dialog.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(transactionsMock.createTransaction).toHaveBeenCalled());
+    expect(transactionsMock.createTransaction.mock.calls[0][0]).toMatchObject({ account_id: ACCOUNT.id });
+  });
+
+  it("flag true: comportamento novo fica ativo — campo 'Conta' não existe e payload de criação nunca envia account_id", async () => {
+    vi.stubEnv("VITE_PAYMENT_METHOD_UNIFICATION_ENABLED", "true");
+    transactionsMock.listTransactions.mockResolvedValue([]);
+    transactionsMock.createTransaction.mockResolvedValue(TRANSACTION);
+    renderPage();
+    await screen.findByText("Nenhum lançamento neste período");
+
+    await userEvent.click(screen.getAllByRole("button", { name: "+ Novo lançamento" })[0]);
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.queryByLabelText("Conta", { exact: false })).not.toBeInTheDocument();
+
+    await userEvent.selectOptions(dialog.getByLabelText("Forma de pagamento", { exact: false }), PAYMENT_METHOD.id);
+    await userEvent.selectOptions(dialog.getByLabelText(/^Categoria/), CATEGORY.id);
+    await userEvent.type(dialog.getByLabelText("Valor", { exact: false }), "4500");
+    await userEvent.click(dialog.getByRole("button", { name: "Salvar" }));
+
+    await waitFor(() => expect(transactionsMock.createTransaction).toHaveBeenCalled());
+    expect(transactionsMock.createTransaction.mock.calls[0][0]).not.toHaveProperty("account_id");
   });
 });

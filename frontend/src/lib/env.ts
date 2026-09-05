@@ -32,3 +32,19 @@ export function getSupabaseAnonKey(): string {
 export function getVapidPublicKey(): string | null {
   return (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? null;
 }
+
+/**
+ * Gate de exposição em produção do formulário unificado de conta + forma de
+ * pagamento (`BE-REF-06`, `ADR-016` Decisão 5, `DIR-39`). Ausente ou qualquer
+ * valor diferente da string `"true"` é tratado como `false` — default seguro,
+ * a flag nunca liga sozinha por omissão de variável. Só vira `true` em
+ * produção depois de `BLOCKERS.md` Bloqueio 013 confirmado `Resolvido` pelo
+ * DevSecOps, ato exclusivo de `BE-REF-06` (nenhuma outra tarefa liga a flag).
+ * Com `false` (comportamento hoje em produção): formulário de lançamento
+ * exige o campo "Conta" explicitamente (pré-`RF-REF-04`). Com `true`:
+ * formulário unificado — campo "Conta" some, `account_id` é resolvido
+ * server-side a partir de `payment_method_id`.
+ */
+export function isPaymentMethodUnificationEnabled(): boolean {
+  return import.meta.env.VITE_PAYMENT_METHOD_UNIFICATION_ENABLED === "true";
+}
