@@ -1,9 +1,10 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Home, FileText, Target, MoreHorizontal, Plus } from "lucide-react";
-import type { ComponentType, ReactNode } from "react";
+import { Home, FileText, Target, MoreHorizontal } from "lucide-react";
+import type { ComponentType } from "react";
 import { ToastProvider } from "../components/base/Toast";
 import { OfflineSyncBadge } from "../components/domain/OfflineSyncBadge";
 import { NotificationBell } from "../components/domain/NotificationBell";
+import { CaptureFab } from "../components/domain/CaptureFab";
 import { DESKTOP_QUERY, useMediaQuery } from "../lib/useMediaQuery";
 
 // Ícones line-style (biblioteca `lucide-react`, grade 24px) — UX-SPEC.md Seção 3.1,
@@ -63,30 +64,6 @@ function Logo({ className = "" }: { className?: string }) {
   return <span className={["font-serif text-xl italic text-primary", className].join(" ")}>MyMoney</span>;
 }
 
-/** Botão "+ Novo lançamento" fixo no cabeçalho — UX-SPEC.md Seção 2.2 (nota de navegação): substitui o FAB flutuante em toda tela autenticada. RN-20: mesmo destino (`/lancamentos`) de sempre, só a apresentação muda. Desktop: retangular com rótulo de texto. Mobile: circular, só ícone (nota de navegação: "botão '+' circular no cabeçalho, não na barra inferior"). */
-function NewTransactionButton({ compact }: { compact: boolean }): ReactNode {
-  if (compact) {
-    return (
-      <NavLink
-        to="/lancamentos"
-        aria-label="Novo lançamento"
-        className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-primary"
-      >
-        <Plus size={20} aria-hidden />
-      </NavLink>
-    );
-  }
-  return (
-    <NavLink
-      to="/lancamentos"
-      className="flex min-h-11 shrink-0 items-center gap-1 rounded-sm bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-primary"
-    >
-      <Plus size={16} aria-hidden />
-      Novo lançamento
-    </NavLink>
-  );
-}
-
 function navLinkClass({ isActive }: { isActive: boolean }): string {
   return [
     "flex min-h-11 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary",
@@ -101,7 +78,11 @@ function navLinkClass({ isActive }: { isActive: boolean }): string {
  * mobile com exatamente 4 destinos (ícones `lucide-react`, sem emoji); botão
  * "+ Novo lançamento" fixo no cabeçalho de toda tela autenticada, substituindo o
  * FAB flutuante (nenhum FAB existia no código antes desta tarefa — este critério
- * já estava satisfeito, ver nota de decisão no `TASK.md`). `NotificationBell`
+ * já estava satisfeito, ver nota de decisão no `TASK.md`). Esse botão agora é o
+ * `CaptureFab` (`FE-F3-01`, `UX-SPEC.md` S-CAP-01/`UX-FL-04`): ao ser acionado,
+ * expande em "Lançamento manual" / "Falar" / "Fotografar", com "Falar"
+ * desabilitada (mas nunca ausente) quando o navegador não suporta Web Speech
+ * API. `NotificationBell`
  * (`FE-F2-07`) e `OfflineSyncBadge` (RNF-04) seguem visíveis em toda tela
  * autenticada, mobile e desktop. RN-20: nenhuma rota/permissão/comportamento de
  * navegação funcional muda — só a apresentação.
@@ -150,7 +131,7 @@ export function AppLayout() {
             <div className="ml-auto flex min-w-0 items-center gap-3">
               <OfflineSyncBadge />
               <NotificationBell />
-              <NewTransactionButton compact={!isDesktop} />
+              <CaptureFab compact={!isDesktop} />
             </div>
           </header>
 

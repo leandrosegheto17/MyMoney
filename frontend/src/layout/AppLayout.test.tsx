@@ -29,6 +29,7 @@ function renderAt(path: string) {
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage /> },
+          { path: "lancamentos", element: <p>Tela de lançamentos</p> },
           { path: "*", element: <NotFoundPage /> },
         ],
       },
@@ -113,10 +114,22 @@ describe("Navegação v2.0 (FE-RS-03, UX-SPEC.md Seção 2.2 nota de navegação
       expect(logo.className).toContain("italic");
     });
 
-    it("shows the full-label '+ Novo lançamento' header button, pointing to the same /lancamentos route as before (RN-20)", async () => {
+    it("shows the full-label '+ Novo lançamento' header button, which expands into the capture menu (S-CAP-01/FE-F3-01)", async () => {
       renderAt("/");
-      const button = await screen.findByRole("link", { name: /Novo lançamento/ });
-      expect(button).toHaveAttribute("href", "/lancamentos");
+      const trigger = await screen.findByRole("button", { name: "Novo lançamento" });
+      expect(trigger).toHaveTextContent("Novo lançamento");
+
+      await userEvent.click(trigger);
+      expect(await screen.findByRole("menuitem", { name: "Lançamento manual" })).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: /Falar/ })).toBeInTheDocument();
+      expect(screen.getByRole("menuitem", { name: "Fotografar" })).toBeInTheDocument();
+    });
+
+    it("'Lançamento manual' still leads to the same /lancamentos route as before (RN-20)", async () => {
+      renderAt("/");
+      await userEvent.click(await screen.findByRole("button", { name: "Novo lançamento" }));
+      await userEvent.click(await screen.findByRole("menuitem", { name: "Lançamento manual" }));
+      expect(await screen.findByText("Tela de lançamentos")).toBeInTheDocument();
     });
 
     it("does not render the mobile bottom navigation on desktop", async () => {
@@ -151,14 +164,13 @@ describe("Navegação v2.0 (FE-RS-03, UX-SPEC.md Seção 2.2 nota de navegação
       }
     });
 
-    it("shows a compact circular '+ Novo lançamento' icon button in the header, not in the bottom bar (nota de navegação)", async () => {
+    it("shows a compact circular '+ Novo lançamento' icon button in the header (opens the capture menu, not a link), not in the bottom bar (nota de navegação)", async () => {
       renderAt("/");
-      const button = await screen.findByRole("link", { name: "Novo lançamento" });
-      expect(button).toHaveAttribute("href", "/lancamentos");
+      const button = await screen.findByRole("button", { name: "Novo lançamento" });
       expect(button.className).toContain("rounded-full");
 
       const bottomNav = (await screen.findAllByRole("navigation", { name: "Navegação principal" })).at(-1)!;
-      expect(within(bottomNav).queryByRole("link", { name: "Novo lançamento" })).not.toBeInTheDocument();
+      expect(within(bottomNav).queryByRole("button", { name: "Novo lançamento" })).not.toBeInTheDocument();
     });
 
     it("does not render a floating FAB anywhere in the shell", async () => {

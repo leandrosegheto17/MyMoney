@@ -1387,6 +1387,7 @@ achado desta rodada tem relevância estratégica que exija nova sinalização.
 | SEC-DEBT-010 | `frontend/src/lib/api/notifications.ts` (`createPushSubscription`) não usa `withOwnerId` — gap de defesa em profundidade isolado a `push_subscriptions` (tabela fora do escopo original do Bloqueio 015, adicionada só na camada de banco pelo Backend) | Baixa (causa raiz já corrigida na camada de banco — `DEFAULT auth.uid()` confirmado em `push_subscriptions`, suficiente por si só) | Não | Próximo toque em `notifications.ts`; recomendado por consistência, sem urgência dado que a camada de banco já cobre | frontend |
 | SEC-DEBT-011 | Bypass temporário do gate de MFA por e-mail (`custom_access_token_hook` sempre emite `app_email_mfa_verified=true`; `SKIP_EMAIL_MFA=true` no frontend) — remove o 2º fator de 12 tabelas de dado financeiro, mitigado por cadastro travado a 1 e-mail (`allowed_signup_emails`) e ausência de movimentação de dinheiro real neste MVP; agravado por `minimum_password_length=6`/`password_requirements=""` — `BLOCKERS.md` Bloqueio 018 (ver 1.16) | Média | Não (aprovado como risco temporário — ver 1.16) — reversão condicional, não bloqueio | O que vier primeiro: `auth-email-mfa` voltar a funcionar, ou **7 dias corridos** do deploy (extensão além disso exige nova confirmação explícita do stakeholder); política de senha fraca sem prazo fixo, mas recomendado corrigir junto | stakeholder/backend (reversão do bypass) / backend (política de senha) |
 | SEC-DEBT-012 | `categories.color` (coluna `text` livre, sem `CHECK` de formato) renderizado pela primeira vez como valor de CSS inline em `CategoryCard.tsx` (`style={{ backgroundColor: color }}`), sem validação de formato hexadecimal — hoje sem exploitabilidade prática (nenhuma UI expõe campo para o usuário definir essa cor; RLS impede leitura cross-tenant) | Baixa | Não | Antes de qualquer funcionalidade futura que exponha um campo de UI para definir `categories.color`/`accounts.color` livremente — adicionar validação de formato (regex/`CHECK` constraint); sem urgência hoje | frontend / backend |
+| SEC-DEBT-013 | `recurring_template_adjustments` permite `DELETE` de reajuste histórico pelo próprio dono via RLS, sem trigger de imutabilidade equivalente ao que protege `amount_cents` contra `UPDATE` — apaga o rastro de um reajuste e pode mudar a resolução de valor para competências futuras ainda não geradas (lançamentos já persistidos não são afetados); sem caminho de UI no Frontend, só via REST direto (1.27) | Baixa | Não | Sem urgência — corrigir no próximo toque em `recurring_template_adjustments`: trigger `BEFORE DELETE` bloqueando exclusão de reajuste já vigente/consumido, ou restringir `DELETE` só ao reajuste mais recente ainda futuro | backend |
 
 **Achado #3 (schema baseline não referenciado)** e **SEC-DEBT-005** (gaps
 remanescentes do mesmo achado, `BLOCKERS.md` Bloqueio 012) não entram na leitura
@@ -3268,6 +3269,109 @@ credencial verificado antes de aceitar assertion, contador anti-clonagem
 persistido, timeouts explícitos em toda chamada de Auth/Postgres, e nenhum
 segredo/payload bruto em log estruturado.
 
+---
+
+### 1.26 — Auditoria completa (veredito de lote) — "Cartão & Fatura" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 16 aprovou (Aprovado, 4/4, sem achado)
+`BE-F2-01`, `BE-F2-02`, `FE-F2-01`, `FE-F2-02`. Libera a auditoria completa,
+respeitando meu próprio gate de entrada.
+
+**Nota de processo — validação retroativa**: mesma natureza da Seção 1.25 —
+este build já está em produção desde `DEPLOY.md` §9.6 (promovido sem gate
+formal por lote). Auditoria *a posteriori*, mesmo rigor de qualquer outra
+(leitura direta de código-fonte/migrations real, nunca a nota do Executor como
+prova); se algum achado crítico aparecesse, o protocolo seria o mesmo de
+qualquer bloqueio, com a nota adicional de que o código já está live.
+
+**Verificação de `BLOCKERS.md`**: grep dirigido por "cartão"/"fatura"/
+"credit_card"/"invoice" sobre os 23 bloqueios do documento — todas as
+ocorrências são incidentais (menção de contexto dentro de bloqueios sobre
+outros temas, ex. Bloqueio 011/retenção de dado, Bloqueio 021/tela de
+referência de UX). **Nenhum bloqueio aberto específico deste lote.**
+
+#### `static-security-analysis` — leitura direta dos 4 pontos de atenção do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) Ownership de `credit_card_id` em `payment_methods_insert_own`/`_update_own` (mitigação IDOR, mesma classe de risco de BE-M-13/Bloqueio 010/`SEC-DEBT-002`) | Leitura direta da migration + teste automatizado dedicado | `20260903120000_be_f2_01_credit_cards.sql:109-133` — ambas as policies (`DROP`+`CREATE`) exigem `credit_card_id IS NULL OR EXISTS (SELECT 1 FROM credit_cards cc WHERE cc.id = credit_card_id AND cc.user_id = auth.uid())`; `supabase/tests/be_f2_01_credit_cards.test.sql` CASO 4 (linhas 147-170) prova via RLS real (não suposição) que B não consegue nem `INSERT` nem `UPDATE` um `payment_method` próprio apontando para o `credit_card_id` de A | Passa — mitigação real, não só documentada, e coberta por teste automatizado que efetivamente tenta o ataque |
+| (b) `invoices` — nenhuma policy de `UPDATE`/`DELETE` para `authenticated` | Leitura direta da migration + teste automatizado dedicado | `20260903130000_be_f2_02_invoices.sql:66-90` — só `invoices_select_own`/`invoices_insert_own` criadas, nenhuma de `UPDATE`/`DELETE`; `status` só muda via `close_due_invoices` (`SECURITY DEFINER`); `supabase/tests/be_f2_02_invoices.test.sql` CASO C3/C4 (linhas 177-188) confirma via RLS real que `UPDATE`/`DELETE` direto pelo client afeta 0 linhas | Passa |
+| (c) Segredo `INVOICE_CLOSE_CRON_SECRET` — geração/armazenamento e comparação em tempo constante | Leitura direta da migration de cron + do wiring da Edge Function | `20260903140000_be_f2_02_invoice_close_cron.sql:1-12,32-41` — segredo/URL vêm de `vault.decrypted_secrets` (inseridos via `vault.create_secret`, DIR-30, nunca commitados); `invoice-close/lib.ts:10-25` (`timingSafeEqual` + `isAuthorizedCronRequest`, fail-closed: nega se faltar segredo configurado, header ausente ou XOR de todos os bytes ≠ 0) — mesmo padrão já auditado em `backup-export`; grep dirigido em todo o repo por `INVOICE_CLOSE_CRON_SECRET` só encontra a referência via `Deno.env.get(...)`, nenhum valor hardcoded | Passa |
+| (d) `get_credit_cards_available_limit` não é `SECURITY DEFINER` — confirmar que é seguro dado o RLS que a sustenta | Leitura direta da função + das 3 RLS que ela depende (`credit_cards`, `invoices`, `transactions`) | `20260903130000_be_f2_02_invoices.sql:315-345` — função `language sql stable`, sem `security definer`; roda com os privilégios do chamador, então as políticas `credit_cards_select_own`/`invoices_select_own`/`transactions_select_own` (RLS+gate MFA, já auditadas em rodadas anteriores) escopam o `JOIN`/`GROUP BY` só às linhas do próprio `auth.uid()` — não há filtro explícito por usuário dentro da função porque nenhum é necessário: é o comportamento correto para uma função que não precisa bypassar RLS | Passa — decisão de design segura, coerente com o comentário da própria função |
+
+**Nota complementar (não um dos 4 pontos pedidos, verificação de rotina)**: nenhuma
+`GRANT`/`REVOKE EXECUTE` explícita nas 3 migrations deste lote — mesmo padrão já
+em vigor em todo o restante do projeto (nenhuma migration audita anteriormente
+usa `GRANT`/`REVOKE EXECUTE` sobre função `SECURITY DEFINER`), portanto não é
+uma lacuna nova introduzida por este lote, e sim convenção já aceita
+implicitamente pelas rodadas anteriores deste documento.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+RLS + gate de MFA aplicado de forma consistente em `credit_cards`/`invoices`
+(mesmo padrão de `accounts`/`payment_methods`/`budget`, DIR-27) — confirmado
+acima nos pontos (a)/(b). Isolamento multi-tenant: `credit_cards_select_own`/
+`invoices_select_own`/`get_credit_cards_available_limit` escopam por
+`auth.uid()` em toda camada tocada por este lote, sem exceção. Nenhum requisito
+de criptografia aplicável (nenhum dado de cartão real — número/CVV/validade —
+é capturado; `credit_cards` só guarda `name`/`limit_cents`/`closing_day`/
+`due_day`, fora do escopo PCI-DSS).
+
+#### `compliance-validation` — LGPD
+
+Nenhum campo novo de PII sensível introduzido (dado financeiro do próprio
+titular, mesmo enquadramento já usado para `transactions`/`budget`). Nenhuma
+mudança em captura, base legal ou finalidade de tratamento de dado pessoal.
+**Nenhum achado de compliance obrigatório.**
+
+#### `sensitive-data-exposure-check`
+
+`CreditCardsPage.tsx`/`InvoiceTimeline.tsx`/`lib/api/creditCards.ts`: grep
+dirigido por `console.*`/`localStorage`/`sessionStorage`/
+`dangerouslySetInnerHTML`/`innerHTML` — zero ocorrências nos 3 arquivos.
+`createCreditCard` usa `withOwnerId` (defesa em profundidade já registrada em
+`SEC-DEBT-008`/Bloqueio 015, reaproveitada aqui, não reintroduzida). Nenhum
+valor de limite/fatura/lançamento é logado ou persistido fora do estado React
+e do próprio Postgres via RLS. **Nenhum vazamento de dado sensível.**
+
+#### `finding-severity-classification`
+
+QA não registrou nenhum achado sobre este lote (`QA-REPORT.md` Seção 16 —
+Aprovado, 4/4, sem achado) — nada a reclassificar.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhum achado.
+- **Requisitos de segurança operacional para o DevOps**: `invoice-close` já
+  está deployada com `--no-verify-jwt` + `INVOICE_CLOSE_CRON_SECRET` via
+  `supabase secrets set`/Vault — nenhum requisito novo além do que já está em
+  vigor (mesmo padrão de `backup-export`); Seção 4 já cobre o projeto.
+
+**Veredito do lote: Aprovado, sem débito de segurança.** `BE-F2-01`, `BE-F2-02`,
+`FE-F2-01`, `FE-F2-02` estão liberadas para o fechamento formal do lote do
+ponto de vista de segurança. Nenhuma pré-condição de deploy pendente.
+
+**Sinalização ao CTO (paralela, não pré-requisito)**: nenhuma — nenhum achado
+de segurança nesta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo — não
+      aplicável, nenhum achado de segurança nesta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo exigido por este lote
+- [x] Achado de relevância estratégica sinalizado ao CTO — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do Lote "Cartão & Fatura" do ponto de vista de DevSecOps:
+Aprovado, sem débito.**
+
 #### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md` G-04/G-05/G-07/G-17/G-19
 
 | Requisito | Verificação | Evidência | Resultado |
@@ -3419,3 +3523,537 @@ não são reabertas por esta rodada.
 **Veredito final do lote "Autenticação & Segurança" do ponto de vista de
 DevSecOps: Aprovado, com débito de baixa severidade (`SEC-DEBT-001`,
 reclassificado nesta rodada), não bloqueante.**
+
+### 1.27 — Auditoria completa (veredito de lote) — "Recorrência & Parcelamento" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 17 aprovou (Aprovado, 5/5, sem reprovação,
+sem débito novo) `BE-F2-03`, `BE-F2-04`, `BE-F2-05`, `FE-F2-03`, `FE-F2-04`.
+Libera a auditoria completa, respeitando meu próprio gate de entrada.
+
+**Nota de processo — validação retroativa**: mesma natureza das Seções 1.25/
+1.26 — este build já está em produção desde 2026-09-03 (`DEPLOY.md` §9.6,
+promovido sem gate formal por lote). Auditoria *a posteriori*, mesmo rigor de
+qualquer outra: leitura direta de migrations/Edge Function/frontend reais,
+nunca a nota do Executor como prova.
+
+**Verificação de `BLOCKERS.md` (feita por mim, não herdada da nota de QA)**:
+grep dirigido por "recorrência"/"recurring"/"parcelamento"/"installment" sobre
+os 23 bloqueios do documento. Único bloqueio que toca as tabelas deste lote é
+o **Bloqueio 015** (`SEC-DEBT-008`/`009`/`010`, ausência de `user_id`/`DEFAULT`
+em `INSERT` de tabela "ownable") — já **Resolvido**, e a correção
+(`20260903260000_be_m14_user_id_default_auth_uid.sql`) inclui explicitamente
+`recurring_templates`, `recurring_template_adjustments` e
+`installment_purchases` entre as 13 tabelas corrigidas (confirmado por leitura
+direta da migration nesta rodada, sem regressão). As demais ocorrências são
+incidentais (inventário de schema/racional de agrupamento de lote em
+bloqueios de outros temas). **Nenhum bloqueio aberto específico deste lote.**
+
+#### `static-security-analysis` — leitura direta dos 3 pontos de atenção do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) `generate_recurring_transactions`/`generate_installment_transactions` (`SECURITY DEFINER`, job global via `pg_cron`) — nenhum usuário consegue forçar geração/reajuste na conta de outro | Leitura direta das 2 funções + das 3 tabelas de origem (`recurring_templates`, `recurring_template_adjustments`, `installment_purchases`) + testes automatizados dedicados | Nenhuma das 2 funções aceita parâmetro de `user_id`/filtro controlável pelo client — iteram `select * from <tabela>` sem `WHERE user_id = ...` porque são `SECURITY DEFINER` deliberado para cobrir todos os usuários (mesmo padrão já auditado em `close_due_invoices`/`generate_upcoming_invoices`, 1.26); o `INSERT` resultante em `transactions` usa sempre `v_tpl.user_id`/`v_plan.user_id` lido da própria linha do template/plano, nunca um valor vindo de fora. O único caminho de um usuário influenciar a geração é criar/editar seu **próprio** template/plano — e as 3 tabelas exigem `auth.uid() = user_id` + `EXISTS` de ownership de `category_id`/`account_id`/`payment_method_id` em `INSERT`/`UPDATE` (`20260903150000:68-95`, `20260903170000:59-88`, `20260903180000:66-93`), mesma extensão IDOR-safe de `BE-M-13`/`BE-F2-01/02`. Confirmado via RLS real (não suposição): `be_f2_03_...test.sql` CASO E/E1, `be_f2_04_...test.sql` CASO E1 (IDOR na criação do reajuste — A não consegue referenciar template de B) e CASO "isolamento cross-user" (A não enxerga reajuste de B), `be_f2_05_...test.sql` CASO F1 (IDOR na criação do plano) e CASO F2 (`get_installment_purchases_progress` não expõe plano de B para A) — todos `PASS` | Passa — nenhum caminho para forçar geração/reajuste na conta de outro usuário |
+| (b) Histórico de reajuste (`recurring_template_adjustments`) é auditável — não sobrescreve silenciosamente valor antigo sem rastro | Leitura direta da migration + triggers + teste dedicado | `recurring_templates.amount_cents` é bloqueado contra `UPDATE` direto por trigger (`recurring_templates_before_update_reject_amount_change`, `20260903170000:126-147`) — todo reajuste é obrigatoriamente uma linha **nova** em `recurring_template_adjustments` (nunca um `UPDATE` que apague o valor anterior), com `UNIQUE(recurring_template_id, effective_from)` e trigger `enforce_prospective` rejeitando competência retroativa (`RN-02`). `recurring_template_amount_for` resolve por `effective_from` (vigência), não por ordem de inserção — testado explicitamente com reajustes fora de ordem cronológica (`be_f2_04_...test.sql`, seção de resolução). **Achado, severidade Baixa (`SEC-DEBT-013`, ver abaixo)**: a tabela `recurring_template_adjustments` tem policy `DELETE ... for authenticated using (auth.uid() = user_id ...)` (`20260903170000:86-88`) sem nenhum trigger equivalente ao que protege `amount_cents` contra `UPDATE` — um reajuste histórico pode ser apagado via `DELETE` direto (REST/PostgREST), diferente de "sobrescrito", mas com efeito prático parecido: apaga o rastro de que aquele reajuste existiu e pode mudar silenciosamente o valor que `recurring_template_amount_for` resolve para competências futuras ainda não geradas (lançamentos já gerados/persistidos não são afetados, valor já foi gravado em `transactions.amount_cents` no momento da geração). O Frontend não expõe esse caminho (`frontend/src/lib/api/recurring.ts` não tem `deleteRecurringTemplateAdjustment`), mas RLS por si só permite a chamada REST direta pelo próprio dono | Passa com débito — imutabilidade de `UPDATE` garantida; `DELETE` de registro histórico não é bloqueado (gap de auditabilidade, não de isolamento cross-tenant) |
+| (c) Encerramento de recorrência (`end_date`) e quitação de parcelamento têm o mesmo cuidado de RLS/ownership de lotes anteriores | Leitura direta das policies `UPDATE`/`DELETE` + teste dedicado | `recurring_templates_update_own`/`_delete_own` e `installment_purchases_update_own`/`_delete_own` exigem `auth.uid() = user_id` + gate MFA (`20260903150000:82-95`, `20260903180000:80-93`), idêntico ao padrão já auditado em `budget`/`credit_cards` (DIR-27). Encerramento é sempre `PATCH end_date` (nunca `DELETE`) — confirmado em `RecurringPage.tsx`/`recurring.ts` (`updateRecurringTemplate(id, {end_date})`) e no teste de frontend (`RecurringPage.test.tsx`, "encerramento usa `end_date`, nunca `deleteRecurringTemplate`"). RN-07 preservado nas duas tabelas: `transactions.recurring_rule_id`/`installment_plan_id` usam `ON DELETE SET NULL` (nunca `CASCADE`) — confirmado por leitura das 2 migrations e pelos testes `be_f2_03` CASO C2/RN-07 e `be_f2_05` CASO E1/E2 (excluir template/plano preserva o lançamento/parcela já gerada, só desfaz o vínculo). "Quitação" de parcelamento não introduz estado/endpoint próprio — é derivada (`generated_count = installments_count` via `get_installment_purchases_progress`), sem `SECURITY DEFINER` mas com RLS aplicando-se normalmente ao `JOIN` com `transactions` (mesmo padrão de design já aprovado em `get_credit_cards_available_limit`, 1.26) | Passa |
+
+**Nota complementar (não um dos 3 pontos pedidos, verificação de rotina)**: os
+`RAISE WARNING` de exceção em `generate_recurring_transactions`/
+`generate_installment_transactions` incluem `description` do template/plano
+nos logs do Postgres em caso de falha — mesmo padrão já em vigor desde
+`BE-M-10`/`BE-F2-06`/`BE-F2-09` (log de servidor, não exposto a client, produto
+de usuário único); não é um achado novo introduzido por este lote.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+RLS + gate de MFA aplicado de forma consistente nas 3 tabelas novas (mesmo
+padrão de `accounts`/`payment_methods`/`budget`/`credit_cards`, DIR-27) —
+confirmado acima nos pontos (a)/(c). Isolamento multi-tenant: toda função de
+leitura/geração escopa por `auth.uid()` (via RLS, quando não `SECURITY
+DEFINER`) ou usa exclusivamente `user_id` já denormalizado na própria linha
+(quando `SECURITY DEFINER`, para o job global). `DEFAULT auth.uid()`
+(`BE-M-14`/`SEC-DEBT-008`) confirmado presente nas 3 tabelas — reconfirmação
+independente, não herdada da nota do Backend. `withOwnerId()` (`FE-M-13`) usado
+nas 3 chamadas `create*` de `recurring.ts` (`createRecurringTemplate`,
+`createRecurringTemplateAdjustment`, `createInstallmentPurchase`) — grep
+dedicado confirma, bate com o inventário já fechado em 1.26. Nenhum requisito
+de criptografia aplicável (mesmo enquadramento de dado financeiro do próprio
+titular já usado em todo o restante do produto).
+
+#### `compliance-validation` — LGPD
+
+Nenhum campo novo de PII sensível introduzido (dado financeiro do próprio
+titular — descrição, valor, categoria, datas — mesmo enquadramento já usado
+para `transactions`/`budget`/`credit_cards`). Nenhuma mudança em captura, base
+legal ou finalidade de tratamento de dado pessoal. Retenção/descarte
+(`ADR-011`): as 3 tabelas seguem o ciclo de vida de exclusão de conta via
+`ON DELETE CASCADE` de `user_id`/`auth.users`, mesmo mecanismo já auditado
+para as demais tabelas financeiras. **Nenhum achado de compliance
+obrigatório.**
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*`/`localStorage`/`sessionStorage`/
+`dangerouslySetInnerHTML`/`innerHTML` em `RecurringPage.tsx`,
+`InstallmentsPage.tsx`, `InstallmentProgress.tsx` e `lib/api/recurring.ts` —
+zero ocorrências. `createRecurringTemplate`/`createRecurringTemplateAdjustment`/
+`createInstallmentPurchase` usam `withOwnerId` (defesa em profundidade já
+registrada em `SEC-DEBT-008`, reaproveitada aqui, não reintroduzida). Resposta
+de `get_installment_purchases_progress` só expõe contadores agregados
+(`generated_count`/`remaining_count`), nunca valor monetário de parcela
+individual nem dado de outro usuário (RLS via `JOIN`, confirmado no ponto (c)
+acima). Nenhum valor de reajuste/parcela é logado ou persistido fora do
+Postgres/estado React. **Nenhum vazamento de dado sensível.**
+
+#### `finding-severity-classification`
+
+**Novo achado desta rodada — `SEC-DEBT-013`** (ver tabela de
+`static-security-analysis`, ponto (b)): `recurring_template_adjustments`
+permite `DELETE` de linha histórica pelo próprio dono via RLS, sem trigger de
+imutabilidade equivalente ao que protege `amount_cents` contra `UPDATE`.
+**Classificação: Baixa.** Racional: (i) não é cross-tenant — só o próprio
+dono pode apagar seu próprio histórico; (ii) não reescreve
+`transactions.amount_cents` já gerado (valor já persistido no momento da
+geração, imutável por não haver `UPDATE` desse campo em nenhum caminho do
+produto); (iii) o único efeito prático é sobre a resolução de competências
+**futuras ainda não geradas** e sobre a legibilidade do histórico de "por que
+o valor mudou"; (iv) o Frontend não expõe nenhum caminho de UI para essa
+ação — exigiria uma chamada REST direta fora do app. Não bloqueia o lote (não
+é achado de severidade alta/crítica, não é compromisso do critério de aceite
+literal de `BE-F2-04`, que fala em "não afetar lançamentos já gerados" — isso
+continua garantido). QA não registrou nenhuma reprovação/ressalva sobre este
+lote (`QA-REPORT.md` Seção 17.6 — Aprovado 5/5) — nada a reclassificar dessa
+origem.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhum achado.
+- **Débito novo registrado**: `SEC-DEBT-013` (Baixa, não bloqueante — ver
+  `finding-severity-classification` acima e Seção 2). Recomendação de
+  correção: trigger `BEFORE DELETE` em `recurring_template_adjustments`
+  rejeitando exclusão de reajuste já vigente/consumido por geração (mesmo
+  padrão já usado em `installment_purchases_lock_after_first_generation`), ou,
+  alternativa mais simples, permitir `DELETE` só do reajuste **mais recente**
+  ainda não vigente (competência futura) — preserva o histórico já aplicado
+  sem impedir o usuário de corrigir um reajuste cadastrado por engano antes de
+  ele valer.
+- **Débitos de outras rodadas que tocam este lote, reconfirmados sem
+  regressão**: `SEC-DEBT-008`/`009`/`010` (`DEFAULT auth.uid()`/`withOwnerId`,
+  Bloqueio 015 — as 3 tabelas deste lote fazem parte do escopo já corrigido e
+  verificado ao vivo).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — o job
+  `recurring-generate` (`RECURRING_GENERATE_CRON_SECRET` via Vault/`supabase
+  secrets set`, fail-closed com comparação em tempo constante) segue o mesmo
+  padrão já coberto pela Seção 4.
+
+**Veredito do lote: Aprovado, com débito de baixa severidade (`SEC-DEBT-013`,
+não bloqueante).** `BE-F2-03`, `BE-F2-04`, `BE-F2-05`, `FE-F2-03`, `FE-F2-04`
+estão liberadas para o fechamento formal do lote pelo Coordenador (`TASK.md`)
+do ponto de vista de segurança. Nenhuma pré-condição de deploy pendente — nota
+de release-readiness igual à de 1.25/1.26: esta aprovação não "libera" um
+deploy que já aconteceu (`DEPLOY.md` §9.6); fecha a lacuna de auditoria de
+segurança formal por lote que faltava para este conjunto de 5 tarefas.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — `SEC-DEBT-013`
+é decisão técnica de severidade dentro da minha alçada (não é questão de
+risco/compliance de negócio), e não tem urgência (efeito limitado a
+competência futura ainda não gerada, sem exploração cross-tenant).
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Todo critério de aceite de segurança relevante às 5 tarefas testado
+      contra o código real (não a nota do Executor) — tabela de
+      `static-security-analysis` acima, pontos (a)-(c)
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/dono —
+      `SEC-DEBT-013` (Baixa, dono backend, sem prazo urgente — corrigir no
+      próximo toque em `recurring_template_adjustments`)
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além do que já está em vigor
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Recorrência & Parcelamento" do ponto de vista de
+DevSecOps: Aprovado, com débito de baixa severidade (`SEC-DEBT-013`), não
+bloqueante.**
+
+---
+
+### 1.28 — Auditoria completa (veredito de lote) — "Contas Fixas" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 18 aprovou (Aprovado, 3/3, sem achado)
+`BE-F2-06`, `BE-F2-07`, `FE-F2-05`. Libera a auditoria completa, respeitando
+meu próprio gate de entrada (QA antes de DevSecOps).
+
+**Nota de processo**: rodada anterior desta auditoria foi interrompida por
+rate limit antes de escrever qualquer linha nesta seção — recomeçada do zero,
+nenhuma suposição herdada de tentativa anterior.
+
+**Verificação de `BLOCKERS.md`**: grep dirigido por "conta fixa"/"fixed_bill"
+sobre todo o documento — as 3 ocorrências (Bloqueio 015, linhas 1728/1961) são
+o próprio `SEC-DEBT-008` (ausência de `user_id` em `INSERT` do Frontend),
+que **já cobre `fixed_bills`** na correção formal (`BE-M-14`, ver abaixo) —
+nenhuma menção incidental nova, nenhum bloqueio aberto específico deste lote.
+
+#### `static-security-analysis` — leitura direta das 3 migrations + frontend do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) RLS/ownership em `fixed_bills` — mesmo padrão `auth.uid()=user_id` + gate MFA, com validação de ownership de FK (`category_id`/`account_id`/`payment_method_id`, G-19) | Leitura direta da migration | `20260903190000_be_f2_06_fixed_bills.sql:70-99` — as 4 policies (`select`/`insert`/`update`/`delete`) exigem `auth.uid() = user_id AND app_email_mfa_verified='true'`; `insert`/`update` acrescentam `EXISTS(...)` para as 3 FKs, mesmo padrão já corrigido por `BE-M-13`/G-19 em `budget`/`transactions`/`credit_cards` — nenhum gap desta classe aqui, diferente do que ocorreu com `payment_methods.account_id` (`SEC-DEBT-006`) | Passa |
+| `fixed_bill_due_alerts` — a task chama a tabela assim, mas o desenho real (`BE-F2-07`) não criou tabela nova: o "alerta" é `notifications` (RLS já auditada em lotes anteriores) + coluna `fixed_bills.alert_days_before`, sem tabela própria | Leitura direta da migration | `20260903230000_be_f2_07_fixed_bill_due_alerts.sql` — só `ALTER TABLE fixed_bills ADD COLUMN alert_days_before`, `CREATE OR REPLACE FUNCTION`, nenhum `CREATE TABLE`; grep por `fixed_bill_due_alerts` como nome de tabela no schema real não retorna nada | Confirmado — desvio de nomenclatura da tarefa vs. implementação real, não achado de segurança (mesma tabela `notifications` já coberta) |
+| (b) Job de geração/aviso (`generate_fixed_bill_transactions`, `check_fixed_bill_due_alerts`, `trigger_fixed_bill_generate`) itera TODOS os usuários — `SECURITY DEFINER` precisa ter escopo cuidadoso, sem vazar dado de outro usuário ao chamador | Leitura direta das 3 funções | `20260903190000...sql:144-191`, `20260903230000...sql:116-170`, `20260903200000...sql:21-52` — as 3 são `SECURITY DEFINER` com `set search_path` fixo (sem search_path hijack), retornam só `integer`/`void` (nenhum dado de outro usuário volta ao chamador), e a iteração "todos os usuários" é a *finalidade correta* de um job de cron (mesmo desenho de `trigger_recurring_generate`/`close_due_invoices`/`trigger_backup_export`, já auditados). **Nenhum vazamento de dado cross-tenant ao chamador.** Achado residual, não novo: as 3 funções não têm `REVOKE EXECUTE ... FROM PUBLIC/anon/authenticated` explícito na migration — herdam `ALTER DEFAULT PRIVILEGES ... GRANT ALL ON FUNCTIONS TO anon/authenticated` do baseline, então são invocáveis via `POST /rpc/<função>` por qualquer chamador (mesmo sem sessão, papel `anon`), disparando a geração/aviso de TODOS os usuários fora de hora. **Mesmo padrão sistêmico já confirmado em toda a Fase 2** (`trigger_backup_export` no próprio baseline legado também não tem `REVOKE`, diferente de `fn_clear_due_transactions`/`set_pin`/`verify_pin`, que têm) e já registrado como "convenção já aceita implicitamente pelas rodadas anteriores" na Seção 1.26 — não é lacuna nova introduzida por este lote | Não passa isoladamente, mas **não é achado novo** — reconfirmação de padrão sistêmico pré-existente, já não flagado como débito específico de lote em 1.26 pela mesma razão |
+| (c) "Marcar como paga" via `PATCH /transactions` — não pode marcar lançamento de outro usuário | Leitura direta de `markTransactionCleared` + policy `transactions_update_own` | `frontend/src/lib/api/transactions.ts:53-55` — `update({status:'cleared'}).eq('id', id)`, sem `user_id` no payload; `transactions_update_own` (`20260903100000_be_m13...sql:92-112`) usa `USING (auth.uid() = user_id AND app_email_mfa_verified='true')` — a cláusula `USING` já filtra a *visibilidade* da linha antes do `UPDATE`; um `id` de transaction de outro usuário resulta em 0 linhas afetadas (fail-closed), sem erro que vaze existência do recurso alheio (PostgREST retorna 406/"no rows" genérico via `.single()`) | Passa — ownership garantido pela `USING`, independente do `WITH CHECK` |
+
+**Nota complementar sobre o achado (b)**: diferente de `SEC-DEBT-007`
+(`apply_transaction_effect`, que permite ao *próprio* usuário autenticado
+manipular seu saldo sem lançamento correspondente — quebra de integridade
+autolimitada à própria conta), aqui o ator que pode invocar a função nem
+precisa de sessão autenticada (papel `anon` já tem `EXECUTE` por
+`ALTER DEFAULT PRIVILEGES`), mas o efeito é disparo antecipado/idempotente de
+um job que já rodaria via `pg_cron` horas depois — sem leitura de dado de
+terceiro pelo chamador, sem escrita fora do desenho pretendido da função,
+sem controle sobre `p_row`/parâmetros arbitrários (as 3 funções não recebem
+argumento do chamador). Efeito prático: pequena antecipação de lançamentos
+previstos/avisos push de push de todos os usuários, no pior caso repetido em
+loop (idempotência por competência limita o dano a nº de tentativas dentro do
+mesmo mês). Severidade coerente com a régua já usada para o mesmo padrão em
+2026-09-04/05: **Baixa**, não bloqueante, correção sistêmica recomendada (não
+específica deste lote) — `REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC` (ou
+`FROM anon, authenticated`) em todo `trigger_*`/`generate_*`/`check_*`
+`SECURITY DEFINER` de cron do projeto, incluindo `trigger_backup_export`
+legado. Não crio um novo `SEC-DEBT-0xx` isolado para isto (mesmo racional já
+usado em 1.26 para não fragmentar o mesmo achado sistêmico lote a lote);
+recomendo ao Coordenador que, se e quando este padrão for endereçado, seja
+tratado como uma única tarefa de hardening cobrindo todas as funções de cron
+do projeto, não uma por lote.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+RLS + gate de MFA aplicado de forma consistente em `fixed_bills` (mesmo
+padrão de `accounts`/`payment_methods`/`budget`/`credit_cards`, DIR-27),
+confirmado acima no ponto (a). G-19 (ownership de FK entre tabelas ownable)
+cumprido nesta tabela desde a migration original — não é um gap escapado como
+`payment_methods.account_id` foi. `DEFAULT auth.uid()` (`BE-M-14`,
+`SEC-DEBT-008`/Bloqueio 015) confirmado em `fixed_bills.user_id`
+(`20260903260000...sql:50`) e `withOwnerId()` confirmado em
+`createFixedBill` (`frontend/src/lib/api/fixedBills.ts:15-17`) — reconfirmação
+sem regressão, não achado novo. Isolamento multi-tenant: `get_fixed_bills_status`
+(não `SECURITY DEFINER`, roda com privilégio do chamador) depende só de
+RLS de `fixed_bills`/`transactions`, mesmo desenho seguro já aprovado para
+`get_credit_cards_available_limit` em 1.26.
+
+#### `compliance-validation` — LGPD
+
+Nenhum campo novo de PII sensível (dado financeiro do próprio titular, mesma
+classe já avaliada para `transactions`/`budget`/`credit_cards`). Nenhuma
+mudança em captura, base legal ou finalidade de tratamento. **Nenhum achado
+de compliance obrigatório.**
+
+#### `sensitive-data-exposure-check`
+
+`FixedBillsPage.tsx`/`fixedBills.ts`: grep dirigido por
+`console.*`/`localStorage`/`sessionStorage`/`dangerouslySetInnerHTML`/
+`innerHTML` — zero ocorrências. Mensagens de erro (`ApiError`) seguem o
+padrão genérico já auditado. **Nenhum vazamento de dado sensível.**
+
+#### `finding-severity-classification`
+
+QA não registrou nenhum achado sobre este lote (`QA-REPORT.md` Seção 18 —
+Aprovado, 3/3, sem achado) — nada a reclassificar dessa origem. Achado (b)
+desta rodada classificado acima como Baixa, não bloqueante, sistêmico
+(não específico deste lote).
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhum achado.
+- **Débito novo registrado**: nenhum ID novo — achado (b) é reconfirmação de
+  padrão sistêmico já não tratado como débito de lote isolado desde 1.26
+  (mesmo racional). Recomendação registrada acima (hardening único,
+  `REVOKE EXECUTE` em todas as funções `SECURITY DEFINER` de cron do
+  projeto), a cargo do Coordenador priorizar como tarefa própria, não deste
+  lote.
+- **Débitos de outras rodadas que tocam este lote, reconfirmados sem
+  regressão**: `SEC-DEBT-008` (`DEFAULT auth.uid()`/`withOwnerId`, Bloqueio
+  015 — `fixed_bills` fazia parte do escopo original já corrigido e
+  verificado ao vivo).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — o job
+  `fixed-bill-generate` (`fixed_bill_generate_cron_secret` via Vault/
+  `supabase secrets set`, mesmo padrão fail-closed de `invoice-close`/
+  `recurring-generate`) já segue a Seção 4.
+
+**Veredito do lote: Aprovado, sem débito novo de segurança.** `BE-F2-06`,
+`BE-F2-07`, `FE-F2-05` estão liberadas para o fechamento formal do lote pelo
+Coordenador (`TASK.md`) do ponto de vista de segurança. Nenhuma
+pré-condição de deploy pendente.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — o achado
+(b) é decisão técnica de severidade dentro da minha alçada, sistêmico e de
+baixa exploitabilidade prática (produto de usuário único, `allowed_signup_emails`
+com 1 e-mail), sem componente de compliance ou cross-tenant.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo —
+      não aplicável a um novo ID; achado (b) é reconfirmação de padrão
+      sistêmico já registrado como convenção aceita desde 1.26, com
+      recomendação de hardening único ao Coordenador
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além do que já está em vigor
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Contas Fixas" do ponto de vista de DevSecOps:
+Aprovado, sem débito de segurança.**
+
+### 1.29 — Auditoria completa (veredito de lote) — "Metas" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 19 aprovou (Aprovado, 2/2) `BE-F2-08`,
+`FE-F2-06`. Libera a auditoria completa, respeitando meu próprio gate de
+entrada (QA antes de DevSecOps). Achado do QA nesta rodada (`QA-DEBT-016`,
+ARIA) não é de segurança — fora do escopo desta seção.
+
+**Verificação de `BLOCKERS.md`**: grep dirigido por "meta"/"goal" sobre todo
+o documento — as ocorrências existentes são incidentais (nome de arquivo
+`goals.ts`/`goals.test.ts` em listas de escopo de outras tarefas, "meta de
+produto"/"meta de backup" em texto livre) — nenhum bloqueio aberto
+específico deste lote.
+
+#### `static-security-analysis` — leitura direta da migration + frontend do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) RLS/ownership em `goals` — mesmo padrão `auth.uid()=user_id` + gate MFA | Leitura direta da migration | `20260903240000_be_f2_08_goals.sql:53-68` — as 4 policies (`select`/`insert`/`update`/`delete`) exigem `auth.uid() = user_id AND app_email_mfa_verified='true'`, mesmo padrão já aplicado a `accounts`/`payment_methods`/`budget`/`credit_cards`/`fixed_bills` | Passa |
+| RLS/ownership em `contributions` + G-19 (ownership de FK entre tabelas ownable) | Leitura direta da migration | `20260903240000...sql:100-123` — `contributions_insert_own`/`contributions_update_own` acrescentam `EXISTS(select 1 from goals g where g.id = goal_id and g.user_id = auth.uid())`, mesmo padrão já corrigido por `BE-M-13`/G-19; um `goal_id` de outro usuário é rejeitado pelo `WITH CHECK` antes do `INSERT` | Passa |
+| (b) Mecanismo de recálculo de progresso (`get_goals_progress`) — usuário não pode influenciar/ver progresso de meta alheia | Leitura direta da função | `20260903240000...sql:130-169` — função `language sql stable` **sem** `SECURITY DEFINER` (SECURITY INVOKER é o padrão, confirmado no próprio comentário da migration, linha 168-169), filtra explicitamente `where g.user_id = auth.uid()` no `goals` e `where user_id = auth.uid()` no subselect de `contributions` — dupla barreira (filtro explícito + RLS por trás, já que roda com o privilégio do chamador). Nenhum parâmetro de entrada (função sem argumentos) — não há vetor para o chamador pedir progresso de outro `goal_id`/usuário | Passa — nenhum vazamento cross-tenant, nenhuma influência possível sobre meta de terceiro |
+| (c) `withOwnerId()` na criação (`FE-M-13`) | Leitura direta do client | `frontend/src/lib/api/goals.ts:16-18` (`createGoal`) e `:46-48` (`createContribution`) — ambos chamam `withOwnerId(input)` antes do `insert`, mesmo padrão de defesa em profundidade do Bloqueio 015/`SEC-DEBT-008`; `updateGoal`/`deleteGoal`/`deleteContribution` não recebem `user_id` do client (dependem só da RLS via `USING`), consistente com o padrão de `markTransactionCleared` já auditado em 1.28 | Passa |
+
+Nenhum achado novo de severidade alta/crítica ou de débito baixo/médio nesta
+rodada — a implementação segue o mesmo desenho já aprovado nos lotes
+anteriores da Fase 2, sem gap equivalente ao `payment_methods.account_id`
+(`SEC-DEBT-006`) ou ao padrão de `REVOKE EXECUTE` ausente (achado sistêmico
+de 1.26/1.28) — esta tabela não tem função `SECURITY DEFINER` de cron, então
+o achado sistêmico daquele padrão não se aplica aqui.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+RLS + gate de MFA aplicado de forma consistente em `goals`/`contributions`
+(mesmo padrão de `accounts`/`payment_methods`/`budget`/`credit_cards`/
+`fixed_bills`, DIR-27), confirmado acima nos pontos (a)/(b). G-19 (ownership
+de FK entre tabelas ownable) cumprido desde a migration original — a própria
+migration já documenta essa decisão no cabeçalho (linha 72-74), não é um gap
+escapado. `withOwnerId()` confirmado no ponto (c). Isolamento multi-tenant:
+`get_goals_progress` não é `SECURITY DEFINER`, roda com privilégio do
+chamador e ainda filtra explicitamente por `auth.uid()` — desenho mais
+conservador que `get_fixed_bills_status`/`get_credit_cards_available_limit`
+(que dependem só da RLS), sem enfraquecer o padrão.
+
+#### `compliance-validation` — LGPD
+
+Nenhum campo novo de PII sensível (dado financeiro do próprio titular, mesma
+classe já avaliada para `transactions`/`budget`/`credit_cards`/
+`fixed_bills`). Nenhuma mudança em captura, base legal ou finalidade de
+tratamento. **Nenhum achado de compliance obrigatório.**
+
+#### `sensitive-data-exposure-check`
+
+`GoalsPage.tsx`/`GoalProgressBar.tsx`/`goals.ts`: grep dirigido por
+`console.*`/`localStorage`/`sessionStorage`/`dangerouslySetInnerHTML`/
+`innerHTML` — zero ocorrências. Mensagens de erro (`ApiError`) seguem o
+padrão genérico já auditado. **Nenhum vazamento de dado sensível.**
+
+#### `finding-severity-classification`
+
+`QA-DEBT-016` (`QA-REPORT.md` Seção 19) é achado de acessibilidade (ARIA),
+não de segurança — nada a reclassificar dessa origem para esta seção.
+Nenhum achado novo de segurança nesta rodada.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhum achado.
+- **Débito novo registrado**: nenhum.
+- **Débitos de outras rodadas que tocam este lote**: nenhum — `goals`/
+  `contributions` são tabelas novas deste lote, sem histórico de débito
+  prévio a reconfirmar.
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — sem
+  função `SECURITY DEFINER`/job de cron neste lote.
+
+**Veredito do lote: Aprovado, sem débito de segurança.** `BE-F2-08`,
+`FE-F2-06` estão liberadas para o fechamento formal do lote pelo Coordenador
+(`TASK.md`) do ponto de vista de segurança. Nenhuma pré-condição de deploy
+pendente.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — nenhum
+achado de relevância estratégica ou componente de compliance/cross-tenant
+nesta rodada.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo —
+      não aplicável, nenhum achado desta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além do que já está em vigor
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Metas" do ponto de vista de DevSecOps: Aprovado,
+sem débito de segurança.**
+
+---
+
+### 1.30 — Auditoria completa (veredito de lote) — "Notificações & Configurações" — 2026-09-05
+
+**Gatilho**: `QA-REPORT.md` Seção 20 aprovou (Aprovado, 3/3) `BE-F2-09`,
+`FE-F2-07`, `FE-F2-09`. Libera a auditoria completa, respeitando meu próprio
+gate de entrada (QA antes de DevSecOps).
+
+**Verificação de `BLOCKERS.md`**: lido diretamente (não presumido) — Bloqueio
+015 confirmado **Resolvido** (2026-09-03, verificado independentemente por
+devsecops na própria rodada anterior), com dois débitos residuais abertos
+naquele fechamento: `SEC-DEBT-009` (reprodução HTTP/`supabase-js` ponta a
+ponta pendente, dono qa/devsecops, sem prazo fixo) e `SEC-DEBT-010`
+(`push_subscriptions` sem `withOwnerId()` no Frontend, baixa severidade, dono
+frontend). Nenhum bloqueio novo aberto tocando este lote.
+
+#### `static-security-analysis` — leitura direta da migration, Edge Function e frontend do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) RLS/ownership em `notifications` | Leitura direta da migration | `20260903210000_be_f2_09_notifications.sql:99-108` — só `SELECT`/`UPDATE` (`auth.uid()=user_id`), **sem policy de `INSERT`** para `authenticated`; escrita é exclusiva de `notify_user()` (`SECURITY DEFINER`), client nunca insere notificação diretamente | Passa |
+| (a) RLS/ownership em `push_subscriptions` | Leitura direta da migration | `:57-69` — `SELECT`/`INSERT`/`DELETE`, todas `auth.uid()=user_id`; coluna `user_id` confirmada com `DEFAULT auth.uid()` desde a migration `20260903260000` (Bloqueio 015) — cobre a ausência de `withOwnerId()` no client (`SEC-DEBT-010`) na camada de banco, mesma defesa já auditada em 1.12 | Passa |
+| (b) `push-dispatch` — identificação do destinatário, isolamento cross-user | Leitura direta do código | `index.ts:76-101` — busca `notification` por `id` (via `service_role`, contorna RLS por definição), extrai `notification.user_id` do próprio registro, e só então filtra `push_subscriptions` por `.eq("user_id", notification.user_id)`. O destinatário nunca vem do corpo da requisição nem de parâmetro controlável pelo chamador — vem exclusivamente do registro de notificação já persistido por `notify_user()`. Não há caminho para enviar/expor push de um usuário para subscription de outro | Passa |
+| Autenticação do gatilho de `push-dispatch` | Leitura direta do código | `lib.ts:8-23` — `isAuthorizedCronRequest` fail-closed (nega se segredo ausente, header ausente, ou comparação falhar), comparação em tempo constante (`timingSafeEqual`); mesmo padrão de segredo compartilhado `X-Cron-Secret` já auditado em `backup-export`/`invoice-close`/`recurring-generate`/`fixed-bill-generate` — não é achado novo, é reaplicação do padrão aprovado | Passa |
+| (c) Conteúdo do payload de push — dado financeiro sensível em texto claro | Leitura direta do código + migrations | `lib.ts:47-59` (`buildPushPayload`) usa só `notification.message`. Mensagem de orçamento (`20260903210000...sql:235-237`): `"Orçamento de <categoria> estourou/está próximo do teto (<pct>% gasto)"` — **nome de categoria + percentual, nunca valor em `R$`/`amount_cents`**. Mensagem de conta fixa (`20260903230000...sql:150`): `"<descrição> vence em <DD/MM>"` — descrição (ex.: "Aluguel") + data, **`amount_cents` da conta fixa (`:78`) nunca é lido pela função de alerta nem entra no `format()`** | Achado — ver abaixo |
+| Log de `push-dispatch` — vazamento de `endpoint`/chaves de subscription | Leitura direta do código | `index.ts:141` — único `console.error` do laço de envio loga só `sub.id`, nunca `sub.endpoint`/`p256dh`/`auth_key` | Passa |
+
+**Achado (c) — SEC-DEBT-014, baixa severidade**: nenhum valor monetário
+(`amount_cents`/`R$`) é exposto em texto claro no payload de push — a
+implementação já evita o pior caso (quantia exata visível na tela de bloqueio
+sem desbloquear o dispositivo, RF-MVP-08). Porém a mensagem ainda expõe nome
+de categoria + percentual de gasto (orçamento) e descrição de conta fixa
+(ex.: "Aluguel vence em 05/09") na notificação nativa do SO, visível mesmo
+com o dispositivo bloqueado — informação contextual financeira de baixa
+granularidade, mas ainda assim mais do que o mínimo necessário para o
+propósito de alerta (que poderia ser cumprido por um título genérico,
+deixando o detalhe para depois do desbloqueio ao abrir o app/`NotificationBell`).
+Não é vazamento de dado sensível em claro (sem valor monetário, sem PII de
+terceiros) nem contraria compliance obrigatório — é uma oportunidade de
+hardening de privacidade alinhada ao espírito de RF-MVP-08. **Registrado como
+débito, não bloqueia.**
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+RLS aplicada de forma consistente em `notifications`/`push_subscriptions`
+(ponto (a) acima). Nenhum gate de MFA exigido nestas duas tabelas — decisão
+física já documentada no comentário da própria migration
+(`push_subscriptions`, `:50-55`: "inscrever/desinscrever push é ação de
+baixo risco, sem dado financeiro") — coerente, pois nem `push_subscriptions`
+nem `notifications` armazenam valor monetário; avaliado e aceito, não é gap.
+Isolamento multi-tenant confirmado no ponto (b) — `push-dispatch` nunca
+mistura destinatário. Requisito de segurança operacional para o DevOps: os
+segredos `push_dispatch_edge_function_url`/`push_dispatch_cron_secret`
+(Vault) e `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT`/
+`PUSH_DISPATCH_CRON_SECRET` (Edge Function secrets) já seguem DIR-30 (nunca
+commitados) — nenhum requisito novo além do padrão já em vigor para as
+demais Edge Functions internas.
+
+#### `compliance-validation` — LGPD
+
+Nenhum campo novo de PII sensível de terceiro — `push_subscriptions` guarda
+endpoint/chaves de Web Push do próprio dispositivo do titular (dado técnico
+de entrega, não dado financeiro), `notifications` guarda histórico de alerta
+do próprio titular. Retenção: nenhuma política de expurgo específica definida
+para `notifications`/`push_subscriptions` no `ADR-011` (que cobre ledger,
+recibos, exports, candidatos de importação, backups) — mas o volume é baixo
+(1 subscription por dispositivo, notificações são pequenas e vinculadas ao
+próprio titular ativo) e não é dado que precise de expurgo por minimização
+equivalente a recibo/candidato de importação. **Nenhum achado de compliance
+obrigatório**, mas sinalizo a ausência de política de retenção explícita como
+nota, não como achado bloqueante — cabe ao Coordenador avaliar se `ADR-011`
+merece uma linha adicional cobrindo notificação/subscription expirada (fora
+da minha autoridade decidir sozinho, é extensão de decisão estrutural já
+tomada por outro agente).
+
+#### `sensitive-data-exposure-check`
+
+`NotificationBell.tsx`/`notifications.ts`: grep dirigido por
+`console.*`/`localStorage`/`sessionStorage`/`dangerouslySetInnerHTML`/
+`innerHTML` — zero ocorrências. `createPushSubscription` confirmado (leitura
+direta, `notifications.ts:24-26`) sem `withOwnerId()` — **reconfirmação do
+`SEC-DEBT-010` já registrado no Bloqueio 015/1.12, sem regressão nem mudança
+de estado**: continua coberto na camada de banco pelo `DEFAULT auth.uid()`
+(ponto (a) acima), a lacuna é só de defesa em profundidade no Frontend, exatamente
+como já classificado — não reaberto como achado novo, apenas reverificado
+nesta rodada por leitura direta do código atual.
+
+#### `finding-severity-classification`
+
+- `SEC-DEBT-014` (novo, esta rodada) — conteúdo de push notification expõe
+  categoria/percentual/descrição em texto claro na tela de bloqueio: **Baixa
+  severidade** (nenhum valor monetário, nenhuma PII de terceiro, não
+  contraria compliance obrigatório; oportunidade de hardening, não uma
+  vulnerabilidade). Dono: frontend/backend (mensagem é montada no `format()`
+  da migration + `buildPushPayload`), prazo: próximo lote que tocar
+  `notify_user()`/`push-dispatch`, sem urgência de correção isolada.
+- `SEC-DEBT-010` — reconfirmado, sem mudança (baixa severidade, dono
+  frontend, sem regressão).
+- `SEC-DEBT-009` — não tocado por este lote (reprodução HTTP/`supabase-js`
+  ponta a ponta segue como pendência geral do produto, não específica deste
+  lote).
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhum vazamento de valor monetário/PII em
+  claro; achado de hardening de privacidade registrado como `SEC-DEBT-014`
+  (baixa severidade, não bloqueante).
+- **Débito novo registrado**: `SEC-DEBT-014`.
+- **Débitos de outras rodadas que tocam este lote**: `SEC-DEBT-010`
+  (reconfirmado, sem regressão, `push_subscriptions` sem `withOwnerId()` no
+  Frontend, coberto na camada de banco).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — Vault/
+  Edge Function secrets já seguem o padrão DIR-30 em vigor.
+
+**Veredito do lote: Aprovado com débito** (`SEC-DEBT-014` novo, baixa
+severidade, não bloqueante; `SEC-DEBT-010` reconfirmado sem regressão).
+`BE-F2-09`, `FE-F2-07`, `FE-F2-09` estão liberadas para o fechamento formal
+do lote pelo Coordenador (`TASK.md`) do ponto de vista de segurança e para o
+deploy (chapéu DevOps), condicionado à dupla aprovação já satisfeita nesta
+rodada (QA + DevSecOps).
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — `SEC-DEBT-014`
+é achado técnico de hardening de baixa severidade, sem relevância estratégica
+nem componente de compliance/cross-tenant.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo —
+      `SEC-DEBT-014` registrado acima
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além do padrão DIR-30 já em vigor
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Notificações & Configurações" do ponto de vista de
+DevSecOps: Aprovado com débito** (`SEC-DEBT-014`, baixa severidade, não
+bloqueante; deploy liberado).

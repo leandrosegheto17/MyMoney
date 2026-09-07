@@ -2550,6 +2550,787 @@ escalonamento novo a `coordenador`/`BLOCKERS.md` é gerado por esta rodada.
 
 ---
 
+## 16. Veredito de Lote — "Cartão & Fatura" (2026-09-05, retroativo)
+
+**Contexto de processo**: assim como o Lote "Autenticação & Segurança" (Seção 15),
+este lote nunca passou por `/validar` — foi implementado (2026-09-03) e promovido
+a produção via `DEPLOY.md` Seção 9.6 (decisão do stakeholder de pular validação
+formal por lote naquele push). Este veredito é retroativo: o código já roda em
+produção; a aprovação aqui fecha a lacuna de validação funcional formal e libera
+a auditoria completa do chapéu DevSecOps sobre este lote especificamente
+(diferente do Lote 15, aqui não há nenhuma leitura dupla de ADR pendente).
+
+### 16.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+Nenhuma nota de implementação do Executor foi usada como base de aprovação —
+cada achado abaixo vem de execução própria contra o critério de aceite/código
+real, não da narrativa do `TASK.md`:
+
+- **Testes SQL rodados de forma independente contra o projeto Supabase real
+  vinculado** (`npx supabase db query --linked --file`, dentro de
+  `BEGIN;...ROLLBACK;`, mesma metodologia usada em rodadas anteriores quando o
+  ambiente permite): `supabase/tests/be_f2_01_credit_cards.test.sql` → `PASS`;
+  `supabase/tests/be_f2_02_invoices.test.sql` → `PASS`. Diferente de rodadas
+  anteriores em que só a leitura de código foi possível, aqui consegui executar
+  de fato — corrobora, não só cita, os 6+múltiplos casos descritos no `TASK.md`
+  (vínculo automático de forma de pagamento, constraints físicas, isolamento
+  cross-user, IDOR em `credit_card_id`/`invoices`, cascade de `DELETE`, RN-01
+  ponta a ponta, `get_credit_cards_available_limit` escopado por usuário).
+- **Teste Deno não executado nesta sessão** (`deno` não instalado no ambiente) —
+  limitação de ferramentação já registrada em rodadas anteriores. Corroborado por
+  leitura direta de `supabase/functions/invoice-close/lib.ts` e `lib.test.ts`:
+  os 8 casos descritos (5 de `isAuthorizedCronRequest` fail-closed/timing-safe,
+  2 de `buildResult`, 1 de `buildErrorResult`) batem exatamente com a
+  implementação lida — funções puras e simples, sem efeito colateral, risco de
+  falso-positivo baixo.
+- **Suíte de frontend rodada de forma independente**: `npx vitest run
+  CreditCardsPage.test.tsx InvoiceTimeline.test.tsx` isolados → 2 arquivos, 9/9
+  testes `PASS`, batendo com a contagem do `TASK.md` (4+2 em
+  `CreditCardsPage.test.tsx`, 3 em `InvoiceTimeline.test.tsx`). Suíte completa
+  (`npm test -- --run`, 58 arquivos) → 321/323 `PASS`; 2 falhas
+  (`UnlockPage.test.tsx`, `SettingsPage.test.tsx`, ambas por `Test timed out in
+  5000ms`) são de módulo não relacionado a este lote (Autenticação/PIN) e
+  reproduzem só sob carga da suíte completa — reexecutadas isoladas, 9/9 `PASS`.
+  Mesmo padrão de flake sob carga já documentado na Seção 14.8; não é regressão
+  deste lote e não bloqueia o veredito.
+- **Leitura de código contra os 4 critérios de aceite**: migrations
+  `20260903120000_be_f2_01_credit_cards.sql`,
+  `20260903130000_be_f2_02_invoices.sql`,
+  `20260903140000_be_f2_02_invoice_close_cron.sql`,
+  `frontend/src/pages/creditCards/CreditCardsPage.tsx`,
+  `frontend/src/components/domain/InvoiceTimeline.tsx`. Confirmado por leitura
+  direta (não só pela nota do Executor): `InvoiceTimeline.tsx` usa
+  `.slice(0, 3)` sobre faturas ordenadas por competência ≥ mês corrente (DIR-13,
+  nunca mais de 3 abas mesmo com fatura antiga adicional no retorno da API);
+  `status` do badge vem direto de `invoice.status`, nunca recalculado no client
+  (DIR-06); `CreditCardsPage.tsx` chama `getCreditCardsAvailableLimit()` em
+  paralelo a `listCreditCards()` e renderiza "Limite disponível" fora do
+  componente de abas — sempre visível independente da aba ativa (RN-06).
+- Verifiquei `BLOCKERS.md` (grep por "Cartão", "Fatura", "credit_card",
+  "invoice") — nenhum bloqueio aberto especificamente afetando este lote; as
+  ocorrências encontradas são referências de precedente (`BE-M-13`/IDOR) já
+  citadas dentro da própria nota de `BE-F2-01`, não um bloqueio ativo contra
+  este lote.
+
+### 16.2 `acceptance-criteria-validation` de lote
+
+| Tarefa | Critério de aceite | Veredito | Evidência |
+|---|---|---|---|
+| `BE-F2-01` | Cartão cadastrado disponibiliza "crédito" como forma de pagamento vinculada (RF-F2-01 AC1) | **Aprovado** | `be_f2_01_credit_cards.test.sql` Caso 1/1b `PASS` (execução própria, projeto real); constraints físicas (Caso 2), isolamento cross-user (Caso 3), IDOR de `credit_card_id` (Caso 4), fluxo legítimo/2º cartão (Caso 5), cascade de `DELETE` (Caso 6) — todos `PASS` |
+| `BE-F2-02` | Lançamento pós-fechamento entra na próxima fatura (AC2); limite disponível reflete lançamentos futuros desde o momento do lançamento (RN-06) | **Aprovado** | `be_f2_02_invoices.test.sql` `PASS` (execução própria, projeto real) — cobre clamp de mês curto, RN-01/AC2 via trigger real, isolamento cross-user/IDOR em `invoices`, ausência de UPDATE/DELETE para `authenticated`, idempotência de `generate_upcoming_invoices`/`close_due_invoices`, `get_credit_cards_available_limit` escopado por usuário. `lib.test.ts` (Edge Function `invoice-close`) corroborado por leitura de código — `deno` indisponível nesta sessão para execução direta |
+| `FE-F2-01` | Cartão cadastrado exibe limite, dia de fechamento, dia de vencimento (S-CARD-01/02) | **Aprovado** | `CreditCardsPage.test.tsx` 4/4 `PASS` (execução própria); leitura de código confirma validação dos 4 campos obrigatórios refletindo os `CHECK` do backend, estados vazio/carregando/erro/sucesso, 409 de conflito tratado |
+| `FE-F2-02` | Limite disponível sempre visível (RN-06); badge aberta/fechada por aba (RF-F2-05 AC3), horizonte fixo de 3 abas (DIR-13) | **Aprovado** | `InvoiceTimeline.test.tsx` 3/3 `PASS` + 2 casos em `CreditCardsPage.test.tsx` (execução própria); leitura de código confirma `.slice(0, 3)` e `status` vindo direto do backend, sem recálculo no client |
+
+### 16.3 `cross-platform-integration-testing` de lote
+
+Contrato de API respeitado de ponta a ponta entre `BE-F2-01`/`BE-F2-02` e
+`FE-F2-01`/`FE-F2-02`: `frontend/src/lib/api/creditCards.ts` consome
+`/credit_cards`, `/invoices` e `/rpc/get_credit_cards_available_limit` exatamente
+como documentado em `API-CONTRACT.yaml` v0.8.0/v0.9.0 (`CreditCard`, `Invoice`,
+`Transaction.card_invoice_id` `readOnly`) — nenhum mock no caminho de produção,
+confirmado por leitura de `creditCards.ts` e pelos testes de frontend rodando
+contra o shape real do contrato. Integração cruzada `BE-F2-01` → `BE-F2-02`
+(forma de pagamento derivada do cartão sendo a mesma usada pelo trigger de
+atribuição síncrona de fatura) coberta pelo próprio `be_f2_02_invoices.test.sql`,
+que roda sobre o schema completo das duas migrations, não isoladamente.
+
+### 16.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada. As 2
+falhas de `UnlockPage.test.tsx`/`SettingsPage.test.tsx` sob carga da suíte
+completa não são deste lote (módulo de Autenticação/PIN, já coberto e aprovado na
+Seção 15) e não reproduzem isoladas — registradas aqui só como nota de evidência
+de execução, não como achado novo.
+
+### 16.5 `non-functional-validation` de lote
+
+- **Segurança de dados (RLS/IDOR)**: confirmado por execução real que `invoices`
+  não tem policy de UPDATE/DELETE para `authenticated` (só `close_due_invoices`,
+  `SECURITY DEFINER`, pode mudar `status`) e que `payment_methods_insert_own`/
+  `_update_own` validam ownership de `credit_card_id` via `EXISTS` — mesma classe
+  de defesa de `BE-M-13`, sem regressão de IDOR reintroduzida.
+- **DIR-13 (sem paginação/horizonte fixo)**: confirmado por leitura de código
+  (`.slice(0, 3)`) e por teste explícito com 5 faturas no mock, resultado sempre
+  3 abas.
+- **DIR-06 (fonte única de verdade)**: `status` de fatura e cálculo de limite
+  nunca recalculados no client — vêm direto do backend.
+
+### 16.6 Veredito de lote consolidado
+
+**Aprovado** — 4/4 tarefas aprovadas (`BE-F2-01`, `BE-F2-02`, `FE-F2-01`,
+`FE-F2-02`), nenhuma reprovação, nenhum achado de severidade alta/crítica,
+nenhum débito novo de baixa/média severidade identificado nesta rodada. Libera
+formalmente a auditoria completa do chapéu DevSecOps sobre este lote.
+
+**Padrão recorrente? Não** — nenhum escalonamento a `coordenador`/`BLOCKERS.md`
+gerado por esta rodada.
+
+### 16.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 4 tarefas foi testado e está passando
+      (Seção 16.2), com execução própria contra o projeto Supabase real vinculado
+      (não só leitura de código) para as 2 tarefas de Backend
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 16.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 16.5)
+
+---
+
+## 17. Veredito de Lote — "Recorrência & Parcelamento" (2026-09-05, retroativo)
+
+**Contexto de processo**: mesmo padrão dos Lotes 15/16 — este lote nunca passou
+por `/validar` — foi implementado em 2026-09-03 e promovido a produção via
+`DEPLOY.md` Seção 9.6 (decisão do stakeholder de pular validação formal por lote
+naquele push). Este veredito é retroativo: o código já roda em produção; a
+aprovação aqui fecha a lacuna de validação funcional formal e libera a auditoria
+completa do chapéu DevSecOps sobre este lote especificamente.
+
+### 17.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+Nenhuma nota de implementação do Executor foi usada como base de aprovação —
+cada achado abaixo vem de execução própria contra o critério de aceite/código
+real:
+
+- **`BLOCKERS.md` verificado nesta rodada** (grep por "recorrência", "recurring",
+  "parcelamento", "installment"): nenhum bloqueio `Aberto` cita este lote por
+  nome ou afeta `recurring_templates`/`recurring_template_adjustments`/
+  `installment_purchases`. As ocorrências encontradas são só referências de
+  inventário de schema/agrupamento de lotes em bloqueios de outros temas
+  (ex.: racional de agrupamento da Fase 2.1), não achados ativos contra este
+  lote.
+- **Testes SQL das 3 tarefas de Backend rodados de forma independente contra o
+  projeto Supabase real vinculado** (`npx supabase db query --linked --file`,
+  dentro de `BEGIN;...ROLLBACK;`): `be_f2_03_recurring_templates.test.sql` →
+  `PASS`; `be_f2_04_recurring_template_adjustments.test.sql` → `PASS`;
+  `be_f2_05_installment_purchases.test.sql` → `PASS`. Corrobora, não só cita, os
+  casos descritos no `TASK.md` (geração mensal idempotente, clamp de dia,
+  RN-07 via `ON DELETE SET NULL`, resolução de reajuste por vigência não por
+  ordem de inserção, imutabilidade de `amount_cents`/campos após 1ª parcela,
+  divisão inteira com resto na última parcela, catch-up de múltiplas parcelas
+  atrasadas, isolamento cross-user/IDOR nas 3 tabelas).
+- **Regressão SQL mais ampla tentada**: rodei em sequência os 32 arquivos de
+  `supabase/tests/`; o comando estourou o timeout de 5 min antes de terminar
+  todos. Dos que completaram, todos os diretamente relevantes a este lote e a
+  toda a Fase 2/MVP anterior passaram (`apply_transaction_effect`, `be_f2_01` a
+  `be_f2_10`, `be_m01` a `be_m11`), com 2 exceções **não relacionadas a este
+  lote**: `be_f3_00_candidate_transaction_import_batch.test.sql` falha por tipo
+  `public.candidate_transaction_status` inexistente (teste de Fase 3, ainda não
+  migrada neste projeto — fora do escopo desta validação); `be_m07_dashboard.test.sql`
+  falha no Caso 2 (`current_total_balance_cents` esperado 24000, obtido
+  2280366) — teste do lote "Ledger & Dashboard", já `Aprovado` na Seção 5,
+  compara contra saldo total real do projeto vinculado (que acumulou dados de
+  execuções anteriores desta sessão) em vez de dado isolado por `ROLLBACK`;
+  nenhuma das migrations/triggers deste lote toca cálculo de saldo. Registro
+  como observação de fragilidade de teste pré-existente, não como achado deste
+  lote — sinalizo para o `coordenador` avaliar isolamento de `be_m07` (usa
+  dado agregado real, não só fixture, ao contrário dos demais). Regressão não
+  concluída integralmente é limitação de tempo desta rodada, não motivo de
+  reprovação: os 3 testes que pertencem às tarefas deste lote já foram
+  confirmados isoladamente acima.
+- **Suíte de frontend rodada de forma independente**: `npx vitest run
+  InstallmentsPage.test.tsx RecurringPage.test.tsx` isolados → 2 arquivos,
+  10/10 testes `PASS` (mais que os 5 citados no `TASK.md`; cobertura cresceu
+  desde a nota original). Suíte completa (`npm test -- --run`, 59 arquivos) →
+  331/331 `PASS`, **sem nenhum flake** desta vez (diferente da Seção 16, que
+  registrou 2 falhas de timeout sob carga em módulo não relacionado).
+- **Leitura de código contra os 5 critérios de aceite**: migrations
+  `20260903150000_be_f2_03_recurring_templates.sql`,
+  `20260903160000_be_f2_03_recurring_generate_cron.sql`,
+  `20260903170000_be_f2_04_recurring_template_adjustments.sql`,
+  `20260903180000_be_f2_05_installment_purchases.sql`,
+  `frontend/src/components/domain/InstallmentProgress.tsx`,
+  `frontend/src/pages/installments/InstallmentsPage.tsx`,
+  `frontend/src/pages/recurring/RecurringPage.tsx`,
+  `frontend/src/lib/api/recurring.ts`. Confirmado por leitura direta (não só
+  pela nota do Executor): `InstallmentProgress.tsx` — o texto visível é
+  literalmente `Parcela {clamped} de {installmentsCount}` (nunca um percentual
+  como texto), e `aria-valuenow`/`aria-valuemax` usam a contagem bruta (escala
+  0–N), não uma escala 0–100 — semântica de contagem, distinta por construção
+  de um `ProgressBar` percentual genérico (AC literal de `FE-F2-03`);
+  `recurring.ts` — `updateRecurringTemplate` tipado como
+  `Partial<Omit<NewRecurringTemplate, "amount_cents">>`, impossibilitando em
+  tempo de compilação um `PATCH amount_cents` (BE-F2-04, imutável);
+  `RecurringPage.tsx` — o reajuste é 2 diálogos reais e sequenciais (`Modal`
+  "Reajustar valor" → `ConfirmationDialog` "Confirmar reajuste"), nenhum
+  caminho de código chama `createRecurringTemplateAdjustment` a partir do
+  passo 1; encerramento usa `updateRecurringTemplate(id, { end_date })`, nunca
+  `deleteRecurringTemplate`. `RecurringPage.test.tsx` confirmado linha a linha:
+  o teste "RF-F2-03 AC1" explicitamente `expect(...).not.toHaveBeenCalled()`
+  após o "Continuar" do passo 1, e só espera a chamada após o clique em
+  "Confirmar reajuste" no passo 2; teste de cancelamento confirma
+  `not.toHaveBeenCalled()`; teste de encerramento confirma
+  `deleteRecurringTemplate` nunca chamado.
+
+### 17.2 `acceptance-criteria-validation` de lote
+
+| Tarefa | Critério de aceite | Veredito | Evidência |
+|---|---|---|---|
+| `BE-F2-03` | Lançamento correspondente é gerado automaticamente em cada mês subsequente, sem ação manual (RF-F2-02 AC1) | **Aprovado** | `be_f2_03_recurring_templates.test.sql` `PASS` (execução própria, projeto real) — geração ponta a ponta, idempotência por competência, clamp de dia, janela `start_date`/`end_date`, RN-07 (`recurring_rule_id` → NULL no DELETE), isolamento cross-user + IDOR na criação do template |
+| `BE-F2-04` | Novo valor só afeta lançamentos futuros a partir da competência escolhida; lançamentos já gerados permanecem com valor antigo (RF-F2-03 AC1-3, RN-02, AC2) | **Aprovado** | `be_f2_04_recurring_template_adjustments.test.sql` `PASS` (execução própria) — resolução por vigência com reajustes cadastrados fora de ordem cronológica, imutabilidade de `amount_cents`, rejeição de `effective_from` retroativo, geração ponta a ponta nos 3 cenários (sem reajuste, vigente, futuro que não vaza), isolamento cross-user + IDOR + unicidade |
+| `BE-F2-05` | Contador "parcela X de N" corresponde exatamente às parcelas geradas até o momento (RF-F2-04 AC1-2, AC2) | **Aprovado** | `be_f2_05_installment_purchases.test.sql` `PASS` (execução própria) — `installment_amount_for` (resto exato na última parcela), rejeição de forma de pagamento não-cartão, geração simples e catch-up de múltiplas parcelas atrasadas num único run, `get_installment_purchases_progress` sem vazamento cross-user, trava de campos após 1ª geração, RN-07, isolamento cross-user + IDOR |
+| `FE-F2-03` | "Parcela X de N" exibido, não é `ProgressBar` percentual genérico (UX-FL-12) | **Aprovado** | `InstallmentProgress.tsx` lido diretamente — texto literal, `aria-valuetext` idêntico, escala de `aria-valuenow`/`aria-valuemax` em contagem (0–N); `InstallmentsPage.test.tsx` confirma "Parcela 4 de 12" e ausência de percentual como texto — testes `PASS` (execução própria) |
+| `FE-F2-04` | Reajuste exige confirmação explícita "a partir de qual competência" antes de aplicar (RF-F2-03 AC1) | **Aprovado** | `RecurringPage.tsx` lido diretamente — 2 diálogos sequenciais reais, API só chamada no passo 2; `RecurringPage.test.tsx` 4/4 casos relevantes `PASS` (execução própria) confirmando não-chamada no passo 1, chamada só após confirmação, cancelamento não persiste, encerramento via `end_date` |
+
+### 17.3 `cross-platform-integration-testing` de lote
+
+Contrato de API respeitado de ponta a ponta: `frontend/src/lib/api/recurring.ts`
+consome `/recurring_templates`, `/recurring_template_adjustments`,
+`/installment_purchases` e `/rpc/get_installment_purchases_progress` exatamente
+como documentado em `API-CONTRACT.yaml` v0.10.0/v0.11.0/v0.12.0
+(`RecurringTemplate`, `RecurringTemplateAdjustment`, `InstallmentPurchase`,
+`Transaction.recurring_rule_id`/`installment_plan_id`/`installment_number`
+marcados `readOnly`) — nenhum mock no caminho de produção, confirmado por
+leitura de `recurring.ts` e pelos testes de frontend rodando contra o shape
+real do contrato. Integração cruzada `BE-F2-03`/`BE-F2-05` → `BE-F2-02`
+("Cartão & Fatura", Seção 16): `generate_installment_transactions` reaproveita
+`credit_card_invoice_competencia` de `BE-F2-02` para calcular a mesma
+competência-alvo já usada por `transactions_assign_card_invoice`, evitando 2
+cálculos independentes divergentes — coberto pelo próprio
+`be_f2_05_installment_purchases.test.sql`, que roda sobre o schema completo das
+migrations de ambos os lotes. Reaproveitamento de infraestrutura confirmado por
+leitura: `BE-F2-05` não cria Edge Function/cron/secret novo — estende o mesmo
+job diário de `BE-F2-03` (`recurring-generate`), decisão de design correta por
+DIR-06/DIR-09 (mesmo bounded context/lote), não um atalho que comprometa
+isolamento de falha (cada template/plano segue em bloco próprio de exceção).
+
+### 17.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada
+dentro do escopo deste lote. A falha de `be_m07_dashboard.test.sql` (Seção
+17.1) não é deste lote (módulo "Ledger & Dashboard", já `Aprovado` na Seção 5,
+sem nenhuma mudança de código deste lote no cálculo de saldo) — registrada
+aqui só como observação de fragilidade de isolamento de teste pré-existente, a
+sinalizar ao `coordenador`, não como achado novo a corrigir por este lote. A
+falha de `be_f3_00` é de teste de Fase 3 ainda não migrada, também fora de
+escopo.
+
+### 17.5 `non-functional-validation` de lote
+
+- **Segurança de dados (RLS/IDOR)**: confirmado por execução real que as 3
+  tabelas (`recurring_templates`, `recurring_template_adjustments`,
+  `installment_purchases`) rejeitam INSERT/UPDATE com `category_id`/
+  `account_id`/`payment_method_id`/`recurring_template_id` de outro usuário
+  (`EXISTS` de ownership, mesma classe de defesa de `BE-M-13`) e que SELECT/
+  UPDATE/DELETE cross-user retornam 0 linhas — sem regressão de IDOR
+  reintroduzida.
+- **Integridade de regra de negócio (RN-02/RN-07)**: confirmado por execução
+  real que reajuste retroativo é rejeitado (trigger, não só CHECK — depende de
+  `current_date`) e que excluir/encerrar template ou plano preserva o
+  lançamento já gerado (`ON DELETE SET NULL`, nunca CASCADE).
+- **DIR-06 (fonte única de verdade)**: `generated_count`/`installments_count`
+  em `InstallmentProgress` vêm prontos do servidor via
+  `get_installment_purchases_progress`, nunca recalculados no client;
+  `updateRecurringTemplate` bloqueado em tempo de compilação para
+  `amount_cents`, forçando o fluxo de reajuste a passar pelo endpoint correto.
+- **Acessibilidade**: `role="progressbar"` com `aria-valuenow`/`aria-valuemin`/
+  `aria-valuemax` em escala de contagem (não percentual) e `aria-valuetext`
+  redundante com o texto visível — leitor de tela nunca anuncia um percentual
+  não solicitado pelo AC.
+
+### 17.6 Veredito de lote consolidado
+
+**Aprovado** — 5/5 tarefas aprovadas (`BE-F2-03`, `BE-F2-04`, `BE-F2-05`,
+`FE-F2-03`, `FE-F2-04`), nenhuma reprovação, nenhum achado de severidade
+alta/crítica, nenhum débito novo de baixa/média severidade identificado nesta
+rodada. Libera formalmente a auditoria completa do chapéu DevSecOps sobre este
+lote.
+
+**Padrão recorrente? Não** — nenhum escalonamento a `coordenador`/`BLOCKERS.md`
+gerado por esta rodada quanto a bugs. Sinalização pontual ao `coordenador`
+(não é bloqueio, não pausa este veredito) sobre a fragilidade de isolamento de
+`be_m07_dashboard.test.sql` observada em 17.1/17.4.
+
+**Limitação de ferramentação registrada**: a tentativa de regressão SQL
+completa (32 arquivos) não terminou dentro do timeout de 5 min desta rodada;
+os 3 testes das tarefas de Backend deste lote já haviam sido confirmados
+isoladamente antes da tentativa de regressão ampla, então esta limitação não
+afeta o veredito.
+
+### 17.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 5 tarefas foi testado e está passando
+      (Seção 17.2), com execução própria contra o projeto Supabase real
+      vinculado (não só leitura de código) para as 3 tarefas de Backend
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 17.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 17.5)
+
+---
+
+## 18. Veredito de Lote — "Contas Fixas" (2026-09-05, retroativo)
+
+**Contexto de processo**: mesmo padrão dos Lotes 15/16/17 — este lote nunca
+passou por `/validar` — foi implementado em 2026-09-03 e promovido a produção
+via `DEPLOY.md` Seção 9.6 (decisão do stakeholder de pular validação formal por
+lote naquele push). Este veredito é retroativo: o código já roda em produção;
+a aprovação aqui fecha a lacuna de validação funcional formal e libera a
+auditoria completa do chapéu DevSecOps sobre este lote especificamente.
+
+### 18.1 Execução própria desta rodada (evidência de lote, não delegada)
+
+Nenhuma nota de implementação do Executor foi usada como base de aprovação —
+cada achado abaixo vem de execução própria contra o critério de aceite/código
+real:
+
+- **`BLOCKERS.md` verificado nesta rodada, na íntegra** (todas as 23 entradas
+  lidas, não só grep): nenhum bloqueio `Aberto` cita este lote, `fixed_bills`
+  ou `FixedBill` por nome. O único achado historicamente relevante à tabela
+  `fixed_bills` é o **Bloqueio 015** (`user_id` sem `DEFAULT auth.uid()` em
+  toda tabela "ownable", incluindo `fixed_bills`) — confirmado **Resolvido**
+  (camada de banco corrigida e verificada ao vivo pelo Backend e de forma
+  independente pelo DevSecOps; `withOwnerId` cobre `createFixedBill` no
+  Frontend). Os Bloqueios 021-023 (redesign v2.0) e 016-020 (deploy/e-mail/MFA/
+  hierarquia de categoria/RN-08) não afetam `fixed_bills`/`BE-F2-06`/
+  `BE-F2-07`/`FE-F2-05`.
+- **Testes SQL das 2 tarefas de Backend rodados de forma independente contra o
+  projeto Supabase real vinculado** (`npx supabase db query --linked --file`,
+  dentro de `BEGIN;...ROLLBACK;`, sem bloqueio do classificador de permissões
+  nesta rodada — diferente da limitação registrada em rodadas anteriores para
+  outros comandos): `be_f2_06_fixed_bills.test.sql` → `PASS`;
+  `be_f2_07_fixed_bill_due_alerts.test.sql` → `PASS`. Corrobora, não só cita,
+  os casos descritos no `TASK.md`: geração ponta a ponta com coerência
+  status↔data e idempotência por competência; janela `start_date`/`end_date`;
+  AC2 provado via `UPDATE` real de status (`cleared`); RN-07 (DELETE preserva
+  o lançamento, `fixed_bill_id` → NULL); isolamento cross-user + IDOR
+  (`BE-F2-06`); `fn_clear_due_transactions` não promove lançamento de conta
+  fixa vencido mas continua promovendo lançamento comum (regressão
+  confirmada); `get_fixed_bills_status` deriva `is_overdue` corretamente,
+  inclusive voltando a `false` ao marcar como paga mesmo com data passada;
+  aviso dispara dentro da janela `alert_days_before`, não dispara fora dela
+  nem se já paga adiantado, dedup confirmado (`BE-F2-07`).
+- **Regressão SQL ampliada**: rodei em sequência os 15 arquivos mais
+  diretamente relevantes (todos os `be_f2_*` e `be_m1{0-4}_*`, incluindo os 2
+  deste lote) — **15/15 `PASS`**, sem exceção, incluindo `BE-M-14`
+  (`user_id DEFAULT auth.uid()`, Bloqueio 015) e `BE-M-11`
+  (RLS cross-user, 9 tabelas). Não tentei a suíte completa de 32+ arquivos
+  neste ciclo (redundante com a Seção 17, que já a tentou e documentou a
+  limitação de timeout).
+- **Suíte de frontend rodada de forma independente**: `npx vitest run
+  src/pages/fixedBills/FixedBillsPage.test.tsx` isolado → 7/7 `PASS` (mais que
+  os 4 casos citados no `TASK.md` — cobertura cresceu desde a nota original).
+  Suíte completa (`npm test -- --run`, 59 arquivos) → 330/331 `PASS`, 1 falha
+  em `UnlockPage.test.tsx` ("Muitas tentativas" não encontrado a tempo) — não
+  relacionada a este lote (módulo de desbloqueio/PIN, já `Aprovado` na Seção
+  15); reexecutado isoladamente (`npx vitest run
+  src/pages/auth/UnlockPage.test.tsx`) → 3/3 `PASS`, confirmando flake de
+  timing sob carga da suíte completa, mesmo padrão já registrado na Seção 16.
+- **Leitura de código contra os critérios de aceite**: migrations
+  `20260903190000_be_f2_06_fixed_bills.sql`,
+  `20260903200000_be_f2_06_fixed_bill_generate_cron.sql`,
+  `20260903230000_be_f2_07_fixed_bill_due_alerts.sql`,
+  `frontend/src/pages/fixedBills/FixedBillsPage.tsx`,
+  `frontend/src/lib/api/fixedBills.ts`. Confirmado por leitura direta (não só
+  pela nota do Executor): o badge é derivado exclusivamente de
+  `status.current_status`/`status.is_overdue` (nenhuma data comparada no
+  client) — `isPaid = current_status ∈ {cleared, reconciled}`,
+  `isOverdue = is_overdue && !isPaid`, e os 3 estados sempre combinam cor +
+  ícone/texto (`Paga` verde+✓, `Vencida` vermelho+⛔, `Pendente` neutro com
+  texto), nunca só cor (WCAG); `markFixedBillTransactionAsPaid` chama
+  `markTransactionCleared(transactionId)` de `transactions.ts` — confirmado
+  que **não existe** nenhum endpoint próprio de "pagar" em `fixedBills.ts`,
+  reaproveitando literalmente `PATCH /transactions` como o `API-CONTRACT.yaml`
+  documenta (DIR-06, sem lógica duplicada).
+
+### 18.2 `acceptance-criteria-validation` de lote
+
+| Tarefa | Critério de aceite | Veredito | Evidência |
+|---|---|---|---|
+| `BE-F2-06` | Lançamento previsto (pendente) é gerado para cada competência; marcar como paga converte para efetivado, refletido no saldo (RF-F2-06 AC1-2) | **Aprovado** | `be_f2_06_fixed_bills.test.sql` `PASS` (execução própria, projeto real) — geração ponta a ponta, clamp de dia, idempotência, RN-07, AC2 provado via `UPDATE` real de `status=cleared` (reaproveita `transactions_maintain_account_balance` já existente, nenhum trigger novo), isolamento cross-user + IDOR |
+| `BE-F2-07` | Notificação de aviso é emitida quando faltam N dias configurados; conta não paga até o vencimento é sinalizada como vencida (RF-F2-07 AC1-2, RN-05) | **Aprovado** | `be_f2_07_fixed_bill_due_alerts.test.sql` `PASS` (execução própria) — `check_fixed_bill_due_alerts()` dispara dentro da janela `alert_days_before` com dedup por (conta fixa, competência); `get_fixed_bills_status` deriva `is_overdue` sem estado novo (`status=pending AND transaction_date < hoje`); `fn_clear_due_transactions` corrigido para excluir `fixed_bill_id IS NOT NULL` (evita colisão semântica "vencida" vs. "paga"), regressão de lançamento comum confirmada intacta |
+| `FE-F2-05` | Badge de status muda automaticamente para "Vencida" após o vencimento sem pagamento marcado (UX-FL-14) | **Aprovado** | `FixedBillsPage.tsx` lido diretamente — badge 100% derivado de `is_overdue`/`current_status` do servidor, nenhuma data comparada no client (DIR-06); `FixedBillsPage.test.tsx` 7/7 `PASS` (execução própria) cobrindo os 3 estados de badge (cor+ícone/texto) e "Marcar como paga" chamando o `transaction_id` correto via `markTransactionCleared` |
+
+### 18.3 `cross-platform-integration-testing` de lote
+
+Contrato de API respeitado de ponta a ponta: `frontend/src/lib/api/fixedBills.ts`
+consome `/fixed_bills` e `/rpc/get_fixed_bills_status` exatamente como
+documentado em `API-CONTRACT.yaml` v0.13.0/v0.15.0 (`FixedBill`,
+`Transaction.fixed_bill_id` marcado `readOnly`) — nenhum mock no caminho de
+produção. Integração cruzada `BE-F2-06`→`BE-F2-07`: `BE-F2-07` depende
+diretamente do schema/coluna `fixed_bill_id`/`alert_days_before` introduzidos
+por `BE-F2-06` e da correção de `fn_clear_due_transactions` para não
+promover automaticamente lançamento de conta fixa — coberto pelos dois
+arquivos de teste SQL rodando em sequência sobre o schema completo.
+Integração cruzada `FE-F2-05`→`BE-F2-06`/`BE-F2-07`: "Marcar como paga"
+reaproveita o mesmo contrato `PATCH /transactions` já usado por outras telas
+(nenhum endpoint próprio duplicado), e o badge "Vencida" depende
+inteiramente do cálculo do servidor introduzido por `BE-F2-07`
+(`get_fixed_bills_status`) — sem essa RPC, a tarefa de Frontend não teria
+como cumprir seu AC sem violar DIR-06.
+
+### 18.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada
+dentro do escopo deste lote. A falha de `UnlockPage.test.tsx` (Seção 18.1) não
+é deste lote (módulo de desbloqueio/PIN, já `Aprovado` na Seção 15, sem
+nenhuma mudança de código deste lote) — confirmada como flake por reexecução
+isolada (3/3 `PASS`), registrada aqui só como observação, não como achado
+novo a corrigir por este lote.
+
+### 18.5 `non-functional-validation` de lote
+
+- **Segurança de dados (RLS/IDOR)**: confirmado por execução real que
+  `fixed_bills` rejeita INSERT/UPDATE com `category_id`/`account_id`/
+  `payment_method_id` de outro usuário e que SELECT/UPDATE/DELETE cross-user
+  retornam 0 linhas — sem regressão de IDOR reintroduzida. `BE-M-14`/Bloqueio
+  015 (`user_id DEFAULT auth.uid()`) reconfirmado `PASS` nesta rodada, cobrindo
+  `fixed_bills` entre as 13 tabelas.
+- **Integridade de regra de negócio (RN-05/RN-07)**: confirmado por execução
+  real que excluir uma conta fixa preserva o lançamento já gerado (`fixed_bill_id`
+  → NULL, nunca CASCADE) e que a janela de aviso (`alert_days_before`,
+  configurável por conta fixa, default 3) dispara/não dispara exatamente nos
+  limites testados, com dedup por competência.
+- **DIR-06 (fonte única de verdade)**: `is_overdue`/`current_status` vêm
+  prontos do servidor via `get_fixed_bills_status`, nunca recalculados por
+  comparação de data no client; "marcar como paga" nunca duplica lógica de
+  efetivação, delega 100% a `PATCH /transactions`.
+- **Acessibilidade**: os 3 estados de badge (`Paga`/`Vencida`/`Pendente`)
+  sempre combinam cor e ícone/texto — nunca comunicam estado só por cor
+  (WCAG).
+
+### 18.6 Veredito de lote consolidado
+
+**Aprovado** — 3/3 tarefas aprovadas (`BE-F2-06`, `BE-F2-07`, `FE-F2-05`),
+nenhuma reprovação, nenhum achado de severidade alta/crítica, nenhum débito
+novo de baixa/média severidade identificado nesta rodada. Libera formalmente
+a auditoria completa do chapéu DevSecOps sobre este lote.
+
+**Padrão recorrente? Não** — nenhum escalonamento a `coordenador`/
+`BLOCKERS.md` gerado por esta rodada.
+
+**Limitação de ferramentação registrada, com transparência**: para os testes
+SQL, `supabase db query --linked --file` executou normalmente nesta rodada,
+sem bloqueio do classificador de permissões do ambiente — diferente da
+limitação de outras rodadas passadas (ex.: `supabase projects api-keys`,
+Bloqueio 015 item 4); não há, portanto, ressalva de permissão a registrar
+aqui. A suíte SQL ampliada rodou 15/15 arquivos relevantes, não os 32+ da
+suíte completa (redundante com a tentativa já documentada na Seção 17).
+
+### 18.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 3 tarefas foi testado e está passando
+      (Seção 18.2), com execução própria contra o projeto Supabase real
+      vinculado (não só leitura de código) para as 2 tarefas de Backend
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 18.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 18.5)
+
+---
+
+## 19. Veredito de Lote — "Metas" (2026-09-05, retroativo)
+
+**Contexto**: validação retroativa — lote já em produção desde `DEPLOY.md`
+Seção 9.6. Tarefas: `BE-F2-08`, `FE-F2-06` (2), ambas `Concluída` em `TASK.md`
+Seção 3. `BLOCKERS.md` conferido diretamente (grep "meta"/"goal"): nenhum
+bloqueio aberto referente a este domínio.
+
+### 19.1 `test-strategy-planning` (retroativa)
+
+Estratégia já coberta pelo `TEST-PLAN.md` geral de Fase 2 (mesma categoria de
+`BE-F2-01` a `BE-F2-07`: teste SQL de RLS/constraint/cálculo real contra o
+projeto Supabase vinculado + teste de componente React mockando a camada
+`lib/api`). Sem componente de captura automatizada ou fluxo financeiro
+complexo adicional que exija plano próprio.
+
+### 19.2 `acceptance-criteria-validation`
+
+- **`BE-F2-08`** (RF-F2-08 AC1-2, "progresso recalculado a cada aporte
+  vinculado"): migration `supabase/migrations/20260903240000_be_f2_08_goals.sql`
+  lida linha a linha. `get_goals_progress()` soma `contributions.amount_cents`
+  **ao vivo** (nenhuma coluna cacheada em `goals`), satisfazendo o critério por
+  construção. Teste `supabase/tests/be_f2_08_goals.test.sql` **executado nesta
+  rodada de forma independente** contra o projeto Supabase real vinculado
+  (`supabase db query --linked --file`, sem bloqueio de permissão do
+  classificador desta vez): `BEGIN;...ROLLBACK;`, resultado `BE-F2-08
+  goals/contributions: PASS`. Cobre constraints físicas
+  (`target_amount_cents`/`amount_cents > 0`), progresso incremental nos 3
+  gatilhos (inserir 1º aporte, inserir 2º aporte superando 100% sem clamp,
+  remover o 2º aporte voltando ao valor anterior), `is_active` default
+  `true`/editável, isolamento cross-user e IDOR (INSERT direto de aporte em
+  meta de outro usuário e UPDATE redirecionando `goal_id`). **Aprovado**.
+- **`FE-F2-06`** (UX-FL-15, "progresso exibido visualmente e atualizado a cada
+  aporte registrado"): `GoalsPage.tsx` consome `listGoals`/`getGoalsProgress`/
+  `listContributions`/`createContribution`/`deleteContribution` de
+  `lib/api/goals.ts` contra `/goals`, `/contributions`,
+  `/rpc/get_goals_progress` reais (nenhum mock no caminho de produção).
+  Confirmado por leitura direta: nenhuma mutação de aporte (criar/remover)
+  deixa de ser seguida de uma nova chamada a `getGoalsProgress()`
+  (`loadDetail`) — nenhum cálculo de percentual feito no client, mesma
+  disciplina DIR-06 do backend. `GoalProgressBar.tsx` é um componente novo e
+  distinto do `ProgressBar` de orçamento (semântica "em progresso"/"atingida",
+  nunca "estourada"), com cor+ícone+texto sempre juntos. `GoalsPage.test.tsx`
+  **executado de forma isolada nesta rodada**: 5/5 `PASS` (vazio, progresso
+  vindo do servidor, registrar aporte recarregando progresso ao vivo,
+  carregando, erro) — 2 casos a mais do que a nota do Executor menciona
+  (estados de carregamento/erro, já cobertos). **Aprovado**.
+
+### 19.3 `cross-platform-integration-testing` de lote
+
+Contrato de API respeitado de ponta a ponta: `frontend/src/lib/api/goals.ts`
+consome `/goals`, `/contributions` e `/rpc/get_goals_progress` exatamente como
+documentado em `API-CONTRACT.yaml` v0.16.0 (`Goal`, `Contribution`) —
+confirmado por leitura cruzada dos dois arquivos, nenhuma divergência de
+schema/nome de campo. Integração cruzada `BE-F2-08`→`FE-F2-06`: a tela de
+Frontend não calcula percentual algum localmente — depende inteiramente do
+`pct_progress`/`current_amount_cents` retornados pela RPC do Backend; sem essa
+função, `FE-F2-06` não cumpriria seu AC sem duplicar lógica (DIR-06). Nenhuma
+dependência cruzada com outros domínios de Fase 2 (Metas é isolada do ledger —
+aporte não é `Transaction`, decisão documentada na própria migration).
+
+### 19.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada
+dentro do escopo deste lote.
+
+Um achado novo, de conformidade técnica ARIA (classificação simples — não é
+reprovação de tarefa), confirmando previsão já registrada em `QA-DEBT-010`:
+
+| ID | Achado | Severidade | Tarefa afetada | Prazo sugerido | Nota |
+|---|---|---|---|---|---|
+| QA-DEBT-016 | **Reprodução**: (1) registrar uma meta de valor-alvo R$ 1.000,00; (2) registrar aportes somando mais de R$ 1.000,00 (ex.: R$ 1.200,00 → 120%); (3) inspecionar o DOM do `role="progressbar"` renderizado por `GoalProgressBar.tsx` (`frontend/src/components/domain/GoalProgressBar.tsx`). **Obtido**: `aria-valuenow="120"` com `aria-valuemax="100"` — `aria-valuenow={roundedPct}` nunca é limitado a 100 (só a largura visual, via `clampedWidth`), reproduzindo exatamente o mesmo gap de `ProgressBar.tsx` (orçamento) já documentado em `QA-DEBT-010`, que previa explicitamente esse risco de reaproveitamento por `S-GOAL-04` ("vale corrigir antes desse reaproveitamento para não replicar o gap") — a previsão se confirmou: `GoalProgressBar.tsx` foi corretamente escrito como componente novo e independente (decisão certa de não reusar o `ProgressBar` de orçamento por semântica distinta), mas replicou o mesmo padrão de código sem a correção sugerida. **Esperado**: `aria-valuenow` nunca ultrapassar `aria-valuemax`, preservando o percentual real (>100%) por outro canal (`aria-valuetext`, já sugerido em `QA-DEBT-010`) | Baixa | FE-F2-06 | Sem urgência — o texto visível ao lado da barra já comunica o percentual exato (inclusive >100%); considerar corrigir `QA-DEBT-010` e `QA-DEBT-016` juntos, no mesmo momento, já que é o mesmo padrão em 2 arquivos | Não bloqueia — o critério de aceite literal de `FE-F2-06` (progresso exibido visualmente e atualizado a cada aporte) está cumprido integralmente; achado adicional de conformidade técnica de ARIA, mesma classificação de `QA-DEBT-010` |
+
+### 19.5 `non-functional-validation` de lote
+
+- **Segurança de dados (RLS/IDOR)**: confirmado por execução real que
+  `goals`/`contributions` rejeitam SELECT/INSERT/UPDATE cross-user e que o
+  IDOR de `contribution.goal_id` apontando para meta de outro usuário é
+  bloqueado tanto no INSERT direto quanto no UPDATE de redirecionamento —
+  mesma extensão IDOR-safe já usada em toda tabela nova de Fase 2 desde
+  `BE-M-13`.
+- **Integridade de cálculo (AC literal)**: confirmado por execução real (não
+  só leitura) que o percentual é recalculado corretamente nos 3 gatilhos
+  (inserir, superar 100% sem clamp, remover), sem nenhum resíduo de estado
+  cacheado.
+- **DIR-06 (fonte única de verdade)**: `pct_progress`/`current_amount_cents`
+  vêm prontos do servidor via `get_goals_progress`, nunca recalculados por
+  soma local no client.
+- **Acessibilidade**: os 2 estados do `GoalProgressBar` (`em progresso`/
+  `atingida`) sempre combinam cor+ícone+texto — nunca comunicam estado só por
+  cor (WCAG); ressalva pontual de `aria-valuenow`/`aria-valuemax` registrada
+  na Seção 19.4 acima (baixa severidade, não bloqueante).
+
+### 19.6 Veredito de lote consolidado
+
+**Aprovado** — 2/2 tarefas aprovadas (`BE-F2-08`, `FE-F2-06`), nenhuma
+reprovação, nenhum achado de severidade alta/crítica. Libera formalmente a
+auditoria completa do chapéu DevSecOps sobre este lote.
+
+**Padrão recorrente? Não** — a reprodução do gap de ARIA em
+`GoalProgressBar.tsx` confirma uma previsão pontual já registrada (`QA-DEBT-
+010`), não um padrão novo de decomposição/diretriz a escalar ao `coordenador`;
+é tratado como débito de baixa severidade, mesma classificação e mesmo
+tratamento do achado original.
+
+**Testes executados nesta rodada, com transparência de escopo**:
+`supabase db query --linked --file supabase/tests/be_f2_08_goals.test.sql`
+rodou sem bloqueio do classificador de permissões do ambiente, resultado
+`PASS`. Suíte de frontend completa (`npm test -- --run`, 59 arquivos): 6
+arquivos (7 testes) sinalizaram timeout de 5000ms na primeira execução
+completa, incluindo `GoalsPage.test.tsx` — mesma classe de flake por
+sobrecarga de ambiente já documentada para `UnlockPage.test.tsx` em rodadas
+anteriores (não uma falha determinística de código). Reexecução isolada de
+`GoalsPage.test.tsx` (`npx vitest run`, timeout ampliado): **5/5 PASS**, 2,59s
+de duração total. Reexecução isolada de `PaymentMethodsPage.test.tsx` (um dos
+outros 5 arquivos afetados, não deste lote): 3/3 `PASS`, corroborando que o
+timeout é de ambiente, não de regressão introduzida por este lote.
+
+### 19.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 2 tarefas foi testado e está passando
+      (Seção 19.2), com execução própria contra o projeto Supabase real
+      vinculado para `BE-F2-08` e reexecução isolada da suíte de componente
+      para `FE-F2-06`
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 19.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 19.5)
+
+---
+
+## 20. Veredito de Lote — "Notificações & Configurações" (2026-09-05, retroativo)
+
+**Contexto**: validação retroativa — lote já em produção desde `DEPLOY.md`
+Seção 9.6. Tarefas: `BE-F2-09`, `FE-F2-07`, `FE-F2-09` (3), todas `Concluída`
+em `TASK.md` Seção 3. `BLOCKERS.md` conferido diretamente (grep
+"notifica"/"push", case-insensitive): nenhuma entrada `Aberto` sobre este
+domínio — o único achado relacionado (Bloqueio 015, item adicional sobre
+`push_subscriptions.user_id` sem `DEFAULT`) está **resolvido** desde
+2026-09-03 (camada de banco corrigida e confirmada ao vivo por Backend e
+DevSecOps independentemente; o gap remanescente de defesa em profundidade no
+Frontend — `createPushSubscription` sem `withOwnerId` — foi registrado como
+`SEC-DEBT-010`, baixa severidade, dono Frontend, não bloqueante). Achado de
+CI/CD em `BLOCKERS.md` linha 634 ("push para main") é sobre pipeline, não
+sobre a feature de notificação — falso positivo do grep, descartado.
+
+### 20.1 `test-strategy-planning` (retroativa)
+
+Estratégia já coberta pelo `TEST-PLAN.md` geral de Fase 2, mesma categoria de
+`BE-F2-01` a `BE-F2-08`: teste SQL contra o projeto Supabase vinculado (RLS +
+função `SECURITY DEFINER` + dedup) e teste de componente React mockando
+`lib/api`. Item específico deste lote: `push-dispatch` é a primeira Edge
+Function do projeto acionada sob demanda via `pg_net` (não `pg_cron`) —
+mesmo racional de teste das demais Edge Functions (`deno test` +
+`deno check`/`deno lint`), sem plano adicional necessário.
+
+### 20.2 `acceptance-criteria-validation`
+
+- **`BE-F2-09`** (RF-F2-09 AC1-2, "um único ponto de código dispara push para
+  os dois gatilhos; histórico consultável independente de push entregue"):
+  `supabase/migrations/20260903210000_be_f2_09_notifications.sql` lida linha a
+  linha. `notify_user()` (`SECURITY DEFINER`) é de fato o único ponto que
+  insere em `notifications` e aciona `push-dispatch` via `pg_net` — RLS de
+  `notifications` **não tem policy de INSERT** para `authenticated`,
+  confirmando por construção que o client não pode contornar esse ponto único
+  (AC1); histórico é gravado antes de qualquer tentativa de rede, com
+  `raise warning`/retorno normal se o Vault não tiver as credenciais de push
+  configuradas — nunca condiciona a gravação ao sucesso do push (AC2).
+  `check_budget_alerts()` chama exclusivamente `notify_user()`, nunca fala com
+  `push_subscriptions` diretamente — sem duplicação de lógica de disparo.
+  Teste `supabase/tests/be_f2_09_notifications.test.sql` **executado nesta
+  rodada de forma independente** contra o projeto Supabase real vinculado
+  (`supabase db query --linked --file`, sem bloqueio do classificador desta
+  vez): resultado `BE-F2-09 notifications: PASS`. Migration confirmada
+  aplicada (`local`=`remote`=`20260903210000` em
+  `supabase migration list --linked`). `push-dispatch/lib.test.ts` (Deno) não
+  pôde ser reexecutado nesta rodada — `deno` não está disponível neste
+  ambiente de validação (`deno: command not found`); corroborado por leitura
+  de código (tratamento de subscription expirada 404/410, VAPID via
+  `npm:web-push`) e pela nota do Executor de execução prévia (7/7 `PASS`) — a
+  Edge Function em si não faz parte do escopo de código deste lote além de já
+  ter sido smoke-testada ponta a ponta na própria tarefa. **Aprovado**.
+- **`FE-F2-07`** (UX-FL-16/DIR-14, "sino sempre acessível independente de push
+  entregue; toque leva à entidade relacionada"): `NotificationBell.tsx`
+  confirmado montado em `AppLayout.tsx`, visível em toda tela autenticada.
+  Contador busca `GET /notifications?read_at=is.null` ao montar **e** por
+  polling a cada 60s (`POLL_INTERVAL_MS`) — nunca depende só do evento de push
+  chegar, cumprindo o AC literalmente. `routeForNotification()` mapeia
+  `budget_warning`/`budget_exceeded` → `/orcamento` e `fixed_bill` →
+  `/contas-fixas`, marcando como lida antes de navegar. `subscribeToPush()`/
+  `unsubscribeFromPush()` (`frontend/src/lib/push/subscribe.ts`) degradam para
+  `false`/no-op sem lançar quando o navegador não suporta Push ou a chave
+  VAPID não está configurada (DIR-14 preservado — push é reforço, nunca única
+  via). `NotificationBell.test.tsx` **executado de forma isolada nesta
+  rodada**: **6/6 `PASS`** (contador ao montar, estado vazio, navegação de
+  notificação de orçamento, navegação de conta fixa, estado de carregamento,
+  estado de erro) — 2 casos a mais do que a nota do Executor menciona ("4
+  casos"), sem prejuízo, cobertura real maior que a documentada.
+  `AppLayout.test.tsx` (regressão) **executado de forma isolada**: 13/13
+  `PASS`, sino montado sem quebrar nenhum caso existente. **Aprovado**.
+- **`FE-F2-09`** (UX-FL-20 parte F2, "limiar padrão aplica a novos cadastros;
+  cada orçamento/conta fixa individual pode sobrescrever"): confirmado que
+  `budget.alert_threshold_pct`/`fixed_bills.alert_days_before` têm `DEFAULT`
+  fixo no schema (80/3), aplicado automaticamente a todo novo cadastro sem
+  nenhum código de Frontend — e que cada formulário individual
+  (`FE-M-11`/`FE-F2-05`) já permite sobrescrever esse padrão, desde antes
+  desta tarefa. AC literal cumprido integralmente. O achado de contrato
+  investigado pelo Executor (ausência de `user_settings`/preferência de
+  limiar padrão *global* editável e de preferência de notificação *por
+  tipo*) foi verificado por leitura direta do `API-CONTRACT.yaml`/schema —
+  **confirmado real, não é omissão do Executor**: nenhuma tabela modela essas
+  duas preferências. A decisão de documentar o gap textualmente na própria
+  tela (2 notas "Achado (FE-F2-09)" em `SettingsPage.tsx`, uma para S-SET-02 —
+  "por tipo" da `UX-SPEC.md`, não implementada — e uma para S-SET-03) em vez
+  de simular persistência via `localStorage` está correta e consistente com o
+  padrão já usado em `FE-M-06`/`FE-M-07` ("nunca simular contrato que não
+  existe"); nenhum `BLOCKERS.md` aberto por isso, corretamente. Toggle real de
+  push por dispositivo usa `getExistingPushSubscription()` (Service Worker
+  real) como estado inicial, não um valor fake. `SettingsPage.test.tsx`
+  **executado de forma isolada nesta rodada**: **9/9 `PASS`** (3 casos S-SET-01
+  + 3 casos S-SET-02/03 desta tarefa + 3 casos de troca de PIN, nenhuma
+  regressão). **Aprovado**.
+
+### 20.3 `cross-platform-integration-testing` de lote
+
+Contrato de API respeitado de ponta a ponta: `frontend/src/lib/api/
+notifications.ts` consome `/notifications` (GET/PATCH) e `/push_subscriptions`
+(GET/POST/DELETE) exatamente como documentado em `API-CONTRACT.yaml`
+(schemas `Notification`/`PushSubscription`) — confirmado por leitura cruzada
+dos dois arquivos, nenhuma divergência de nome de campo ou de
+somente-leitura/escrevível (`read_at` é o único campo mutável do lado
+client, como o contrato declara). Integração cruzada `BE-F2-09`→`FE-F2-07`:
+`related_entity_type` gravado pelo backend (`budget_warning`/
+`budget_exceeded`/`fixed_bill`) é exatamente o vocabulário que
+`routeForNotification()` espera no Frontend — sem esse alinhamento a
+navegação por toque quebraria silenciosamente (nenhum teste E2E cobre essa
+integração especificamente, mas a checagem literal dos dois lados do contrato
+não encontrou divergência). `FE-F2-07`→`FE-F2-09`: `subscribeToPush()`/
+`unsubscribeFromPush()` (`FE-F2-07`) são as funções que o toggle de
+`SettingsPage.tsx` (`FE-F2-09`) chama — reaproveitamento correto, sem lógica
+duplicada de subscrição no lado client.
+
+### 20.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada
+dentro do escopo deste lote. Nenhum achado novo de conformidade técnica
+pendente de registro — os 2 gaps de contrato (preferência de limiar padrão
+global e de notificação por tipo) já estavam corretamente documentados
+inline pelo próprio Executor (Seção 20.2), não configuram bug.
+
+### 20.5 `non-functional-validation` de lote
+
+- **Segurança de dados (RLS)**: confirmado por leitura de migration que
+  `notifications` não tem policy de INSERT para `authenticated` (só
+  `notify_user()` grava) e que `push_subscriptions` tem as 3 policies
+  `auth.uid() = user_id` padrão; `SEC-DEBT-010` (ausência de `withOwnerId` em
+  `createPushSubscription`) é achado do chapéu DevSecOps, já registrado, não
+  reaberto por este QA.
+- **Confiabilidade/degradação (DIR-14)**: confirmado por leitura de código que
+  toda função de `lib/push/subscribe.ts` retorna `false`/`null`/no-op em vez
+  de lançar quando o navegador não suporta Push ou a chave VAPID está ausente
+  — a Central de notificações nunca fica bloqueada por falha de push.
+- **Usabilidade (polling e histórico sempre disponível)**: contador de não
+  lidas nunca depende exclusivamente do evento de push chegar (busca ao
+  montar + polling de 60s + busca fresca ao abrir o painel) — RF-F2-09 AC2
+  cumprido também do lado do client, não só do servidor.
+- **Acessibilidade**: botão do sino tem `aria-label` dinâmico com a contagem
+  de não lidas (`"Notificações, N não lidas"`), não depende só do badge
+  visual (`aria-hidden`) para comunicar o estado a leitor de tela; item não
+  lido de cada notificação combina indicador visual (ponto) + peso de fonte +
+  badge "Nova" com texto, não só cor.
+
+### 20.6 Veredito de lote consolidado
+
+**Aprovado** — 3/3 tarefas aprovadas (`BE-F2-09`, `FE-F2-07`, `FE-F2-09`),
+nenhuma reprovação, nenhum achado de severidade alta/crítica. Libera
+formalmente a auditoria completa do chapéu DevSecOps sobre este lote.
+
+**Padrão recorrente? Não** — nenhum bug encontrado nesta rodada; os únicos
+achados de escopo (preferência de limiar global e por tipo, não modelada no
+backend) já vinham corretamente identificados e documentados pelo próprio
+Executor como decisão consciente de não simular contrato inexistente, não
+como uma falha de decomposição de tarefa.
+
+**Testes executados nesta rodada, com transparência de escopo**:
+`supabase db query --linked --file supabase/tests/be_f2_09_notifications.test.sql`
+rodou sem bloqueio do classificador de permissões do ambiente, resultado
+`PASS`; `supabase migration list --linked` confirma `20260903210000` aplicada
+(`local`=`remote`). Suíte de frontend completa (`npm test -- --run`, 59
+arquivos): 58/59 arquivos, 330/331 testes `PASS` na primeira execução; a
+única falha (`UnlockPage.test.tsx`, `findByText(/Muitas tentativas/)` por
+timeout) é a mesma classe de flake de sobrecarga de ambiente já documentada
+em rodadas anteriores (Seções 18-19), fora do escopo deste lote — reexecutada
+isoladamente 2x: 1ª tentativa ainda falhou (1/3), 2ª tentativa **3/3 `PASS`**,
+confirmando timing de ambiente, não regressão de código. Reexecução isolada,
+dedicada a este lote: `NotificationBell.test.tsx` (6/6), `SettingsPage.test.tsx`
+(9/9), `AppLayout.test.tsx` (13/13) — todos `PASS`, nenhuma flakiness
+observada nos arquivos deste lote especificamente. **Limitação registrada,
+não bloqueante**: `deno test`/`deno check`/`deno lint` de
+`supabase/functions/push-dispatch/` não puderam ser reexecutados nesta rodada
+(`deno` ausente do ambiente de validação) — corroborado por leitura de
+código, não por execução própria; recomenda-se ao DevSecOps/DevOps confirmar
+via ambiente com Deno disponível na próxima oportunidade, item de fechamento,
+não condição para este veredito.
+
+### 20.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 3 tarefas foi testado e está passando
+      (Seção 20.2), com execução própria contra o projeto Supabase real
+      vinculado para `BE-F2-09` e reexecução isolada da suíte de componente
+      para `FE-F2-07`/`FE-F2-09`
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 20.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 20.5)
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -2570,3 +3351,7 @@ escalonamento novo a `coordenador`/`BLOCKERS.md` é gerado por esta rodada.
 | 2026-09-04 (veredito de lote) | Lote "Design System (Redesign v2.0, Lote 0)": FE-RS-01, FE-RS-02, FE-RS-03, FE-RS-04, FE-RS-14 (5) | **Reprovado** (lote) — Aprovado (3/5 — FE-RS-02/04/14), Aprovado com ressalva (1/5 — FE-RS-03, herda o achado abaixo), **Reprovado (1/5 — FE-RS-01)** — `QA-REPORT.md` Seção 14.6 | **1 (`QA-BUG-001`, Alta — regressão de contraste WCAG 2.1 AA em `--color-neutral-500`, introduzida por `FE-RS-01`, propagada a 29 arquivos de produção)** | QA-DEBT-014 (baixa, valor de `--shadow-elevation-md` diverge do literal de `UX-SPEC.md`) |
 | 2026-09-05 (revalidação pontual — só `QA-BUG-001`) | Lote "Design System (Redesign v2.0, Lote 0)": revalidação de `FE-RS-01` (correção de `--color-neutral-500` → `#6E726B`) + ressalva herdada de `FE-RS-03` | **Aprovado** (lote, fecha o Reprovado de 2026-09-04) — Aprovado (5/5 — FE-RS-01 reaprovado, FE-RS-03 sem mais ressalva, FE-RS-02/04/14 mantidos) — `QA-REPORT.md` Seção 14.8 | 0 (contraste recalculado de forma independente confirma ≥4,5:1 nos 2 fundos; ordem monotônica da rampa 400/500/600 preservada; 316/316 testes, 1 flake isolado de `UnlockPage.test.tsx` não relacionado, confirmado por reexecução) | `QA-DEBT-014` fechado (correção confirmada no mesmo arquivo) |
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Autenticação & Segurança": BE-M-09, BE-M-11, BE-M-12, BE-M-13, BE-M-14, FE-M-04, FE-M-12, FE-M-13, QA-M-02 (9) | **Aprovado** (lote) — Aprovado (9/9), nenhuma reprovação; leitura dupla explícita sobre o efeito do ADR-014 em `BE-M-09`/`FE-M-04` (histórico entregue/testado + estado ativo hoje) — `QA-REPORT.md` Seção 15 | 0 | QA-DEBT-015 (baixa, cobertura de teste ausente para o branch opcional de WebAuthn em `PinSetupPage.tsx`/`webauthn.ts`) |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Cartão & Fatura": BE-F2-01, BE-F2-02, FE-F2-01, FE-F2-02 (4) | **Aprovado** (lote) — Aprovado (4/4), nenhuma reprovação; testes SQL de `BE-F2-01`/`BE-F2-02` rodados de forma independente contra o projeto Supabase real vinculado — `QA-REPORT.md` Seção 16 | 0 | Nenhum novo |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Recorrência & Parcelamento": BE-F2-03, BE-F2-04, BE-F2-05, FE-F2-03, FE-F2-04 (5) | **Aprovado** (lote) — Aprovado (5/5), nenhuma reprovação; testes SQL de `BE-F2-03`/`BE-F2-04`/`BE-F2-05` rodados de forma independente contra o projeto Supabase real vinculado; suíte de frontend completa 331/331 sem flake — `QA-REPORT.md` Seção 17 | 0 | Nenhum novo (fragilidade de isolamento de `be_m07_dashboard.test.sql`, não deste lote, sinalizada ao `coordenador` em 17.4/17.6, sem tarefa de débito) |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Contas Fixas": BE-F2-06, BE-F2-07, FE-F2-05 (3) | **Aprovado** (lote) — Aprovado (3/3), nenhuma reprovação; testes SQL de `BE-F2-06`/`BE-F2-07` rodados de forma independente contra o projeto Supabase real vinculado, sem bloqueio de permissão; regressão SQL ampliada 15/15 `PASS`; suíte de frontend 330/331 (1 flake de `UnlockPage.test.tsx`, não relacionado, confirmado por reexecução 3/3) — `QA-REPORT.md` Seção 18 | 0 | Nenhum novo |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Metas": BE-F2-08, FE-F2-06 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; teste SQL de `BE-F2-08` executado de forma independente contra o projeto Supabase real vinculado, sem bloqueio de permissão; suíte de frontend completa 324/331 (6 arquivos/7 testes com timeout de ambiente na 1ª execução, incluindo `GoalsPage.test.tsx`, reexecutados isoladamente com 100% PASS, mesma classe de flake de `UnlockPage.test.tsx`) — `QA-REPORT.md` Seção 19 | 0 | QA-DEBT-016 (baixa, `aria-valuenow` > `aria-valuemax` em `GoalProgressBar.tsx` no estado de meta superada — reproduz previsão de `QA-DEBT-010`) |

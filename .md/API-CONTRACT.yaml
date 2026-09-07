@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.19.0"
+  version: "0.21.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -444,6 +444,34 @@ components:
           enum: [manual, audio, ocr, import, openfinance]
           default: manual
           description: "MVP só usa 'manual'; demais valores reservados para Fase 3."
+        import_staging_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F3-00.** Preenchido só nos lançamentos gerados por
+            `POST /rpc/confirm_candidate_transaction` (RF-F3-01/02/03/04) —
+            nunca aceito do client em POST/PATCH direto de /transactions.
+            Aponta para o `CandidateTransaction` (`candidate_transaction.id`)
+            que originou este lançamento. Vira NULL se o candidato de origem
+            for excluído (ON DELETE SET NULL, mesmo princípio de RN-07 para
+            recurring_rule_id/installment_plan_id — nunca apaga o lançamento
+            já confirmado).
+        confirmed_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+          description: >-
+            **Novo — BE-F3-00 (RNF-08).** Timestamp do evento de confirmação
+            humana explícita, gravado exclusivamente por
+            `confirm_candidate_transaction` — nunca aceito do client. NULL
+            para lançamento manual (`source=manual`) e para lançamento
+            automatizado gerado por recorrência/parcelamento/conta fixa
+            (geração automática já é o próprio evento, não uma "confirmação
+            humana" no sentido de RNF-01/08). Não-nulo sempre que
+            `import_staging_id` também está preenchido.
         created_via_shortcut:
           type: boolean
           default: false
@@ -466,6 +494,81 @@ components:
         do campo `account_id` acima para a condição exata (obrigatório só
         quando kind=transfer; nos demais casos, obrigatório enviar
         payment_method_id em vez disso, resolvido server-side).
+
+    ImportBatch:
+      type: object
+      description: >-
+        RF-F3-03/RF-F3-04 (BE-F3-00, SDD.md Seção 5.2). Lote de importação
+        OFX/CSV (RF-F3-03) ou de sincronização Open Finance (RF-F3-04),
+        agrupa N `CandidateTransaction`. `source` restrito a
+        `import`/`openfinance` — voz/foto nunca formam lote (candidato avulso,
+        `import_batch_id` null, ver `CandidateTransaction`).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        source: { type: string, enum: [import, openfinance] }
+        status:
+          type: string
+          enum: [processing, ready_for_review, completed, failed]
+          default: processing
+          description: >-
+            processing (arquivo/sync ainda sendo parseado) -> ready_for_review
+            (candidatos gerados, aguardando revisão do usuário, RF-F3-03 AC1)
+            -> completed (todo candidato do lote saiu de pending) | failed
+            (erro de parsing/sync).
+        raw_metadata:
+          type: object
+          default: {}
+          description: "Metadado leve não normalizado (nome do arquivo, referência de conexão Open Finance) — schema livre, decisão física do Backend."
+        created_at: { type: string, format: date-time, readOnly: true }
+        updated_at: { type: string, format: date-time, readOnly: true }
+      required: [source]
+
+    CandidateTransaction:
+      type: object
+      description: >-
+        RF-F3-01/02/03/04, RNF-01, RNF-08 (BE-F3-00, SDD.md Seção 5.2).
+        Candidato de lançamento extraído automaticamente (voz, foto/OCR,
+        importação OFX/CSV, Open Finance) — nunca é uma Transaction até passar
+        por confirmação humana explícita (DIR-20). `status`/`confirmed_at`/
+        `discarded_at`/`resulting_transaction_id` só são alterados pelas RPCs
+        `confirm_candidate_transaction`/`discard_candidate_transaction` —
+        PATCH direto em `/candidate_transaction` é sempre negado (sem policy
+        de UPDATE para `authenticated`, RLS nega por padrão).
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        user_id: { type: string, format: uuid, readOnly: true }
+        import_batch_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "NULL para candidato de voz/foto (avulso, sem lote); preenchido para importação/Open Finance."
+        source: { type: string, enum: [audio, ocr, import, openfinance], description: "nunca 'manual' (CHECK candidate_transaction_source_not_manual)" }
+        status:
+          type: string
+          enum: [pending, confirmed, discarded]
+          default: pending
+          readOnly: true
+          description: "Só transiciona via as 2 RPCs abaixo — nunca aceito em POST/PATCH direto (POST só aceita o default 'pending')."
+        raw_payload:
+          type: object
+          default: {}
+          description: "Dado bruto da extração (transcrição/campos de OCR/linha OFX/registro Open Finance) — schema livre por fonte."
+        duplicate_of_transaction_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Possível duplicata de um lançamento já existente (RF-F3-03 AC2) — só sinaliza, nunca bloqueia a confirmação."
+        resulting_transaction_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+          description: "Preenchido só por confirm_candidate_transaction — a Transaction real gerada a partir deste candidato (0:1)."
+        confirmed_at: { type: string, format: date-time, nullable: true, readOnly: true }
+        discarded_at: { type: string, format: date-time, nullable: true, readOnly: true }
+        created_at: { type: string, format: date-time, readOnly: true }
+      required: [source]
 
 paths:
   /accounts:
@@ -1528,6 +1631,261 @@ paths:
         "503": { description: "Auth indisponível ao validar a sessão." }
         "504": { description: "Timeout em chamada a Auth/Postgres." }
 
+  /import_batch:
+    get:
+      summary: "Listar lotes de importação/Open Finance do usuário (RF-F3-03/04)"
+      tags: [Captura Automatizada]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, example: "eq.ready_for_review" }
+        - in: query
+          name: order
+          schema: { type: string, example: "created_at.desc" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/ImportBatch" } } } }
+    post:
+      summary: "Criar lote de importação (RF-F3-03) ou de sincronização Open Finance (RF-F3-04)"
+      tags: [Captura Automatizada]
+      description: >-
+        **Novo — BE-F3-00.** Tipicamente criado pela própria Edge Function de
+        parsing (BE-F3-03/04, ainda não implementada nesta versão do
+        contrato), agindo em nome do usuário autenticado (JWT repassado) —
+        nunca com `service_role`. `source` restrito a `import`/`openfinance`
+        (CHECK `import_batch_source_check`).
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/ImportBatch" } } }
+      responses:
+        "201": { description: Criado }
+
+  /import_batch?id=eq.{id}:
+    patch:
+      summary: "Atualizar status/metadado do lote (ex. processing -> ready_for_review -> completed)"
+      tags: [Captura Automatizada]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+    delete:
+      summary: "Excluir lote — candidate_transaction.import_batch_id vinculado vira NULL (ON DELETE SET NULL), nenhum candidato é apagado em cascata pelo lote"
+      tags: [Captura Automatizada]
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: OK } }
+
+  /candidate_transaction:
+    get:
+      summary: "Listar candidatos de lançamento do usuário — revisão antes de confirmar (RF-F3-01/02/03/04 AC1)"
+      tags: [Captura Automatizada]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, example: "eq.pending" }
+        - in: query
+          name: import_batch_id
+          schema: { type: string, example: "eq.<uuid>" }
+        - in: query
+          name: order
+          schema: { type: string, example: "created_at.desc" }
+      responses:
+        "200":
+          content: { application/json: { schema: { type: array, items: { $ref: "#/components/schemas/CandidateTransaction" } } } }
+    post:
+      summary: "Criar candidato pendente (voz/foto avulso, ou 1 linha por transação parseada de um lote de importação/Open Finance)"
+      tags: [Captura Automatizada]
+      description: >-
+        **Novo — BE-F3-00 (DIR-20).** Só cria linha com `status=pending` e
+        `confirmed_at`/`discarded_at`/`resulting_transaction_id` nulos —
+        qualquer tentativa de enviar esses 3 campos já preenchidos (ou
+        `status` diferente de `pending`) é rejeitada pela policy de INSERT
+        (403), nunca chega a "fingir" uma confirmação. `import_batch_id`
+        (quando enviado) e `duplicate_of_transaction_id` (quando enviado)
+        precisam pertencer ao usuário autenticado (G-19).
+      requestBody:
+        content: { application/json: { schema: { $ref: "#/components/schemas/CandidateTransaction" } } }
+      responses:
+        "201": { description: Criado }
+        "403":
+          description: "status/confirmed_at/discarded_at/resulting_transaction_id preenchidos na criação, ou import_batch_id/duplicate_of_transaction_id de outro usuário — rejeitado pela policy de INSERT"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /candidate_transaction?id=eq.{id}:
+    delete:
+      summary: "Descartar/cancelar um candidato AINDA pendente por exclusão física (ex. RF-F3-01 AC4, cancelar captura de voz/foto antes de revisar)"
+      tags: [Captura Automatizada]
+      description: >-
+        Só afeta linha `status=pending` (policy de DELETE) — candidato já
+        confirmado/descartado nunca é excluído fisicamente (preserva a
+        auditoria de RNF-08). Para descartar mantendo o registro (ex. lista de
+        importação, usuário rejeita 1 item específico), usar
+        `POST /rpc/discard_candidate_transaction` em vez de DELETE.
+      parameters: [{ in: path, name: id, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: "Excluído (estava pending)" }
+        "404": { description: "Não encontrado, de outro usuário, ou não está mais pending (0 linhas afetadas pela policy de DELETE)" }
+
+  /rpc/confirm_candidate_transaction:
+    post:
+      summary: "Confirmação humana explícita — ÚNICO caminho para promover um candidato a Transaction real (RF-F3-01/02/03/04 AC, RNF-01, RNF-08, DIR-20)"
+      tags: [Captura Automatizada]
+      description: >-
+        **Novo — BE-F3-00.** Recebe os valores FINAIS do formulário de
+        confirmação (já refletindo qualquer edição do usuário sobre os campos
+        pré-preenchidos — RF-F3-01 AC3), nunca deriva o lançamento de
+        `raw_payload` internamente. Cria a `Transaction`
+        (`import_staging_id`=candidato, `confirmed_at`=now(), `source`=o
+        mesmo do candidato) e marca o candidato como `confirmed` no mesmo
+        `now()`, atomicamente. Todo FK enviado (`p_account_id`/
+        `p_payment_method_id`/`p_category_id`/`p_destination_account_id`)
+        precisa pertencer ao usuário autenticado — checagem própria dentro da
+        função (G-19), já que é `SECURITY DEFINER` e não passa pela RLS normal
+        de `/transactions`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [p_candidate_id, p_account_id, p_kind, p_amount_cents, p_transaction_date]
+              properties:
+                p_candidate_id: { type: string, format: uuid }
+                p_account_id: { type: string, format: uuid }
+                p_payment_method_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando p_kind != transfer (CHECK de transactions)" }
+                p_category_id: { type: string, format: uuid, nullable: true, description: "obrigatório quando p_kind != transfer (CHECK de transactions)" }
+                p_kind: { type: string, enum: [income, expense, transfer] }
+                p_amount_cents: { type: integer, format: int64, minimum: 1 }
+                p_transaction_date: { type: string, format: date }
+                p_description: { type: string, nullable: true }
+                p_destination_account_id: { type: string, format: uuid, nullable: true, description: "obrigatório e diferente de p_account_id quando p_kind=transfer" }
+      responses:
+        "200":
+          description: "id (uuid) da Transaction criada"
+          content: { application/json: { schema: { type: string, format: uuid } } }
+        "400": { description: "candidato não encontrado (23503), ou CHECK de transactions violado (23514, ex. payment_method_id/category_id ausente para kind != transfer)" }
+        "403":
+          description: "candidato pertence a outro usuário, ou algum FK (p_account_id/p_payment_method_id/p_category_id/p_destination_account_id) não pertence ao usuário autenticado (42501)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409":
+          description: "candidato não está mais pending — já confirmado ou descartado anteriormente (23001)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /rpc/discard_candidate_transaction:
+    post:
+      summary: "Descartar explicitamente um candidato pendente, mantendo o registro (RF-F3-03 status 'descartado')"
+      tags: [Captura Automatizada]
+      description: >-
+        **Novo — BE-F3-00.** Mesmas checagens de ownership/estado de
+        `confirm_candidate_transaction` (candidato de outro usuário -> 403;
+        já não está pending -> 409). Diferente de
+        `DELETE /candidate_transaction?id=eq.{id}`: mantém a linha (status
+        `discarded` + `discarded_at`) em vez de excluí-la fisicamente.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [p_candidate_id]
+              properties:
+                p_candidate_id: { type: string, format: uuid }
+      responses:
+        "200": { description: OK (void) }
+        "400": { description: "candidato não encontrado (23503)" }
+        "403":
+          description: "candidato pertence a outro usuário (42501)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+        "409":
+          description: "candidato não está mais pending (23001)"
+          content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } }
+
+  /receipt-ocr:
+    post:
+      summary: "Extração de campos de recibo/nota fiscal por OCR (RF-F3-02 AC1-3, ADR-007, SPK-002, DIR-22 — BE-F3-01)"
+      tags: [Captura Automatizada]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Nova — BE-F3-01**, `supabase/functions/receipt-ocr/`. Extrai
+        valor/data/estabelecimento/sugestão de categoria de uma foto de
+        recibo, atrás da interface própria do produto `OCRProvider`
+        (`supabase/functions/_shared/ocrProvider.ts`, DIR-22 — nunca amarrado
+        ao formato de resposta nativo de um vendor específico). Vendor
+        primário decidido em SPK-002 (TASK.md Seção 2): Google Cloud Vision
+        (`DOCUMENT_TEXT_DETECTION`, texto bruto — o parsing de campo é
+        heurística própria deste produto, `supabase/functions/receipt-ocr/lib.ts`,
+        para formato de cupom fiscal brasileiro, não parsing nativo do vendor).
+
+        Exige `Authorization: Bearer <JWT de sessão>` (usuário já logado —
+        `verify_jwt` não desabilitado, mesmo padrão de `/webauthn-register`).
+        **Não persiste nada** — puramente extração; a confirmação/persistência
+        do lançamento é responsabilidade do fluxo de `candidate_transaction`
+        (`BE-F3-00`) depois que o usuário confirmar os campos sugeridos no
+        formulário (RF-F3-02 AC2). Corpo em JSON (`image_base64`/`mime_type`),
+        não `multipart/form-data` — mesmo padrão de transporte de dado binário
+        já usado por `/webauthn-register` (`attestationResponse`), mantém a
+        chave do vendor (`GOOGLE_VISION_API_KEY`) só neste servidor
+        (DIR-30/critério de aceite explícito desta tarefa: "chave de API nunca
+        exposta ao cliente").
+
+        **Campo obrigatório não extraído retorna em branco, nunca bloqueia os
+        demais nem lança erro** (RF-F3-02 AC3, provado por
+        `supabase/functions/receipt-ocr/lib.test.ts`, 20/20 casos PASS) — só
+        uma falha total do vendor (rede/cota/chave inválida/imagem
+        irreconhecível) produz um erro HTTP, mapeado para `502
+        ocr_provider_failed`, sem nenhum dado parcial persistido (esta function
+        nunca escreve no banco em nenhum caminho).
+
+        **Ressalva de transparência (mesmo padrão de SPK-002/SEC-DEBT-009/
+        Bloqueio 007/012)**: a integração real com a API do Google Cloud
+        Vision foi implementada (chamada HTTP real, sem mock de produção), mas
+        esta sessão não teve acesso a uma credencial real (`GOOGLE_VISION_API_KEY`)
+        nem a uma amostra de recibo brasileiro real para smoke test empírico —
+        cobertura de teste ficou nas camadas testáveis sem rede (parsing puro
+        + `fetch` injetado simulando sucesso/falha do vendor). Pendência de
+        configuração operacional: quem tiver a credencial (dono: Backend, sem
+        prazo fixo) precisa rodar `supabase secrets set GOOGLE_VISION_API_KEY=<chave>`
+        no projeto linkado antes desta function funcionar em produção — sem a
+        secret configurada, responde `503 ocr_not_configured` de forma
+        controlada, nunca finge sucesso. Mesma recomendação de SPK-002: testar
+        manualmente com 10-20 recibos reais (papel térmico incluso) antes de
+        considerar a acurácia de produção validada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image_base64, mime_type]
+              properties:
+                image_base64:
+                  type: string
+                  description: "Conteúdo da imagem, base64 padrão (não url-safe)."
+                mime_type:
+                  type: string
+                  enum: [image/jpeg, image/png, image/webp]
+      responses:
+        "200":
+          description: "Extração concluída (mesmo quando um ou mais campos vêm em branco — AC3)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    description: "ReceiptExtractionResult (supabase/functions/_shared/ocrProvider.ts)."
+                    properties:
+                      amount_cents: { type: object, nullable: true, properties: { value: { type: integer }, confidence: { type: number } } }
+                      transaction_date: { type: object, nullable: true, properties: { value: { type: string, format: date }, confidence: { type: number } } }
+                      merchant_name: { type: object, nullable: true, properties: { value: { type: string }, confidence: { type: number } } }
+                      category_suggestion_label: { type: object, nullable: true, properties: { value: { type: string }, confidence: { type: number } } }
+                      overall_confidence: { type: number, nullable: true }
+                      raw_text: { type: string, nullable: true }
+        "400":
+          description: "image_base64 ausente/inválido, mime_type fora da lista permitida, ou imagem maior que o limite (8MB decodificado)."
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "502": { description: "ocr_provider_failed — falha total do vendor (rede/cota/chave inválida/imagem irreconhecível). Nada é persistido." }
+        "503": { description: "ocr_not_configured (GOOGLE_VISION_API_KEY não configurada — ver ressalva acima) ou auth_unavailable (Auth indisponível ao validar a sessão)." }
+
 x-changelog:
   - version: "0.1.0"
     date: "2026-09-02"
@@ -1747,3 +2105,49 @@ x-changelog:
       breaking change nos endpoints já publicados — client que já envia
       account_id explicitamente (comportamento anterior) continua
       funcionando sem nenhuma mudança.
+  - version: "0.20.0"
+    date: "2026-09-05"
+    change: >-
+      Adiciona /import_batch, /candidate_transaction,
+      /rpc/confirm_candidate_transaction e /rpc/discard_candidate_transaction
+      (BE-F3-00, SDD.md Seção 5.2, RNF-01/RNF-08, DIR-20) — modelo de dados de
+      captura automatizada compartilhado por voz/foto/importação/Open Finance
+      (RF-F3-01/02/03/04), base para BE-F3-01/02/03/04. Nenhum trigger
+      promove candidate_transaction a Transaction silenciosamente:
+      confirm_candidate_transaction é o ÚNICO caminho (SECURITY DEFINER,
+      valida ownership de candidato + de todo FK final antes de criar a
+      Transaction e marcar o candidato confirmed, atomicamente).
+      candidate_transaction não tem policy de UPDATE para authenticated —
+      status só transiciona via confirm_candidate_transaction/
+      discard_candidate_transaction. Adiciona Transaction.import_staging_id
+      (FK, antes sem constraint) e Transaction.confirmed_at (coluna nova —
+      SDD.md Seção 5.1 já a descrevia como existente, auditoria anterior não a
+      encontrou no schema real, completada agora). Teste automatizado
+      (supabase/tests/be_f3_00_candidate_transaction_import_batch.test.sql)
+      cobre isolamento cross-user, 2 vetores de bypass (INSERT já "confirmado"
+      e UPDATE direto de status, ambos negados pela RLS), confirmação em
+      candidato/FK de outro usuário (403), fluxo legítimo completo, dupla
+      confirmação (409), discard + confirmar depois de descartado (409) e
+      DELETE restrito a candidato pending. Fora de escopo desta versão
+      (propositalmente — ver QA-F3-01): endurecer a policy geral de INSERT de
+      /transactions contra `source <> manual` enviado direto pelo client sem
+      passar por candidate_transaction. Sem breaking change nos endpoints já
+      publicados.
+  - version: "0.21.0"
+    date: "2026-09-07"
+    change: >-
+      Adiciona /receipt-ocr (BE-F3-01, RF-F3-02 AC1-3, ADR-007, SPK-002,
+      DIR-22) — extração de recibo por OCR atrás da interface própria
+      `OCRProvider` (`supabase/functions/_shared/ocrProvider.ts`), vendor
+      primário Google Cloud Vision (`DOCUMENT_TEXT_DETECTION`) decidido em
+      SPK-002. Não persiste nada — puramente extração, confirmação/persistência
+      fica a cargo do fluxo `candidate_transaction` já publicado em 0.20.0.
+      Campo obrigatório não extraído retorna em branco sem bloquear os demais
+      nem lançar erro (AC3); só falha total do vendor produz erro HTTP (502
+      ocr_provider_failed). Corpo em JSON (image_base64/mime_type), chave do
+      vendor (GOOGLE_VISION_API_KEY) só no servidor (DIR-30). Ressalva de
+      transparência não-bloqueante (mesmo padrão de SPK-002/SEC-DEBT-009):
+      integração real implementada, mas sem credencial real nem amostra de
+      recibo real disponível nesta sessão para smoke test empírico — ver nota
+      de status de BE-F3-01 em TASK.md. Sem breaking change nos endpoints já
+      publicados.

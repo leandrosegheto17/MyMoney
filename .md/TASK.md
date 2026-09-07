@@ -657,7 +657,7 @@ repetido como diretriz de Seção 1).
 | Tarefa relacionada | Pergunta que o spike responde | Prazo do spike | Time responsável | Status |
 |---|---|---|---|---|
 | **SPK-001** — bloqueava `BE-M-00` em diante (todo o modelo de dados MVP) | Inspeção do schema real do projeto Supabase reaproveitado (`https://supabase.com/dashboard/project/xrcxbzrglndetrrhavhc`): quais tabelas/roles/triggers/extensões existem em `public`? Existe trigger global em `auth.users`? Qual o plano/tier contratado? | 2 dias úteis | Backend | **Resolvido — 2026-09-02.** Achado técnico completo em `BLOCKERS.md`, Bloqueio 003: a premissa original de `ADR-001` ("dado de outro produto, a isolar") não se sustentava — o schema `public` é uma implementação anterior deste mesmo produto (7 tabelas, 15 funções, RLS, MFA gate, WebAuthn, 1 usuário real e 12 categorias já cadastrados), confirmada pelo stakeholder. Resolução estratégica do CTO + resolução técnica do Software Architect consolidadas em `ADR-012` (supersede `ADR-001`) e `ADR-013` — ver `CTO-REVIEW.md`, "Gate 2 (Reaberto por Bloqueio 003)". **6 itens do spike foram respondidos com confiança; 1 item (plano/tier contratado) segue parcialmente respondido**, não bloqueia mais nenhuma tarefa de schema (RPO ≤ 24h já é verdadeiro independentemente do tier via `ADR-009`), mas segue relevante para a validade plena de `ADR-009` — ver Seção 5, risco 1 (renumerado) |
-| **SPK-002** — bloqueia BE-F3-01 (OCR) | Entre Google Cloud Vision e AWS Textract, qual entrega melhor acurácia/custo em uma amostra real de recibos brasileiros (papel térmico, iluminação variável) dentro do free tier assumido (60–120 lançamentos/mês, nem todos por foto)? Qual conjunto mínimo de campos do contrato `OCRProvider` (DIR-22) cobre a resposta de ambos os vendors sem vazar o formato específico de nenhum? (Ressalva não-bloqueante do CTO no Gate 2 sobre `ADR-007`.) | 3 dias úteis | Backend | Não iniciado |
+| **SPK-002** — bloqueia BE-F3-01 (OCR) | Entre Google Cloud Vision e AWS Textract, qual entrega melhor acurácia/custo em uma amostra real de recibos brasileiros (papel térmico, iluminação variável) dentro do free tier assumido (60–120 lançamentos/mês, nem todos por foto)? Qual conjunto mínimo de campos do contrato `OCRProvider` (DIR-22) cobre a resposta de ambos os vendors sem vazar o formato específico de nenhum? (Ressalva não-bloqueante do CTO no Gate 2 sobre `ADR-007`.) | 3 dias úteis | Backend | **Resolvido — 2026-09-07.** **Ressalva de transparência (mesmo padrão de `SEC-DEBT-009`/Bloqueio 007/012): esta rodada não teve acesso a credencial de nenhum dos dois vendors nem a uma amostra real de recibo brasileiro — a decisão abaixo se apoia em documentação pública oficial + racional de engenharia, não em um teste empírico de acurácia rodado nesta sessão. Recomenda-se que quem tiver a credencial (dono: Backend, sem prazo fixo) rode um teste manual com 10-20 recibos reais (papel térmico incluso) contra o Google Cloud Vision antes de considerar `BE-F3-01` encerrada em produção, e registre o achado como nota de implementação daquela tarefa.** Pesquisa (fontes oficiais): (1) **Free tier** — Google Cloud Vision oferece as primeiras 1.000 unidades/mês grátis para `TEXT_DETECTION`/`DOCUMENT_TEXT_DETECTION`, **recorrente todo mês, sem prazo de expiração** ([cloud.google.com/vision/pricing](https://cloud.google.com/vision/pricing)); AWS Textract só oferece free tier **durante os primeiros 3 meses da conta** (1.000 páginas/mês para `DetectDocumentText`, 100 páginas/mês para `AnalyzeExpense`), depois disso todo uso é cobrado ($1,50/1.000 páginas em `DetectDocumentText`, $10/1.000 páginas em `AnalyzeExpense` — [aws.amazon.com/textract/pricing](https://aws.amazon.com/textract/pricing/)). Para o volume assumido (60-120 lançamentos/mês, nem todos por foto), ambos cobririam confortavelmente o volume mensal, mas só o tier do Google é permanente — o do AWS deixa de ser "free tier" já no 4º mês de uso do produto, o que diverge da premissa textual de `ADR-007` ("free tier... cobre confortavelmente o volume"). (2) **Idioma/cobertura pt-BR** — Textract documenta suporte a português para texto/formulários/tabelas em geral (inglês, espanhol, alemão, italiano, francês, português — [docs.aws.amazon.com/textract/.../textract-best-practices.html](https://docs.aws.amazon.com/textract/latest/dg/textract-best-practices.html)), mas há sinal de fonte secundária (não confirmado na documentação oficial da API `AnalyzeExpense` especificamente) de que o parsing especializado de recibo/fatura (`AnalyzeExpense`) seria limitado a documentos em inglês — **não confirmado com confiança suficiente para decidir sozinho; registrado aqui como risco a verificar antes de considerar `AnalyzeExpense` como opção primária**, não como fato. Google Cloud Vision tem suporte amplo e maduro a texto latino/português via `DOCUMENT_TEXT_DETECTION` (extração bruta, sem parsing de campo nativo). (3) **Acurácia/benchmark** — nenhum benchmark público específico de recibo térmico brasileiro foi encontrado; um benchmark genérico de extração de campos de fatura (fonte secundária, metodologia não verificada, documento não é recibo brasileiro) reporta Google em ~82% e AWS em ~78% de acurácia de campo — tratado como sinal fraco, não decisivo, por não ser uma fonte com metodologia auditável nem específica ao caso de uso deste produto (papel térmico/cupom fiscal). **Decisão de vendor primário: Google Cloud Vision (`DOCUMENT_TEXT_DETECTION`)**, por 3 motivos, em ordem de peso: (a) free tier permanente e recorrente é a única leitura compatível com a premissa literal de `ADR-007`, enquanto o da AWS expira em 3 meses; (b) `AnalyzeExpense` da AWS tem uma dúvida de cobertura pt-BR não resolvida por documentação oficial, enquanto o Google não tem essa mesma dúvida para OCR genérico; (c) usar OCR genérico (`DOCUMENT_TEXT_DETECTION`, texto bruto) em vez de parsing estruturado por vendor (`AnalyzeExpense`) é o que já intencionava DIR-22 (nunca amarrar o contrato ao formato nativo do vendor) — o parsing de campo (valor/data/estabelecimento) fica no adapter do próprio produto, robusto a heurísticas ajustáveis para formato de cupom fiscal brasileiro (R$, dd/mm/aaaa, CNPJ), em vez de depender de um parser de vendor não desenhado para esse formato. **Condição de reversão para AWS Textract** (o contrato `OCRProvider`, DIR-22, existe exatamente para isso — reversível sem tocar em UI): se o volume real mensal ultrapassar de forma sustentada as 1.000 unidades/mês do Google (não esperado no volume assumido, mas possível se o padrão de uso mudar), ou se a acurácia real observada em produção (uma vez testada com recibo real, ver ressalva de transparência acima) for insatisfatória para recibo térmico brasileiro. Contrato `OCRProvider` mínimo desenhado em `supabase/functions/_shared/ocrProvider.ts` (mesmo padrão de `_shared/cors.ts`) — interface `extractReceipt(imageBytes) -> { amount_cents?, transaction_date?, merchant_name?, category_suggestion_label?, overall_confidence?, raw_text? }`, cada campo com `{ value, confidence }` quando presente, `undefined` quando o OCR não extraiu aquele campo (cobre RF-F3-02 AC1/AC3 sem vazar `fullTextAnnotation` do Google nem `SummaryFields` da AWS ao resto do código) — pronto para `BE-F3-01` implementar o adapter Google como primeira integração real |
 | **SPK-003** — bloqueia BE-F3-05/FE-F3-06 em produção (DIR-26) | O Pluggy aceita pessoa física/projeto pessoal sem CNPJ no tier "free/dev" assumido em `ADR-008`? Quais são os termos de responsabilidade de dado (operador vs. controlador) do Pluggy, e são compatíveis com LGPD para o caso de uso deste produto? (Duas condições de entrada da Fase 3 explicitamente nomeadas pelo CTO no Gate 2, subseção `ADR-008` — bloqueantes para o **início** da Fase 3 em relação a RF-F3-04 especificamente, não para MVP/Fase 2 nem para as demais tarefas de Fase 3.) | 3 dias úteis (inclui tempo de resposta do provedor a solicitação de sandbox) | Backend, com validação final do próprio stakeholder sobre aceitar/rejeitar os termos operador/controlador antes de produção | Não iniciado |
 
 Nenhuma outra tarefa deste documento atende aos 4 critérios de `technical-spike-identification` (tecnologia nova sem experiência prévia do time, integração não testada, múltiplas abordagens sem dado para decidir, escopo não decomponível com confiança) — as demais incertezas encontradas durante a decomposição foram tratadas como lacuna de detalhe (decidida e documentada na Seção 6) ou como lacuna estrutural do `SDD.md` (escalada ao Software Architect, também na Seção 6), nunca como spike "porque parecia difícil". **Nota**: a auditoria por objeto reaproveitado exigida por `ADR-012` (`DIR-02`) não é tratada como um novo spike — é um requisito de processo distribuído entre `BE-M-00` (auditoria geral) e as tarefas específicas que dependem de cada objeto (`BE-M-06`/`BE-M-07`/`BE-M-09`), com gatilho de escalonamento a `BLOCKERS.md` já definido caso algum achado não se resolva dentro do próprio escopo de auditoria — mesmo padrão de disciplina já usado por `SPK-001`.
@@ -843,8 +843,8 @@ auditadas antes. Achado de sobreposição segue o mesmo fluxo de decisão do Blo
 
 | ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
 |---|---|---|---|---|---|---|---|
-| BE-F3-00 | Modelo de dados de captura automatizada: `candidate_transaction`, `import_batch` — base compartilhada por voz, foto, importação e Open Finance | Backend | SDD Seção 5, RNF-01/RNF-08, DIR-20 | Nenhuma linha em `candidate_transaction` é promovida a `transaction` sem evento de confirmação explícito + `confirmed_at` gravado | 2 dias | Não iniciada | Captura Automatizada — Voz & Foto |
-| BE-F3-01 | Edge Function de OCR atrás da interface `OCRProvider` (DIR-22), integrando o vendor escolhido em SPK-002 | Backend | RF-F3-02 AC1-3, ADR-007, SPK-002 | Campo obrigatório não extraído retorna em branco sem bloquear os demais (AC3); chave de API nunca exposta ao cliente | 2 dias | Não iniciada | Captura Automatizada — Voz & Foto |
+| BE-F3-00 | Modelo de dados de captura automatizada: `candidate_transaction`, `import_batch` — base compartilhada por voz, foto, importação e Open Finance | Backend | SDD Seção 5, RNF-01/RNF-08, DIR-20 | Nenhuma linha em `candidate_transaction` é promovida a `transaction` sem evento de confirmação explícito + `confirmed_at` gravado | 2 dias | **Concluída — 2026-09-07.** Migration `20260904170000_be_f3_00_candidate_transaction_import_batch.sql` aplicada (`supabase db push --linked`, confirmado par remoto via `supabase migration list --linked`): `import_batch`/`candidate_transaction` (100% aditiva, DIR-03) + RPCs `SECURITY DEFINER` `confirm_candidate_transaction`/`discard_candidate_transaction` (único caminho de promoção, DIR-20 — sem policy de `UPDATE` para `authenticated` na tabela, RLS nega qualquer PATCH direto). Nota de interpretação (desvio pequeno, documentada na própria migration): SDD.md 5.1 já descrevia `transactions.confirmed_at` como coluna existente, mas o schema real não a tinha — completada agora, aditivamente (SDD.md 5.4 autoriza), gravada no mesmo `now()` de `candidate_transaction.confirmed_at` pela RPC de confirmação (RNF-08). Teste `be_f3_00_candidate_transaction_import_batch.test.sql` — 9/9 casos PASS via RLS real (`SET LOCAL ROLE authenticated`) contra o projeto linkado, `BEGIN`/`ROLLBACK`: isolamento cross-user, bypass via INSERT "fingindo" confirmação (negado pela policy), bypass via UPDATE direto de status (negado, sem policy), confirmação de candidato/FK de outro usuário (negado, 42501), fluxo legítimo completo (saldo refletido via `apply_transaction_effect`), dupla confirmação (negado, 23001), discard + confirmar depois de descartado (negado), DELETE só permitido enquanto `pending`. Regressão completa da suíte SQL: 30/31 PASS — a única falha (`be_m07_dashboard.test.sql` CASO 2) é pré-existente e não relacionada a este lote (`BLOCKERS.md` Bloqueio 019, dado real de produção). Contrato já publicado em `API-CONTRACT.yaml` (`/import_batch`, `/candidate_transaction`, `/rpc/confirm_candidate_transaction`, `/rpc/discard_candidate_transaction`, `Transaction.import_staging_id`/`confirmed_at`) | Captura Automatizada — Voz & Foto |
+| BE-F3-01 | Edge Function de OCR atrás da interface `OCRProvider` (DIR-22), integrando o vendor escolhido em SPK-002 | Backend | RF-F3-02 AC1-3, ADR-007, SPK-002 | Campo obrigatório não extraído retorna em branco sem bloquear os demais (AC3); chave de API nunca exposta ao cliente | 2 dias | **Concluída — 2026-09-07.** `supabase/functions/receipt-ocr/`: `lib.ts` (validação de upload — MIME `image/jpeg`\|`png`\|`webp`, máx. 8MB decodificado — e heurísticas de parsing de cupom fiscal brasileiro: valor via padrão `R$ 0.000,00` priorizando linha com "TOTAL", data `dd/mm/aaaa`\|`aa` validada como data de calendário plausível, estabelecimento pelas primeiras linhas pulando CNPJ, sugestão de categoria por palavra-chave), `googleVisionAdapter.ts` (implementa `OCRProvider` chamando `DOCUMENT_TEXT_DETECTION` via REST, `fetch` injetável para teste), `index.ts` (wiring HTTP: exige JWT de sessão — mesmo padrão de `/webauthn-register` —, corpo JSON `image_base64`/`mime_type`, nunca `multipart/form-data`, não persiste nada em nenhum caminho, mapeia falha total do vendor para `502 ocr_provider_failed` e ausência de secret para `503 ocr_not_configured`, nunca resultado parcial silencioso). Contrato publicado em `API-CONTRACT.yaml` v0.21.0 (`/receipt-ocr`). **Teste automatizado** `lib.test.ts`: 20/20 casos PASS (`deno check`/`deno lint` limpos) — cobre (a) recibo sintético bem-formado extrai valor/data/estabelecimento corretamente; (b) AC3 — texto sem data reconhecível (e, em caso separado, sem valor monetário) retorna esse campo `undefined` sem lançar e sem afetar os demais, incluindo o caso-limite de texto totalmente vazio; (c) falha de rede, HTTP não-2xx (cota/chave inválida) e erro reportado no corpo (imagem irreconhecível) do Google Vision propagam como `OCRProviderError` claro via `fetch` mockado, nunca resultado parcial silencioso; regressão das 47 suítes `deno test` já existentes (`backup-export`/`fixed-bill-generate`/`invoice-close`/`push-dispatch`/`recurring-generate`) revalidada, 0 falhas. **Ressalva de transparência não-bloqueante (mesmo padrão de SPK-002/SEC-DEBT-009/Bloqueio 007/012)**: a integração real (chamada HTTP real ao Google Cloud Vision) foi implementada, mas esta sessão não teve acesso a uma credencial real do Google Cloud Vision nem a uma amostra de recibo brasileiro real — nenhum smoke test empírico de acurácia foi rodado. **Pendência de configuração operacional**: `GOOGLE_VISION_API_KEY` não está configurada em nenhum ambiente; quem tiver a credencial (dono: Backend, sem prazo fixo) deve rodar `supabase secrets set GOOGLE_VISION_API_KEY=<chave> --project-ref xrcxbzrglndetrrhavhc` e então testar manualmente com 10-20 recibos reais (papel térmico incluso) antes de considerar a acurácia de produção validada (mesma recomendação já registrada em SPK-002) — até lá, a function responde `503 ocr_not_configured` de forma controlada, nunca finge sucesso | Captura Automatizada — Voz & Foto |
 | BE-F3-02 | Edge Function de suporte a captura por voz: recebe transcrição do client (Web Speech API) e/ou aciona fallback STT em nuvem, extrai campos estruturados | Backend | RF-F3-01 AC1, ADR-006 | Campos extraídos retornam marcados como "sugestão automática, não confirmada" (AC1) | 1.5 dia | Não iniciada | Captura Automatizada — Voz & Foto |
 | BE-F3-03 | Parser de extrato OFX/CSV (Edge Function) + detecção de possível duplicata (mesma data/valor/conta) | Backend | RF-F3-03 AC1-2 | Transação candidata coincidente com lançamento existente é sinalizada antes da confirmação (AC2) | 2 dias | Não iniciada | Captura Automatizada — Importação de Extrato |
 | BE-F3-04 | Integração Open Finance (Pluggy): fluxo de consentimento OAuth2, sincronização periódica, endpoint de webhook com validação de assinatura | Backend | RF-F3-04 AC1-2, ADR-008, SPK-003, DIR-25/26 | Sincronização produz candidatos seguindo o mesmo fluxo de revisão de RF-F3-03 (AC1); feature flag de produção só liga após SPK-003 = Resolvido | 3 dias | Não iniciada | Captura Automatizada — Open Finance |
@@ -859,7 +859,7 @@ auditadas antes. Achado de sobreposição segue o mesmo fluxo de decisão do Blo
 
 | ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
 |---|---|---|---|---|---|---|---|
-| FE-F3-01 | Ponto de entrada de captura: S-CAP-01 (FAB expandido: Manual/Falar/Fotografar, opção desabilitada com texto explicativo se STT indisponível) | Frontend | UX-FL-04, S-CAP-01 | Se navegador não suporta Web Speech API nem há fallback configurado, "Falar" aparece desabilitada com "Não disponível neste navegador", nunca some silenciosamente | 1 dia | Não iniciada | Captura Automatizada — Voz & Foto |
+| FE-F3-01 | Ponto de entrada de captura: S-CAP-01 (FAB expandido: Manual/Falar/Fotografar, opção desabilitada com texto explicativo se STT indisponível) | Frontend | UX-FL-04, S-CAP-01 | Se navegador não suporta Web Speech API nem há fallback configurado, "Falar" aparece desabilitada com "Não disponível neste navegador", nunca some silenciosamente | 1 dia | **Concluída — 2026-09-05.** Novo componente `CaptureFab` (`frontend/src/components/domain/CaptureFab.tsx`) substitui o antigo `NewTransactionButton` no cabeçalho de `AppLayout.tsx` (único "+" global, presente em toda tela autenticada) — ao ser acionado, abre `Modal`/`BottomSheet` (`FE-M-01`, já responsivo mobile/desktop) com as 3 opções sempre visíveis via `role="menu"`/`role="menuitem"`: "Lançamento manual" (navega para `/lancamentos`, mesmo destino de sempre, RN-20), "Falar" e "Fotografar". Suporte a voz detectado por `hasSpeechRecognitionSupport()` (`frontend/src/lib/speechRecognition.ts`, checa só `window.SpeechRecognition`/`webkitSpeechRecognition` — sem fallback de STT em nuvem, isso é `BE-F3-02`); quando ausente, "Falar" usa `aria-disabled="true"` (nunca o atributo nativo `disabled`, para permanecer focável por teclado) com o texto visível "Não disponível neste navegador" ao lado do rótulo — nunca some do DOM. "Falar"/"Fotografar" habilitadas fecham o menu e mostram aviso "em breve" (`role="status"`), sem navegar para rota inexistente — captura real é escopo de `FE-F3-02`/`FE-F3-03`. Testes novos: `CaptureFab.test.tsx` (Web Speech API mockada vs. ausente, foco por teclado no item desabilitado, navegação de "Lançamento manual") e `AppLayout.test.tsx` atualizado (botão agora é `role="button"`, não mais `role="link"`). Suíte completa: `npm test` — 59 arquivos, 331 testes, todos passando; `tsc -b` e `oxlint` sem erros. | Captura Automatizada — Voz & Foto |
 | FE-F3-02 | Captura por voz: S-CAP-02 (`VoiceRecorderUI`, transcrição interina ao vivo, `aria-live`) | Frontend | UX-FL-04, S-CAP-02, DIR-15 | Estado "Ouvindo..." e transcrição interina são anunciados via `aria-live`, não só exibidos visualmente | 2 dias | Não iniciada | Captura Automatizada — Voz & Foto |
 | FE-F3-03 | Captura por foto: S-CAP-04 (`ReceiptCameraCapture`, moldura-guia, upload alternativo, pré-visualização) | Frontend | UX-FL-04, S-CAP-04 | Permissão de câmera negada oferece upload de arquivo como alternativa, nunca bloqueia o usuário (Seção 4.2 UX-SPEC) | 2 dias | Não iniciada | Captura Automatizada — Voz & Foto |
 | FE-F3-04 | Rascunho de confirmação: S-CAP-03/S-CAP-05 (`DraftReviewBanner`, `AutoFillTag`) — tela mais crítica do produto para RNF-01 | Frontend | UX-FL-04, RNF-01/RNF-08, DIR-20 | Banner fixo não-descartável até ação explícita; nenhum timer/auto-confirmação/navegação automática (WCAG 2.2.1); tag "✨ sugerido" desaparece só ao editar o campo (RF-F3-01 AC3) | 3 dias | Não iniciada | Captura Automatizada — Voz & Foto |
@@ -1073,6 +1073,111 @@ Achado de origem: severidade Baixa, sem urgência (`QA-REPORT.md` Seção 15.4,
 não bloqueia nenhum critério de aceite já cumprido de `FE-M-04`, e não reabre essa
 tarefa nem o lote "Autenticação & Segurança" (já `Concluída`/fechado, Seção 7). Sem
 spike — incerteza técnica baixa (mesmo padrão de mock já usado no projeto).
+
+#### Refatoração Lote-Recorrência & Parcelamento
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| BE-DEBT-01 | Proteger `recurring_template_adjustments` contra `DELETE` do próprio dono sem trilha de auditoria: trigger `BEFORE DELETE` (mesmo padrão de `installment_purchases_lock_after_first_generation`) rejeitando exclusão de reajuste já vigente/consumido por geração; `DELETE` continua permitido só para o reajuste mais recente ainda não vigente (competência futura) | Backend | `SECURITY-REVIEW.md` Seção 1.27 (`SEC-DEBT-013`), tarefa afetada `BE-F2-04` | Trigger novo rejeita `DELETE` de linha de `recurring_template_adjustments` cuja `effective_from` já é `<=` competência corrente ou já foi consumida por `generate_recurring_transactions`; `DELETE` de reajuste futuro ainda não vigente continua funcionando sem regressão; teste automatizado cobre os dois caminhos (rejeição e permissão) mais isolamento cross-user; regressão completa dos testes SQL revalidada sem resíduo | 0.25 dia | Não iniciada | Refatoração Lote-Recorrência & Parcelamento |
+
+Achado de origem: severidade Baixa, sem urgência (`SECURITY-REVIEW.md` Seção
+1.27, `SEC-DEBT-013` — "dono backend, sem prazo urgente, corrigir no próximo
+toque em `recurring_template_adjustments`"); não é cross-tenant, não reescreve
+`transactions.amount_cents` já gerado, e o Frontend não expõe nenhum caminho de
+UI para a ação (só chamada REST direta). Não bloqueia nenhum critério de aceite
+já cumprido de `BE-F2-04`, e não reabre essa tarefa nem o lote "Recorrência &
+Parcelamento" (já `Concluída`/fechado, Seção 7). Sem spike — incerteza técnica
+baixa (mesmo padrão de trigger já usado em `installment_purchases`).
+
+#### Refatoração Lote-Hardening-Cron
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| BE-DEBT-02 | Hardening sistêmico de execução de função de cron: adicionar `REVOKE EXECUTE ON FUNCTION ... FROM PUBLIC` (ou `FROM anon, authenticated`, conforme o role que hoje herda `EXECUTE` via `ALTER DEFAULT PRIVILEGES` do baseline) em toda função `SECURITY DEFINER` de job agendado (`pg_cron`/`pg_net`) do projeto, mantendo `EXECUTE` só para o role que o `pg_cron`/Edge Function realmente usa para disparar cada uma — via migration nova, não edição de migration já aplicada (DIR-04). Escopo confirmado por grep dirigido em `supabase/migrations/` nesta rodada: `trigger_backup_export`, `check_backup_health` (`20260903090000`); `generate_upcoming_invoices`, `close_due_invoices` (`20260903130000`); `trigger_invoice_close` (`20260903140000`); `trigger_recurring_generate` (`20260903160000`); `generate_recurring_transactions` (`20260903150000`/`20260903170000`); `generate_installment_transactions` (`20260903180000`); `trigger_fixed_bill_generate` (`20260903200000`); `generate_fixed_bill_transactions` (`20260903190000`); `check_fixed_bill_due_alerts` (`20260903230000`); `check_budget_alerts` (`20260903210000`) — mais qualquer outra do mesmo padrão (`SECURITY DEFINER` + chamada só por `cron.schedule`/`pg_net`, sem uso legítimo por sessão de usuário) encontrada na migration de hardening, se o grep de execução divergir do levantamento acima | Backend | `SECURITY-REVIEW.md` Seção 1.28 (achado (b), sem `SEC-DEBT-0xx` isolado — classificado como sistêmico), tarefas afetadas: todas as listadas na coluna anterior, tocando os lotes "Backup & Exportação", "Cartão & Fatura", "Recorrência & Parcelamento", "Contas Fixas" e "Orçamento/Notificações" | Toda função listada perde `EXECUTE` de `PUBLIC`/`anon`/`authenticated`, mantendo só o role efetivamente usado pelo disparo agendado; `select public.<função>()` chamado via `PostgREST`/`/rpc/<função>` com uma sessão comum (`anon` ou `authenticated`) passa a retornar erro de permissão (42501), sem quebrar a chamada feita pelo próprio mecanismo de cron (`cron.schedule`/`pg_net`, que roda como owner/role com privilégio, não como `anon`/`authenticated`); regressão completa da suíte de testes SQL revalidada sem resíduo, sem nenhum job de cron real deixando de disparar (confirmado por reexecução manual de cada `trigger_*`/`generate_*`/`check_*` como o role de cron, todas retornando sucesso) | 0.5 dia | Não iniciada | Refatoração Lote-Hardening-Cron |
+
+Achado de origem: severidade Baixa, classificado como **sistêmico** pelo
+DevSecOps (`SECURITY-REVIEW.md` Seção 1.28, achado (b) — reconfirmação de
+padrão já observado desde a Seção 1.26, não específico de nenhum lote
+individual), com recomendação explícita de tratamento como "uma única tarefa
+de hardening cobrindo todas as funções de cron do projeto, não uma por
+lote". Por isso esta tarefa é **única para todo o projeto**, não uma
+`Refatoração Lote-<origem>` por lote afetado — desvio deliberado da convenção
+padrão desta subseção (uma tarefa por achado, um lote por lote de origem),
+justificado pelo próprio achado ser transversal a 5 lotes diferentes já
+fechados (`BE-M-10`, "Cartão & Fatura", "Recorrência & Parcelamento",
+"Contas Fixas", "Notificações & Configurações"); reabrir/duplicar a mesma
+tarefa em 5 lotes de refatoração distintos fragmentaria o mesmo achado sem
+ganho, o oposto do racional que motiva `Refatoração Lote-<origem>` existir.
+Nenhum dos lotes de origem é reaberto por causa disso. Sem spike — incerteza
+técnica baixa (`REVOKE`/`GRANT` padrão de PostgreSQL, sem lógica nova).
+
+#### Refatoração Lote-ARIA-ProgressBars
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-DEBT-02 | Corrigir `aria-valuenow` > `aria-valuemax` no estado de estouro (>100%) em **2 componentes** de barra de progresso: `frontend/src/components/domain/ProgressBar.tsx` (orçamento, `QA-DEBT-010`) e `frontend/src/components/domain/GoalProgressBar.tsx` (metas, `QA-DEBT-016`) — mesmo padrão de causa raiz nos dois arquivos (`aria-valuenow={<percentual bruto>}` nunca limitado a 100, só a largura visual via `clamped*`); clampar `aria-valuenow` a `aria-valuemax` (100) nos dois componentes e expor o percentual real (>100%) por `aria-valuetext`, preservando o texto visível já existente ao lado da barra | Frontend | `QA-REPORT.md` Seção 7.4 (`QA-DEBT-010`, tarefa afetada `FE-M-11`) e Seção 19.4 (`QA-DEBT-016`, tarefa afetada `FE-F2-06`) | Nos dois componentes, `aria-valuenow` nunca excede `aria-valuemax` em nenhum estado, incluindo estouro (>100%); `aria-valuetext` comunica o percentual real (ex. "120% da meta atingido"/"120% do orçamento utilizado") nos dois; texto visível ao lado da barra permanece inalterado; teste automatizado novo cobre o estado de estouro nos dois componentes (`ProgressBar.test.tsx`, `GoalsPage.test.tsx` ou teste dedicado de `GoalProgressBar.tsx`); regressão completa da suíte Vitest revalidada sem resíduo | 0.25 dia | Não iniciada | Refatoração Lote-ARIA-ProgressBars |
+
+Achado de origem: severidade Baixa nos dois casos, sem urgência — o texto
+visível já comunica o percentual exato mesmo acima de 100%
+(`QA-REPORT.md` Seção 19.4, "não bloqueia... considerar corrigir `QA-DEBT-010`
+e `QA-DEBT-016` juntos, no mesmo momento, já que é o mesmo padrão em 2
+arquivos"). Não bloqueia nenhum critério de aceite já cumprido de `FE-M-11`
+nem de `FE-F2-06`, e não reabre nenhum dos dois lotes de origem — "Orçamento"
+(já `Concluída`/fechado, Seção 7.5) e "Metas" (fechado por este mesmo registro,
+Seção 7.14). Sem spike — incerteza técnica baixa (ajuste local de atributo
+ARIA, sem lógica de cálculo nova).
+
+**Decisão de agrupamento, documentada (não decidida em silêncio)**: `QA-DEBT-010`
+foi registrado no fechamento do lote "Orçamento" (Seção 7.5) mas **nunca gerou
+tarefa própria** nesta subseção até agora — lacuna de processo desta sessão,
+não uma decisão deliberada de deixá-lo sem tarefa. Ao encontrar `QA-DEBT-016`
+(mesmo padrão de causa raiz, em `GoalProgressBar.tsx`, achado pelo próprio QA
+como "reprodução" do gap já previsto em `QA-DEBT-010`, com recomendação
+explícita de corrigir os dois juntos), decidi **não** abrir dois lotes
+separados (`Refatoração Lote-Orçamento` e `Refatoração Lote-Metas`) para depois
+duplicar a mesma correção em cada um — mesmo racional já aplicado a
+`BE-DEBT-02`/Hardening-Cron (achado transversal a mais de um lote de origem
+já fechado, tratado como tarefa única, nomeada por escopo técnico em vez de
+por lote de origem). `FE-DEBT-02` referencia explicitamente os dois achados
+(`QA-DEBT-010` e `QA-DEBT-016`) e as duas tarefas afetadas (`FE-M-11`,
+`FE-F2-06`); nenhum dos dois lotes de origem é reaberto por causa disso.
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os
+lotes já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança", "Refatoração Lote-Recorrência & Parcelamento" e
+"Refatoração Lote-Hardening-Cron" acima) — mesmo racional: débito técnico de
+baixa severidade sobre lotes já fechados, não caminho crítico de nenhuma
+entrega em andamento. Tarefa única, sem dependência interna a sequenciar.
+
+#### Refatoração Lote-Notificações & Configurações
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| BE-DEBT-03 | Hardening de privacidade do payload de push: reduzir o conteúdo exposto na notificação nativa do SO (visível com o aparelho bloqueado) — mensagem de orçamento (`format()` em `20260903210000_be_f2_09_notifications.sql`, `check_budget_alerts()`) hoje inclui nome de categoria + percentual; mensagem de conta fixa (`check_fixed_bill_due_alerts()`, `BE-F2-07`) hoje inclui a descrição (ex. "Aluguel vence em 05/09"). Trocar por um título/corpo genérico ("Orçamento requer atenção" / "Conta a vencer") no payload que sai de `notify_user()`/`buildPushPayload` (`supabase/functions/push-dispatch/lib.ts`), preservando o detalhe completo (categoria, percentual, descrição) só no registro de `notifications` consultado pelo `NotificationBell`/`NotificationCenter` após desbloqueio | Backend | `SECURITY-REVIEW.md` Seção 1.30 (`SEC-DEBT-014`), tarefas afetadas `BE-F2-09`, `BE-F2-07` | Payload enviado a `push-dispatch` (e por ele ao SO) não contém nome de categoria, percentual de gasto nem descrição de conta fixa em nenhum dos dois gatilhos (`check_budget_alerts`, `check_fixed_bill_due_alerts`); `notifications.message` (histórico, consultado só após autenticação no app) continua com o detalhe completo, sem perda de informação para quem abre o `NotificationCenter`; teste automatizado (`supabase/tests/be_f2_09_notifications.test.sql` e/ou `push-dispatch/lib.test.ts`) cobre que o payload de push é genérico enquanto o registro persistido mantém o detalhe; regressão completa das suítes SQL e `deno test` revalidada sem resíduo | 0.25 dia | Não iniciada | Refatoração Lote-Notificações & Configurações |
+
+Achado de origem: severidade Baixa, sem urgência (`SECURITY-REVIEW.md` Seção
+1.30, `SEC-DEBT-014` — "nenhum valor monetário exposto... oportunidade de
+hardening de privacidade... prazo: próximo lote que tocar
+`notify_user()`/`push-dispatch`, sem urgência de correção isolada"). Não é
+vazamento de dado sensível em claro (sem `amount_cents`/PII de terceiro) nem
+achado de compliance obrigatório; não bloqueia nenhum critério de aceite já
+cumprido de `BE-F2-09`/`BE-F2-07`, e não reabre o lote "Notificações &
+Configurações" (já `Concluída`/fechado, Seção 7.15). `SEC-DEBT-010`
+(`push_subscriptions` sem `withOwnerId()` no Frontend) **não** gera tarefa
+aqui — reconfirmado pelo DevSecOps nesta mesma rodada sem regressão, já
+coberto na camada de banco (`DEFAULT auth.uid()`), tratamento tático aceito
+desde o Bloqueio 015/Seção 1.12, sem débito novo a duplicar. Verifiquei os 4
+lotes de refatoração já existentes antes de criar este — nenhum cobre
+conteúdo de payload de push/notificação, sem duplicata. Sem spike —
+incerteza técnica baixa (troca de texto de mensagem, sem lógica nova).
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os
+lotes já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança", "Refatoração Lote-Recorrência & Parcelamento",
+"Refatoração Lote-Hardening-Cron" e "Refatoração Lote-ARIA-ProgressBars"
+acima) — mesmo racional: débito técnico de baixa severidade sobre um lote já
+fechado, não caminho crítico de nenhuma entrega em andamento. Tarefa única,
+sem dependência interna a sequenciar.
 
 ---
 
@@ -1393,6 +1498,59 @@ já existentes** nesta Seção 4 (4.1 a 4.5), inclusive os ainda pendentes do Gr
 do Redesign Visual — é débito técnico de baixa severidade sobre um lote já fechado,
 não caminho crítico de nenhuma entrega em andamento. Tarefa única, sem dependência
 interna a sequenciar.
+
+#### Refatoração Lote-Recorrência & Parcelamento
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| BE-DEBT-01 | Nenhuma (lote de origem, "Recorrência & Parcelamento", já `Concluída`/fechado, Seção 7) | Implementação completa | Qualquer tarefa de qualquer outro lote — sem sobreposição de arquivo/domínio esperada, incluindo `FE-DEBT-01` |
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os lotes
+já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança" acima) — mesmo racional: débito técnico de baixa
+severidade sobre um lote já fechado, não caminho crítico de nenhuma entrega em
+andamento. Tarefa única, sem dependência interna a sequenciar.
+
+#### Refatoração Lote-Hardening-Cron
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| BE-DEBT-02 | Nenhuma (todos os lotes de origem — "Fundação Técnica & Infraestrutura" via `BE-M-10`, "Cartão & Fatura", "Recorrência & Parcelamento", "Contas Fixas", "Notificações & Configurações" — já `Concluída`/fechados) | Implementação completa | Qualquer tarefa de qualquer outro lote — sem sobreposição de arquivo/domínio esperada, incluindo `FE-DEBT-01`/`BE-DEBT-01` |
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os
+lotes já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança" e "Refatoração Lote-Recorrência &
+Parcelamento" acima) — mesmo racional: débito técnico de baixa severidade,
+aqui de escopo transversal (várias funções de cron de vários lotes), não
+caminho crítico de nenhuma entrega em andamento. Tarefa única, sem
+dependência interna a sequenciar.
+
+#### Refatoração Lote-ARIA-ProgressBars
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-DEBT-02 | Nenhuma (lotes de origem, "Orçamento" e "Metas", ambos `Concluída`/fechados, Seção 7) | Implementação completa | Qualquer tarefa de qualquer outro lote — sem sobreposição de arquivo/domínio esperada, incluindo `FE-DEBT-01`/`BE-DEBT-01`/`BE-DEBT-02` |
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os
+lotes já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança", "Refatoração Lote-Recorrência & Parcelamento" e
+"Refatoração Lote-Hardening-Cron" acima) — mesmo racional: débito técnico de
+baixa severidade sobre lotes já fechados, não caminho crítico de nenhuma
+entrega em andamento. Tarefa única, sem dependência interna a sequenciar.
+
+#### Refatoração Lote-Notificações & Configurações
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| BE-DEBT-03 | Nenhuma (lote de origem, "Notificações & Configurações", já `Concluída`/fechado, Seção 7) | Implementação completa | Qualquer tarefa de qualquer outro lote — sem sobreposição de arquivo/domínio esperada, incluindo `FE-DEBT-01`/`BE-DEBT-01`/`BE-DEBT-02`/`FE-DEBT-02` |
+
+**Posição na ordem de execução geral**: este lote roda **depois de todos os
+lotes já existentes** nesta Seção 4 (4.1 a 4.5, e depois de "Refatoração
+Lote-Autenticação & Segurança", "Refatoração Lote-Recorrência & Parcelamento",
+"Refatoração Lote-Hardening-Cron" e "Refatoração Lote-ARIA-ProgressBars"
+acima) — mesmo racional: débito técnico de baixa severidade sobre um lote já
+fechado, não caminho crítico de nenhuma entrega em andamento. Tarefa única,
+sem dependência interna a sequenciar.
 
 ---
 
@@ -1922,6 +2080,10 @@ abaixo. **Nono lote fechado, 2026-09-05** ("Design System (Redesign v2.0), Lote 
 Aprovação de Lote" a este lote especificamente (as 9 tarefas já estavam
 `Concluída` desde 2026-09-03/04, mas a dupla aprovação QA+DevSecOps por lote só
 ocorre nesta rodada, `QA-REPORT.md` Seção 15/`SECURITY-REVIEW.md` Seção 1.25).
+**Décimo primeiro lote fechado, mesma data** ("Cartão & Fatura", Fase 2) — as 4
+tarefas já estavam `Concluída` desde 2026-09-03, dupla aprovação QA+DevSecOps
+por lote nesta rodada (`QA-REPORT.md` Seção 16/`SECURITY-REVIEW.md` Seção 1.26)
+— ver racional em 7.11 abaixo.
 
 | Lote | Tarefas incluídas | Data de fechamento | Veredito QA | Veredito DevSecOps | Débitos registrados | Deploy |
 |---|---|---|---|---|---|---|
@@ -1935,6 +2097,7 @@ ocorre nesta rodada, `QA-REPORT.md` Seção 15/`SECURITY-REVIEW.md` Seção 1.25
 | Orçamento (Fase 2.1) | FE-REF-07, QA-REF-05 | 2026-09-04 | Aprovado (2/2 sem ressalva individual — `QA-REPORT.md` Seção 12.6, "Veredito de lote (`EXECUTION-FLOW.md`, 'QA — uma vez por lote'): Aprovado", Definition of Done Seção 12.7 100% marcada) | Aprovado, sem débito de segurança (`SECURITY-REVIEW.md` Seção 1.22, "Veredito do lote: Aprovado, sem débito de segurança") | QA-DEBT-012 (baixa, contraste WCAG do texto de percentual do `ProgressBar` em estado `warning` sobre o novo fundo `warning-soft` do card — mede ≈2.86:1, abaixo de 4.5:1; confirmado por QA e reconfirmado de forma independente por DevSecOps como débito de token de design `--color-warning` pré-existente ao projeto inteiro — mesma combinação já falha hoje em `DashboardPage`, tela não tocada por este lote —, não introduzido nem agravado por `FE-REF-07`, e sem componente de segurança, `finding-severity-classification`, Seção 1.22); nenhum débito de segurança novo — ver 7.8 | **Concluído em staging** (2026-09-04, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.10). Sem migration própria (lote puramente frontend, confirmado via `supabase migration list --linked`, 40/40 remote=local, e `git status --porcelain supabase/migrations` sem arquivo novo). Mesmo projeto Vercel `mymoney` já linkado, sem mudança de infraestrutura. 259/259 testes passando nesta rodada (sem a flakiness isolada de `UnlockPage.test.tsx` observada por QA em execução paralela). Deploy em produção: não realizado, fora do escopo autorizado desta rodada |
 | Design System (Redesign v2.0, Lote 0) | FE-RS-01, FE-RS-02, FE-RS-03, FE-RS-04, FE-RS-14 | 2026-09-05 | Aprovado (5/5, nenhuma ressalva em aberto — `QA-REPORT.md` Seção 14.8.6, "Veredito consolidado do Lote 0... Aprovado (5/5)"; reverte o Reprovado da rodada 2026-09-04, Seção 14.6, após correção e revalidação pontual de `QA-BUG-001` em 14.8) | Aprovado, sem débito (`SECURITY-REVIEW.md` Seções 1.23/1.24, "Veredito final do Lote 0... do ponto de vista de DevSecOps: Aprovado, sem débito") | Nenhum débito aberto — `QA-DEBT-014` (valor de `--shadow-elevation-md` divergente do literal da `UX-SPEC.md`) fechado na própria revalidação (`QA-REPORT.md` Seção 14.8.4); `BLOCKERS.md` Bloqueios 021, 022 e 023 (únicos abertos por esta iniciativa antes do início real do lote) todos `Resolvido` — nenhum aberto afetando este lote — ver 7.9 | **Concluído em staging** (2026-09-05, deploy real via Vercel CLI local — `mymoney-staging.vercel.app`, ver `DEPLOY.md` §9.11). Sem migration própria (lote 100% frontend/apresentação, confirmado via `git status --porcelain supabase/migrations`, vazio). Mesmo projeto Vercel `mymoney` já linkado (`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`), sem mudança de infraestrutura. 316/316 testes passando (1 falha isolada de `UnlockPage.test.tsx` na rodada cheia, mesmo flake já documentado por QA/DevOps em rodadas anteriores, confirmada não-relacionada por reexecução isolada 3/3). Deploy em produção: **não realizado** — pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
 | Autenticação & Segurança | BE-M-09, BE-M-11, BE-M-12, BE-M-13, BE-M-14, FE-M-04, FE-M-12, FE-M-13, QA-M-02 | 2026-09-05 | Aprovado (9/9, nenhuma reprovação — `QA-REPORT.md` Seção 15.7, "Veredito de lote... Aprovado"; achado novo `QA-DEBT-015` registrado, não reduz o veredito) | Aprovado com débito (`SECURITY-REVIEW.md` Seção 1.25, "Veredito final do lote... do ponto de vista de DevSecOps: Aprovado, com débito de baixa severidade... não bloqueante") | QA-DEBT-015 (baixa, gap de cobertura de teste no branch opcional de WebAuthn/`PinSetupPage.tsx`, `FE-M-04` — virou tarefa `FE-DEBT-01`, lote "Refatoração Lote-Autenticação & Segurança", Seção 3.7/4.6, não deixado como nota solta); SEC-DEBT-001 (CORS wildcard em `auth-email-mfa`, reclassificado de Média para Baixa nesta rodada — achado pré-existente, não novo, sem tarefa nova exigida por reclassificação) — ver 7.10 | **Já em produção**, mesmo padrão do lote "Orçamento" (Seção 7.5) — código deste lote foi promovido a produção em 2026-09-03 como parte da mesma promoção mais ampla, autorizada explicitamente pelo stakeholder, **antes** da validação formal QA/DevSecOps por lote existir para "Autenticação & Segurança" especificamente (`DEPLOY.md` §9.6/§9.7 — `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`, `mymoney-pink-phi.vercel.app`). Este registro de Seção 7 formaliza retroativamente a dupla aprovação QA+DevSecOps para este lote — não é o gatilho de um novo deploy (já realizado e confirmado `READY`), e sim o fechamento do gate de processo que valida o que já está servindo em produção |
+| Cartão & Fatura | BE-F2-01, BE-F2-02, FE-F2-01, FE-F2-02 | 2026-09-05 | Aprovado (4/4, nenhuma reprovação — `QA-REPORT.md` Seção 16.6, "Aprovado — 4/4 tarefas aprovadas... nenhuma reprovação, nenhum achado de severidade alta/crítica, nenhum débito novo de baixa/média severidade identificado nesta rodada") | Aprovado, sem débito (`SECURITY-REVIEW.md` Seção 1.26, "Veredito final do Lote 'Cartão & Fatura' do ponto de vista de DevSecOps: Aprovado, sem débito") | Nenhum débito registrado nesta rodada — nem de QA nem de segurança — ver 7.11 | **Já em produção**, mesmo padrão dos lotes "Orçamento" (Seção 7.5) e "Autenticação & Segurança" (Seção 7.10) — código deste lote foi promovido a produção em 2026-09-03 como parte da mesma promoção mais ampla, autorizada explicitamente pelo stakeholder, **antes** da validação formal QA/DevSecOps por lote existir para "Cartão & Fatura" especificamente (`DEPLOY.md` §9.6/§9.7 — `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`, `mymoney-pink-phi.vercel.app`). Este registro de Seção 7 formaliza retroativamente a dupla aprovação QA+DevSecOps para este lote — não é o gatilho de um novo deploy (já realizado e confirmado `READY`), e sim o fechamento do gate de processo que valida o que já está servindo em produção |
 
 ### 7.1 Racional de fechamento — Bloqueio 007 e Bloqueio 012 (não impedem o registro do lote)
 
@@ -3027,6 +3190,309 @@ aprovação — não dispara um novo deploy.
 **Nenhuma inconsistência estrutural encontrada** além do achado já roteado para
 `FE-DEBT-01` — nenhuma dependência órfã, nenhuma tarefa `Bloqueada` sem
 resolução, nenhuma referência quebrada nas Seções 3.1/4.1 relativas a este lote.
+
+### 7.11 Racional de fechamento — lote "Cartão & Fatura" (Fase 2)
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de 7.1-7.10.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção 3 — as 4
+   tarefas do lote (`BE-F2-01`, `BE-F2-02`, `FE-F2-01`, `FE-F2-02`) têm status
+   `Concluída`. Dependências da Seção 4.2 verificadas: `BE-F2-01` → `BE-M-04`
+   (`Concluída`); `BE-F2-02` → `BE-F2-01`/`BE-F2-05`/`BE-F2-03`/`BE-F2-04` — as
+   3 últimas pertencem ao lote "Recorrência & Parcelamento", não a este lote, e
+   as 3 estão igualmente `Concluída` (verificado individualmente na Seção 3),
+   sem pendência cruzada. Nenhuma dependência órfã; nenhuma tarefa `Bloqueada`.
+   Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 16.6, texto
+   literal "Aprovado — 4/4 tarefas aprovadas..., nenhuma reprovação, nenhum
+   achado de severidade alta/crítica, nenhum débito novo de baixa/média
+   severidade identificado nesta rodada." Passa, sem ressalva de lote.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.26,
+   "Veredito final do Lote 'Cartão & Fatura' do ponto de vista de DevSecOps:
+   Aprovado, sem débito." Nenhum achado, nem simples nem de débito — não há
+   tarefa de `Refatoração Lote-Cartão & Fatura` a criar nesta rodada. Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: nenhum bloqueio hoje
+   aberto cita as 4 tarefas deste lote por nome. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem achado
+   nesta rodada que aponte violação de diretriz vigente. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 4 tarefas somam
+   a estimativa já registrada na Seção 3.3/Seção 5 desde a rodada de
+   2026-09-03; nenhum desvio grande de escopo/estimativa reportado nesta
+   rodada de validação (só confirmação de trabalho já concluído). Passa.
+
+**Nenhum achado a tratar** — diferente de 7.1-7.10, esta rodada não produziu
+nenhum débito de QA nem de segurança; nenhuma tarefa nova de
+`Refatoração Lote-Cartão & Fatura` é criada, e o lote de origem não é reaberto.
+
+**Deploy**: mesmo padrão já registrado em 7.5 ("Orçamento") e 7.10
+("Autenticação & Segurança") — este lote já está em produção desde
+2026-09-03, como parte da mesma promoção mais ampla autorizada pelo
+stakeholder (`DEPLOY.md` §9.6/§9.7), anterior à validação formal QA/DevSecOps
+por lote existir para "Cartão & Fatura" especificamente. Este registro de
+Seção 7 formaliza retroativamente a dupla aprovação — não dispara um novo
+deploy.
+
+**Nenhuma inconsistência estrutural encontrada** — nenhuma dependência órfã,
+nenhuma tarefa `Bloqueada` sem resolução, nenhuma referência quebrada nas
+Seções 3.3/4.2 relativas a este lote ou às tarefas de outros lotes das quais
+ele depende (`BE-F2-03`/`BE-F2-04`/`BE-F2-05`, lote "Recorrência &
+Parcelamento").
+
+### 7.12 Racional de fechamento — lote "Recorrência & Parcelamento" (Fase 2)
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de 7.1-7.11.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção 3 — as 5
+   tarefas do lote (`BE-F2-03`, `BE-F2-04`, `BE-F2-05`, `FE-F2-03`, `FE-F2-04`)
+   têm status `Concluída`. Dependências da Seção 4.2 verificadas: `BE-F2-03` →
+   `BE-M-01` (`Concluída`, schema); `BE-F2-04` → `BE-F2-03` (`Concluída`);
+   `BE-F2-05` → `BE-F2-01` (`Concluída`, lote "Cartão & Fatura", independente
+   da cadeia de recorrência propriamente dita); `FE-F2-04` → `BE-F2-03`/
+   `BE-F2-04` (contrato, ambas `Concluída`); `FE-F2-03` → (Seção 4.2 lista
+   contrato de `BE-F2-01`, e a tarefa consome de fato `/installment_purchases`
+   e `/rpc/get_installment_purchases_progress` publicados por `BE-F2-05` —
+   ambas `Concluída`, sem pendência cruzada em nenhuma das duas leituras).
+   Nenhuma dependência órfã; nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 17.6, texto
+   literal "Aprovado — 5/5 tarefas aprovadas..., nenhuma reprovação, nenhum
+   achado de severidade alta/crítica, nenhum débito novo de baixa/média
+   severidade identificado nesta rodada." Passa, sem ressalva de lote.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.27, "Veredito
+   final do lote 'Recorrência & Parcelamento' do ponto de vista de DevSecOps:
+   Aprovado, com débito de baixa severidade (`SEC-DEBT-013`), não bloqueante."
+   Achado (`recurring_template_adjustments` permite `DELETE` do dono sobre
+   reajuste histórico sem trilha de auditoria) tratado no item seguinte. Passa
+   com ressalva de débito não bloqueante.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: nenhum bloqueio hoje
+   aberto cita as 5 tarefas deste lote por nome. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem achado
+   nesta rodada que aponte violação de diretriz vigente — `SEC-DEBT-013` é
+   lacuna de proteção, não violação de diretriz já existente. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 5 tarefas somam
+   a estimativa já registrada na Seção 3.2/Seção 5 desde a rodada de
+   2026-09-03; nenhum desvio grande de escopo/estimativa reportado nesta
+   rodada de validação (só confirmação de trabalho já concluído). Passa.
+
+**Achado tratado — não decidido em silêncio**: `SEC-DEBT-013` virou tarefa
+formal `BE-DEBT-01`, lote novo `Refatoração Lote-Recorrência & Parcelamento`
+(Seção 3.7/4.6), posicionado depois de todos os lotes existentes (incluindo
+`Refatoração Lote-Autenticação & Segurança`) na ordem de execução da Seção 4.
+O lote de origem ("Recorrência & Parcelamento") não é reaberto por causa
+disso — permanece `Concluída`/fechado.
+
+**Deploy**: mesmo padrão já registrado em 7.5, 7.10 e 7.11 — este lote já está
+em produção desde 2026-09-03, como parte da mesma promoção mais ampla
+autorizada pelo stakeholder (`DEPLOY.md` §9.6/§9.7), anterior à validação
+formal QA/DevSecOps por lote existir para "Recorrência & Parcelamento"
+especificamente. Este registro de Seção 7 formaliza retroativamente a dupla
+aprovação — não dispara um novo deploy. O débito `SEC-DEBT-013` não é
+pré-condição de deploy (já mitigado por não ser cross-tenant e não ter
+caminho de UI que o exponha).
+
+**Nenhuma inconsistência estrutural encontrada** além do débito já tratado —
+nenhuma dependência órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma
+referência quebrada nas Seções 3.2/4.2 relativas a este lote ou à tarefa
+`BE-F2-01` (lote "Cartão & Fatura") da qual `BE-F2-05` depende.
+
+### 7.13 Racional de fechamento — lote "Contas Fixas" (Fase 2) — 2026-09-05
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de 7.1-7.12.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção 3 — as 3
+   tarefas do lote (`BE-F2-06`, `BE-F2-07`, `FE-F2-05`) têm status `Concluída`.
+   Dependências da Seção 4.2 verificadas: `BE-F2-06` → `BE-M-01` (`Concluída`,
+   schema); `BE-F2-07` → `BE-F2-06` (`Concluída`) e `BE-F2-09` (contrato,
+   `Concluída` — executada fora de ordem antes de `BE-F2-07`, inversão já
+   documentada na própria tarefa, sem inconsistência); `FE-F2-05` → `BE-F2-06`
+   (contrato, `Concluída`). Nenhuma dependência órfã; nenhuma tarefa
+   `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 18.6, texto
+   literal "Aprovado — 3/3 tarefas aprovadas (`BE-F2-06`, `BE-F2-07`,
+   `FE-F2-05`), nenhuma reprovação, nenhum achado de severidade alta/crítica,
+   nenhum débito novo de baixa/média severidade identificado nesta rodada."
+   Passa, sem ressalva de lote.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.28, texto
+   literal "Veredito do lote: Aprovado, sem débito novo de segurança."
+   Achado (b) desta rodada (ausência de `REVOKE EXECUTE` em funções
+   `SECURITY DEFINER` de cron) foi classificado pelo próprio DevSecOps como
+   **sistêmico**, não específico deste lote — sem novo `SEC-DEBT-0xx`
+   isolado, tratado no item seguinte. Passa, sem ressalva de débito
+   atribuível a este lote.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: `SECURITY-REVIEW.md`
+   Seção 1.28 confirma, via grep dirigido, que as únicas menções a "conta
+   fixa"/"fixed_bill" em `BLOCKERS.md` são o próprio Bloqueio 015
+   (`SEC-DEBT-008`), já resolvido e reconfirmado sem regressão nesta rodada.
+   Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem
+   achado nesta rodada que aponte violação de diretriz vigente — o achado
+   (b) é lacuna de hardening pré-existente desde antes deste lote (mesmo
+   padrão do baseline legado em `trigger_backup_export`), não violação nova
+   introduzida por `BE-F2-06`/`BE-F2-07`/`FE-F2-05`. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 3 tarefas
+   somam a estimativa já registrada na Seção 3.2/Seção 5 desde a rodada de
+   2026-09-03; nenhum desvio grande de escopo/estimativa reportado nesta
+   rodada de validação. Passa.
+
+**Achado tratado — não decidido em silêncio**: o achado sistêmico (b) da
+Seção 1.28 recomendou explicitamente **uma única tarefa de hardening
+cobrindo todas as funções de cron do projeto**, não uma tarefa por lote.
+Verifiquei os dois lotes de refatoração já existentes nesta sessão
+(`Refatoração Lote-Autenticação & Segurança`, `Refatoração
+Lote-Recorrência & Parcelamento`) — nenhum cobre `REVOKE EXECUTE` em função
+de cron, sem duplicata. Criei lote novo **`Refatoração Lote-Hardening-Cron`**
+(Seção 3.7/4.6), com a tarefa única `BE-DEBT-02` (0.5 dia), escopo
+levantado por grep próprio sobre `supabase/migrations/` nesta rodada:
+`trigger_backup_export`, `check_backup_health`, `generate_upcoming_invoices`,
+`close_due_invoices`, `trigger_invoice_close`, `trigger_recurring_generate`,
+`generate_recurring_transactions`, `generate_installment_transactions`,
+`trigger_fixed_bill_generate`, `generate_fixed_bill_transactions`,
+`check_fixed_bill_due_alerts`, `check_budget_alerts` — mais qualquer outra do
+mesmo padrão encontrada na migration de hardening em si. Desvio deliberado da
+convenção "um lote de refatoração por lote de origem" (Seção 3.7), justificado
+pelo achado ser transversal a 5 lotes diferentes já fechados; documentado
+explicitamente na própria entrada de `BE-DEBT-02`. Nenhum dos 5 lotes de
+origem é reaberto por causa disso — "Contas Fixas" permanece `Concluída`/
+fechado.
+
+**Deploy**: mesmo padrão já registrado em 7.5, 7.10, 7.11 e 7.12 — este lote
+já está em produção desde 2026-09-03, como parte da mesma promoção mais
+ampla autorizada pelo stakeholder (`DEPLOY.md` §9.6), anterior à validação
+formal QA/DevSecOps por lote existir para "Contas Fixas" especificamente.
+Este registro de Seção 7 formaliza retroativamente a dupla aprovação — não
+dispara um novo deploy. O achado sistêmico de hardening não é pré-condição
+de deploy deste lote (mesmo padrão sistêmico já presente em produção desde
+`BE-M-10`, sem incidente registrado).
+
+**Nenhuma inconsistência estrutural encontrada** além do achado já tratado —
+nenhuma dependência órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma
+referência quebrada na Seção 3.2/4.2 relativa a este lote.
+
+### 7.14 Racional de fechamento — lote "Metas" (Fase 2) — 2026-09-05
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de
+7.1-7.13.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção 3 — as
+   2 tarefas do lote (`BE-F2-08`, `FE-F2-06`) têm status `Concluída`.
+   Dependências da Seção 4.2 verificadas: `BE-F2-08` → `BE-M-01` (schema,
+   `Concluída`); `FE-F2-06` → `BE-F2-08` (contrato, `Concluída`). Nenhuma
+   dependência órfã; nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 19.6, texto
+   literal "**Aprovado** — 2/2 tarefas aprovadas (`BE-F2-08`, `FE-F2-06`),
+   nenhuma reprovação, nenhum achado de severidade alta/crítica." Passa, sem
+   ressalva de lote — o achado `QA-DEBT-016` (Seção 19.4) é débito de baixa
+   severidade que não reduz o veredito, mesmo tratamento já dado a
+   `QA-DEBT-010`/`012`/`013`/`014`/`015`.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.29, texto
+   literal "**Veredito do lote: Aprovado, sem débito de segurança.**"
+   `BE-F2-08`, `FE-F2-06` liberadas sem nenhuma pré-condição de deploy
+   pendente. Passa, sem ressalva de débito atribuível a este lote.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: grep dirigido por
+   "Metas"/"goal"/"Goal" em `BLOCKERS.md` não retorna nenhuma entrada `Aberto`
+   de conteúdo (só menções de contexto em levantamentos gerais de outras
+   tarefas, ex. Bloqueio de nomenclatura de módulos/telas). Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem achado
+   nesta rodada que aponte violação de diretriz vigente — `DIR-27` (RLS
+   `auth.uid() = user_id`) e a extensão IDOR-safe de `BE-M-13`/G-19 cumpridas
+   em `goals`/`contributions` (`SECURITY-REVIEW.md` Seção 1.29); `DIR-06`
+   (fonte única de verdade) cumprida — progresso nunca recalculado por soma
+   local no client (`QA-REPORT.md` Seção 19.5). Passa.
+6. **Esforço real reconciliado com a estimativa original**: `BE-F2-08` (1
+   dia) + `FE-F2-06` (1.5 dia) = 2.5 dias ideais estimados (Seção 3.2),
+   exatamente como documentado. Nenhum desvio grande de escopo/estimativa
+   reportado nesta rodada. Passa.
+
+**Achado tratado — não decidido em silêncio, e não duplicado**: `QA-DEBT-016`
+(gap de ARIA em `GoalProgressBar.tsx`, `aria-valuenow` não clampado a
+`aria-valuemax` no estouro) é, pelo próprio texto do QA (Seção 19.6),
+reprodução de um padrão já previsto em `QA-DEBT-010` (mesmo gap em
+`ProgressBar.tsx`, do lote "Orçamento", fechado em 7.5) — com recomendação
+explícita de corrigir os dois juntos. Verifiquei a Seção 3.7/4.6 antes de
+decidir: `QA-DEBT-010` **nunca havia gerado tarefa própria** (lacuna de
+processo de uma rodada anterior, não decisão deliberada). Em vez de abrir
+`Refatoração Lote-Metas` isolado só para `QA-DEBT-016` e deixar `QA-DEBT-010`
+sem tarefa por mais uma rodada, criei uma única tarefa cobrindo os dois
+achados — **`FE-DEBT-02`**, lote novo **`Refatoração Lote-ARIA-ProgressBars`**
+(Seção 3.7/4.6), posicionado depois de todos os lotes já existentes na ordem
+de execução da Seção 4, mesmo racional de escopo transversal já aplicado a
+`BE-DEBT-02`/Hardening-Cron. Nenhum dos dois lotes de origem ("Orçamento",
+"Metas") é reaberto por causa disso — "Metas" permanece `Concluída`/fechado
+por este próprio registro.
+
+**Deploy**: mesmo padrão já registrado em 7.5 e 7.10-7.13 — este lote já está
+em produção desde 2026-09-03, como parte da mesma promoção mais ampla
+autorizada pelo stakeholder (`DEPLOY.md` §9.6), anterior à validação formal
+QA/DevSecOps por lote existir para "Metas" especificamente. Este registro de
+Seção 7 formaliza retroativamente a dupla aprovação — não dispara um novo
+deploy.
+
+**Nenhuma inconsistência estrutural encontrada** além do achado já tratado —
+nenhuma dependência órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma
+referência quebrada na Seção 3.2/4.2 relativa a este lote.
+
+### 7.15 Racional de fechamento — lote "Notificações & Configurações" (Fase 2) — 2026-09-05
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de 7.1-7.14.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção 3 — as 3
+   tarefas do lote (`BE-F2-09`, `FE-F2-07`, `FE-F2-09`) têm status `Concluída`.
+   Dependências da Seção 4.2 verificadas: `BE-F2-09` → nenhuma dependência de
+   Fase 2 (usa infraestrutura já existente do MVP, conforme a própria tabela);
+   `FE-F2-07` → `BE-F2-09` (contrato, `Concluída`); `FE-F2-09` → `FE-M-12`
+   (tela de configurações já existe, `Concluída`). Nenhuma dependência órfã;
+   nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 20.6, texto
+   literal "**Aprovado** — 3/3 tarefas aprovadas (`BE-F2-09`, `FE-F2-07`,
+   `FE-F2-09`), nenhuma reprovação, nenhum achado de severidade alta/crítica."
+   Passa, sem ressalva de lote.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.30, texto
+   literal "**Veredito do lote: Aprovado com débito** (`SEC-DEBT-014` novo,
+   baixa severidade, não bloqueante; `SEC-DEBT-010` reconfirmado sem
+   regressão)." Passa, com ressalva de débito tratada abaixo.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: `SECURITY-REVIEW.md`
+   Seção 1.30 confirma leitura direta de `BLOCKERS.md` — Bloqueio 015
+   confirmado `Resolvido`, sem bloqueio novo aberto tocando este lote. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem achado
+   nesta rodada que aponte violação de diretriz vigente — `DIR-14` (push é
+   reforço, nunca única via) cumprida (`QA-REPORT.md` Seção 20.5, degradação
+   confirmada por leitura de código); RLS/isolamento cross-user de
+   `notifications`/`push_subscriptions` cumprido (`SECURITY-REVIEW.md` Seção
+   1.30, pontos (a)/(b)). Passa.
+6. **Esforço real reconciliado com a estimativa original**: `BE-F2-09` (1.5
+   dia) + `FE-F2-07` (1.5 dia) + `FE-F2-09` (1 dia) = 4 dias ideais estimados
+   (Seção 3.2), exatamente como documentado. Nenhum desvio grande de
+   escopo/estimativa reportado nesta rodada. Passa.
+
+**Achado tratado — não decidido em silêncio, e não duplicado**: `SEC-DEBT-014`
+(payload de push expõe categoria/percentual/descrição na notificação nativa
+do SO com o aparelho bloqueado, baixa severidade, sem valor monetário/PII de
+terceiro) vira tarefa formal nova — **`BE-DEBT-03`**, lote novo **`Refatoração
+Lote-Notificações & Configurações`** (Seção 3.7/4.6), posicionado depois de
+todos os lotes já existentes na ordem de execução da Seção 4. Verifiquei os 4
+lotes de refatoração já existentes (Autenticação & Segurança, Recorrência &
+Parcelamento, Hardening-Cron, ARIA-ProgressBars) antes de criar este — nenhum
+cobre conteúdo de payload de push/notificação (o Hardening-Cron toca funções
+de cron do mesmo bounded context, mas é achado distinto, já com tarefa
+própria `BE-DEBT-02`), sem duplicata a evitar. `SEC-DEBT-010`
+(`push_subscriptions` sem `withOwnerId()` no Frontend) **não** gera tarefa
+nova nesta rodada — é reconfirmação sem regressão de débito já tratado no
+fechamento do Bloqueio 015/Seção 1.12, já coberto na camada de banco
+(`DEFAULT auth.uid()`), conforme a própria instrução desta rodada. O lote de
+origem ("Notificações & Configurações") não é reaberto por causa disso —
+permanece `Concluída`/fechado por este próprio registro.
+
+**Deploy**: mesmo padrão já registrado em 7.5, 7.10-7.13 — este lote já está
+em produção desde 2026-09-03, como parte da mesma promoção mais ampla
+autorizada pelo stakeholder (`DEPLOY.md` §9.6), anterior à validação formal
+QA/DevSecOps por lote existir para "Notificações & Configurações"
+especificamente. Este registro de Seção 7 formaliza retroativamente a dupla
+aprovação — não dispara um novo deploy. `SEC-DEBT-014` não é pré-condição de
+deploy (achado de hardening de baixa severidade, sem urgência de correção
+isolada, conforme o próprio veredito de DevSecOps).
+
+**Nenhuma inconsistência estrutural encontrada** além do achado já tratado —
+nenhuma dependência órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma
+referência quebrada na Seção 3.2/4.2 relativa a este lote.
 
 ---
 

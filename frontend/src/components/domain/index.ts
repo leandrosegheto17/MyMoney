@@ -6,3 +6,4 @@ export * from "./GoalProgressBar";
 export * from "./BarChart";
 export * from "./InvoiceTimeline";
 export * from "./NotificationBell";
+export * from "./CaptureFab";

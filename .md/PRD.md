@@ -1084,3 +1084,69 @@ para os Lotes 5-13 em `TASK.md` antes dela (ver risco B6.12).
 vs. o que o Gate 1 avaliou) — não bloqueante para a liberação deste adendo, mas
 registrada formalmente, não absorvida silenciosamente.** Adendo B do `PRD.md`
 liberado para o Business Analyst em 2026-09-04, com a pendência acima explícita.
+
+---
+
+# Anexo — Oportunidades Futuras Sinalizadas
+
+**Dono**: PM (chapéu do Gestor)
+**Data**: 2026-09-07
+**Natureza**: nota estratégica leve, **não é gate, não é decisão de roadmap, não
+é mudança de escopo**. Não altera `GUARDRAILS.md`, `TASK.md` nem nenhum artefato
+de execução. Não decompõe em requisito nem gera tarefa. Registrada a pedido do
+orquestrador, a partir da avaliação pontual de um briefing de **outro produto**
+do portfólio do fundador — não uma reabertura do PRD.md do MyMoney.
+
+## Origem
+
+Briefing recebido: "App de Controle Financeiro Individual/Familiar", produto
+**diferente** do MyMoney, do mesmo fundador (Leandro), evoluído do conceito
+"Metas Financeiras" dentro do processo de seleção entre 17 ideias de apps,
+tocado em paralelo ao Planejador de Viagens.
+
+## Parecer (sobreposição de produto)
+
+Há sobreposição real de **domínio** com o MyMoney (controle financeiro pessoal,
+lançamentos categorizados, metas com cálculo de "quanto guardar por mês" — o
+MyMoney já entrega isso hoje via `budget`/`categories`/`goals`-`contributions`,
+Fase 2). No entanto, não é o mesmo produto: três diferenças de identidade
+pesam contra fundir as duas iniciativas.
+1. **Modelo de conta**: o briefing novo é multiusuário/familiar sem privacidade
+   interna (visão unificada entre titulares) por padrão de produto; o MyMoney é
+   deliberadamente usuário único, com multiusuário explicitamente **fora de
+   escopo** (Seção 4 deste PRD.md, "Fora do escopo... revisitar só se o
+   stakeholder declarar essa necessidade explicitamente").
+2. **Posicionamento/tom**: o briefing novo declara propósito de "prosperar"
+   (crescimento/construção) e exclui deliberadamente qualquer recomendação de
+   investimento por implicação regulatória; o MyMoney não declarou esse
+   posicionamento — seu objetivo-norte é substituir a planilha e recuperar
+   controle (Seção 1/3), sem essa camada motivacional explícita.
+3. **Cálculo de meta**: o briefing novo é deliberadamente simples (valor total /
+   prazo, sem juros compostos); o MyMoney já tem `goals`/`contributions`
+   implementado com progresso acompanhado (Fase 2) — não há indicação de que o
+   MyMoney usa um cálculo mais sofisticado, mas o mecanismo já existe e está em
+   produção, o que é uma diferença de maturidade, não de conceito.
+
+**Conclusão**: overlap de domínio é real, mas não justifica fundir os dois como
+um único produto — a diferença de modelo de conta (individual vs.
+familiar/compartilhado sem privacidade interna) e de identidade/tom são
+suficientes para tratá-los como iniciativas separadas do portfólio.
+
+## Oportunidades futuras identificadas (para o próprio MyMoney)
+
+1. **Conta compartilhada multiusuário/familiar** — hoje fora de escopo do
+   MyMoney por decisão explícita (Seção 4). O briefing novo é sinal de que o
+   fundador valoriza esse caso de uso o suficiente para descrevê-lo como
+   produto à parte. Vale reavaliar no futuro **se o MyMoney deveria** oferecer
+   esse modo (em vez de — ou além de — existir como produto separado), mas
+   isso muda modelo de dados/autenticação de forma não trivial (mesmo alerta já
+   registrado no risco #3, Seção 6) e não deve ser decidido aqui.
+2. **Nenhuma oportunidade de fundir os dois produtos** é recomendada neste
+   momento — ver parecer acima. Não force uma oportunidade que não existe: a
+   diferença de posicionamento (tom "prosperar" + recusa deliberada de
+   recomendação de investimento) sugere um produto com identidade própria, não
+   uma feature do MyMoney.
+
+**Isto é apenas uma anotação de oportunidade futura, sem compromisso de
+roadmap.** Nenhum outro artefato (`GUARDRAILS.md`, `TASK.md`, `SDD.md`,
+`PRD-TECNICO.md`) foi tocado por esta nota.
