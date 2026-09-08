@@ -3331,6 +3331,261 @@ não condição para este veredito.
 
 ---
 
+## 21. Veredito de Lote — "Captura Automatizada — Voz & Foto" (2026-09-08)
+
+**Contexto**: primeiro lote de Fase 3 (captura automatizada), a área do
+produto mais sensível a RNF-01/RNF-08 (nenhuma persistência sem confirmação
+humana explícita). Tarefas: `BE-F3-00`, `BE-F3-01`, `BE-F3-02`, `FE-F3-01`,
+`FE-F3-02`, `FE-F3-03`, `FE-F3-04` (7), todas `Concluída` em `TASK.md` Seção
+3.3, conforme "Nota de execução — Lote 'Captura Automatizada — Voz & Foto'
+concluído (2026-09-07)". `BLOCKERS.md` conferido diretamente: nenhuma entrada
+`Aberto` afetando este lote.
+
+### 21.1 `test-strategy-planning`
+
+Estratégia: (a) SQL contra o projeto Supabase real vinculado, sob RLS real
+(`SET LOCAL ROLE authenticated`), para `BE-F3-00` — mesmo padrão de
+`BE-M-11`/`BE-REF-02`; (b) `deno test`/`deno check`/`deno lint` para as duas
+Edge Functions novas (`BE-F3-01`/`BE-F3-02`); (c) suíte de componente
+(Vitest + Testing Library) para os 4 componentes novos de Frontend, com
+atenção dedicada a `fake timers` para o critério de "nenhum timer/
+auto-confirmação" de `FE-F3-04` — item específico deste lote, sem precedente
+nas rodadas anteriores. Nenhum plano adicional necessário além do já coberto
+por `TEST-PLAN.md` geral de Fase 3.
+
+### 21.2 `acceptance-criteria-validation`
+
+- **`BE-F3-00`** (SDD Seção 5, RNF-01/RNF-08, DIR-20 — "nenhuma linha em
+  `candidate_transaction` é promovida a `transaction` sem evento de
+  confirmação explícito + `confirmed_at` gravado"): migration
+  `20260904170000_be_f3_00_candidate_transaction_import_batch.sql` lida linha
+  a linha. Confirmado por leitura direta: (1) `candidate_transaction` **não
+  tem nenhuma policy de `UPDATE`** para `authenticated` — RLS nega qualquer
+  PATCH direto por padrão; (2) a policy de `INSERT` exige `status='pending'`
+  e os 3 campos de resultado (`confirmed_at`/`discarded_at`/
+  `resulting_transaction_id`) nulos, fechando o caminho de um client
+  "fingir" uma confirmação já na criação; (3) `confirm_candidate_transaction`
+  (`SECURITY DEFINER`) é o único ponto que grava `status='confirmed'`,
+  valida ownership do candidato (`42501` se de outro usuário) e de **cada
+  FK final** (`account_id`/`payment_method_id`/`category_id`/
+  `destination_account_id`) contra `auth.uid()` antes de gravar — mesmo
+  padrão de `BE-M-13` para FK de tabela "ownable". **Suíte SQL reexecutada
+  por mim, de forma independente, contra o projeto Supabase real vinculado**
+  (`supabase db query --linked --file supabase/tests/be_f3_00_candidate_transaction_import_batch.test.sql`):
+  resultado `BE-F3-00 (candidate_transaction/import_batch, confirm/discard RPC): PASS`
+  — os 9 casos documentados pelo Executor (isolamento cross-user, bypass via
+  INSERT "fingindo" confirmação, bypass via UPDATE direto, confirm/discard em
+  candidato de outro usuário, confirm com FK final de outro usuário, fluxo
+  legítimo completo com saldo refletido, dupla confirmação, discard +
+  confirmar depois, DELETE só enquanto `pending`) reconfirmados nesta rodada,
+  não só relidos do relato do Executor. **Aprovado**.
+- **`BE-F3-01`** (RF-F3-02 AC1-3, ADR-007, SPK-002 — "campo obrigatório não
+  extraído retorna em branco sem bloquear os demais; chave de API nunca
+  exposta ao cliente"): `receipt-ocr/index.ts` exige `Authorization: Bearer`
+  antes de processar (401 sem sessão válida), nunca aceita `multipart/
+  form-data`, e `GOOGLE_VISION_API_KEY` só existe como variável de ambiente
+  do servidor — nenhum caminho de resposta a inclui. `lib.ts` confirmado por
+  leitura: campo não reconhecido (valor/data/estabelecimento) retorna
+  `undefined` isoladamente, sem lançar exceção nem afetar os demais (AC3).
+  `deno` não está disponível neste ambiente de validação (`deno: command not
+  found`) — não pude reexecutar `lib.test.ts` (20/20 casos documentados pelo
+  Executor); corroborado por leitura direta do código (heurísticas de
+  parsing, tratamento de erro do vendor) e da nota do Executor. **Aprovado**
+  com a mesma ressalva de transparência já documentada pelo próprio Backend
+  em `TASK.md` (chave real não configurada em nenhum ambiente, nenhum smoke
+  test empírico de acurácia rodado) — não é reprovação, é pendência
+  operacional já corretamente sinalizada, sem prazo fixo, dono Backend.
+- **`BE-F3-02`** (RF-F3-01 AC1, ADR-006 — "campos extraídos retornam marcados
+  como 'sugestão automática, não confirmada'"): `voice-capture/index.ts`
+  exige a mesma autenticação de sessão de `receipt-ocr`, nunca persiste
+  nada. `lib.ts` (`buildVoiceExtractionResult`) sempre inclui
+  `suggestion_disclaimer = "sugestão automática, não confirmada"` (texto
+  literal do AC) no resultado — confirmado por leitura direta, não por
+  alegação. Fallback de STT em nuvem responde `503 stt_fallback_not_configured`
+  de forma controlada quando não há vendor configurado (ADR-006, decisão
+  documentada de "extensão futura"), nunca finge sucesso. Mesma limitação de
+  ambiente (`deno` ausente) impediu reexecução de `lib.test.ts` (27/27 casos
+  documentados) — corroborado por leitura de código. **Aprovado**.
+- **`FE-F3-01`** (UX-FL-04, S-CAP-01 — "se navegador não suporta Web Speech
+  API nem há fallback, 'Falar' aparece desabilitada com texto explicativo,
+  nunca some silenciosamente"): `CaptureFab.tsx` usa
+  `hasSpeechRecognitionSupport()` e, quando ausente, aplica
+  `aria-disabled="true"` (nunca o atributo nativo `disabled`, permanece
+  focável) com o texto "Não disponível neste navegador" visível ao lado do
+  rótulo — confirmado em `CaptureFab.test.tsx` (linha 93: assevera o texto
+  quando a API está ausente; linha 123: assevera a ausência do texto quando
+  presente) — reexecutado nesta rodada como parte da suíte completa, `PASS`.
+  **Aprovado**.
+- **`FE-F3-02`** (UX-FL-04, S-CAP-02, DIR-15 — "estado 'Ouvindo...' e
+  transcrição interina anunciados via `aria-live`, não só exibidos
+  visualmente"): `VoiceRecorderUI.tsx` confirmado usando um único contêiner
+  `role="status" aria-live="polite"` que é ao mesmo tempo a exibição visual e
+  a região anunciada — decisão de `"polite"` (não `"assertive"`) documentada
+  no próprio componente e coerente com o contexto (fala contínua). Erros de
+  reconhecimento nunca lançam exceção nem travam a tela (`onerror`
+  normalizado para um conjunto fechado de códigos). **Aprovado**.
+- **`FE-F3-03`** (UX-FL-04, S-CAP-04 — "permissão de câmera negada oferece
+  upload de arquivo como alternativa, nunca bloqueia o usuário"):
+  `ReceiptCameraCapture.tsx` renderiza o `<input type="file">` **desde o
+  primeiro render** (estado `checking`), incondicionalmente — confirmado em
+  `ReceiptCameraCapture.test.tsx` (linha 47: visível no estado inicial; linha
+  57-76: visível mesmo com `getUserMedia` rejeitando com
+  `NotAllowedError`, "já estava visível antes do `getUserMedia` resolver a
+  negação — nunca escondido atrás do erro"). Stream de câmera sempre parado
+  (`track.stop()`) ao confirmar/cancelar/desmontar. **Aprovado**.
+- **`FE-F3-04`** (UX-FL-04, RNF-01/RNF-08, DIR-20 — "banner fixo
+  não-descartável; nenhum timer/auto-confirmação/navegação automática (WCAG
+  2.2.1); tag '✨ sugerido' desaparece só ao editar o campo") — **a mais
+  crítica do lote, escrutínio redobrado**:
+  - **Banner não-descartável**: `Modal.tsx` ganhou a prop `dismissible`
+    (default `true`); confirmado por leitura direta que Esc/backdrop/"✕"
+    ficam **inertes** quando `dismissible={false}` (linhas 40, 54, 71 de
+    `Modal.tsx` — o `useEffect` do Esc nem registra o listener se
+    `!dismissible`, o `onClick` do backdrop vira `undefined`, e o botão "✕"
+    nem é renderizado). `CaptureFab.tsx` (linha 179) confirmado passando
+    `dismissible={mode !== "draft"}` — ou seja, exatamente quando
+    `DraftReviewBanner` está montado, o modal fica travado. Reproduzido em
+    `Modal.test.tsx` (+3 casos) e ponta a ponta em `CaptureFab.test.tsx`.
+  - **Nenhum timer/auto-confirmação/navegação automática**: li o teste
+    crítico em `DraftReviewBanner.test.tsx` linha por linha (não a alegação
+    do Executor) — `vi.useFakeTimers({ shouldAdvanceTime: true })`, avança
+    **10 minutos** (`vi.advanceTimersByTimeAsync(10 * 60 * 1000)`) depois do
+    candidato já criado, e assevera explicitamente que
+    `confirmCandidateTransaction`/`deleteCandidateTransaction` **nunca**
+    foram chamados, que `onConfirmed`/`onDiscarded` **nunca** foram
+    chamados, e que o botão "Confirmar lançamento" continua na tela. Este é
+    um teste real que provaria uma regressão futura (ex.: alguém adicionar
+    um `setTimeout` de auto-confirmação) — não apenas a ausência atual de
+    timer no código-fonte. Lido também o componente (`DraftReviewBanner.tsx`)
+    de ponta a ponta: nenhum `setTimeout`/`setInterval` em lugar nenhum;
+    `handleConfirm`/`handleDiscard` só executam a partir de `onClick`
+    explícito dos 2 botões. **Confirmado, não é alegação — é fato
+    verificado por mim.**
+  - **`AutoFillTag` por campo específico**: cada `set*Suggested(false)` está
+    colado ao `onChange` do próprio campo (linhas 331-433 de
+    `DraftReviewBanner.tsx`) — editar Valor nunca chama
+    `setDateSuggested`/`setCategorySuggested`/etc. Confirmado em
+    `DraftReviewBanner.test.tsx` (caso "editar Valor não afeta a tag de
+    Data/Categoria/Descrição" e caso "só focar sem alterar não remove
+    nada").
+  - **Fluxo de persistência real, sem mock**: `createCandidateTransaction`
+    ao montar (rascunho pendente, não afeta saldo), `confirmCandidateTransaction`
+    (RPC real de `BE-F3-00`) só a partir do clique em "Confirmar lançamento"
+    com os valores finais já editados (RF-F3-01 AC3), `deleteCandidateTransaction`
+    (DELETE físico, só enquanto `pending`) a partir de "Cancelar" — nenhum
+    mock intermediário, confirmado por leitura de
+    `frontend/src/lib/api/candidateTransactions.ts`.
+  - **3 decisões de interpretação pequenas** (Conta/Forma de pagamento sem
+    `AutoFillTag`; foto sem "Tipo" extraído, assume "Saída"; descrição da
+    foto usa `merchant_name`) — revisadas contra os dois contratos
+    publicados (`/voice-capture` v0.22.0, `/receipt-ocr` v0.21.0):
+    confirmado que nenhum dos dois de fato sugere `account_id`/
+    `payment_method_id`/`type` para foto — as 3 decisões são consistentes
+    com o contrato real, não reinterpretação de critério de aceite.
+  - **Aprovado, sem ressalva.**
+
+### 21.3 `cross-platform-integration-testing` de lote
+
+Ponto de convergência do lote (`FE-F3-04`, dependência já registrada em
+`TASK.md` Seção 4.3: `FE-F3-04 | FE-F3-02, FE-F3-03, BE-F3-00 (contrato) |`)
+confirmado por leitura cruzada dos dois lados: `VoiceExtractionResult`/
+`ReceiptExtractionResult` (tipos consumidos por `DraftReviewBanner.tsx`)
+batem campo a campo com os schemas publicados em `API-CONTRACT.yaml`
+(`/voice-capture` v0.22.0, `/receipt-ocr` v0.21.0) — nenhuma divergência de
+nome/opcionalidade de campo. `candidateTransactions.ts`
+(`createCandidateTransaction`/`confirmCandidateTransaction`/
+`deleteCandidateTransaction`) consome exatamente `/candidate_transaction`,
+`/rpc/confirm_candidate_transaction`, `/rpc/discard_candidate_transaction`
+como documentado — parâmetros da RPC (`p_candidate_id`/`p_account_id`/etc.)
+conferem 1:1 com a assinatura SQL real de `confirm_candidate_transaction`
+lida na migration. Integração `FE-F3-02`/`FE-F3-03` → `FE-F3-04`: ambos os
+canais convergem para o mesmo componente `DraftReviewBanner` via
+`CaptureFab.tsx`, com `source.kind` (`"voice"` | `"photo"`) discriminando a
+derivação de campos — nenhuma duplicação de lógica de persistência entre os
+dois canais (só um componente cria/confirma/descarta o candidato).
+
+### 21.4 `bug-documentation` de lote
+
+Nenhum bug de severidade alta/crítica nem simples encontrado nesta rodada.
+Nenhum achado de acessibilidade/UX pendente de registro além do já
+corretamente documentado pelo próprio Executor como decisão de interpretação
+(Seção 21.2).
+
+### 21.5 `non-functional-validation` de lote
+
+- **RNF-01/RNF-08 (barreira arquitetural)**: validado em profundidade acima
+  (21.2, `FE-F3-00`/`FE-F3-04`) — nenhuma persistência de `Transaction` real
+  sem `confirm_candidate_transaction`, nenhum timer/auto-confirmação. Este é
+  o requisito não funcional central do lote e recebeu o escrutínio mais
+  intenso desta rodada, incluindo reexecução independente da suíte SQL.
+- **Degradação graciosa (câmera/microfone ausente/negado)**: validado em
+  21.2 (`FE-F3-01`/`FE-F3-03`) — nenhum dos dois fluxos bloqueia o usuário
+  quando a capability do navegador está ausente ou é negada.
+- **Acessibilidade (`aria-live`, foco, `aria-disabled`)**: `VoiceRecorderUI`
+  usa `aria-live="polite"` real (não `sr-only` cosmético); item desabilitado
+  de `CaptureFab` usa `aria-disabled` (mantém foco por teclado, WCAG 2.1
+  4.1.2); `Modal` com `dismissible={false}` ainda preserva navegação por
+  Tab dentro do conteúdo (não testei focus-trap completo nesta rodada —
+  ver ressalva abaixo, não bloqueante, escopo de `QA-F3-02` dedicado).
+- **Performance/usabilidade**: "Lendo o recibo..."/"Interpretando..." como
+  estados de carregamento explícitos durante chamadas de rede, erro de rede
+  em qualquer etapa nunca reseta o formulário (mensagem inline + retry ou
+  estado preservado) — confirmado por leitura de `DraftReviewBanner.tsx`/
+  `VoiceRecorderUI.tsx`.
+
+**Ressalva não-bloqueante, fora do escopo desta rodada**: teste de
+acessibilidade WCAG 2.1 AA formal e dedicado (foco/contraste/leitor de tela
+end-to-end) dos 4 componentes novos é escopo explícito de `QA-F3-02` (`TASK.md`
+Seção 4, "Fechamento & Regressão Fase 3"), ainda `Não iniciada` — a validação
+desta rodada cobriu os pontos de acessibilidade literalmente exigidos pelos
+critérios de aceite de cada tarefa (aria-live, aria-disabled, foco), não uma
+auditoria WCAG completa. Não é reprovação nem débito: é o próximo passo já
+planejado, fora do escopo deste lote específico.
+
+### 21.6 Veredito de lote consolidado
+
+**Aprovado** — 7/7 tarefas aprovadas (`BE-F3-00`, `BE-F3-01`, `BE-F3-02`,
+`FE-F3-01`, `FE-F3-02`, `FE-F3-03`, `FE-F3-04`), nenhuma reprovação crítica
+nem simples. Libera formalmente a auditoria completa do chapéu DevSecOps
+sobre este lote.
+
+**Padrão recorrente? Não** — nenhum bug encontrado nesta rodada; as 3
+decisões de interpretação pequenas documentadas pelo Executor em `FE-F3-04`
+são consistentes com os contratos reais publicados, não sintoma de falha de
+decomposição/diretriz.
+
+**Testes executados nesta rodada, com transparência de escopo**:
+`supabase db query --linked --file supabase/tests/be_f3_00_candidate_transaction_import_batch.test.sql`
+reexecutado de forma independente contra o projeto Supabase real vinculado:
+`BE-F3-00 (candidate_transaction/import_batch, confirm/discard RPC): PASS`
+(9/9 casos). Suíte de frontend completa (`npx vitest run`): **65 arquivos, 388
+testes, todos passando** — nenhuma flakiness observada nesta execução (as 2
+falhas isoladas de timeout sob concorrência mencionadas nas notas de
+execução de `FE-F3-03`/`FE-F3-04` não se reproduziram nesta rodada). `npx tsc
+-b`: sem erros. **Limitação registrada, não bloqueante**: `deno test`/`deno
+check`/`deno lint` de `supabase/functions/receipt-ocr/` e
+`supabase/functions/voice-capture/` não puderam ser reexecutados nesta
+rodada (`deno` ausente do ambiente de validação, mesma limitação já
+registrada nas rodadas 9/20) — corroborado por leitura de código linha a
+linha (autenticação, CORS, ausência de persistência, heurísticas de
+parsing), não por execução própria; recomenda-se reconfirmar via ambiente
+com Deno disponível na próxima oportunidade, item de fechamento, não
+condição para este veredito.
+
+### 21.7 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 7 tarefas foi testado e está passando
+      (Seção 21.2), com escrutínio redobrado em `BE-F3-00`/`FE-F3-04` (RNF-01/
+      RNF-08) incluindo reexecução independente da suíte SQL e leitura
+      linha-a-linha do teste crítico de fake-timers
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 21.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 21.5),
+      com ressalva não-bloqueante de acessibilidade WCAG formal delegada a
+      `QA-F3-02` (já planejada, fora de escopo deste lote)
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -3355,3 +3610,5 @@ não condição para este veredito.
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Recorrência & Parcelamento": BE-F2-03, BE-F2-04, BE-F2-05, FE-F2-03, FE-F2-04 (5) | **Aprovado** (lote) — Aprovado (5/5), nenhuma reprovação; testes SQL de `BE-F2-03`/`BE-F2-04`/`BE-F2-05` rodados de forma independente contra o projeto Supabase real vinculado; suíte de frontend completa 331/331 sem flake — `QA-REPORT.md` Seção 17 | 0 | Nenhum novo (fragilidade de isolamento de `be_m07_dashboard.test.sql`, não deste lote, sinalizada ao `coordenador` em 17.4/17.6, sem tarefa de débito) |
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Contas Fixas": BE-F2-06, BE-F2-07, FE-F2-05 (3) | **Aprovado** (lote) — Aprovado (3/3), nenhuma reprovação; testes SQL de `BE-F2-06`/`BE-F2-07` rodados de forma independente contra o projeto Supabase real vinculado, sem bloqueio de permissão; regressão SQL ampliada 15/15 `PASS`; suíte de frontend 330/331 (1 flake de `UnlockPage.test.tsx`, não relacionado, confirmado por reexecução 3/3) — `QA-REPORT.md` Seção 18 | 0 | Nenhum novo |
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Metas": BE-F2-08, FE-F2-06 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; teste SQL de `BE-F2-08` executado de forma independente contra o projeto Supabase real vinculado, sem bloqueio de permissão; suíte de frontend completa 324/331 (6 arquivos/7 testes com timeout de ambiente na 1ª execução, incluindo `GoalsPage.test.tsx`, reexecutados isoladamente com 100% PASS, mesma classe de flake de `UnlockPage.test.tsx`) — `QA-REPORT.md` Seção 19 | 0 | QA-DEBT-016 (baixa, `aria-valuenow` > `aria-valuemax` em `GoalProgressBar.tsx` no estado de meta superada — reproduz previsão de `QA-DEBT-010`) |
+| 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Notificações & Configurações": BE-F2-09, FE-F2-07, FE-F2-09 (3) | **Aprovado** (lote) — Aprovado (3/3), nenhuma reprovação; teste SQL de `BE-F2-09` executado de forma independente contra o projeto Supabase real vinculado — `QA-REPORT.md` Seção 20 | 0 | Nenhum novo |
+| 2026-09-08 (veredito de lote) | Lote "Captura Automatizada — Voz & Foto": BE-F3-00, BE-F3-01, BE-F3-02, FE-F3-01, FE-F3-02, FE-F3-03, FE-F3-04 (7) | **Aprovado** (lote) — Aprovado (7/7), nenhuma reprovação; escrutínio redobrado de RNF-01/RNF-08 (`BE-F3-00`/`FE-F3-04`) incluindo reexecução independente da suíte SQL (9/9 `PASS`) e leitura linha-a-linha do teste crítico de fake-timers de 10 minutos; suíte de frontend completa 388/388 `PASS`, `tsc -b` sem erros — `QA-REPORT.md` Seção 21 | 0 | Nenhum novo (achado de segurança `SEC-DEBT-015` registrado pelo chapéu DevSecOps, agendado como `BE-DEBT-04`) |

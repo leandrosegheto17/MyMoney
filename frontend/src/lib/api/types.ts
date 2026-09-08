@@ -411,3 +411,45 @@ export interface TransactionShortcut {
   category_id: string;
   payment_method_id: string | null;
 }
+
+// ============================================================================
+// Fase 3 — Captura Automatizada (BE-F3-00, SDD Seção 5.2, RNF-01/RNF-08, DIR-20)
+// ============================================================================
+
+export type CandidateTransactionSource = "audio" | "ocr" | "import" | "openfinance";
+export type CandidateTransactionStatus = "pending" | "confirmed" | "discarded";
+
+/**
+ * `CandidateTransaction` — `API-CONTRACT.yaml` (`BE-F3-00`). Nunca é uma
+ * `Transaction` até passar por `confirm_candidate_transaction` (DIR-20). Consumido
+ * por `DraftReviewBanner` (`FE-F3-04`, `S-CAP-03`/`S-CAP-05`).
+ */
+export interface CandidateTransaction {
+  id: string;
+  user_id: string;
+  import_batch_id: string | null;
+  source: CandidateTransactionSource;
+  status: CandidateTransactionStatus;
+  raw_payload: Record<string, unknown>;
+  duplicate_of_transaction_id: string | null;
+  resulting_transaction_id: string | null;
+  confirmed_at: string | null;
+  discarded_at: string | null;
+  created_at: string;
+}
+
+/** `POST /candidate_transaction` só aceita `status=pending` implícito (RLS rejeita qualquer outro valor). */
+export type NewCandidateTransaction = Pick<CandidateTransaction, "source"> &
+  Partial<Pick<CandidateTransaction, "import_batch_id" | "raw_payload" | "duplicate_of_transaction_id">>;
+
+/** `POST /rpc/confirm_candidate_transaction` — valores FINAIS do formulário de confirmação (RF-F3-01 AC3). */
+export interface ConfirmCandidateTransactionParams {
+  p_candidate_id: string;
+  p_account_id: string;
+  p_payment_method_id?: string | null;
+  p_category_id?: string | null;
+  p_kind: Extract<TransactionKind, "income" | "expense">;
+  p_amount_cents: number;
+  p_transaction_date: string;
+  p_description?: string | null;
+}

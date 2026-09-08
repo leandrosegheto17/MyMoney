@@ -10,6 +10,14 @@ export interface ModalProps {
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /**
+   * `false` (default `true`) — `FE-F3-04` (`DraftReviewBanner`, S-CAP-03/S-CAP-05):
+   * desliga o fechamento via Esc, clique no backdrop e o botão "✕" do cabeçalho,
+   * deixando só as ações explícitas do próprio conteúdo como via de saída
+   * (critério de aceite literal: "banner fixo não-descartável até ação
+   * explícita"). Não altera o comportamento de nenhum outro chamador existente.
+   */
+  dismissible?: boolean;
 }
 
 /**
@@ -21,7 +29,7 @@ export interface ModalProps {
  * (`useFocusTrap`), fechamento via Esc, clique no backdrop e botão explícito — nunca
  * só gesto (Seção 5, "Gesto único não é a única via").
  */
-export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, footer, dismissible = true }: ModalProps) {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -29,13 +37,13 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
   useFocusTrap(isOpen, dialogRef);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !dismissible) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, dismissible]);
 
   if (!isOpen) return null;
 
@@ -43,7 +51,7 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
     <div className="fixed inset-0 z-50 flex items-end justify-center lg:items-center">
       <div
         aria-hidden="true"
-        onClick={onClose}
+        onClick={dismissible ? onClose : undefined}
         className="absolute inset-0 bg-neutral-900/50 transition-opacity duration-300"
       />
       <div
@@ -60,14 +68,16 @@ export function Modal({ isOpen, onClose, title, children, footer }: ModalProps) 
           <h2 id={titleId} className="text-lg font-semibold text-neutral-900">
             {title}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="min-h-11 min-w-11 rounded-md text-neutral-500 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            ✕
-          </button>
+          {dismissible && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="min-h-11 min-w-11 rounded-md text-neutral-500 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              ✕
+            </button>
+          )}
         </div>
         <div className="flex-1 overflow-y-auto">{children}</div>
         {footer && <div className="flex justify-end gap-2">{footer}</div>}

@@ -1388,6 +1388,8 @@ achado desta rodada tem relevância estratégica que exija nova sinalização.
 | SEC-DEBT-011 | Bypass temporário do gate de MFA por e-mail (`custom_access_token_hook` sempre emite `app_email_mfa_verified=true`; `SKIP_EMAIL_MFA=true` no frontend) — remove o 2º fator de 12 tabelas de dado financeiro, mitigado por cadastro travado a 1 e-mail (`allowed_signup_emails`) e ausência de movimentação de dinheiro real neste MVP; agravado por `minimum_password_length=6`/`password_requirements=""` — `BLOCKERS.md` Bloqueio 018 (ver 1.16) | Média | Não (aprovado como risco temporário — ver 1.16) — reversão condicional, não bloqueio | O que vier primeiro: `auth-email-mfa` voltar a funcionar, ou **7 dias corridos** do deploy (extensão além disso exige nova confirmação explícita do stakeholder); política de senha fraca sem prazo fixo, mas recomendado corrigir junto | stakeholder/backend (reversão do bypass) / backend (política de senha) |
 | SEC-DEBT-012 | `categories.color` (coluna `text` livre, sem `CHECK` de formato) renderizado pela primeira vez como valor de CSS inline em `CategoryCard.tsx` (`style={{ backgroundColor: color }}`), sem validação de formato hexadecimal — hoje sem exploitabilidade prática (nenhuma UI expõe campo para o usuário definir essa cor; RLS impede leitura cross-tenant) | Baixa | Não | Antes de qualquer funcionalidade futura que exponha um campo de UI para definir `categories.color`/`accounts.color` livremente — adicionar validação de formato (regex/`CHECK` constraint); sem urgência hoje | frontend / backend |
 | SEC-DEBT-013 | `recurring_template_adjustments` permite `DELETE` de reajuste histórico pelo próprio dono via RLS, sem trigger de imutabilidade equivalente ao que protege `amount_cents` contra `UPDATE` — apaga o rastro de um reajuste e pode mudar a resolução de valor para competências futuras ainda não geradas (lançamentos já persistidos não são afetados); sem caminho de UI no Frontend, só via REST direto (1.27) | Baixa | Não | Sem urgência — corrigir no próximo toque em `recurring_template_adjustments`: trigger `BEFORE DELETE` bloqueando exclusão de reajuste já vigente/consumido, ou restringir `DELETE` só ao reajuste mais recente ainda futuro | backend |
+| SEC-DEBT-014 | Conteúdo de push notification (`notify_user()`/`push-dispatch`) expõe nome de categoria + percentual de orçamento, ou descrição + data de conta fixa, em texto claro na notificação nativa visível mesmo com dispositivo bloqueado — nenhum valor monetário exposto, mas mais detalhe contextual do que o mínimo necessário (1.30) | Baixa | Não | Próximo lote que tocar `notify_user()`/`push-dispatch`: considerar título genérico, detalhe só após desbloqueio | frontend/backend |
+| SEC-DEBT-015 | `candidate_transaction.import_batch_id` com `ON DELETE CASCADE` (migration `20260904170000`) permite apagar o registro de auditoria de um candidato já `confirmed`/`discarded` ao excluir seu `import_batch` — contradiz `candidate_transaction_delete_own_pending` (que só permite DELETE direto enquanto `pending`) e o texto já publicado em `API-CONTRACT.yaml` ("nenhum candidato é apagado em cascata pelo lote", ON DELETE SET NULL); sem impacto cross-tenant nem em saldo/`Transaction` real; inexploitável pelo fluxo real de voz/foto hoje (nenhum candidato deste lote tem `import_batch_id` preenchido) (1.31) | Média | Não hoje — **bloqueio automático condicional**, mesmo padrão de SEC-DEBT-002/006 | Antes de `BE-F3-03`/`BE-F3-04` (Importação de Extrato/Open Finance, primeiros consumidores reais de `import_batch` com candidatos vinculados) serem consideradas prontas para produção — agendado como `BE-DEBT-04` (`TASK.md` Seção 3.7) | backend |
 
 **Achado #3 (schema baseline não referenciado)** e **SEC-DEBT-005** (gaps
 remanescentes do mesmo achado, `BLOCKERS.md` Bloqueio 012) não entram na leitura
@@ -1499,6 +1501,17 @@ fechamento) na atualização "Achado novo" acima e em `BLOCKERS.md` Bloqueio
 Por extensão, os lotes anteriores "Aprovado com débito" suspensos pela mesma
 pré-condição comum (Fundação, Contas & Formas de Pagamento, Ledger &
 Dashboard) voltam à leitura normal de "pronto para produção".
+
+**Atualização 1.31 (auditoria completa de lote, "Captura Automatizada — Voz &
+Foto")**: `SEC-DEBT-015` (`candidate_transaction.import_batch_id` com `ON
+DELETE CASCADE`, permitindo apagar auditoria de candidato já
+confirmado/descartado via exclusão do `import_batch`) segue o mesmo padrão
+de `SEC-DEBT-002`/`006` — não bloqueia o fechamento deste lote hoje (voz/foto
+nunca populam `import_batch_id`), mas carrega condição de bloqueio automático
+antes de `BE-F3-03`/`BE-F3-04` (os primeiros consumidores reais de
+`import_batch` vinculado a candidato) serem consideradas prontas para
+produção. Agendado como `BE-DEBT-04` (`TASK.md` Seção 3.7). Veredito do
+lote: **Aprovado com débito** (ver 1.31).
 
 **Atualização 1.16 (revisão pontual, `SEC-DEBT-011`, bypass temporário de MFA por
 e-mail)**: não bloqueia o deploy da mudança em produção — aprovado como risco
@@ -4057,3 +4070,184 @@ nem componente de compliance/cross-tenant.
 **Veredito final do lote "Notificações & Configurações" do ponto de vista de
 DevSecOps: Aprovado com débito** (`SEC-DEBT-014`, baixa severidade, não
 bloqueante; deploy liberado).
+
+### 1.31 — Auditoria completa (veredito de lote) — "Captura Automatizada — Voz & Foto" — 2026-09-08
+
+**Gatilho**: `QA-REPORT.md` Seção 21 aprovou (Aprovado, 7/7) `BE-F3-00`,
+`BE-F3-01`, `BE-F3-02`, `FE-F3-01`, `FE-F3-02`, `FE-F3-03`, `FE-F3-04`. Libera
+a auditoria completa, respeitando meu próprio gate de entrada (QA antes de
+DevSecOps). Escrutínio ampliado nesta rodada, dado o pedido explícito de
+atenção redobrada a RNF-01/RNF-08 — primeiro lote de Fase 3, área do produto
+mais sensível a persistência sem confirmação humana.
+
+**Verificação de `BLOCKERS.md`**: lido diretamente — nenhuma entrada `Aberto`
+afetando este lote. `SEC-DEBT-002`/`006` (condição de bloqueio automático
+antes de qualquer tarefa `BE-F3-*`) confirmados **satisfeitos** —
+`BE-M-13` está `Concluída` (pré-condição já registrada em `TASK.md` Seção
+3.3, "Segunda condição... Status: satisfeita — 2026-09-03") e o padrão de
+validação de ownership de FK que `BE-M-13` introduziu foi de fato herdado por
+`BE-F3-00` (ver ponto (c) abaixo) — não é presunção, é confirmado por leitura
+direta da migration nova.
+
+#### `static-security-analysis` — leitura direta da migration, das 2 Edge Functions e do frontend do lote
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) CORS — regressão para wildcard? | Leitura direta do código | `receipt-ocr/index.ts:47-50` e `voice-capture/index.ts:40-43` — ambas reaproveitam `WEBAUTHN_ORIGIN` como allow-list (`ALLOWED_ORIGINS`, split por vírgula), `corsHeaders()` só ecoa a origem da requisição se ela estiver na lista, senão cai no primeiro item da lista (nunca `*` como padrão real de produção) — mesmo padrão já corrigido para o achado histórico `SEC-DEBT-001`/Achado #1 (`auth-email-mfa`). **Nenhuma regressão para wildcard.** | Passa |
+| (b) Autenticação obrigatória antes de processar | Leitura direta do código | `receipt-ocr/index.ts:146-167` e `voice-capture/index.ts:139-160` — `getAuthenticatedUser()` chamado **antes** de qualquer leitura do corpo/validação de imagem-transcrição; ausência de JWT válido retorna `401` imediatamente, nenhum caminho de código chega ao provider (Google Vision/STT) sem `user.id` resolvido. Timeout de 5s (`AUTH_TIMEOUT_MS`) evita travar a function indefinidamente se `auth.getUser` não responder | Passa |
+| (c) IDOR/RLS — `candidate_transaction`/`import_batch`, padrão `BE-M-13` | Leitura direta da migration | `candidate_transaction_insert_own` (migration `:196-211`) valida ownership de **cada FK referenciada** (`import_batch_id` contra `import_batch.user_id`, `duplicate_of_transaction_id` contra `transactions.user_id`) antes de aceitar o INSERT — exatamente o padrão sistêmico que `BE-M-13` introduziu para toda tabela "ownable" nova com FK cross-tabela. `confirm_candidate_transaction` (`:311-331`, `SECURITY DEFINER`) reimplementa a mesma checagem para as 4 FKs finais (`account_id`/`category_id`/`payment_method_id`/`destination_account_id`) dentro do corpo da função, já que `SECURITY DEFINER` contorna RLS — sem essa reimplementação explícita, seria exatamente a classe de gap que motivou `BE-M-13`/Bloqueio 010. Reexecutei a suíte SQL de forma independente (`supabase db query --linked --file supabase/tests/be_f3_00_candidate_transaction_import_batch.test.sql`): `PASS`, incluindo CASO 4/5 (tentativa de `attacker` confirmar candidato/FK de outro usuário, negado com `42501`) e CASO 1 (isolamento cross-user via SELECT) | Passa |
+| (d) Bypass de policy de `UPDATE`/`INSERT` direto contornando a RPC de confirmação | Leitura direta da migration + reexecução do teste | `candidate_transaction` **não tem nenhuma policy de `UPDATE`** para `authenticated` (deny por padrão via RLS) — confirmado pelo CASO 3 do teste SQL (`UPDATE` direto de `status` afeta 0 linhas). Policy de `INSERT` rejeita linha já "confirmada" na criação (CASO 2 do teste, `sqlstate` capturado). Nenhuma policy de `INSERT`/`UPDATE` em `candidate_transaction` permite bypassar `confirm_candidate_transaction` | Passa |
+| (e) Exposição de segredo — chave de API do vendor de OCR/STT ao client | Leitura direta do código | `GOOGLE_VISION_API_KEY` (`receipt-ocr`) só existe como `Deno.env.get(...)` no servidor, nunca incluída em nenhum corpo de resposta (`jsonResponse` só devolve `{ result }` ou `{ error, message }`); ausência da chave responde `503 ocr_not_configured` sem vazar detalhe do vendor. `voice-capture` não usa nenhuma chave de vendor hoje (`getConfiguredSTTProvider()` retorna `null` deliberadamente, ADR-006 — fallback de STT em nuvem é extensão futura sem vendor decidido) | Passa |
+| (f) Log — transcrição/imagem em texto claro | Leitura direta do código | `receipt-ocr/index.ts:208-213` e `voice-capture/index.ts:227-234` — os únicos `log("info", ...)` de sucesso registram só booleanos (`amount_extracted`/`date_extracted`/etc.), nunca o valor extraído nem `image_base64`/`transcript`/`raw_text` em si. Grep dirigido em `receipt-ocr/lib.ts`/`googleVisionAdapter.ts`/`voice-capture/lib.ts`/`_shared/{ocrProvider,sttProvider}.ts` por `console.*` fora de `index.ts`: zero ocorrências — `raw_text` só existe como campo do objeto de retorno (`lib.ts:234`), nunca logado | Passa |
+| (g) **Achado novo** — `candidate_transaction.import_batch_id` FK cascade vs. contrato documentado | Leitura direta da migration + `API-CONTRACT.yaml` | Migration `:136` — `import_batch_id uuid references public.import_batch(id) on delete cascade`. `API-CONTRACT.yaml:1669` (`DELETE /import_batch?id=eq.{id}`) declara explicitamente: **"nenhum candidato é apagado em cascata pelo lote"** (ON DELETE SET NULL) — o texto do contrato descreve o comportamento **oposto** do que a migration real implementa. `import_batch_delete_own` (`:120-122`) permite `DELETE` ao próprio dono sem checar o status dos candidatos vinculados | **Achado — ver abaixo** |
+
+**Achado (g) — `SEC-DEBT-015`, severidade Média, não bloqueante hoje**: um
+usuário autenticado pode excluir seu próprio `import_batch` a qualquer
+momento; por `ON DELETE CASCADE`, isso apaga fisicamente **toda** linha de
+`candidate_transaction` vinculada àquele lote — inclusive uma já
+`confirmed`, cujo `raw_payload`/`confirmed_at`/`resulting_transaction_id`
+são perdidos (a `Transaction` real gerada permanece intacta, com seu próprio
+`confirmed_at`, via `ON DELETE SET NULL` em
+`transactions.import_staging_id` — o saldo/lançamento em si não é afetado).
+Isto contradiz diretamente a garantia que `candidate_transaction_delete_own_pending`
+(mesma migration, comentário explícito: "DELETE só permitido enquanto ainda
+'pending'... preserva o registro de auditoria de RNF-08") tenta estabelecer
+— a proteção existe no caminho de `DELETE /candidate_transaction` direto, mas
+**não** no caminho indireto via cascade a partir de `DELETE /import_batch`.
+Também contradiz o texto já publicado em `API-CONTRACT.yaml` (linha 1669),
+que descreve o comportamento errado — ou a migration está errada em relação
+ao contrato pretendido, ou o contrato nunca foi conferido contra o SQL real
+antes de publicar.
+
+**Por que Média, não Alta/Crítica, e por que não bloqueia hoje**: (1)
+**sem impacto cross-tenant** — só o próprio dono pode excluir seus próprios
+lotes; (2) **sem impacto em saldo/integridade financeira** — a `Transaction`
+real e seu `confirmed_at` (a garantia central de RNF-08: "todo lançamento de
+origem automatizada mantém registro com timestamp") permanecem intactos, só
+o registro *auxiliar* de auditoria da extração original (`candidate_transaction`)
+é perdido; (3) **inexploitável pelo fluxo real deste lote hoje** — voz e foto
+(`BE-F3-01`/`02`, os dois canais implementados até agora) **nunca** preenchem
+`import_batch_id` (confirmado no comentário da própria migration: "`import_batch_id`
+é NULL para voz/foto"), então nenhuma tela hoje em produção cria um
+`candidate_transaction` vinculado a um lote real — só passa a importar
+quando `BE-F3-03`/`BE-F3-04` (Importação de Extrato/Open Finance, ainda `Não
+iniciada`) começarem a gerar candidatos de fato vinculados a lotes. É,
+porém, tecnicamente reproduzível **hoje** por qualquer usuário via chamada
+directa a `POST /import_batch` + `POST /candidate_transaction` (ambos já
+publicados e ativos desde `BE-F3-00`) — por isso não é um achado
+"inexistente", é um achado presente na superfície pública da API, apenas sem
+consumidor real ainda.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + RNF-01/RNF-08 + `GUARDRAILS.md`
+
+RNF-01 (barreira arquitetural de confirmação humana) e RNF-08 (registro
+auditável com timestamp) confirmados como corretamente implementados no
+caminho principal: nenhum trigger promove `candidate_transaction` a
+`Transaction` silenciosamente, `confirm_candidate_transaction` é o único
+caminho, `transactions.confirmed_at` é gravado no mesmo `now()` de
+`candidate_transaction.confirmed_at`. O achado (g) acima é uma exceção nesse
+racional — não invalida a barreira de **confirmação** (nenhum saldo é
+afetado, nenhuma `Transaction` é criada fora da RPC), mas enfraquece a
+garantia de **auditoria retroativa** de um candidato já confirmado, em um
+caminho lateral (exclusão do lote) que os 9 casos de teste de `BE-F3-00` não
+cobrem (nenhum dos 9 exercita `DELETE /import_batch`). Padrão `BE-M-13` de
+validação de ownership de FK cross-tabela confirmado herdado corretamente
+por `BE-F3-00` (ponto (c) acima) — nenhum gap desta classe neste lote.
+Requisito de segurança operacional para o DevOps: nenhum novo além do já
+registrado na Seção 4 (Edge Functions internas seguem o mesmo padrão de
+`WEBAUTHN_ORIGIN`/JWT de sessão já auditado).
+
+#### `compliance-validation` — LGPD
+
+Dado potencialmente sensível novo neste lote: transcrição de voz
+(`candidate_transaction.raw_payload` para `source='audio'`) e foto de recibo
+(nunca persistida no banco por `BE-F3-01`/`FE-F3-03` — só o `base64` em
+memória do client até a confirmação; `candidate_transaction.raw_payload`
+para `source='ocr'` guarda o resultado já extraído da OCR, não a imagem em
+si). Retenção: `ADR-011` (já referenciado por `BE-F3-08`, ainda `Não
+iniciada`) prevê expurgo de candidato descartado/abandonado em 30 dias — esta
+política ainda não está implementada (a tarefa de job de expurgo é posterior
+neste mesmo lote de Fase 3), então candidatos `pending`/`discarded` deste
+lote **hoje não têm expurgo automático ativo** — mesma situação já esperada
+e sequenciada corretamente em `TASK.md` (`BE-F3-08` depende de `BE-F3-00`,
+roda depois). Não é um achado novo desta rodada, é uma dependência de
+sequenciamento já corretamente mapeada — sinalizo para registro, sem
+duplicar como débito. **Nenhum achado de compliance obrigatório em aberto
+específico deste lote.**
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*`/`localStorage`/`sessionStorage`/
+`dangerouslySetInnerHTML`/`innerHTML` em `DraftReviewBanner.tsx`,
+`VoiceRecorderUI.tsx`, `ReceiptCameraCapture.tsx`, `CaptureFab.tsx`,
+`AutoFillTag.tsx`, `speechRecognition.ts`, `receiptImage.ts`: zero
+ocorrências fora do uso esperado de `<img src="data:...">` para a
+pré-visualização local da própria foto (nunca enviada a nenhum terceiro
+além do próprio `/receipt-ocr` do backend). Foto de recibo nunca é
+persistida no Storage/banco por este lote (confirmado — `FE-F3-04` só
+mantém o `base64` em estado React local, `candidate_transaction.raw_payload`
+guarda o *resultado* da extração, não a imagem). Confirmado (ponto (f)
+acima) que nenhuma Edge Function loga transcrição/imagem em texto claro.
+
+#### `finding-severity-classification`
+
+- `SEC-DEBT-015` (novo, esta rodada) — `candidate_transaction.import_batch_id`
+  com `ON DELETE CASCADE` permite apagar o registro de auditoria de um
+  candidato já `confirmed`/`discarded` ao excluir seu `import_batch`, contra
+  o texto já publicado em `API-CONTRACT.yaml`: **Média severidade** (sem
+  impacto cross-tenant, sem impacto em saldo/integridade financeira da
+  `Transaction` real, mas contradiz uma garantia de auditoria
+  explicitamente documentada e testada para o caminho direto). **Condição
+  de bloqueio automático**: deve estar corrigido antes de `BE-F3-03`/
+  `BE-F3-04` (os primeiros consumidores reais de `import_batch` com
+  candidatos vinculados) serem considerados prontos para produção — mesmo
+  mecanismo já usado para `SEC-DEBT-002`/`006`. Dono: backend. Agendado como
+  `BE-DEBT-04` (`TASK.md` Seção 3.7, "Refatoração Lote-Captura Automatizada
+  — Voz & Foto").
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum** — `SEC-DEBT-015`
+  é inexploitável pelo fluxo real de voz/foto (nenhum candidato deste lote
+  tem `import_batch_id` preenchido).
+- **Achados de severidade Alta/Crítica em aberto tocando este lote:
+  nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado; dependência de
+  sequenciamento (expurgo via `BE-F3-08`) já corretamente mapeada em
+  `TASK.md`, não é gap desta rodada.
+- **Exposição de dado sensível**: nenhum vazamento de transcrição/imagem em
+  log; nenhuma chave de vendor exposta ao client.
+- **Débito novo registrado**: `SEC-DEBT-015` (Média, condição de bloqueio
+  automático antes de `BE-F3-03`/`BE-F3-04`).
+- **Requisitos de segurança operacional para o DevOps**: nenhum novo — CORS/
+  JWT das duas Edge Functions novas já seguem o padrão em vigor (Seção 4).
+
+**Veredito do lote: Aprovado com débito** (`SEC-DEBT-015`, Média severidade,
+não bloqueante hoje — condição de bloqueio automático antes de
+`BE-F3-03`/`BE-F3-04`). `BE-F3-00`, `BE-F3-01`, `BE-F3-02`, `FE-F3-01`,
+`FE-F3-02`, `FE-F3-03`, `FE-F3-04` estão liberadas para o fechamento formal
+do lote (`TASK.md`) do ponto de vista de segurança e para o deploy (chapéu
+DevOps), condicionado à dupla aprovação já satisfeita nesta rodada (QA +
+DevSecOps).
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma —
+`SEC-DEBT-015` é achado técnico de correção de FK/contrato, sem impacto
+cross-tenant nem componente de compliance, sem relevância estratégica que
+exija decisão de negócio.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/
+      condição — `SEC-DEBT-015` registrado acima, agendado como `BE-DEBT-04`
+- [x] Requisitos de segurança operacional para o DevOps definidos — nenhum
+      novo além do padrão já em vigor
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Captura Automatizada — Voz & Foto" do ponto de
+vista de DevSecOps: Aprovado com débito** (`SEC-DEBT-015`, Média severidade,
+não bloqueante; deploy liberado, condicionado a `BE-DEBT-04` estar
+`Concluída` antes de `BE-F3-03`/`BE-F3-04`).

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.21.0"
+  version: "0.22.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -1886,6 +1886,106 @@ paths:
         "502": { description: "ocr_provider_failed — falha total do vendor (rede/cota/chave inválida/imagem irreconhecível). Nada é persistido." }
         "503": { description: "ocr_not_configured (GOOGLE_VISION_API_KEY não configurada — ver ressalva acima) ou auth_unavailable (Auth indisponível ao validar a sessão)." }
 
+  /voice-capture:
+    post:
+      summary: "Extração de campos de captura por voz a partir de transcrição (RF-F3-01 AC1, ADR-006 — BE-F3-02)"
+      tags: [Captura Automatizada]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Nova — BE-F3-02**, `supabase/functions/voice-capture/`. Recebe a
+        transcrição já produzida pelo client via Web Speech API (camada
+        obrigatória de ADR-006, opção B) e extrai valor, data, tipo
+        (entrada/saída), descrição sugerida e categoria sugerida via
+        heurísticas de linguagem natural pt-BR próprias do produto
+        (`supabase/functions/voice-capture/lib.ts`), sem depender do formato
+        nativo de nenhum vendor.
+
+        Aceita, alternativamente, `audio_base64`/`mime_type` para acionar um
+        fallback de STT em nuvem — ADR-006 decide explicitamente que esse
+        fallback é extensão futura, sem vendor escolhido/configurado no
+        início da Fase 3 (`supabase/functions/_shared/sttProvider.ts`,
+        `getConfiguredSTTProvider()` retorna `null` até um novo ADR resolver
+        o vendor). Sem vendor configurado, essa via responde `503
+        stt_fallback_not_configured` de forma controlada, nunca finge
+        sucesso. Quando ambos os campos chegam no corpo, `transcript` tem
+        prioridade (evita acionar STT em nuvem à toa quando o client já
+        transcreveu com sucesso).
+
+        Exige `Authorization: Bearer <JWT de sessão>` (usuário já logado —
+        `verify_jwt` não desabilitado, mesmo padrão de
+        `/webauthn-register`/`/receipt-ocr`). **Não persiste nada** —
+        puramente extração; a confirmação/persistência do lançamento é
+        responsabilidade do fluxo de `candidate_transaction` (`BE-F3-00`)
+        depois que o usuário confirmar os campos sugeridos no formulário
+        (RF-F3-01 AC2). Todo campo extraído é literalmente marcado como
+        `"sugestão automática, não confirmada"` via
+        `result.suggestion_disclaimer` (RF-F3-01 AC1), além da semântica já
+        implícita do padrão `{ value, confidence }` por campo (mesmo formato
+        de `ReceiptExtractionResult`) e do próprio fluxo de confirmação
+        humana de `candidate_transaction`.
+
+        **Campo não reconhecido na fala retorna em branco, nunca bloqueia os
+        demais nem lança erro** — mesmo princípio de AC3 de RF-F3-02,
+        aplicado aqui por consistência de produto (provado por
+        `supabase/functions/voice-capture/lib.test.ts`, 27/27 casos PASS).
+        `transaction_date` é a única exceção: na ausência de qualquer menção
+        de data reconhecível, assume "hoje" com confiança reduzida (0.4) em
+        vez de ficar em branco — decisão de interpretação pequena e
+        documentada no próprio código (`lib.ts`), já que a captura por voz é,
+        na prática esmagadora dos casos, sobre um gasto que acabou de
+        acontecer; o campo continua editável livremente antes de confirmar
+        (RF-F3-01 AC3).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: >-
+                Envie `transcript` OU (`audio_base64` + `mime_type`) — pelo
+                menos um dos dois é obrigatório. `transcript` tem prioridade
+                quando ambos chegam.
+              properties:
+                transcript:
+                  type: string
+                  maxLength: 2000
+                  description: "Transcrição já produzida pelo client via Web Speech API."
+                audio_base64:
+                  type: string
+                  description: "Áudio para fallback de STT em nuvem, base64 padrão (não url-safe). Só usado quando transcript está ausente."
+                mime_type:
+                  type: string
+                  enum: [audio/webm, audio/ogg, audio/wav, audio/mp4]
+                  description: "Obrigatório junto de audio_base64."
+      responses:
+        "200":
+          description: "Extração concluída (mesmo quando um ou mais campos vêm em branco)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    description: "VoiceExtractionResult (supabase/functions/voice-capture/lib.ts)."
+                    properties:
+                      amount_cents: { type: object, nullable: true, properties: { value: { type: integer }, confidence: { type: number } } }
+                      transaction_date: { type: object, properties: { value: { type: string, format: date }, confidence: { type: number } } }
+                      type: { type: object, nullable: true, properties: { value: { type: string, enum: [entrada, saida] }, confidence: { type: number } } }
+                      description: { type: object, nullable: true, properties: { value: { type: string }, confidence: { type: number } } }
+                      category_suggestion_label: { type: object, nullable: true, properties: { value: { type: string }, confidence: { type: number } } }
+                      transcript: { type: string }
+                      suggestion_disclaimer:
+                        type: string
+                        description: "Sempre \"sugestão automática, não confirmada\" (RF-F3-01 AC1, texto literal)."
+        "400":
+          description: "missing_input (nem transcript nem audio_base64 enviados), transcript_too_long (>2000 caracteres), invalid_mime_type, invalid_base64, ou audio_too_large (>8MB decodificado)."
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "502": { description: "stt_provider_failed — falha total do vendor de fallback (quando configurado). Nada é persistido." }
+        "503": { description: "stt_fallback_not_configured (nenhum vendor de STT em nuvem configurado, ADR-006) ou auth_unavailable (Auth indisponível ao validar a sessão)." }
+
 x-changelog:
   - version: "0.1.0"
     date: "2026-09-02"
@@ -2151,3 +2251,25 @@ x-changelog:
       recibo real disponível nesta sessão para smoke test empírico — ver nota
       de status de BE-F3-01 em TASK.md. Sem breaking change nos endpoints já
       publicados.
+  - version: "0.22.0"
+    date: "2026-09-07"
+    change: >-
+      Adiciona /voice-capture (BE-F3-02, RF-F3-01 AC1, ADR-006) — extração de
+      campos de captura por voz (valor, data, tipo entrada/saída, descrição
+      sugerida, categoria sugerida) a partir da transcrição já produzida pelo
+      client via Web Speech API (camada obrigatória de ADR-006, opção B),
+      via heurísticas de linguagem natural pt-BR próprias do produto
+      (`supabase/functions/voice-capture/lib.ts`). Não persiste nada —
+      confirmação/persistência fica a cargo do fluxo `candidate_transaction`
+      já publicado em 0.20.0. Todo campo vem marcado com
+      `result.suggestion_disclaimer = "sugestão automática, não confirmada"`
+      (RF-F3-01 AC1, texto literal). Campo não reconhecido retorna em branco
+      sem bloquear os demais nem lançar erro, exceto `transaction_date` que
+      assume "hoje" com confiança reduzida na ausência de menção
+      (decisão de interpretação documentada em `lib.ts`). Aceita
+      alternativamente `audio_base64`/`mime_type` para fallback de STT em
+      nuvem, mas ADR-006 decide esse fallback como extensão futura sem vendor
+      configurado — responde `503 stt_fallback_not_configured` de forma
+      controlada até um novo ADR resolver o vendor
+      (`supabase/functions/_shared/sttProvider.ts`). Sem breaking change nos
+      endpoints já publicados.

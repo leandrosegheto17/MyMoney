@@ -7,3 +7,7 @@ export * from "./BarChart";
 export * from "./InvoiceTimeline";
 export * from "./NotificationBell";
 export * from "./CaptureFab";
+export * from "./ReceiptCameraCapture";
+export * from "./VoiceRecorderUI";
+export * from "./AutoFillTag";
+export * from "./DraftReviewBanner";

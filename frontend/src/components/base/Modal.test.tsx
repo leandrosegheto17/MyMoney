@@ -80,4 +80,40 @@ describe("Modal/BottomSheet", () => {
     await userEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  describe("dismissible={false} (FE-F3-04, DraftReviewBanner — banner fixo não-descartável até ação explícita)", () => {
+    it("não renderiza o botão 'Fechar' do cabeçalho", () => {
+      render(
+        <Modal isOpen onClose={vi.fn()} title="Rascunho" dismissible={false}>
+          <p>corpo</p>
+        </Modal>,
+      );
+      expect(screen.queryByRole("button", { name: "Fechar" })).not.toBeInTheDocument();
+    });
+
+    it("Esc não chama onClose", async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal isOpen onClose={onClose} title="Rascunho" dismissible={false}>
+          <p>corpo</p>
+        </Modal>,
+      );
+      await userEvent.keyboard("{Escape}");
+      expect(onClose).not.toHaveBeenCalled();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+
+    it("clicar no backdrop não chama onClose", async () => {
+      const onClose = vi.fn();
+      render(
+        <Modal isOpen onClose={onClose} title="Rascunho" dismissible={false}>
+          <p>corpo</p>
+        </Modal>,
+      );
+      const backdrop = document.querySelector('[aria-hidden="true"]')!;
+      await userEvent.click(backdrop);
+      expect(onClose).not.toHaveBeenCalled();
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+    });
+  });
 });
