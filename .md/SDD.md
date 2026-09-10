@@ -370,7 +370,7 @@ quando a fase correspondente do `TASK.md` for retomada:
 | **ImportBatch** (Lote de Importação) | fonte (ofx/csv/open finance), status | 1:N CandidateTransaction | RF-F3-03/04 | `import_staging_id` (referência de staging; conciliar com `CandidateTransaction` na implementação) |
 | **CandidateTransaction** (Candidato) | dado bruto extraído, possível duplicata de (nullable), status (pendente/confirmado/descartado) | N:1 ImportBatch, 0:1 Transaction (após confirmação) | RF-F3-03/04, RNF-01 | `import_staging_id` (mesma coluna acima — o candidato confirmado é referenciado pela `transaction` gerada) |
 | **OpenFinanceConnection** (Conexão Open Finance) | instituição, id de conexão do agregador, status, última sincronização | 1:N ImportBatch | RF-F3-04, EXT-04 | `external_ref` (referência externa da instituição/agregador) |
-| **Attachment** (Anexo/Evidência) — **achado adicional desta auditoria, fora da lista original do CTO** | tipo (foto de recibo), URL/path no Storage, `transaction_id` | N:1 Transaction | RF-F3-02 (evidência de OCR), ADR-011 (retenção de 90/30 dias) | `attachment_id` (FK a adicionar quando a tabela existir) |
+| **Attachment** (Anexo/Evidência) — **achado adicional desta auditoria, fora da lista original do CTO** | tipo (foto de recibo), URL/path no Storage, `transaction_id` | N:1 Transaction | RF-F3-02 (evidência de OCR) | **A tabela não será criada** — decisão definitiva de produto (`ADR-020`): foto de recibo nunca é persistida em nenhum caminho do sistema (`receipt-ocr`/`BE-F3-01` é stateless por design). Não é mais "FK a adicionar quando a tabela existir" — é pendência encerrada, sem objeto. |
 
 ### 5.3 Diagrama Entidade-Relacionamento (estado alvo, existentes + planejadas)
 
@@ -611,8 +611,8 @@ tensão entre exclusão a pedido do usuário e backup já emitido:
 |---|---|---|
 | Ledger (lançamentos e demais entidades de planejamento) | Indefinida, enquanto a conta estiver ativa | Só por exclusão de conta |
 | Candidato de importação (`CandidateTransaction`) descartado ou abandonado | 30 dias | Job diário agendado (`pg_cron` + Edge Function) |
-| Foto de recibo vinculada a lançamento confirmado | 90 dias após `confirmed_at` | Job diário agendado |
-| Foto de recibo vinculada a candidato descartado/abandonado | 30 dias (mesmo prazo do candidato) | Job diário agendado |
+| Foto de recibo vinculada a lançamento confirmado | **Sem objeto** — foto de recibo nunca é persistida (`ADR-020`); nada a reter | Não aplicável — nenhum job de expurgo, por não existir arquivo |
+| Foto de recibo vinculada a candidato descartado/abandonado | **Sem objeto** — mesmo motivo acima (`ADR-020`) | Não aplicável |
 | Export CSV/PDF gerado sob demanda | Até 24h após geração | Job diário agendado |
 | Backup/exportação lógica de disaster recovery (ADR-009) | Rotação dos últimos 30 snapshots diários | Job de rotação (mesma Edge Function do ADR-009) |
 | Exclusão de conta a pedido do usuário | Imediata para dado ativo (tabelas de `public` associadas ao usuário¹ + Storage + usuário no Supabase Auth); até 30 dias de cauda residual em backup já emitido | Edge Function privilegiada dedicada, nunca exposta como operação direta do cliente |
@@ -626,6 +626,14 @@ de revisão registrada em ADR-011.
 ¹ Correção de terminologia (schema `mymoney` → `public`), consequência direta de
 ADR-012 — não reabre a decisão do ADR-011 (política de retenção, prazos e mecanismo
 permanecem exatamente como decididos), só atualiza o nome do schema onde o dado vive.
+
+² As duas linhas de foto de recibo ficam sem objeto por decisão definitiva de
+produto formalizada em **ADR-020** (não uma edição de ADR-011, que permanece
+`Accepted` e íntegro como registro histórico do racional original): foto de recibo
+nunca é persistida em nenhum caminho do sistema (`receipt-ocr`/`BE-F3-01` é
+stateless por design), então não há arquivo físico a reter nem a descartar. Ver
+ADR-020 para o detalhamento completo, incluindo por que isso não reabre nem
+contraria a rejeição da "Opção C" do ADR-011.
 
 ---
 

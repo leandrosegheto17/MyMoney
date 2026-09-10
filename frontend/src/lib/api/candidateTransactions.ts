@@ -1,12 +1,14 @@
 import { getSupabaseClient } from "../supabase/client";
 import { unwrap, withOwnerId } from "./request";
-import type { CandidateTransaction, ConfirmCandidateTransactionParams, NewCandidateTransaction } from "./types";
+import type { CandidateTransaction, ConfirmCandidateTransactionParams, ImportBatch, NewCandidateTransaction, NewImportBatch } from "./types";
 
 /**
- * Client de `/candidate_transaction` e `/rpc/confirm_candidate_transaction` —
+ * Client de `/candidate_transaction`, `/import_batch` e
+ * `/rpc/confirm_candidate_transaction`/`/rpc/discard_candidate_transaction` —
  * `API-CONTRACT.yaml` (`BE-F3-00`), consumido por `DraftReviewBanner`
- * (`UX-SPEC.md` S-CAP-03/S-CAP-05, `FE-F3-04`). RNF-01/RNF-08/DIR-20: nenhuma
- * linha aqui vira `Transaction` sem `confirmCandidateTransaction` explícito.
+ * (`UX-SPEC.md` S-CAP-03/S-CAP-05, `FE-F3-04`) e por `StatementImportFlow`
+ * (`S-CAP-06`/`S-CAP-07`, `FE-F3-05`). RNF-01/RNF-08/DIR-20: nenhuma linha
+ * aqui vira `Transaction` sem `confirmCandidateTransaction` explícito.
  */
 
 /**
@@ -40,4 +42,35 @@ export async function deleteCandidateTransaction(id: string): Promise<void> {
  */
 export async function confirmCandidateTransaction(params: ConfirmCandidateTransactionParams): Promise<string> {
   return unwrap(getSupabaseClient().rpc("confirm_candidate_transaction", params));
+}
+
+/**
+ * `POST /rpc/discard_candidate_transaction` — descarta explicitamente um
+ * candidato `pending` sem excluir a linha física (`BE-F3-00`, mantém o
+ * registro de auditoria — diferente de `deleteCandidateTransaction`, que
+ * remove fisicamente um rascunho de voz/foto cancelado antes de qualquer
+ * revisão). Só se aplica a um candidato que já existe como linha `pending`
+ * no banco; `StatementImportFlow` (`FE-F3-05`) nunca chama esta função para
+ * um item da lista de `/statement-import` que o usuário deixou desmarcado —
+ * esses candidatos nunca chegam a ser criados via `createCandidateTransaction`
+ * em primeiro lugar (a Edge Function só devolve a lista em memória, não
+ * persiste nada, `BE-F3-03`), então não há linha `pending` para descartar.
+ */
+export async function discardCandidateTransaction(id: string): Promise<void> {
+  await unwrap(getSupabaseClient().rpc("discard_candidate_transaction", { p_candidate_id: id }));
+}
+
+/**
+ * `POST /import_batch` — cria o lote antes de criar os candidatos que o
+ * referenciam (`import_batch_id`), sempre `source: "import"` para o fluxo de
+ * upload de extrato (`openfinance` fica para `FE-F3-06`). Decisão pequena de
+ * implementação (documentada em `TASK.md` `FE-F3-05`): o lote é criado já
+ * "pronto" na prática (os candidatos só são conhecidos depois de
+ * `/statement-import` responder, ver `statementImport.ts`) — `status` fica no
+ * `DEFAULT` da coluna (`processing`) e nenhuma tarefa decomposta até aqui lê
+ * esse campo de volta, então não há necessidade de um `PATCH status` extra
+ * ao final da confirmação em lote.
+ */
+export async function createImportBatch(input: NewImportBatch): Promise<ImportBatch> {
+  return unwrap(getSupabaseClient().from("import_batch").insert(await withOwnerId(input)).select().single());
 }

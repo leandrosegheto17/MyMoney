@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.22.0"
+  version: "0.27.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -1185,6 +1185,155 @@ paths:
                     income_cents: { type: integer, format: int64 }
                     expense_cents: { type: integer, format: int64 }
 
+  /rpc/get_net_worth_evolution:
+    post:
+      summary: Série temporal do saldo consolidado, filtrável por conta (RF-F3-05 AC1-2)
+      tags: [Relatórios]
+      description: >-
+        **BE-F3-06.** Mesma janela/granularidade de `/rpc/get_income_expense_report`
+        (BE-F2-10, mesma família "Relatórios & Exportação"): mês corrente + 5
+        anteriores, America/Sao_Paulo — decisão de interpretação pequena, já
+        que RF-F3-05 AC1-2 não fixa janela/granularidade. Cada ponto é o
+        saldo consolidado (soma de `accounts.current_balance_cents` das
+        contas ativas do usuário, mesma fonte de `get_month_provision`,
+        BE-M-07) reconstruído ao final daquele mês, revertendo o efeito de
+        toda transação datada depois do fim do mês. `p_account_id` (AC2)
+        restringe a soma a uma única conta; conta alheia ou inativa produz
+        lista vazia, nunca erro. Somar a série de cada conta individual do
+        usuário reproduz exatamente a série consolidada, por construção —
+        critério de aceite literal desta tarefa, provado em
+        `supabase/tests/be_f3_06_net_worth_evolution.test.sql`.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                p_account_id: { type: string, format: uuid, nullable: true, description: "Omitido/null = visão consolidada (todas as contas ativas)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    month: { type: string, format: date, description: "sempre o 1º dia do mês" }
+                    balance_cents: { type: integer, format: int64, description: "saldo consolidado (ou da conta filtrada) ao final do mês" }
+
+  /rpc/get_report_export_rows:
+    post:
+      summary: Lançamentos do período com conta/forma de pagamento/categoria/subcategoria resolvidos (RF-F3-06 AC1 — BE-F3-07)
+      tags: [Relatórios]
+      description: >-
+        **BE-F3-07.** Usada internamente pela Edge Function `/report-export`
+        (não pensada para consumo direto do Frontend, mas exposta como
+        qualquer outra RPC `SECURITY INVOKER` escopada por `auth.uid()`,
+        mesma família de `/rpc/get_income_expense_report`/
+        `/rpc/get_net_worth_evolution`). Devolve 1 linha por lançamento do
+        usuário autenticado no período `[p_start_date, p_end_date]`, com
+        `category_name` sempre a categoria de TOPO e `subcategory_name`
+        preenchida só quando o lançamento usa uma subcategoria de 2º nível
+        (nunca os dois níveis invertidos). Inclui `kind=transfer`
+        (diferente de `get_income_expense_report`, que o exclui) — é um
+        extrato/ledger completo do período, não um comparativo; a exclusão
+        de `transfer` de entradas/saídas acontece só no resumo do PDF
+        (`supabase/functions/report-export/lib.ts:computeReportSummary`).
+        Período sem nenhum lançamento retorna lista vazia, nunca erro.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [p_start_date, p_end_date]
+              properties:
+                p_start_date: { type: string, format: date }
+                p_end_date: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    transaction_date: { type: string, format: date }
+                    account_name: { type: string }
+                    payment_method_name: { type: string, nullable: true, description: "null para kind=transfer" }
+                    category_name: { type: string, nullable: true, description: "categoria de TOPO; null para kind=transfer" }
+                    subcategory_name: { type: string, nullable: true, description: "só preenchida quando o lançamento usa subcategoria de 2º nível" }
+                    description: { type: string, nullable: true }
+                    kind: { type: string, enum: [income, expense, transfer] }
+                    amount_cents: { type: integer, format: int64 }
+
+  /report-export:
+    post:
+      summary: "Exportação CSV/PDF de lançamentos por período (RF-F3-06 AC1-2 — BE-F3-07)"
+      tags: [Relatórios]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Nova — BE-F3-07**, `supabase/functions/report-export/`. Gera a
+        exportação do período informado a partir de `/rpc/get_report_export_rows`
+        (via cliente com o JWT do próprio usuário — RLS aplicada, nunca
+        `service_role`), monta o CSV (AC1 — data, conta, forma de
+        pagamento, categoria, subcategoria, descrição, tipo, valor, `;` como
+        delimitador, BOM UTF-8) ou o PDF (AC2 — resumo do período: saldo,
+        entradas, saídas, distribuição por categoria, via `npm:pdf-lib`,
+        `supabase/functions/report-export/pdf.ts`), faz upload ao bucket
+        privado `exports` (pasta `<user_id>/...`, isolamento por policy —
+        migration `20260909110000_be_f3_07_report_export.sql`) e devolve uma
+        signed URL de curta duração (300s, SDD.md Seção 7/ADR-011, mesmo
+        princípio de G-18) para o download (UX-SPEC.md S-REP-03:
+        "botão Exportar → indicador de geração → download"). Nenhuma tabela
+        de metadado nova rastreia a idade do export — o `created_at` do
+        próprio objeto no Storage já é suficiente para a futura `BE-F3-08`
+        (job de expurgo de export com mais de 24h, ainda Não iniciada)
+        filtrar por idade.
+
+        `kind=transfer` é incluído no CSV (extrato completo do período) mas
+        excluído de entradas/saídas do resumo do PDF (mesmo critério de
+        `/rpc/get_income_expense_report`, BE-F2-10 — movimentação interna
+        não é entrada nem saída). Sem filtro de conta (UX-SPEC.md S-REP-03
+        só define período + formato, decisão de escopo documentada em
+        `lib.ts`). Exige `Authorization: Bearer <JWT de sessão>` — mesmo
+        padrão de `/receipt-ocr`/`/voice-capture`/`/statement-import`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [start_date, end_date, format]
+              properties:
+                start_date: { type: string, format: date }
+                end_date: { type: string, format: date }
+                format: { type: string, enum: [csv, pdf] }
+      responses:
+        "200":
+          description: "Arquivo gerado e persistido no bucket privado; signed_url pronta para download imediato."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  signed_url: { type: string, format: uri }
+                  filename: { type: string }
+                  expires_in: { type: integer, description: "segundos até a signed URL expirar (300)" }
+                  total_rows: { type: integer }
+        "400": { description: "missing_start_date/missing_end_date/invalid_start_date/invalid_end_date (formato aaaa-mm-dd ou data de calendário implausível), invalid_date_range (start_date > end_date), invalid_format (fora de csv/pdf)." }
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "500": { description: "export_generation_failed — falha inesperada ao montar o CSV/PDF em si (nunca esperada para entrada válida)." }
+        "502": { description: "report_data_unavailable (falha ao consultar /rpc/get_report_export_rows) ou export_storage_failed (falha ao persistir no bucket ou criar a signed URL) — nenhum download parcial/quebrado é oferecido." }
+        "503": { description: "auth_unavailable — Auth indisponível ao validar a sessão." }
+
   /transactions:
     get:
       summary: Listar lançamentos, mês corrente por padrão (RF-MVP-04 AC5)
@@ -1986,6 +2135,206 @@ paths:
         "502": { description: "stt_provider_failed — falha total do vendor de fallback (quando configurado). Nada é persistido." }
         "503": { description: "stt_fallback_not_configured (nenhum vendor de STT em nuvem configurado, ADR-006) ou auth_unavailable (Auth indisponível ao validar a sessão)." }
 
+  /statement-import:
+    post:
+      summary: "Interpretação de extrato bancário OFX/CSV + detecção de possível duplicata (RF-F3-03 AC1-3 — BE-F3-03)"
+      tags: [Captura Automatizada]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Nova — BE-F3-03**, `supabase/functions/statement-import/`.
+        Interpreta um arquivo de extrato bancário OFX ou CSV
+        (`supabase/functions/statement-import/lib.ts`, parser próprio deste
+        produto — OFX via extração de blocos `<STMTTRN>` por regex, tolerante
+        a SGML "solto"/tags não fechadas comuns em extratos reais de banco;
+        CSV com cabeçalho pt-BR/en reconhecido por nome de coluna, já que
+        `SDD.md` não define um layout único — não existe padrão de fato entre
+        bancos) e devolve uma lista de transações candidatas normalizadas,
+        cada uma já no formato de `NewCandidateTransaction`
+        (`source=import`, `BE-F3-00`), pronta para o Frontend criar via
+        `POST /import_batch` + `POST /candidate_transaction` depois que o
+        usuário revisar/selecionar a lista (RF-F3-03 AC1) — reuso explícito
+        do mesmo fluxo de candidatos/revisão de voz e foto (FL-05), não um
+        mecanismo de persistência paralelo.
+
+        **Detecção de possível duplicata (RF-F3-03 AC2)**: cada candidata é
+        comparada contra os lançamentos JÁ existentes do usuário na
+        `account_id` informada — mesma `transaction_date` E mesmo
+        `amount_cents` sinaliza `duplicate_of_transaction_id` com o `id` do
+        lançamento existente (nunca bloqueia a candidata, só informa; o
+        Frontend decide a UI de "vem desmarcado por padrão", `FE-F3-05`).
+        Única leitura ao banco feita por esta function: `SELECT id,
+        transaction_date, amount_cents FROM transactions WHERE account_id =
+        :account_id AND transaction_date BETWEEN :min AND :max`, via cliente
+        com o JWT do próprio usuário (RLS aplicada — nunca `service_role`).
+        Falha nessa consulta específica não derruba a resposta — degrada para
+        "nenhuma duplicata sinalizada nesta resposta" (logada como erro para
+        investigação), já que apresentar a lista de candidatos (AC1) não deve
+        depender de uma query auxiliar funcionar.
+
+        Exige `Authorization: Bearer <JWT de sessão>` (usuário já logado —
+        `verify_jwt` não desabilitado, mesmo padrão de `/receipt-ocr`/
+        `/voice-capture`). **Não persiste nada em `import_batch` nem
+        `candidate_transaction`** — mesmo princípio de "pura extração, sem
+        efeito colateral" de `/receipt-ocr`/`/voice-capture`, aplicado aqui a
+        um arquivo inteiro em vez de um campo único; a única leitura ao banco
+        é a checagem de duplicata acima, nunca uma escrita (AC1/AC3 — nenhuma
+        persistência definitiva antes da revisão/confirmação do usuário).
+        Corpo em JSON (`file_content_base64`/`file_format`/`account_id`), não
+        `multipart/form-data` — mesmo padrão de transporte de dado binário já
+        usado por `/receipt-ocr`/`/voice-capture`.
+
+        **Linha malformada nunca derruba o arquivo inteiro nem lança erro**
+        (AC3, mesmo princípio de AC3 de RF-F3-02/RF-F3-01, provado por
+        `supabase/functions/statement-import/lib.test.ts`, 23/23 casos PASS)
+        — um registro OFX sem `DTPOSTED`/`TRNAMT` reconhecível, ou uma linha
+        de CSV com data/valor inválido, é pulada e contada em
+        `skipped_lines`; as demais continuam normalmente. Só quando NENHUMA
+        transação é reconhecida no arquivo inteiro (arquivo vazio, formato
+        errado, ou cabeçalho de CSV sem colunas de data/valor reconhecíveis)
+        a resposta vira `422 unprocessable_file` — fallback gracioso, nunca
+        um crash da function.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [file_content_base64, file_format, account_id]
+              properties:
+                file_content_base64:
+                  type: string
+                  description: "Conteúdo do arquivo OFX/CSV, base64 padrão (não url-safe). Máx. 5MB decodificado."
+                file_format:
+                  type: string
+                  enum: [ofx, csv]
+                account_id:
+                  type: string
+                  format: uuid
+                  description: "Conta contra a qual as transações candidatas serão comparadas na checagem de duplicata (AC2) — mesma conta usada depois na confirmação."
+      responses:
+        "200":
+          description: "Arquivo interpretado (mesmo quando skipped_lines > 0 — AC3)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  candidates:
+                    type: array
+                    description: "NewCandidateTransaction[] pronto para POST /candidate_transaction (source sempre \"import\"), não persistido por esta function."
+                    items:
+                      type: object
+                      properties:
+                        source: { type: string, enum: [import] }
+                        raw_payload:
+                          type: object
+                          properties:
+                            transaction_date: { type: string, format: date }
+                            amount_cents: { type: integer }
+                            kind: { type: string, enum: [income, expense] }
+                            description: { type: string, nullable: true }
+                            external_ref: { type: string, nullable: true, description: "FITID (OFX) ou \"csv:<linha>\" (CSV) — só rastreabilidade, nunca usado na detecção de duplicata." }
+                        duplicate_of_transaction_id:
+                          type: string
+                          format: uuid
+                          nullable: true
+                          description: "RF-F3-03 AC2 — preenchido quando existe lançamento com mesma transaction_date+amount_cents na account_id informada."
+                  total_parsed: { type: integer }
+                  skipped_lines: { type: integer, description: "Linhas/registros que não puderam ser interpretados e foram pulados (AC3) — nunca derruba as demais." }
+                  duplicate_count: { type: integer }
+        "400":
+          description: "missing_file/invalid_base64 (file_content_base64 ausente/inválido), file_too_large (>5MB decodificado), invalid_file_format (fora de ofx/csv), missing_account_id/invalid_account_id (não é uuid)."
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "422": { description: "unprocessable_file — nenhuma transação reconhecível no arquivo inteiro (AC3, fallback gracioso). Nada é persistido." }
+        "503": { description: "auth_unavailable — Auth indisponível ao validar a sessão." }
+
+  /data-retention-purge:
+    post:
+      summary: "Job diário de expurgo de dado transitório — endpoint interno/operacional, NUNCA consumido por Frontend/Mobile (BE-F3-08, ADR-011, DIR-31/32)"
+      tags: [Retenção & Descarte de Dado]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      security: []
+      description: >-
+        **Nova — BE-F3-08**, `supabase/functions/data-retention-purge/`,
+        migrations `20260909120000_be_f3_08_data_retention_purge_jobs.sql` e
+        `20260909121000_be_f3_08_revoke_execute_purge_functions.sql`. Dispara
+        **exclusivamente** por `pg_cron` via `pg_net`
+        (`public.trigger_data_retention_purge()`, diário às 03:30 UTC;
+        `public.check_data_retention_health()`, a cada 6h), nunca por client
+        autenticado — mesmo padrão de `/backup-export` (BE-M-10): sem
+        `verify_jwt` (`--no-verify-jwt`), autenticação por segredo
+        compartilhado no header `X-Cron-Secret` (fail-closed). Verificado
+        antes de implementar (`DIR-33`): `supabase functions list` não mostrou
+        nenhuma function de expurgo/retenção pré-existente.
+
+        Roda 2 sub-jobs, cada um logado individualmente em
+        `public.data_retention_purge_log` (DIR-32), falha de um não impede o
+        outro: (1) `candidate_transaction_purge` — via RPC
+        `purge_expired_candidate_transactions` (SECURITY DEFINER,
+        `EXECUTE` restrito a `service_role`), remove `CandidateTransaction`
+        descartado há mais de 30 dias ou pending sem ação há mais de 30 dias
+        desde a criação do `ImportBatch` associado (ou do próprio
+        `created_at`, para candidato avulso de voz/foto sem lote); (2)
+        `export_purge` — via RPC `list_expired_export_objects` (mesma
+        restrição de `EXECUTE`) + `storage.from('exports').remove(...)`,
+        remove objeto do bucket `exports` (BE-F3-07) criado há mais de 24h.
+
+        **Resolução do Bloqueio 024 (`BLOCKERS.md`, Resolvido) —** um 3º
+        sub-job (`confirmed_receipt_photo_purge`) existiu nesta function como
+        um "skip" registrado (`status: skipped_not_implemented`) enquanto a
+        decisão de arquitetura sobre persistência de foto de recibo estava
+        pendente. `ADR-020` formalizou, como decisão definitiva do
+        stakeholder, que foto de recibo **nunca será persistida** — as 2
+        linhas de retenção de foto de `ADR-011` (90 dias/lançamento
+        confirmado, 30 dias/candidato descartado) ficam sem objeto por
+        decisão de produto, não por lacuna de implementação. O 3º sub-job foi
+        removido por completo (não existe mais nem como skip); os 2 sub-jobs
+        acima cobrem 100% do que de fato precisa ser expurgado.
+      parameters:
+        - in: query
+          name: mode
+          schema: { type: string, enum: [healthcheck] }
+          required: false
+          description: "Omitido = executa os 2 sub-jobs de expurgo. `healthcheck` = só verifica staleness (>26h) de candidate_transaction_purge/export_purge e alerta, sem expurgar."
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        "200":
+          description: "Todos os sub-jobs implementados rodaram com sucesso (purge), ou healthcheck executado (independente de stale_jobs)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  results:
+                    type: array
+                    nullable: true
+                    description: "só no modo purge — 1 entrada por sub-job"
+                    items:
+                      type: object
+                      properties:
+                        job_name: { type: string, enum: [candidate_transaction_purge, export_purge] }
+                        status: { type: string, enum: [success, failure] }
+                        detail: { type: object }
+                        error_message: { type: string, nullable: true }
+                  stale_jobs:
+                    type: array
+                    nullable: true
+                    description: "só no modo healthcheck"
+                    items: { type: string }
+        "401":
+          description: "X-Cron-Secret ausente, incorreto, ou não configurado no ambiente da função (fail-closed)."
+        "500":
+          description: "Ao menos um sub-job falhou — sempre logado em data_retention_purge_log e reportado por e-mail de alerta (best-effort)."
+
 x-changelog:
   - version: "0.1.0"
     date: "2026-09-02"
@@ -2273,3 +2622,150 @@ x-changelog:
       controlada até um novo ADR resolver o vendor
       (`supabase/functions/_shared/sttProvider.ts`). Sem breaking change nos
       endpoints já publicados.
+  - version: "0.23.0"
+    date: "2026-09-08"
+    change: >-
+      Adiciona /statement-import (BE-F3-03, RF-F3-03 AC1-3) — interpretação
+      de extrato bancário OFX/CSV (`supabase/functions/statement-import/lib.ts`,
+      parser OFX por regex tolerante a SGML "solto", parser CSV por nome de
+      coluna pt-BR/en) e detecção de possível duplicata (mesma
+      transaction_date+amount_cents na account_id informada, contra
+      /transactions via RLS do próprio usuário, AC2). Não persiste nada em
+      /import_batch nem /candidate_transaction — resposta já vem no formato
+      de NewCandidateTransaction (source=import), pronta para o Frontend
+      persistir via o mesmo fluxo de candidatos já publicado em 0.20.0
+      (FL-05, reuso explícito, não um mecanismo paralelo) depois que o
+      usuário revisar/selecionar a lista. Linha malformada isolada é pulada
+      (skipped_lines) sem bloquear as demais nem lançar erro; só arquivo sem
+      nenhuma transação reconhecível vira 422 unprocessable_file (fallback
+      gracioso, provado por supabase/functions/statement-import/lib.test.ts,
+      23/23 casos PASS). Sem breaking change nos endpoints já publicados.
+  - version: "0.24.0"
+    date: "2026-09-09"
+    change: >-
+      Adiciona /rpc/get_net_worth_evolution (BE-F3-06, RF-F3-05 AC1-2) —
+      série temporal do saldo consolidado (mesma fonte de
+      get_month_provision/BE-M-07: accounts.current_balance_cents), últimos
+      6 meses (mesma janela de get_income_expense_report/BE-F2-10, decisão
+      de interpretação pequena, já que RF-F3-05 AC1-2 não fixa
+      janela/granularidade), com filtro opcional por p_account_id (AC2).
+      Sem tabela nova, sem Edge Function (DIR-33 não se aplica) — só 1 RPC
+      SQL SECURITY INVOKER escopada por auth.uid(). Somar a série de cada
+      conta individual do usuário reproduz exatamente a série consolidada,
+      por construção (AC2, critério de aceite literal), provado em
+      supabase/tests/be_f3_06_net_worth_evolution.test.sql (casos A-F: PASS —
+      deltas por conta, coerência consolidado x filtro em toda a janela,
+      janela de 6 meses, isolamento cross-user). Regressão completa da
+      suíte SQL: 31/32 PASS — a única
+      falha (be_m07_dashboard.test.sql CASO 2) é pré-existente e não
+      relacionada a este lote (BLOCKERS.md Bloqueio 019, dado real de
+      produção). Sem breaking change nos endpoints já publicados.
+  - version: "0.25.0"
+    date: "2026-09-09"
+    change: >-
+      Adiciona /rpc/get_report_export_rows e /report-export (BE-F3-07,
+      RF-F3-06 AC1-2). `DIR-33` checado: nenhuma Edge Function de
+      exportação/relatório pré-existente. RPC de leitura (mesma família de
+      get_income_expense_report/get_net_worth_evolution) devolve os
+      lançamentos do período já com conta/forma de pagamento/categoria
+      (topo)/subcategoria resolvidos — inclui kind=transfer (extrato
+      completo, diferente do comparativo entradas/saídas). Edge Function
+      `report-export` monta o CSV (AC1 — data, conta, forma de pagamento,
+      categoria, subcategoria, descrição, tipo, valor) ou o PDF (AC2 —
+      resumo do período via npm:pdf-lib: saldo, entradas, saídas,
+      distribuição por categoria, kind=transfer excluído do resumo, mesmo
+      critério de get_income_expense_report), faz upload ao novo bucket
+      privado `exports` (isolamento por pasta <user_id>/..., policy de
+      storage.objects) e devolve signed URL de curta duração (300s, SDD.md
+      Seção 7/ADR-011, mesmo princípio de G-18) — nenhuma tabela de
+      metadado nova, created_at do próprio objeto no Storage já é
+      suficiente para a futura BE-F3-08 (expurgo de export >24h) filtrar
+      por idade. Teste automatizado: supabase/tests/be_f3_07_report_export.test.sql
+      (6 casos via RLS real — categoria/subcategoria nunca invertidas,
+      transfer incluído no extrato, filtro de período, isolamento
+      cross-user, período vazio — todos PASS) +
+      supabase/functions/report-export/lib.test.ts (28/28 casos PASS,
+      cobrindo validação de entrada, montagem do CSV e agregação do resumo)
+      + supabase/functions/report-export/pdf.test.ts (4/4 casos PASS,
+      confirmando por inspeção dos bytes do PDF gerado — via o próprio
+      pdf-lib recarregando o arquivo e descomprimindo os content streams
+      FlateDecode — que o resumo textual exigido pelo AC2 está de fato
+      presente). Regressão completa: supabase/tests/*.sql 33/34 PASS (única
+      falha pré-existente e não relacionada, be_m07_dashboard.test.sql CASO
+      2, BLOCKERS.md Bloqueio 019); deno test supabase/functions/ 149/149
+      PASS (117 pré-existentes + 32 novos). Sem breaking change nos
+      endpoints já publicados.
+  - version: "0.26.0"
+    date: "2026-09-09"
+    change: >-
+      Adiciona /data-retention-purge (BE-F3-08, ADR-011, DIR-31/32) —
+      endpoint interno/operacional, disparado só por pg_cron via pg_net,
+      nunca por Frontend/Mobile. `DIR-33` checado: nenhuma Edge Function de
+      expurgo/retenção pré-existente. Implementa com confiança total 2 dos 3
+      sub-jobs do critério de aceite (candidate_transaction_purge — remove
+      CandidateTransaction descartado >30 dias ou pending abandonado >30 dias
+      desde a criação do ImportBatch, via nova RPC
+      purge_expired_candidate_transactions; export_purge — remove objeto do
+      bucket exports/BE-F3-07 criado >24h, via nova RPC
+      list_expired_export_objects + Storage API). Ambas as RPCs novas têm
+      EXECUTE restrito a service_role (REVOKE de public/anon/authenticated,
+      migration 20260909121000) — list_expired_export_objects devolve paths
+      com user_id de outros usuários, diferente do padrão sistêmico já aceito
+      de cron triggers void (ver SECURITY-REVIEW.md achado sobre
+      REVOKE EXECUTE ausente).
+
+      **Achado de lacuna real de especificação, não decidido sozinho pelo
+      Backend**: o 3º sub-job (confirmed_receipt_photo_purge, 90 dias após
+      confirmed_at) fica sem implementação real — roda todo dia registrado
+      como status=skipped_not_implemented no log, nunca fingindo sucesso —
+      porque nenhum mecanismo de persistência de foto de recibo existe em
+      nenhum lugar do código (receipt-ocr/BE-F3-01 foi implementada sem
+      persistir a imagem; a entidade Attachment de SDD.md Seção 5.2 nunca foi
+      criada por nenhuma tarefa do TASK.md). Reportado como bloqueio real
+      (BLOCKERS.md) para decisão do coordenador/software-architect — desenhar
+      essa persistência é uma decisão de arquitetura nova, fora do escopo de
+      "job diário de expurgo".
+
+      Log de execução consultável (DIR-32) em nova tabela
+      data_retention_purge_log (RLS habilitada, sem policy — deny-all, mesmo
+      padrão de backup_export_log/BE-M-10), healthcheck a cada 6h alertando
+      por e-mail se candidate_transaction_purge/export_purge ficarem >26h sem
+      sucesso. Teste automatizado:
+      supabase/tests/be_f3_08_data_retention_purge_jobs.test.sql (7 casos —
+      infra/agendamento, trigger/healthcheck fail-safe sem Vault, fronteira
+      de retenção nos 2 sentidos para os 3 sub-casos da regra de
+      CandidateTransaction — descartado/pending com lote/pending avulso —,
+      confirmado com retenção indefinida mesmo após 400 dias, fronteira de
+      24h de export com isolamento por bucket — todos PASS) +
+      supabase/functions/data-retention-purge/lib.test.ts (8/8 casos PASS).
+      Regressão completa: supabase/tests/*.sql 34/35 PASS (única falha
+      pré-existente e não relacionada, be_m07_dashboard.test.sql CASO 2,
+      BLOCKERS.md Bloqueio 019); deno test supabase/functions/ 157/157 PASS
+      (149 pré-existentes + 8 novos). Smoke test real (curl direto):
+      X-Cron-Secret ausente/incorreto -> 401 (fail-closed, secret real ainda
+      não provisionado — mesma pendência operacional não-bloqueante de
+      BACKUP_CRON_SECRET/BE-M-10). Sem breaking change nos endpoints já
+      publicados.
+  - version: "0.27.0"
+    date: "2026-09-09"
+    change: >-
+      /data-retention-purge (BE-F3-08) — resolução do Bloqueio 024
+      (BLOCKERS.md, Resolvido): ADR-020 formalizou que foto de recibo nunca
+      será persistida (decisão definitiva do stakeholder), então o 3º sub-job
+      (confirmed_receipt_photo_purge, antes registrado como
+      status=skipped_not_implemented em todo log) foi removido por completo
+      — não existe mais nem como skip. job_name/status dos results não
+      incluem mais confirmed_receipt_photo_purge/skipped_not_implemented. Os
+      2 sub-jobs restantes (candidate_transaction_purge, export_purge) já
+      cobriam 100% do que de fato precisa ser expurgado, sem alteração de
+      comportamento. Nova migration
+      20260909122000_be_f3_08_adr020_drop_photo_comment.sql (100% aditiva,
+      COMMENT ON FUNCTION apenas — remove a menção a "foto associada" do
+      comentário de purge_expired_candidate_transactions, desatualizada após
+      ADR-020). Regressão completa: deno test supabase/functions/ 157/157
+      PASS (mesma contagem — 1 teste ajustado, nenhum removido/adicionado);
+      supabase/tests/be_f3_08_data_retention_purge_jobs.test.sql PASS (7/7
+      casos, já não dependiam do 3º sub-job). Breaking change técnico apenas
+      para quem já consumia results[].job_name=confirmed_receipt_photo_purge
+      — nenhum consumidor real existia (endpoint interno/operacional, nunca
+      Frontend/Mobile).

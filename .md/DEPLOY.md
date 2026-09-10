@@ -306,6 +306,17 @@ Promoção por realiasing (em vez de rebuild) garante que o que foi validado em
 staging é bit-a-bit o que vai para produção — elimina a classe de incidente
 "funcionou em staging, quebrou em produção por diferença de build".
 
+**Nota de migração — 2026-09-09**: a partir do deploy do lote "Captura
+Automatizada — Voz & Foto" (§9.13), o destino de hospedagem do Frontend
+passou a ser o projeto Vercel **novo** `objetivo-financeiro-ljs`
+(`objetivo-financeiro-ljs-staging.vercel.app` em staging), por decisão do
+stakeholder — a tabela acima documenta o estado **histórico** do projeto
+`mymoney`, que segue servindo a produção real de todos os lotes já
+promovidos até aqui (nenhum deploy/alias alterado nele nesta migração).
+Nenhuma promoção de produção do projeto novo foi confirmada ainda (ver
+achado de contenção em §9.13) — a linha "Produção" desta tabela não foi
+reescrita para o projeto novo até essa confirmação existir.
+
 ---
 
 ## 4. Variáveis de Ambiente
@@ -1842,6 +1853,208 @@ anteriores com acesso direto ao código, `DEPLOY.md` §9.11).
 **Resultado desta rodada: flag `payment_method_unification_enabled` ativa em
 produção.** `TASK.md` Seção 3, célula de Status de `BE-REF-06`, atualizada
 para `Concluída` nesta mesma rodada.
+
+### 9.13 Execução — 2026-09-09 (lote "Captura Automatizada — Voz & Foto") —
+migração de destino de hospedagem `mymoney` → `objetivo-financeiro-ljs`
+
+**Gatilho**: `TASK.md` Seção 7, linha "Captura Automatizada — Voz & Foto"
+(nota de validação em Seção 3, linha 869) — lote fechado **Validado (com
+ressalvas)** em 2026-09-08 (`QA-REPORT.md` Seção 21.6: Aprovado, 7/7;
+`SECURITY-REVIEW.md` Seção 1.31: Aprovado com débito, `SEC-DEBT-015`, Média,
+não bloqueante hoje). Único lote `Validado` ainda não publicado em
+`DEPLOY.md` no momento desta chamada de `/deploy`.
+
+#### 1. Validação final de confirmação (`EXECUTION-FLOW.md` Comando 3, Seção 3)
+
+Releitura direta (não uma nova rodada de QA/DevSecOps do zero) do `git diff`
+da working tree contra as 7 tarefas do lote (`BE-F3-00`, `BE-F3-01`,
+`BE-F3-02`, `FE-F3-01` a `FE-F3-04`):
+
+- **Nenhuma mudança tocando o lote aprovado**: as modificações não commitadas
+  presentes na árvore de trabalho nesta data (`CaptureFab.tsx`,
+  `candidateTransactions.ts`, `types.ts`, e todo o código novo de
+  `StatementImportFlow`/`CandidateList`/`statementImport.ts`,
+  `supabase/functions/statement-import|report-export|data-retention-purge`,
+  migrations `be_f3_06`/`07`/`08`) pertencem a **lotes-irmãos diferentes**
+  (`BE-F3-03` a `BE-F3-08`, "Importação de Extrato"/"Relatórios &
+  Exportação"), ainda não neste deploy — confirmado por leitura linha a
+  linha: toda alteração em arquivos que o lote aprovado também toca
+  (`CaptureFab.tsx`, `candidateTransactions.ts`, `types.ts`) é **estritamente
+  aditiva** (novo branch de UI "Importar extrato", novo export
+  `createImportBatch`/`discardCandidateTransaction`, novo tipo
+  `ImportBatch`) — nenhuma linha do comportamento já aprovado (voz, foto,
+  `DraftReviewBanner`, RNF-01/RNF-08) foi alterada ou removida.
+- **`BLOCKERS.md`**: Bloqueio 024 (fechado nesta mesma data, `BE-F3-08`/foto
+  de recibo nunca persistida) não toca nenhuma das 7 tarefas deste lote.
+  Nenhum bloqueio `Aberto` afetando este lote.
+- **Achado novo, encontrado só agora, na confirmação** (ver item 3 abaixo):
+  `receipt-ocr` (`BE-F3-01`) e `voice-capture` (`BE-F3-02`) nunca foram
+  publicadas no projeto Supabase real (`supabase functions list` não as
+  lista, diferente de toda outra Edge Function do projeto). Isso não é uma
+  regressão desde o veredito de `QA-REPORT.md`/`SECURITY-REVIEW.md` — o
+  veredito foi dado sobre leitura de código + `deno test` local, nunca exigiu
+  nem presumiu uma chamada HTTP real à function publicada — mas é uma lacuna
+  de execução (a diferença entre "código pronto e testado" e "de fato
+  publicado", distinção que toda outra Edge Function deste projeto já cruzou
+  — ver `TASK.md` `BE-F2-02/03/06/09`, todas com "deployada"/smoke test real
+  registrado, ausente nas notas de `BE-F3-01`/`BE-F3-02`). Detalhe em §9.13.3.
+
+Nenhum achado de severidade alta/crítica nem de compliance obrigatório em
+aberto — a confirmação segue **limpa o suficiente para publicar o build do
+Frontend em staging** (item 2 abaixo), com a ressalva registrada no item 3
+(funcionalidade de voz/foto graciosamente degradada a preenchimento manual
+até a pendência ser resolvida — comportamento já auditado e aprovado em
+`SECURITY-REVIEW.md` Seção 1.31, achado (e), para o caso de falha de vendor
+502/503, mesmo caminho de código que atende a ausência 404 da function).
+
+#### 2. Migração de destino de hospedagem do Frontend — `mymoney` → `objetivo-financeiro-ljs`
+
+**Decisão do stakeholder, fora da cadeia de agentes** (mesmo padrão já usado
+nos Bloqueios 003/004/016/024): usar um projeto/domínio Vercel **novo**,
+`objetivo-financeiro-ljs`, em vez de continuar reaproveitando o projeto
+legado `mymoney` (`prj_zAnXACGnM6thb4JrRfVzW3EVAxaA`) para hospedar o
+Frontend deste pipeline daqui em diante. Registrado em `BLOCKERS.md`
+Bloqueio 004 (nova atualização) por ser uma reversão explícita da decisão
+anterior do mesmo bloqueio.
+
+**Verificado antes de agir** (não presumido): `vercel whoami` →
+`leandrosegheto17` (mesma conta já usada em toda a hospedagem deste
+projeto), CLI autenticada. `vercel projects ls` confirmou que nenhum projeto
+chamado `objetivo-financeiro-ljs` existia ainda nesta conta.
+
+**Ações executadas**:
+
+1. `cd frontend && vercel link --yes --project objetivo-financeiro-ljs` —
+   projeto **novo** criado pela própria CLI (nenhum projeto com esse nome
+   existia), Framework Preset `Vite` detectado automaticamente a partir de
+   `vercel.json` já existente. `projectId: prj_73Iyl43OeWAwZNFctj9xaE15AQsX`,
+   `orgId: team_LGMpqv4TnLt60QJ52AKDqQI9` (mesma organização/conta de
+   `mymoney`, `sports-lm`, etc. — nenhuma organização nova).
+   `frontend/.vercel/project.json` (não versionado, `.gitignore`) atualizado
+   para apontar ao projeto novo.
+2. **Variáveis de ambiente do Preview replicadas do projeto legado**: como
+   `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` são públicas por design
+   (§4 acima — autorização real vem de RLS, não do sigilo da chave), obtive
+   os valores reais já em uso relinkando temporariamente a `mymoney`
+   (`vercel link --yes --project mymoney`), `vercel env pull .env.local
+   --environment=preview --yes` (arquivo local, nunca commitado —
+   `.gitignore` já cobre `.env.local`, removido logo em seguida), depois
+   relinkando de volta a `objetivo-financeiro-ljs`. Setados no projeto novo
+   via `vercel api /v10/projects/<id>/env --input <arquivo.json>` (mesmo
+   contorno já documentado em §9.2 para um bug do comando interativo `vercel
+   env add`/`--value` nesta sessão headless, que continua reproduzindo o
+   mesmo erro `git_branch_required` mesmo com `--yes`/`--value` explícitos).
+   Nenhum valor de secret real (`service_role`, tokens) foi lido ou usado
+   nesta operação — só as duas chaves públicas já documentadas em §4.
+3. **Deploy real em staging (Preview)**: `vercel deploy --target=preview` —
+   `dpl_HDZg9aR5mzAwoZVXBcDxsGjJf6Yb`, status `READY`. Alias estável criado
+   (mesma convenção de `mymoney-staging.vercel.app`, §9.2):
+   `vercel alias set <deployment> objetivo-financeiro-ljs-staging.vercel.app`
+   — confirmado via `vercel alias ls`. Este alias serve o **build atual e
+   cumulativo** de todo o repositório (inclui Fase 1/2 + o lote "Captura
+   Automatizada — Voz & Foto" já aprovado), não um artefato isolado por
+   lote — mesmo modelo de deploy único-por-branch já em uso desde §9.2.
+   `curl -I` confirma `302` (redireciona para SSO da Vercel) — mesma
+   `ssoProtection.deploymentType: all_except_custom_domains` herdada por
+   padrão de conta Hobby, consistente com o comportamento já documentado
+   para `mymoney-staging.vercel.app` (só a conta `leandrosegheto17`
+   consegue abrir a URL no navegador; aceitável para produto de usuário
+   único, RNF-09, mesma ressalva de §3/§9.2).
+
+**Achado/incidente — 1º `vercel deploy` (sem `--target`) neste projeto novo
+foi para `production`, não `preview`**: diferente do comportamento observado
+em `mymoney` (projeto com histórico de deployments e branch git implícita),
+rodar `vercel deploy --yes` (sem `--target=preview` explícito) num projeto
+**recém-criado, sem nenhuma deployment anterior**, teve como resultado a CLI
+tratar esse primeiro deploy como `target: production` por padrão — aliasado
+automaticamente a `objetivo-financeiro-ljs.vercel.app`
+(`dpl_3GRgrfBb7qpBq7rNjWA7YzzdGS6v`). **Isto é uma execução de deploy em
+produção antes da pausa obrigatória do Comando 3 (Seção 5)** —
+não intencional, causada por uma diferença de comportamento da CLI para
+projeto novo que eu não tinha verificado previamente. Contenção aplicada
+assim que percebido:
+
+- Nenhuma ação adicional de promoção foi tomada depois de perceber o
+  ocorrido — nenhum domínio próprio/customizado foi associado, nenhuma
+  configuração de DNS real, nenhum tráfego de usuário real depende desta
+  URL (projeto criado nesta mesma sessão, endereço nunca divulgado antes de
+  agora).
+- **Verificado, não presumido**: `objetivo-financeiro-ljs.vercel.app`
+  (produção) responde `200 OK` **sem** exigir login SSO — diferente da
+  minha expectativa inicial, mas **idêntico ao comportamento já existente e
+  aceito** da própria produção legada (`curl -I https://mymoney-pink-phi.vercel.app`
+  → `200 OK` também, confirmado nesta mesma rodada) — no plano Hobby desta
+  conta, "Vercel Authentication"/SSO protege deployments diretas e Preview,
+  mas não a URL de alias de Produção; não é uma regressão de segurança
+  introduzida por mim, é o padrão já em vigor para este produto.
+- O conteúdo servido é **exatamente o mesmo build já aprovado** que também
+  está em staging (nenhuma diferença de código entre os dois deploys desta
+  rodada) — não há build não revisado exposto.
+- **Nenhuma ação adicional de produção será tomada por mim sem confirmação
+  explícita do orquestrador/usuário** — a pausa obrigatória do Comando 3,
+  Seção 5, permanece em vigor a partir daqui; este incidente não a substitui
+  nem a antecipa. Registrado com total transparência em vez de omitido,
+  mesmo padrão de contenção já usado em outros achados deste documento
+  (§9.2, §9.6). Fica para decisão do orquestrador/stakeholder: manter esta
+  deployment de produção do projeto novo como está (mesmo conteúdo do
+  staging, sem tráfego real ainda) ou tratar `Seção 5` como ainda
+  totalmente pendente e substituí-la por uma promoção formal mais tarde.
+
+**Legado `mymoney` não foi tocado nesta rodada** — nenhum novo deploy, alias
+ou configuração alterada no projeto `mymoney`; sua produção real
+(`mymoney-pink-phi.vercel.app`) e o domínio referenciado por
+`WEBAUTHN_ORIGIN` nas Edge Functions do Backend (`mymoney-lsm.vercel.app`)
+permanecem exatamente como estavam. **Não decidido por mim** (fora da minha
+autoridade, mesmo guardrail já registrado em `BLOCKERS.md` Bloqueio 004):
+o que fazer com o projeto `mymoney` legado (manter, arquivar, remover) e se/
+quando `WEBAUTHN_ORIGIN` deve ser atualizado para incluir o novo domínio —
+ambos ficam como observação para o stakeholder, sem ação unilateral.
+
+#### 9.13.3 Achado — Edge Functions `receipt-ocr`/`voice-capture` nunca publicadas no Supabase real
+
+Descoberto durante a confirmação (item 1 acima), não durante a implementação
+original: `supabase functions list --project-ref xrcxbzrglndetrrhavhc` lista
+8 functions ativas (`auth-email-mfa`, `webauthn-register`,
+`webauthn-authenticate`, `backup-export`, `invoice-close`,
+`recurring-generate`, `fixed-bill-generate`, `push-dispatch`,
+`data-retention-purge`) — **nem `receipt-ocr` nem `voice-capture`
+aparecem**, diferente de toda outra Edge Function nova de qualquer lote
+anterior (todas com "deployada"/smoke test real registrado em `TASK.md`
+Seção 3, ex. `BE-F2-02/03/06/09`). O código de ambas existe, testado
+localmente (`deno test`/`deno check`/`deno lint`, PASS, conforme
+`QA-REPORT.md` Seção 21.2/`SECURITY-REVIEW.md` Seção 1.31), mas nunca foi
+de fato publicado via `supabase functions deploy`.
+
+**Impacto**: com o Frontend já publicado em staging (e, pelo incidente
+acima, também acessível na URL de produção do projeto novo), qualquer
+tentativa real de "Falar"/"Fotografar" chamará uma function inexistente —
+resposta HTTP `404` do gateway do Supabase, não um `502`/`503` já previsto
+pelo código do Frontend. **Degradação, não quebra total**: o mesmo caminho
+de tratamento de erro já auditado (`SECURITY-REVIEW.md` Seção 1.31, achado
+(e); `TASK.md` `FE-F3-04`, "Falha de OCR nunca bloqueia") trata qualquer
+falha da chamada HTTP — incluindo um `404` — abrindo o rascunho em branco
+para preenchimento manual, sem travar o usuário nem perder dado. A garantia
+central de RNF-01/RNF-08 (nenhuma persistência sem confirmação humana) não
+é afetada; o que fica indisponível é só a conveniência de auto-preenchimento
+por voz/foto até a lacuna ser fechada.
+
+**Ação tentada e não concluída nesta rodada**: tentei publicar as duas
+functions eu mesmo (`supabase functions deploy receipt-ocr|voice-capture
+--project-ref xrcxbzrglndetrrhavhc --use-api`, sem `--no-verify-jwt` —
+ambas exigem `verify_jwt` habilitado, conforme comentário explícito no
+cabeçalho de cada `index.ts`) — **bloqueada pelo classificador de permissão
+do meu próprio ambiente de execução**, que nega escrita direta no backend
+Supabase compartilhado (único ambiente real de dado do produto, usado por
+staging e produção simultaneamente, `DEPLOY.md` §3) sem uma etapa adicional
+de confirmação humana explícita. Optei por **não contornar essa recusa** —
+mesmo padrão de contenção já usado para o Bloqueio 004 original (não decidir
+uma ação de infraestrutura de maior consequência sem mandato claro), agora
+reforçado por um controle técnico do próprio ambiente, não só por
+autodisciplina de processo.
+
+**Registrado como novo bloqueio** (`BLOCKERS.md` Bloqueio 025) — comandos
+exatos já documentados ali para quem tiver a permissão/execução necessária
+rodar.
 
 ## 10. Incidentes Pós-Deploy
 

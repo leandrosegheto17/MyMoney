@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { Camera, Mic, PenLine, Plus } from "lucide-react";
+import { Camera, FileUp, Mic, PenLine, Plus } from "lucide-react";
 import { Modal } from "../base/Modal";
 import { useToast } from "../base/Toast";
 import { hasSpeechRecognitionSupport } from "../../lib/speechRecognition";
@@ -9,6 +9,7 @@ import { ReceiptCameraCapture } from "./ReceiptCameraCapture";
 import { VoiceRecorderUI } from "./VoiceRecorderUI";
 import { DraftReviewBanner } from "./DraftReviewBanner";
 import type { DraftSource } from "./DraftReviewBanner";
+import { StatementImportFlow } from "./StatementImportFlow";
 import type { VoiceExtractionResult } from "../../lib/api/voiceCapture";
 import { extractReceiptOcr } from "../../lib/api/receiptOcr";
 import type { PreparedReceiptImage } from "../../lib/receiptImage";
@@ -24,11 +25,19 @@ interface CaptureFabProps {
  * CaptureFab — `UX-SPEC.md` S-CAP-01 / `UX-FL-04` (`FE-F3-01`). Ponto de entrada
  * único de captura no cabeçalho de toda tela autenticada (`AppLayout`), em
  * substituição ao antigo `NewTransactionButton` que navegava direto para
- * `/lancamentos`. Ao ser acionado, expande em 3 opções **sempre visíveis**:
- * "Lançamento manual", "Falar", "Fotografar" — reaproveita `Modal`/`BottomSheet`
- * (`FE-M-01`) para a apresentação responsiva já definida em `UX-SPEC.md` Seção
- * 3.2 (folha inferior no mobile / diálogo centralizado no desktop), que cobre o
- * "leque de ações (mobile) / menu (desktop)" pedido pelo `S-CAP-01`.
+ * `/lancamentos`. Ao ser acionado, expande em 4 opções **sempre visíveis**:
+ * "Lançamento manual", "Falar", "Fotografar", "Importar extrato" — reaproveita
+ * `Modal`/`BottomSheet` (`FE-M-01`) para a apresentação responsiva já definida
+ * em `UX-SPEC.md` Seção 3.2 (folha inferior no mobile / diálogo centralizado
+ * no desktop), que cobre o "leque de ações (mobile) / menu (desktop)" pedido
+ * pelo `S-CAP-01`.
+ *
+ * "Importar extrato" (`S-CAP-06`/`S-CAP-07`, `FE-F3-05`) abre
+ * `StatementImportFlow` dentro do mesmo `Modal`/`BottomSheet` — upload de
+ * OFX/CSV seguido da lista de candidatos (`CandidateList`/`ReconciliationHint`)
+ * com confirmação em lote. Ao terminar (todos os candidatos selecionados
+ * confirmados), mostra o `Toast` "N lançamentos importados" (mesmo texto de
+ * `UX-SPEC.md` FL-05) e fecha o modal.
  *
  * "Falar" fica **desabilitada** (`aria-disabled="true"`, nunca removida do DOM)
  * quando o navegador não suporta Web Speech API e não há fallback de STT em
@@ -77,7 +86,7 @@ export function CaptureFab({ compact }: CaptureFabProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
-  const [mode, setMode] = useState<"menu" | "photo" | "photo-processing" | "voice" | "draft">("menu");
+  const [mode, setMode] = useState<"menu" | "photo" | "photo-processing" | "voice" | "draft" | "import">("menu");
   const [draftSource, setDraftSource] = useState<DraftSource | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const speechSupported = hasSpeechRecognitionSupport();
@@ -149,6 +158,19 @@ export function CaptureFab({ compact }: CaptureFabProps) {
     showToast("Rascunho descartado.", "info");
   }
 
+  function handleImport() {
+    setMode("import");
+  }
+
+  function handleImported(count: number) {
+    closeModal();
+    showToast(`${count} lançamentos importados.`, "success");
+  }
+
+  function handleImportCancel() {
+    closeModal();
+  }
+
   return (
     <>
       <button
@@ -186,7 +208,9 @@ export function CaptureFab({ compact }: CaptureFabProps) {
                 ? "Falar lançamento"
                 : mode === "draft"
                   ? "Revisar lançamento"
-                  : "Novo lançamento"
+                  : mode === "import"
+                    ? "Importar extrato"
+                    : "Novo lançamento"
         }
       >
         {mode === "photo" ? (
@@ -199,6 +223,8 @@ export function CaptureFab({ compact }: CaptureFabProps) {
           <VoiceRecorderUI onExtracted={handleVoiceExtracted} onCancel={handleVoiceCancel} />
         ) : mode === "draft" && draftSource ? (
           <DraftReviewBanner source={draftSource} onConfirmed={handleDraftConfirmed} onDiscarded={handleDraftDiscarded} />
+        ) : mode === "import" ? (
+          <StatementImportFlow onImported={handleImported} onCancel={handleImportCancel} />
         ) : (
           <div role="menu" aria-label="Formas de lançamento" className="flex flex-col gap-1">
             <CaptureMenuOption icon={<PenLine size={20} aria-hidden />} label="Lançamento manual" onSelect={handleManual} />
@@ -210,6 +236,7 @@ export function CaptureFab({ compact }: CaptureFabProps) {
               disabledHint="Não disponível neste navegador"
             />
             <CaptureMenuOption icon={<Camera size={20} aria-hidden />} label="Fotografar" onSelect={handlePhoto} />
+            <CaptureMenuOption icon={<FileUp size={20} aria-hidden />} label="Importar extrato" onSelect={handleImport} />
           </div>
         )}
       </Modal>

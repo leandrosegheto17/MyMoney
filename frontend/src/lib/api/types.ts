@@ -453,3 +453,24 @@ export interface ConfirmCandidateTransactionParams {
   p_transaction_date: string;
   p_description?: string | null;
 }
+
+export type ImportBatchStatus = "processing" | "ready_for_review" | "completed" | "failed";
+
+/**
+ * `ImportBatch` — `API-CONTRACT.yaml` (`BE-F3-00`). Agrupa N linhas de
+ * `candidate_transaction` de um mesmo arquivo (`FE-F3-05`, RF-F3-03) ou
+ * sincronização Open Finance (`FE-F3-06`, fora de escopo aqui). `source` só
+ * aceita `import`/`openfinance` (voz/foto nunca formam lote).
+ */
+export interface ImportBatch {
+  id: string;
+  user_id: string;
+  source: Extract<CandidateTransactionSource, "import" | "openfinance">;
+  status: ImportBatchStatus;
+  raw_metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+/** `POST /import_batch` — `status`/`raw_metadata` opcionais (RLS aceita o `DEFAULT` da coluna quando omitidos). */
+export type NewImportBatch = Pick<ImportBatch, "source"> & Partial<Pick<ImportBatch, "status" | "raw_metadata">>;
