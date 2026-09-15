@@ -20,6 +20,8 @@ import { RecurringPage } from "../pages/recurring/RecurringPage";
 import { FixedBillsPage } from "../pages/fixedBills/FixedBillsPage";
 import { GoalsPage } from "../pages/goals/GoalsPage";
 import { IncomeExpenseReportPage } from "../pages/reports/IncomeExpenseReportPage";
+import { ExportReportPage } from "../pages/reports/ExportReportPage";
+import { NetWorthEvolutionReportPage } from "../pages/reports/NetWorthEvolutionReportPage";
 
 /**
  * FE-M-00 (fundação) + FE-M-04/05 em diante: `AuthProvider`/`AuthGate` decidem qual
@@ -56,6 +58,8 @@ export const router = createBrowserRouter([
               { path: "contas-fixas", element: <FixedBillsPage /> },
               { path: "metas", element: <GoalsPage /> },
               { path: "relatorios/entradas-saidas", element: <IncomeExpenseReportPage /> },
+              { path: "relatorios/evolucao-patrimonial", element: <NetWorthEvolutionReportPage /> },
+              { path: "relatorios/exportar", element: <ExportReportPage /> },
               { path: "configuracoes", element: <SettingsPage /> },
               { path: "home", element: <HomePage /> },
               { path: "*", element: <NotFoundPage /> },

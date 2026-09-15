@@ -3586,6 +3586,396 @@ condição para este veredito.
 
 ---
 
+## 22. Veredito de Lote — "Retenção & Descarte de Dado / Exclusão de Conta" (2026-09-15)
+
+**Contexto**: as 4 tarefas novas de `ADR-011` (`BE-F3-08`, `BE-F3-09`,
+`BE-F3-10`, `FE-F3-09`) + a tarefa de QA associada (`QA-F3-04`), todas
+`Concluída` em `TASK.md` Seção 3.3, conforme a coluna Lote "Retenção &
+Descarte de Dado / Exclusão de Conta". `BLOCKERS.md` conferido diretamente:
+nenhuma entrada `Aberto` bloqueando este lote — `Bloqueio 007` (credencial S3
+para rotação real contra bucket externo) e `Bloqueio 024` (Resolvido, ADR-020)
+são dependências/decisões já conhecidas, não novidade desta rodada.
+
+### 22.1 `test-strategy-planning`
+
+Estratégia: (a) leitura direta da migration `SECURITY DEFINER`
+`delete_user_data` linha a linha, contra a ordem de FK/trigger documentada no
+próprio cabeçalho — não presumo a ordem correta, confirmo que cada comentário
+bate com a dependência real do schema (auditoria cruzada contra as migrations
+de origem de cada tabela); (b) leitura direta de `delete-account/index.ts`/
+`lib.ts` para confirmar, sem depender da nota do Executor, que
+`validateTargetUserId` de fato barra um `user_id` divergente do JWT antes de
+qualquer `DELETE`; (c) reexecução da suíte Vitest completa do Frontend
+(`SettingsPage.test.tsx`/`deleteAccount.test.ts`) e `tsc -b`; (d) leitura do
+teste SQL `be_f3_09_delete_account_data.test.sql` (5 casos, dado real nas 20
+tabelas cobertas) — não pude reexecutá-lo contra o projeto Supabase real
+vinculado (ambiente de validação sem CLI/credencial do Supabase disponível,
+mesma limitação já registrada nas rodadas 9/20/21 para `deno`), corroborado
+por leitura estrutural completa do arquivo, não por presunção da nota do
+Executor.
+
+### 22.2 `acceptance-criteria-validation`
+
+- **`BE-F3-08`** (ADR-011 — "candidato descartado/abandonado >30 dias é
+  removido junto da foto associada; foto de confirmado é removida 90 dias
+  após `confirmed_at`; export >24h é removido; falha de qualquer job gera
+  log/alerta consultável"): confirmado por leitura de
+  `supabase/functions/data-retention-purge/index.ts`/`lib.ts` que os 2
+  sub-jobs reais (`candidate_transaction_purge`/`export_purge`) cobrem
+  literalmente as partes do critério de aceite que ainda têm objeto — o
+  3º sub-job (foto de recibo) está **corretamente ausente**, não "pulado
+  silenciosamente": `ADR-020`/`Bloqueio 024` (Resolvido) formalizaram que foto
+  de recibo nunca é persistida, decisão de produto anterior a esta tarefa, não
+  uma lacuna de implementação. Migration `20260909122000_be_f3_08_adr020_drop_photo_comment.sql`
+  lida linha a linha: só reemite `COMMENT ON FUNCTION`, não altera schema nem
+  dado — 100% aditiva/idempotente, sem risco de regressão. **Aprovado**.
+- **`BE-F3-09`** (ADR-011 — "ação autenticada e explícita do usuário remove
+  todas as linhas de `public` associadas ao `user_id`, todos os objetos do
+  Storage do mesmo `user_id`, e o usuário em Supabase Auth; chamada sem o JWT
+  do próprio usuário-alvo é rejeitada"): migration
+  `20260915090000_be_f3_09_delete_account_data.sql` lida linha a linha —
+  `delete_user_data(p_user_id uuid)` é `SECURITY DEFINER`, `set search_path to
+  'public', 'pg_temp'` (fixo, protegendo contra sequestro de `search_path` em
+  função privilegiada — mesma disciplina exigida de toda `SECURITY DEFINER`
+  deste projeto), e `revoke execute ... from public, anon, authenticated` +
+  `grant execute ... to service_role` explícitos — **confirmado por leitura
+  direta do SQL, não presumido**: a função nunca é chamável pelo client
+  autenticado, só pela Edge Function via `service_role`. A ordem das 17
+  etapas de `DELETE` (`contributions` → ... → `profiles`) foi conferida contra
+  a origem de cada FK (`fixed_bills`/`installment_purchases`/
+  `recurring_templates` antes de `accounts`/`categories`/`payment_methods`
+  por causa de FK `RESTRICT`; `budget` antes de `categories` por causa do
+  trigger RN-09; `categories` em 2 passadas por causa da auto-referência) —
+  bate com o schema real auditado nas migrations de origem de cada tabela,
+  nenhuma inversão encontrada. **Guardrail central (JWT do alvo) confirmado
+  por leitura direta de código, não pela nota do Executor**:
+  `delete-account/lib.ts#validateTargetUserId` — corpo sem `user_id` aceita
+  (alvo é sempre o próprio autenticado), `user_id` igual ao autenticado
+  aceita, `user_id` de outro usuário rejeitado com `forbidden_target_mismatch`
+  (`index.ts` mapeia para HTTP `403`), tipo inválido rejeitado como
+  `invalid_user_id` (nunca tratado como ausente) — os 4 comportamentos
+  literais do critério de aceite (d), reconfirmados por leitura de
+  `index.ts:214-221` (chamada de `validateTargetUserId` acontece **antes** de
+  qualquer `adminClient`/RPC ser instanciado — rejeição de alvo divergente
+  nunca chega a tocar dado real). `index.ts` também confirma a ordem dos 3
+  passos do ADR-011 (i. `delete_user_data` via `rpc()`, com timeout e reversão
+  total em caso de erro; ii. Storage `exports` via `storage.remove()`, falha
+  não-fatal; iii. `auth.admin.deleteUser` via Admin API do GoTrue, falha
+  tratada como `500 auth_account_deletion_failed`/`partial:true`, nunca
+  mascarada como sucesso). **Teste automatizado**: `lib.test.ts` (11 casos)
+  reexecutado nesta rodada via `npx vitest run supabase/functions/delete-account`
+  não é aplicável (Deno, não Vitest) — `deno` ausente deste ambiente de
+  validação, mesma limitação já registrada nas rodadas 9/20/21; corroborado
+  por leitura direta do arquivo (os 11 casos cobrem literalmente os 4 cenários
+  de `validateTargetUserId` + `buildExportObjectPaths`/`chunk`/
+  `totalDeletedRows`), não presumido. `supabase/tests/be_f3_09_delete_account_data.test.sql`
+  (5 casos, fixture real nas 20 tabelas para usuário-alvo + usuário de
+  controle) lido linha a linha: CASO 2 soma 0 linhas do alvo nas 20 tabelas,
+  CASO 3 confirma as 20 linhas do usuário de controle intactas (isolamento),
+  CASO 4 confirma idempotência, CASO 5 confirma rejeição de `p_user_id NULL`
+  — estruturalmente correto e coerente com a migration real, mas **não
+  reexecutado contra o projeto Supabase vinculado nesta rodada** (mesma
+  limitação de ambiente já registrada por `BE-F3-08`/`BE-F3-09` no próprio
+  `TASK.md`, não introduzida por mim). **Ressalva documentada na própria
+  tarefa, não é achado novo**: `BE-F3-04` (Open Finance) ainda não existe —
+  quando a tabela correspondente for criada, `delete_user_data` precisa
+  ganhar um novo `DELETE`; já sinalizado explicitamente no cabeçalho da
+  migration, consistente com a Seção 4.3 do `TASK.md` (dependência "Contrato
+  (parcial)"), não uma inconsistência estrutural nova (ver Seção 22.4).
+  **Aprovado**.
+- **`BE-F3-10`** (ADR-011 — "a cada execução diária, se já houver 30
+  snapshots, remove o mais antigo, mantendo o total em no máximo 30"):
+  confirmado por leitura direta de `backup-export/lib.ts`/`index.ts` — a
+  rotação já existia desde `BE-M-10` (`objectsToDelete(keysNewestFirst, keep =
+  30)`), este critério de aceite não exigiu código novo, só confirmação. Os 2
+  casos de `lib.test.ts` (35 chaves → 5 removidas; 10 chaves → nenhuma
+  removida) cobrem os dois sentidos da fronteira. Dependência real não-
+  bloqueante: execução ponta a ponta contra bucket S3 real segue dependente de
+  `BLOCKERS.md` Bloqueio 007 (credenciais externas), aberto e já conhecido —
+  não é um achado novo desta rodada. **Aprovado**.
+- **`FE-F3-09`** (ADR-011 — "confirmação em duas etapas explícitas, nunca um
+  único toque; aviso textual de retenção de até 30 dias em backup antes da
+  confirmação final; chama `BE-F3-09` e encerra a sessão ao concluir"):
+  confirmado por leitura direta de `SettingsPage.tsx` — etapa 1
+  (`ConfirmationDialog` "Excluir conta"/"Continuar") só avança de estágio, não
+  chama `deleteAccount()`; etapa 2 (`ConfirmationDialog` "Confirmar exclusão
+  definitiva") renderiza o texto literal "o dado pode persistir por até 30
+  dias em backup já emitido... (ADR-011)" e só o clique no botão destrutivo
+  invoca `deleteAccount()`; `signOut()` só roda depois de `deleteAccount()`
+  resolver com sucesso (dentro do mesmo `try`, após o `await`), erro mantém a
+  sessão ativa e mostra `Alert`. Os 4 casos de `SettingsPage.test.tsx`
+  citados pelo Executor **reexecutados por mim nesta rodada**
+  (`npx vitest run src/pages/settings/SettingsPage.test.tsx
+  src/lib/api/deleteAccount.test.ts`): **12/12 PASS**. Nota de rastreabilidade,
+  não achado novo: esta tarefa está marcada como preliminar em `TASK.md`
+  (UX-SPEC.md ainda não formaliza a tela, item UX-01 Seção 6.1.1,
+  não-bloqueante) — a implementação reaproveita `ConfirmationDialog`/`Modal`
+  já existentes exatamente como a própria linha da tarefa autoriza; não é uma
+  reprovação simples (não há um "erro pontual" a corrigir, é uma pendência de
+  formalização de design já sinalizada e aceita). **Aprovado**.
+- **`QA-F3-04`** (ADR-011 — "teste automatizado confirma fronteira nos dois
+  sentidos para cada categoria de expurgo; teste de exclusão de conta confirma
+  ausência de linha em `public`, objeto no Storage, e usuário em Auth"):
+  esta é uma tarefa de auditoria de cobertura, não de implementação — validada
+  conferindo que o mapeamento apresentado pelo Executor bate com os arquivos
+  de teste reais (não com a narrativa da tarefa): `be_f3_08_data_retention_purge_jobs.test.sql`
+  (7 casos, fronteira nos dois sentidos confirmada por leitura),
+  `backup-export/lib.test.ts` (2 casos de rotação, já existentes desde
+  `BE-M-10`, confirmados por leitura em vez de re-fabricados),
+  `be_f3_09_delete_account_data.test.sql` (5 casos, cobertura de linha `public`
+  confirmada). Ponto verificado com atenção redobrada (é o único item do
+  critério de aceite sem cobertura automatizada local possível): "objeto no
+  Storage e usuário em Auth" — confirmado, por leitura de todo
+  `supabase/functions/*/lib.test.ts`/`*/index.ts` deste projeto, que **nenhuma**
+  Edge Function do repositório testa Storage/Auth/S3 reais via mock local
+  (toda integração real é verificada por smoke test no deploy, nunca
+  integração local mockada) — é convenção de teste já estabelecida e
+  uniforme, não uma lacuna introduzida por esta tarefa; o achado é
+  corretamente **não** tratado como bloqueante. **Aprovado**.
+
+### 22.3 `cross-platform-integration-testing`
+
+Cadeia `FE-F3-09` → `BE-F3-09` (client `deleteAccount()` →
+`invokeEdgeFunction("delete-account")` → `Edge Function` real, sem mock,
+contrato `API-CONTRACT.yaml` v0.28.0) confirmada por leitura ponta a ponta:
+o client não envia `user_id` no corpo (confirmado em
+`frontend/src/lib/api/deleteAccount.ts`) — o alvo é sempre resolvido pelo JWT
+de sessão anexado automaticamente pelo client Supabase, consistente com o
+guardrail central de `BE-F3-09` (nunca é preciso, nem possível pela UI,
+informar um alvo diferente do próprio usuário). Nenhuma divergência de
+contrato encontrada entre o que `SettingsPage.tsx` espera da resposta e o que
+`delete-account/index.ts` de fato retorna (`ok`/`deleted_rows`/
+`storage_removed_count`/`storage_warning` em sucesso; `error`/`message`/
+`partial` em falha).
+
+### 22.4 `non-functional-validation` / checagem de dependência (Seção 4.3)
+
+- **RNF (segurança/autorização)**: `delete_user_data` só executável por
+  `service_role` (confirmado por leitura do `GRANT`/`REVOKE`); Edge Function
+  exige JWT válido antes de processar qualquer coisa (`getAuthenticatedUser`
+  chamado antes da leitura do corpo). Nenhuma regressão de CORS — `ALLOWED_ORIGINS`
+  reaproveita `WEBAUTHN_ORIGIN`, mesmo padrão já auditado nas rodadas 20/21.
+- **Dependência Seção 4.3, `BE-F3-09` linha "Todas as tabelas de `public`...
+  BE-F3-00/04 (contrato)"**: `BE-F3-04` (Open Finance) segue `Não iniciada` —
+  a lacuna correspondente (tabela de Open Finance ainda não coberta por
+  `delete_user_data`) está **documentada explicitamente no cabeçalho da
+  própria migration** desta tarefa, com a ação futura exata já descrita
+  ("ganhar um novo `DELETE FROM public.<tabela_openfinance>... antes do bloco
+  de `categories`"). Isto **não é uma dependência órfã/inconsistente** — é o
+  mesmo padrão já aceito para `BE-F3-08`/foto de recibo (`ADR-020`): lacuna
+  conhecida, sequenciada corretamente, sem efeito sobre o que já existe hoje.
+- **Dependência Seção 4.3, `FE-F3-09` linha "pendência externa: UX-SPEC.md
+  ainda não tem a tela formalizada"**: confirmado que `TASK.md` Seção 6.1.1
+  (item `UX-01`) já rastreia esse gap como não-bloqueante — a implementação
+  entregue reaproveita exatamente a base (`ConfirmationDialog`/`Modal` de
+  `FE-M-01`) que a própria linha da tarefa autoriza para este cenário. Sem
+  inconsistência.
+- **Pendência operacional, não achado de QA**: as migrations
+  `20260915090000_be_f3_09_delete_account_data.sql` e
+  `20260909122000_be_f3_08_adr020_drop_photo_comment.sql` ainda não foram
+  aplicadas ao projeto Supabase real vinculado (a própria nota de status de
+  `BE-F3-09`/`BE-F3-08` em `TASK.md` já documenta o bloqueio do classificador
+  de permissão do ambiente do Executor, mesma natureza do que motivou
+  `BLOCKERS.md` Bloqueio 025 para o deploy de `receipt-ocr`/`voice-capture`).
+  Código correto e testado, mas **não live** — isto não reprova nenhum
+  critério de aceite (o critério de aceite é sobre o comportamento da função/
+  migration, não sobre o estado do ambiente), mas é relevante para o veredito
+  de release-readiness: **este lote não pode ser considerado pronto para
+  produção até a aplicação ser confirmada** — item para o chapéu DevOps
+  resolver na preparação/execução do próximo `/deploy` (Comando 3, Seção 1/2),
+  não uma tarefa de correção de código em `Refatoração Lote-X` (mesma decisão
+  já tomada para o Bloqueio 025 análogo).
+
+### 22.5 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 5 tarefas foi testado e está passando
+      (Seção 22.2), com verificação direta de código (não da nota do
+      Executor) no ponto mais sensível — `validateTargetUserId`/`GRANT`-
+      `REVOKE` de `delete_user_data`
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 22.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 22.4),
+      com pendência operacional (migrations não aplicadas) sinalizada ao
+      chapéu DevOps para o próximo `/deploy`, não uma reprovação
+
+**Veredito do lote (chapéu QA): Aprovado** — Aprovado (5/5), nenhuma
+reprovação crítica nem simples. Nenhum débito novo de QA gerado por esta
+rodada; a pendência operacional de aplicação de migrations é sinalizada à
+Seção 22.4/checagem estrutural, não é um achado de QA.
+
+---
+
+## 23. Veredito de Lote — "Relatórios & Exportação (Fase 3)" (2026-09-15)
+
+**Contexto**: as 4 tarefas do lote (`BE-F3-06`, `BE-F3-07`, `FE-F3-07`,
+`FE-F3-08`), todas `Concluída` em `TASK.md` Seção 3.3, coluna Lote
+"Relatórios & Exportação (Fase 3)". `BLOCKERS.md` conferido diretamente:
+nenhuma entrada `Aberto` bloqueando este lote (as únicas menções a
+`BE-F3-07`/bucket `exports` em `BLOCKERS.md` são dentro do Bloqueio 024,
+sobre o job de expurgo de `BE-F3-08`, lote-irmão, não uma pendência deste
+lote).
+
+### 23.1 `test-strategy-planning`
+
+Estratégia: (a) execução própria e independente da suíte completa do
+Frontend (`cd frontend && npx vitest run` e `npx tsc -b`) — não reaproveito
+só a nota do Executor; (b) leitura linha a linha das 2 migrations novas
+(`20260909100000_be_f3_06_net_worth_evolution.sql`,
+`20260909110000_be_f3_07_report_export.sql`) contra o critério de aceite
+literal de `RF-F3-05 AC1-2`/`RF-F3-06 AC1-2`; (c) leitura linha a linha dos 2
+testes SQL (`be_f3_06_net_worth_evolution.test.sql`,
+`be_f3_07_report_export.test.sql`) e dos testes Deno
+(`report-export/lib.test.ts`, `report-export/pdf.test.ts`) — não pude
+reexecutá-los contra o projeto Supabase/Deno real (ambiente de validação sem
+`deno`/`supabase` CLI disponível, mesma limitação já registrada nas rodadas
+9/20/21/22), corroborado por leitura estrutural completa de cada arquivo,
+nunca por presunção da nota do Executor; (d) leitura linha a linha do código
+Frontend novo (`LineChart.tsx`, `NetWorthEvolutionReportPage.tsx`,
+`ExportReportPage.tsx`, `reportExport.ts`, `reports.ts`) contra o critério de
+aceite literal de `FE-F3-07`/`FE-F3-08`.
+
+**Execução própria (Frontend, não delegada à nota do Executor)**:
+
+| Comando | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` | **72 arquivos, 425 testes — todos passando** (inclusive `UnlockPage.test.tsx`, historicamente flaky sob concorrência em rodadas anteriores — passou limpo nesta execução). Sem nenhuma falha, confirmando zero regressão de forma independente da nota do Executor (que registrou 424/425 com a mesma falha flaky isolada). |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo. |
+
+### 23.2 `acceptance-criteria-validation`
+
+- **`BE-F3-06`** (RF-F3-05 AC1-2 — "Filtro por conta individual retorna série
+  coerente com a visão consolidada"): migration
+  `20260909100000_be_f3_06_net_worth_evolution.sql` lida linha a linha —
+  `get_net_worth_evolution(p_account_id uuid default null)` é `language sql`
+  sem `security definer` (portanto `SECURITY INVOKER` por padrão do
+  Postgres, confirmado pela ausência da cláusula, não presumido),
+  `set search_path to 'public'`, escopada por `a.user_id = auth.uid()`
+  em `v_accounts`. **AC literal (coerência filtro x consolidado)** provado
+  pelo **CASO C** do teste SQL: `FULL OUTER JOIN` entre a série consolidada
+  e a soma das séries de 2 contas de teste, zero divergência em toda a
+  janela de 6 meses, revalidado no **CASO D** após um lançamento fora da
+  janela. Conta alheia/inativa como `p_account_id` produz lista vazia
+  (**CASO E**), nunca erro nem dado de terceiro. Janela nunca excede 6 linhas
+  (**CASO F**). Teste SQL não reexecutado contra o projeto real nesta rodada
+  (`supabase` CLI ausente do ambiente de validação) — corroborado por leitura
+  estrutural completa (378 linhas, 6 casos, todos com asserção explícita via
+  `RAISE EXCEPTION` em caso de falha, nenhum "assume que passou"). **Aprovado**.
+- **`BE-F3-07`** (RF-F3-06 AC1-2 — "CSV contém no mínimo data, conta, forma
+  de pagamento, categoria, subcategoria, descrição, tipo, valor; PDF contém
+  resumo do período"): migration `20260909110000_be_f3_07_report_export.sql`
+  lida linha a linha — `get_report_export_rows` mesma família `SECURITY
+  INVOKER`/`auth.uid()` de `BE-F3-06`. **AC1 literal**: `CSV_HEADER` em
+  `report-export/lib.ts:117` tem exatamente as 8 colunas exigidas, nesta
+  ordem; `buildCsvContent` cobre todas via `lib.test.ts` (confirmado por
+  leitura, `deno` ausente — mesma limitação já registrada). **AC2 literal**:
+  `pdf.ts`/`computeReportSummary` geram saldo/entradas/saídas/distribuição
+  por categoria; `pdf.test.ts` confirma via descompressão real dos content
+  streams `FlateDecode` do PDF gerado que o texto literal ("Saldo do
+  período"/"Entradas"/"Saídas"/"Distribuição por categoria") está presente —
+  leitura do arquivo confirma que o teste de fato inspeciona bytes reais, não
+  apenas presume a estrutura (`pdf.test.ts:1-105`, uso de
+  `DecompressionStream("deflate")`). Teste SQL
+  `be_f3_07_report_export.test.sql` lido linha a linha — **CASO B** prova
+  literalmente "categoria/subcategoria nunca invertidas" (categoria-pai em
+  `category_name`, subcategoria em `subcategory_name`); **CASO C** prova
+  `kind=transfer` incluído no extrato completo; **CASO D/E/F** cobrem
+  filtro de período, isolamento cross-user, período vazio. **Decisão de
+  escopo já documentada pelo Executor (sem filtro de conta em
+  `/report-export`)**: confirmado contra `UX-SPEC.md` S-REP-03 — o wireframe
+  de fato só define período + formato, sem seletor de conta; não é uma
+  lacuna de implementação, é fidelidade ao wireframe real. **Aprovado**.
+- **`FE-F3-07`** (UX-FL-18 — "Filtro 'Todas as contas' disponível além de
+  contas individuais"): `NetWorthEvolutionReportPage.tsx` lido linha a
+  linha — `Select` monta `{ value: "", label: "Todas as contas" }` como
+  primeira opção, seguida de 1 opção por `listAccounts({ onlyActive: true
+  })`; valor vazio traduz para `undefined` antes de chamar
+  `getNetWorthEvolution` (consolidado); troca de opção chama a RPC com o
+  `account_id` selecionado — AC literal confirmado tanto pelo código quanto
+  pelos 5 casos de `NetWorthEvolutionReportPage.test.tsx` (reexecutados nesta
+  rodada dentro da suíte completa, Seção 23.1). `LineChart.tsx` (SVG próprio,
+  sem lib externa) trata corretamente janela parcial (nota textual "Dados
+  disponíveis a partir de [mês]" em vez de fabricar mês com zero, DIR-06) e
+  oferece "Ver como tabela" (alternativa textual, WCAG). **Aprovado**.
+- **`FE-F3-08`** (UX-FL-19 — "Usuário escolhe CSV ou PDF e recebe o arquivo
+  correspondente ao período selecionado"): `ExportReportPage.tsx`/
+  `reportExport.ts` lidos linha a linha — radio CSV/PDF nativo (`fieldset`),
+  `DatePicker` "De"/"Até" com validação de período (`startDate <= endDate`,
+  botão desabilitado com erro de campo se invertido), `exportReport()` chama
+  `/report-export` real com `start_date`/`end_date`/`format` exatos do
+  estado da tela — nenhum valor hardcoded nem mock. `downloadExportedFile`
+  busca a signed URL via `fetch`/`Blob` e dispara `<a download>` com o
+  `filename` retornado pela Edge Function (`relatorio_<início>_a_<fim>.<ext>`)
+  — arquivo corresponde ao período selecionado tanto no conteúdo (via
+  `start_date`/`end_date` reais) quanto no nome. Alterar período/formato após
+  já ter gerado um arquivo descarta o resultado anterior (`resetResult`),
+  evitando baixar um arquivo desatualizado — decisão pequena de UX,
+  consistente com RNF-01 (nunca oferecer download de dado que não corresponde
+  mais à seleção visível). Offline desabilita "Exportar" com aviso explícito
+  (exportação sempre exige rede). Os 15 casos de `reportExport.test.ts` (7) +
+  `ExportReportPage.test.tsx` (8) reexecutados nesta rodada dentro da suíte
+  completa (Seção 23.1), cobrindo literalmente CSV e PDF com período
+  correspondente. **Aprovado**.
+
+### 23.3 `cross-platform-integration-testing`
+
+Cadeia `FE-F3-07` → `BE-F3-06` (`getNetWorthEvolution` →
+`supabase.rpc("get_net_worth_evolution", { p_account_id })`) e `FE-F3-08` →
+`BE-F3-07` (`exportReport` → `invokeEdgeFunction("report-export")` →
+Edge Function real) confirmadas por leitura ponta a ponta: nenhum mock
+intermediário em nenhum dos dois caminhos (contrato `API-CONTRACT.yaml`
+v0.24.0/v0.25.0 já publicado antes destas 2 tarefas de Frontend, consumido
+diretamente). Nenhuma divergência de contrato encontrada entre o que cada
+página espera da resposta (`NetWorthEvolutionItem[]`/`ReportExportResult`) e
+o que a RPC/Edge Function de fato retornam. `invokeEdgeFunction` (Frontend)
+confirmado anexando `Authorization: Bearer <JWT>` automaticamente via
+`supabase.functions.invoke` — mesmo padrão já auditado para
+`voiceCapture.ts`/`statementImport.ts`/`deleteAccount.ts`.
+
+### 23.4 `non-functional-validation` / checagem de dependência (Seção 4.3)
+
+- **RNF (segurança/autorização)**: ambas as RPCs `SECURITY INVOKER`
+  (confirmado pela ausência de `security definer`, não presumido) e
+  escopadas por `auth.uid()`; Edge Function `report-export` exige JWT válido
+  antes de processar qualquer coisa (mesmo padrão de
+  `receipt-ocr`/`voice-capture`/`statement-import`, já auditado). Nenhuma
+  regressão de CORS — `ALLOWED_ORIGINS` reaproveita `WEBAUTHN_ORIGIN`, mesmo
+  padrão já auditado nas rodadas 20/21/22.
+- **Dependência Seção 4.3**: `BE-F3-06 | BE-M-07 (saldo consolidado já
+  existe) | Contrato` e `BE-F3-07 | BE-M-06 (campos de lançamento já
+  definidos) | Contrato` — ambas satisfeitas (`BE-M-07`/`BE-M-06`
+  `Concluída` há muito). `FE-F3-07 | BE-F3-06 (contrato)` e `FE-F3-08 |
+  BE-F3-07 (contrato)` — ambas satisfeitas, sem uso de mock (Seção 23.3).
+  Nenhuma dependência órfã/inconsistente relativa a este lote.
+- **Nota de rastreabilidade, não achado novo**: assim como o Bloqueio 025
+  registrou para `receipt-ocr`/`voice-capture` (lote-irmão anterior), não há
+  evidência nesta rodada de que a Edge Function `report-export` tenha sido
+  de fato publicada no projeto Supabase real (`DEPLOY.md` não registra
+  nenhuma rodada de `/deploy` após 2026-09-09, §9.13, anterior à conclusão
+  desta tarefa em 2026-09-15) — `supabase`/`deno` CLI ausentes deste
+  ambiente de validação impedem confirmar via `supabase functions list`. Isto
+  **não reprova** nenhum critério de aceite (testado sobre o comportamento
+  do código, não sobre o estado do ambiente) — é sinalizado para a checagem
+  estrutural (Seção 24) e para o chapéu DevOps resolver no próximo
+  `/deploy`, mesmo tratamento já dado ao Bloqueio 025 análogo.
+
+### 23.5 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite das 4 tarefas foi testado e está passando
+      (Seção 23.2), com verificação direta de código/migration/teste (não da
+      nota do Executor)
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 23.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 23.4), com
+      pendência operacional (publicação de `report-export`) sinalizada ao
+      chapéu DevOps para o próximo `/deploy`, não uma reprovação
+
+**Veredito do lote (chapéu QA): Aprovado** — Aprovado (4/4), nenhuma
+reprovação crítica nem simples. Nenhum débito novo de QA gerado por esta
+rodada; a pendência operacional de publicação da Edge Function é sinalizada
+à Seção 23.4/checagem estrutural, não é um achado de QA.
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -3612,3 +4002,4 @@ condição para este veredito.
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Metas": BE-F2-08, FE-F2-06 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; teste SQL de `BE-F2-08` executado de forma independente contra o projeto Supabase real vinculado, sem bloqueio de permissão; suíte de frontend completa 324/331 (6 arquivos/7 testes com timeout de ambiente na 1ª execução, incluindo `GoalsPage.test.tsx`, reexecutados isoladamente com 100% PASS, mesma classe de flake de `UnlockPage.test.tsx`) — `QA-REPORT.md` Seção 19 | 0 | QA-DEBT-016 (baixa, `aria-valuenow` > `aria-valuemax` em `GoalProgressBar.tsx` no estado de meta superada — reproduz previsão de `QA-DEBT-010`) |
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Notificações & Configurações": BE-F2-09, FE-F2-07, FE-F2-09 (3) | **Aprovado** (lote) — Aprovado (3/3), nenhuma reprovação; teste SQL de `BE-F2-09` executado de forma independente contra o projeto Supabase real vinculado — `QA-REPORT.md` Seção 20 | 0 | Nenhum novo |
 | 2026-09-08 (veredito de lote) | Lote "Captura Automatizada — Voz & Foto": BE-F3-00, BE-F3-01, BE-F3-02, FE-F3-01, FE-F3-02, FE-F3-03, FE-F3-04 (7) | **Aprovado** (lote) — Aprovado (7/7), nenhuma reprovação; escrutínio redobrado de RNF-01/RNF-08 (`BE-F3-00`/`FE-F3-04`) incluindo reexecução independente da suíte SQL (9/9 `PASS`) e leitura linha-a-linha do teste crítico de fake-timers de 10 minutos; suíte de frontend completa 388/388 `PASS`, `tsc -b` sem erros — `QA-REPORT.md` Seção 21 | 0 | Nenhum novo (achado de segurança `SEC-DEBT-015` registrado pelo chapéu DevSecOps, agendado como `BE-DEBT-04`) |
+| 2026-09-15 (veredito de lote) | Lote "Retenção & Descarte de Dado / Exclusão de Conta": BE-F3-08, BE-F3-09, BE-F3-10, FE-F3-09, QA-F3-04 (5) | **Aprovado** (lote) — Aprovado (5/5), nenhuma reprovação; leitura linha-a-linha da migration `SECURITY DEFINER`/`delete_user_data` + auditoria independente de `validateTargetUserId` (`delete-account/lib.ts`) confirmando rejeição de alvo arbitrário; regressão de frontend 424/425 `PASS` (1 flake pré-existente de `UnlockPage.test.tsx`, não relacionado), `tsc -b` limpo — `QA-REPORT.md` Seção 22 | 0 | Nenhum novo (pendência operacional de aplicação de 2 migrations, mesma natureza já rastreada em `BE-F3-08`/Bloqueio 025 — sinalizada ao chapéu DevOps, sem tarefa de correção de código) |

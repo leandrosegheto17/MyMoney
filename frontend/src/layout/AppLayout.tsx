@@ -54,6 +54,8 @@ const DESKTOP_NAV_GROUPS: Array<{ label: string | null; items: Array<{ to: strin
     label: null,
     items: [
       { to: "/relatorios/entradas-saidas", label: "Relatórios" },
+      { to: "/relatorios/evolucao-patrimonial", label: "Evolução Patrimonial" },
+      { to: "/relatorios/exportar", label: "Exportar Relatório" },
       { to: "/configuracoes", label: "Configurações" },
     ],
   },

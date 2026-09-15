@@ -1371,6 +1371,124 @@ achado desta rodada tem relevância estratégica que exija nova sinalização.
 
 ---
 
+### 1.33 — Auditoria completa (veredito de lote) — "Relatórios & Exportação (Fase 3)" — 2026-09-15
+
+**Gatilho**: `QA-REPORT.md` Seção 23 aprovou (Aprovado, 4/4) `BE-F3-06`,
+`BE-F3-07`, `FE-F3-07`, `FE-F3-08`. Libera a auditoria completa, respeitando
+o próprio gate de entrada (QA antes de DevSecOps). Escrutínio dirigido pelas
+3 atenções apontadas pelo dispatch desta rodada: (a) `get_net_worth_evolution`
+`SECURITY INVOKER`/`auth.uid()`; (b) isolamento do bucket `exports` + signed
+URL de curta duração; (c) ausência de vazamento cross-user no Frontend.
+
+**Verificação de `BLOCKERS.md`**: lida diretamente — nenhuma entrada `Aberto`
+bloqueando este lote (as únicas 2 menções a `BE-F3-07`/bucket `exports` são
+dentro do Bloqueio 024, sobre o job de expurgo de `BE-F3-08`, lote-irmão já
+resolvido, não uma pendência deste lote).
+
+#### `static-security-analysis` — leitura direta das 2 migrations, da Edge Function `report-export` e do Frontend novo
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) `get_net_worth_evolution` — `SECURITY INVOKER` (não `DEFINER`), escopada por `auth.uid()` | Leitura direta da migration | `20260909100000_be_f3_06_net_worth_evolution.sql:49-56` — `language sql stable set search_path to 'public'`, **sem** cláusula `security definer` (portanto `SECURITY INVOKER` por padrão do Postgres, confirmado pela ausência, não presumido); `v_accounts` (`:67-72`) filtra `a.user_id = auth.uid()`; `v_effects` (`:74-97`) filtra `t.user_id = auth.uid()` nas 2 uniões (efeito de saída e de entrada de transfer) | Passa |
+| (b) `get_report_export_rows` — mesma classe `SECURITY INVOKER`/`auth.uid()` | Leitura direta da migration | `20260909110000_be_f3_07_report_export.sql:58-74` — mesmo padrão exato de (a): sem `security definer`, `where t.user_id = auth.uid()` (`:90`) | Passa |
+| (c) Bucket `exports` — privado, isolamento por pasta `<user_id>/...` | Leitura direta da migration | `:110-131` — `insert into storage.buckets (..., public) values ('exports', 'exports', false)`; `exports_select_own`/`exports_insert_own` restringem `(storage.foldername(name))[1] = auth.uid()::text`, `to authenticated` — mesmo princípio de isolamento já auditado para `receipt-ocr` (G-18). Nenhuma policy `to anon`/pública encontrada para este bucket | Passa |
+| (d) Signed URL de curta duração, nunca URL pública | Leitura direta de `report-export/index.ts` | `SIGNED_URL_TTL_SECONDS = 300` (`:51`); `dbClient.storage.from(EXPORTS_BUCKET).createSignedUrl(objectPath, SIGNED_URL_TTL_SECONDS)` (`:261`) — `dbClient` é `userClient(authHeader)`, nunca `service_role`/`createClient` administrativo; upload/assinatura usam a mesma sessão do usuário autenticado, respeitando a policy de isolamento por pasta sem precisar de bypass de RLS | Passa |
+| (e) Edge Function exige JWT de sessão antes de processar | Leitura direta de `index.ts` | `getAuthenticatedUser(req)` (`:116-132`) chamado antes de ler o corpo/validar entrada/consultar dado; `401 unauthorized` se ausente/inválido — mesmo padrão já auditado para `receipt-ocr`/`voice-capture`/`statement-import`/`delete-account` | Passa |
+| (f) Log — dado financeiro/PII em texto claro | Leitura direta de `index.ts` (`log()`, `:56-75`, e os 6 pontos de chamada) | Todo `log(...)` registra só `user_id`/`format`/`total_rows`/`start_date`/`end_date` (metadados) — nenhuma linha de `public.transactions` (descrição, categoria, valor) nem o conteúdo do CSV/PDF gerado é incluído em nenhum `extra` | Passa |
+| (g) Frontend — `reportExport.ts`/`ExportReportPage.tsx`/`reports.ts`/`NetWorthEvolutionReportPage.tsx`: vazamento cross-user ou download sem sessão válida | Leitura direta do código | `invokeEdgeFunction`/`getSupabaseClient().rpc(...)` anexam `Authorization: Bearer <JWT>` automaticamente via `supabase-js` (sessão ativa); nenhuma chamada com `user_id`/`account_id` de outro usuário é sequer possível pela UI (`listAccounts`/`getNetWorthEvolution` já escopados por RLS/`auth.uid()` no servidor); `downloadExportedFile` só usa a `signed_url` recebida da própria resposta autenticada, nunca constrói uma URL própria para o bucket; rotas `relatorios/evolucao-patrimonial`/`relatorios/exportar` registradas dentro de `AuthGate`/`AppLayout` (`router.tsx:47-63`), inacessíveis sem sessão | Passa |
+
+Nenhum achado novo de severidade alta/crítica. Nenhum achado novo de baixa/
+média severidade nesta rodada — as 3 atenções apontadas pelo dispatch (RPC
+`SECURITY INVOKER`, isolamento do bucket/signed URL, ausência de vazamento no
+Frontend) foram confirmadas corretas por leitura direta, sem nenhuma
+divergência entre o comportamento real e o que a nota do Executor descreve.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md` (G-18)
+
+`G-18` ("Bucket de Supabase Storage... é sempre privado; acesso apenas via
+signed URL de curta duração, nunca URL pública") confirmado aplicado ao
+bucket `exports`, não só ao de fotos de recibo (mesmo texto de `SDD.md`
+Seção 7 de onde `G-18` se origina é a política geral de Storage do produto,
+não uma exceção só de recibo — leitura direta da migration confirma bucket
+`public: false` + policies restritas, Seção 1.33 item (c)). Nenhum gap desta
+classe encontrado.
+
+#### `compliance-validation` — LGPD
+
+Este lote não introduz nenhum tratamento de dado pessoal novo além do que já
+existe em `transactions`/`accounts` (RPCs de leitura agregada, sem nova
+coluna de PII). A exportação em si (CSV/PDF com dado financeiro do próprio
+usuário) é exercício do direito de portabilidade (LGPD Art. 18) pelo próprio
+titular, para o próprio titular — sem transferência a terceiro. Nenhum
+achado de compliance obrigatório em aberto específico deste lote.
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*` fora do `log()` estruturado, e por qualquer
+inclusão de corpo de linha de `public.transactions` em resposta HTTP/log, em
+`supabase/functions/report-export/*.ts`: zero ocorrências fora do padrão já
+auditado no ponto (f) acima. `ExportReportPage.tsx`/`reportExport.ts`/
+`NetWorthEvolutionReportPage.tsx`/`LineChart.tsx` (Frontend): nenhum
+`console.*`/`localStorage` novo introduzido por esta tarefa; erro de rede
+exibido só via `Alert` (`role="alert"`/`aria-live`), sem persistir nada em
+armazenamento local do dispositivo. CSV gerado com BOM UTF-8 e valores
+formatados em BRL — nenhum campo de PII adicional além dos já presentes em
+`transactions` (mesmo escopo de dado já coberto pela RLS).
+
+#### `finding-severity-classification`
+
+Nenhum achado novo nesta rodada. Nota operacional, não um achado de
+segurança (detalhada na Seção 4 abaixo, mesmo tratamento já dado ao Bloqueio
+025 análogo): não há evidência, nesta rodada, de que a Edge Function
+`report-export` tenha sido de fato publicada no projeto Supabase real —
+`DEPLOY.md` não registra nenhuma execução de `/deploy` após 2026-09-09
+(§9.13), anterior à conclusão desta tarefa (2026-09-15); `supabase`/`deno`
+CLI ausentes deste ambiente de validação impedem confirmar via `supabase
+functions list --project-ref xrcxbzrglndetrrhavhc`.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado; exportação é exercício do
+  próprio direito de portabilidade pelo titular, para o titular.
+- **Exposição de dado sensível**: nenhuma.
+- **Débito novo registrado nesta rodada**: nenhum.
+- **Requisitos de segurança operacional para o DevOps**: novo item
+  registrado na Seção 4 (confirmar publicação da Edge Function
+  `report-export` + smoke test real antes de considerar este lote pronto
+  para produção).
+
+**Veredito do lote: Aprovado, sem débito de segurança novo** — condicionado,
+para o deploy efetivo (chapéu DevOps), à confirmação de publicação da Edge
+Function `report-export` registrada na Seção 4 — mesmo tratamento já dado ao
+`BLOCKERS.md` Bloqueio 025 análogo: não reprova a validação funcional/de
+segurança já concluída, é um passo de publicação a confirmar.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — este lote
+não produziu achado de relevância estratégica; a pendência de publicação da
+Edge Function é uma etapa operacional, já com comando exato documentado na
+Seção 4, sem decisão de negócio envolvida.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/
+      condição — não aplicável, nenhum achado técnico novo nesta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — item novo
+      na Seção 4 (confirmar publicação de `report-export` + smoke test real
+      antes do próximo `/deploy`)
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Relatórios & Exportação (Fase 3)" do ponto de vista
+de DevSecOps: Aprovado** (sem débito de segurança novo; deploy tecnicamente
+liberado do ponto de vista de segurança, condicionado à confirmação
+operacional de publicação da Edge Function registrada na Seção 4 ser
+resolvida antes/durante o próximo `/deploy`).
+
 ## 2. Resumo — Débitos registrados
 
 | ID | Achado | Severidade | Bloqueia? | Prazo/condição | Dono da correção |
@@ -1601,6 +1719,43 @@ mundo — este achado reduz defesa em profundidade, não quebra função nenhuma
   hospedagem (Vercel, `vercel.json` `headers`) quando o deploy real for
   configurado (`BLOCKERS.md` Bloqueio 004) — não bloqueante hoje, scaffolding
   ainda não tem lógica de domínio para justificar CSP restritiva definitiva.
+- **Migrations pendentes de aplicação — lote "Retenção & Descarte de Dado /
+  Exclusão de Conta" (2026-09-15)**: `20260915090000_be_f3_09_delete_account_data.sql`
+  (cria `public.delete_user_data`, `SECURITY DEFINER`) e
+  `20260909122000_be_f3_08_adr020_drop_photo_comment.sql` (só `COMMENT ON
+  FUNCTION`, idempotente) ainda não foram aplicadas ao projeto Supabase real
+  vinculado — mesma classe de pendência de publicação já registrada em
+  `BLOCKERS.md` Bloqueio 025 (Edge Functions `receipt-ocr`/`voice-capture` não
+  deployadas), bloqueada pelo classificador de permissão do ambiente de
+  execução, não uma decisão de arquitetura. Antes de considerar este lote
+  pronto para produção: (1) aplicar as 2 migrations (`supabase db push
+  --linked`, confirmar via `supabase migration list --linked`); (2) confirmar
+  via `supabase functions deploy delete-account --project-ref
+  xrcxbzrglndetrrhavhc --use-api` (sem `--no-verify-jwt`, a function exige JWT
+  de sessão) que a Edge Function está `ACTIVE`; (3) rodar
+  `supabase/tests/be_f3_09_delete_account_data.test.sql` e
+  `supabase/tests/be_f3_08_data_retention_purge_jobs.test.sql` contra o
+  projeto real (`supabase db query --linked --file`) antes do smoke test
+  funcional de exclusão de conta em staging.
+- **Publicação pendente de confirmação — Edge Function `report-export`, lote
+  "Relatórios & Exportação (Fase 3)" (2026-09-15)**: mesma classe de
+  pendência já registrada no `BLOCKERS.md` Bloqueio 025
+  (`receipt-ocr`/`voice-capture`) — não há evidência, no ambiente de
+  validação (sem `supabase`/`deno` CLI), de que `report-export` tenha sido
+  publicada no projeto Supabase real desde sua conclusão; `DEPLOY.md` não
+  registra nenhuma rodada de `/deploy` após 2026-09-09 (§9.13). As 2
+  migrations (`20260909100000_be_f3_06_net_worth_evolution.sql`,
+  `20260909110000_be_f3_07_report_export.sql`) já foram aplicadas e
+  confirmadas via `migration list --linked` (nota de status de `BE-F3-06`/
+  `BE-F3-07` em `TASK.md`) — só a publicação da própria Edge Function precisa
+  de confirmação. Antes de considerar este lote pronto para produção: (1)
+  confirmar via `supabase functions list --project-ref
+  xrcxbzrglndetrrhavhc` se `report-export` já está `ACTIVE`; (2) se ausente,
+  `supabase functions deploy report-export --project-ref
+  xrcxbzrglndetrrhavhc --use-api` (sem `--no-verify-jwt`, a function exige
+  JWT de sessão); (3) smoke test real (chamada HTTP autenticada mínima,
+  período curto, formato CSV) antes de considerar a exportação de fato
+  disponível em staging/produção.
 
 ## 5. Sinalizações ao CTO (paralelas, não pré-requisito de bloqueio)
 
@@ -4251,3 +4406,130 @@ exija decisão de negócio.
 vista de DevSecOps: Aprovado com débito** (`SEC-DEBT-015`, Média severidade,
 não bloqueante; deploy liberado, condicionado a `BE-DEBT-04` estar
 `Concluída` antes de `BE-F3-03`/`BE-F3-04`).
+
+---
+
+### 1.32 — Auditoria completa (veredito de lote) — "Retenção & Descarte de Dado / Exclusão de Conta" — 2026-09-15
+
+**Gatilho**: `QA-REPORT.md` Seção 22 aprovou (Aprovado, 5/5) `BE-F3-08`,
+`BE-F3-09`, `BE-F3-10`, `FE-F3-09`, `QA-F3-04`. Libera a auditoria completa,
+respeitando o próprio gate de entrada (QA antes de DevSecOps). Escrutínio
+ampliado nesta rodada: este lote introduz a única Edge Function do projeto
+com poder de apagar fisicamente toda a conta de um usuário, via função `SQL
+SECURITY DEFINER` — a superfície de maior consequência auditada até aqui.
+
+**Verificação de `BLOCKERS.md`**: lida diretamente — nenhuma entrada `Aberto`
+bloqueando este lote. `Bloqueio 007` (credenciais S3 para rotação real de
+`BE-F3-10`) e `Bloqueio 024` (Resolvido, `ADR-020` — foto de recibo nunca
+persistida) são dependências/decisões já conhecidas, confirmadas, não
+achados novos desta rodada.
+
+#### `static-security-analysis` — leitura direta das 2 migrations e da Edge Function `delete-account`
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) `delete_user_data` — `SECURITY DEFINER` com `search_path` explícito | Leitura direta da migration | `20260915090000_be_f3_09_delete_account_data.sql:70-74` — `security definer` + `set search_path to 'public', 'pg_temp'` (fixo — protege contra sequestro de `search_path` que uma função privilegiada sem essa cláusula estaria exposta) | Passa |
+| (b) `EXECUTE` restrito a `service_role`, nunca ao client | Leitura direta da migration | `:237-238` — `revoke execute on function public.delete_user_data(uuid) from public, anon, authenticated; grant execute ... to service_role;` — explícito, não herdado por acidente de um `GRANT` legado (mesma classe de risco que motivou `SEC-DEBT-007` para `apply_transaction_effect`, aqui corrigida desde a origem) | Passa |
+| (c) Guardrail de alvo — chamada com `user_id` divergente do JWT é rejeitada | Leitura direta do código + teste | `delete-account/lib.ts#validateTargetUserId` (linha 26-48) — rejeita `user_id` diferente do autenticado com `forbidden_target_mismatch`; `index.ts:214-221` chama essa validação **antes** de instanciar `adminClient`/qualquer RPC — uma tentativa de excluir outro usuário nunca chega a tocar `service_role`. 4 casos de `lib.test.ts` (linhas 17-53) cobrem os 2 sentidos (aceito/rejeitado) + tipo inválido; `deno` ausente deste ambiente de validação, não reexecutado, corroborado por leitura estrutural completa (mesma limitação já registrada em 1.31/`QA-REPORT.md` 21.6) | Passa |
+| (d) Ordem de `DELETE` respeita FK `RESTRICT`/trigger sem depender só de `CASCADE` | Leitura direta da migration + auditoria cruzada contra a origem de cada FK | 17 passos comentados linha a linha (`:84-217`) — conferidos contra `fixed_bills`/`installment_purchases`/`recurring_templates` (FK `RESTRICT` para `category_id`/`account_id`/`payment_method_id`, migrations de origem confirmadas), `budget`/trigger RN-09 (`categories_block_delete_when_linked`), `accounts`/trigger RN-08 (`accounts_block_delete_when_linked`) — nenhuma inversão de ordem encontrada; a decisão de não confiar só em `ON DELETE CASCADE` (documentada no cabeçalho, `:17-47`) é tecnicamente correta — a ordem de cascades concorrentes de múltiplas FKs diretas para `auth.users` não é garantida pela SQL padrão, e os 2 triggers `BEFORE DELETE` poderiam abortar a operação inteira numa ordem errada | Passa |
+| (e) Falha parcial nunca mascarada como sucesso | Leitura direta de `index.ts` | Passo (i) `delete_user_data` dentro de uma transação atômica da própria função — falha reverte tudo, resposta `502 account_data_deletion_failed`; passo (ii) Storage não-fatal por design documentado (dado financeiro já removido, objeto órfão é bloat não vazamento); passo (iii) `auth.admin.deleteUser` — falha retorna `500 auth_account_deletion_failed`, `partial: true`, nunca `200 ok` | Passa |
+| (f) Log — dado financeiro/PII em texto claro | Leitura direta de `index.ts` (`log()`, linhas 84-103, e todos os 5 pontos de chamada) | Todo `log(...)` registra só `user_id`/contadores agregados (`total_rows_deleted`, `storage_removed_count`)/mensagens de erro de biblioteca — nenhum valor de linha de `public` (nome de conta, descrição de lançamento, etc.) é incluído em nenhum `extra` | Passa |
+| (g) `data-retention-purge`/`ADR-020` — nenhuma referência residual a foto tratada como funcional | Leitura direta de `index.ts`/`lib.ts` de `data-retention-purge` + migration de comentário | Confirmado: `confirmed_receipt_photo_purge` removido por completo do código (não existe nem como skip); `20260909122000_be_f3_08_adr020_drop_photo_comment.sql` só reemite `COMMENT ON FUNCTION`, sem alterar schema/dado — 100% aditiva/idempotente, sem regressão possível | Passa |
+
+Nenhum achado novo de severidade alta/crítica. Nenhum achado novo de baixa/
+média severidade nesta rodada — diferente de 1.31 (`SEC-DEBT-015`), a leitura
+linha a linha da superfície de maior consequência deste lote (exclusão de
+conta) não encontrou nenhuma divergência entre o texto do critério de aceite,
+o comentário da migration, e o comportamento real do código.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `ADR-011` + `GUARDRAILS.md`
+
+`ADR-011` (política de retenção/descarte) confirmado corretamente
+implementado nas 3 partes que ainda têm objeto: expurgo de candidato/export
+(`BE-F3-08`), rotação de backup (`BE-F3-10`), exclusão de conta (`BE-F3-09`).
+Reautenticação para ação sensível (`SDD.md` Seção 7/`ADR-014`): confirmado que
+o mecanismo real é a exigência de JWT de sessão válido — checar o claim
+`app_email_mfa_verified` seria decorativo (sempre `'true'` por decisão
+definitiva do stakeholder, não um gate real), então a Edge Function
+corretamente não depende dele; nenhuma falsa sensação de segurança
+introduzida. `G-19`/padrão `BE-M-13` de validação de ownership de FK cross-
+tabela: não aplicável a `delete_user_data` diretamente (a função não recebe
+FK de fora, só `p_user_id`, e o guardrail de autorização real está na camada
+de cima — `validateTargetUserId`), mas o mesmo espírito (nunca confiar
+cegamente em identificador recebido) está presente. Nenhum gap desta classe
+encontrado.
+
+#### `compliance-validation` — LGPD
+
+Este lote é, em si, a implementação do direito de exclusão/portabilidade
+(LGPD Art. 18) para o produto — `delete_user_data` + remoção de Storage +
+remoção de `auth.users` cobre literalmente "eliminação dos dados pessoais
+tratados com o consentimento do titular", exceto a cauda de até 30 dias em
+backup já emitido, textualmente avisada ao usuário na etapa 2 de `FE-F3-09`
+antes da confirmação — tratamento consistente com o próprio texto do
+`ADR-011`. Nenhum achado de compliance obrigatório em aberto específico
+deste lote.
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*` fora do `log()` estruturado, e por qualquer
+inclusão de corpo de linha de `public` em resposta HTTP, em
+`supabase/functions/delete-account/*.ts`: zero ocorrências fora do padrão já
+auditado no ponto (f) acima. `SettingsPage.tsx`/`deleteAccount.ts`
+(Frontend): nenhum `console.*`/`localStorage` novo introduzido por esta
+tarefa; erro de rede exibido só via `Alert` (`role="alert"`), sem persistir
+nada em armazenamento local do dispositivo.
+
+#### `finding-severity-classification`
+
+Nenhum achado novo nesta rodada. Nota operacional, não um achado de
+segurança (já registrada na Seção 4 acima e não duplicada aqui como débito):
+as 2 migrations deste lote (`20260915090000`, `20260909122000`) ainda não
+foram aplicadas ao projeto Supabase real vinculado, mesma classe de
+pendência de publicação já registrada em `BLOCKERS.md` Bloqueio 025.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum.**
+- **Achados de severidade Alta/Crítica em aberto tocando este lote: nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado; este lote implementa o
+  próprio direito de exclusão.
+- **Exposição de dado sensível**: nenhuma.
+- **Débito novo registrado nesta rodada**: nenhum (`SEC-DEBT-016` não aberto
+  — a única pendência é operacional, Seção 4, não um achado técnico de
+  código).
+- **Requisitos de segurança operacional para o DevOps**: novo item
+  registrado na Seção 4 (aplicação das 2 migrations + deploy de
+  `delete-account` + reexecução dos testes SQL contra o projeto real, antes
+  de considerar este lote pronto para produção).
+
+**Veredito do lote: Aprovado, sem débito de segurança novo** — condicionado,
+para o deploy efetivo (chapéu DevOps), à resolução da pendência operacional
+registrada na Seção 4 (migrations pendentes de aplicação) — mesmo tratamento
+já dado ao `BLOCKERS.md` Bloqueio 025 análogo: não reprova a validação
+funcional/de segurança já concluída, é um passo de publicação que falta.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — este lote
+não produziu achado de relevância estratégica; a pendência de aplicação de
+migrations é uma etapa operacional de publicação, já com comando exato
+documentado na Seção 4, sem decisão de negócio envolvida.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum achado
+      de compliance nesta rodada; lote implementa o próprio direito de
+      exclusão
+- [x] Achado de baixa/média severidade registrado como débito com prazo/
+      condição — não aplicável, nenhum achado técnico novo nesta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — item novo
+      na Seção 4 (aplicar as 2 migrations + deploy de `delete-account` +
+      reexecutar testes SQL reais, antes do próximo `/deploy`)
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não aplicável,
+      nenhum achado desta natureza
+
+**Veredito final do lote "Retenção & Descarte de Dado / Exclusão de Conta" do
+ponto de vista de DevSecOps: Aprovado** (sem débito de segurança novo;
+deploy tecnicamente liberado do ponto de vista de segurança, condicionado à
+pendência operacional de aplicação de migrations registrada na Seção 4 ser
+resolvida antes/durante o próximo `/deploy`).

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: MyMoney API (Supabase PostgREST + RPCs + Edge Functions)
-  version: "0.27.0"
+  version: "0.28.0"
   description: |
     Contrato publicado incrementalmente pelo Backend, por endpoint, assim que fica
     estável — sem esperar a tarefa inteira terminar (ver `.claude/agents/backend.md`).
@@ -2335,6 +2335,91 @@ paths:
         "500":
           description: "Ao menos um sub-job falhou — sempre logado em data_retention_purge_log e reportado por e-mail de alerta (best-effort)."
 
+  /delete-account:
+    post:
+      summary: "Exclusão de conta a pedido do usuário — irreversível (BE-F3-09, ADR-011)"
+      tags: [Retenção & Descarte de Dado]
+      servers:
+        - url: https://xrcxbzrglndetrrhavhc.supabase.co/functions/v1
+          description: Edge Functions
+      description: >-
+        **Nova — BE-F3-09**, `supabase/functions/delete-account/`, migration
+        `20260915090000_be_f3_09_delete_account_data.sql`. Exige
+        `Authorization: Bearer <JWT de sessão>` do próprio usuário-alvo — mesmo
+        padrão de `/report-export`/`/receipt-ocr`/`/voice-capture`. Edge
+        Function privilegiada e dedicada (ADR-011: "role de serviço, nunca
+        exposta como operação direta do cliente") — a função SQL
+        `public.delete_user_data` só é executável por `service_role`
+        (`GRANT`/`REVOKE` explícito na migration), nunca chamável diretamente
+        pelo client mesmo autenticado.
+
+        Orquestra, nesta ordem, os 3 passos definidos em ADR-011 (tabela-
+        resumo, linha "Exclusão de conta"): (i) `public.delete_user_data`
+        remove, numa única transação atômica, toda linha de `public`
+        associada ao usuário em TODAS as tabelas "ownable" hoje existentes
+        (accounts/budget/categories/payment_methods/transactions/profiles/
+        webauthn_credentials/webauthn_challenges/email_mfa_challenges/
+        credit_cards/invoices/recurring_templates/
+        recurring_template_adjustments/installment_purchases/fixed_bills/
+        goals/contributions/notifications/push_subscriptions/
+        candidate_transaction/import_batch — ordem que respeita todo FK
+        RESTRICT/trigger RN-08/RN-09 conhecido, documentada linha a linha na
+        migration); falha aqui aborta tudo, nada é removido; (ii) remove
+        exports pendentes do usuário no bucket privado `exports` (BE-F3-07)
+        via Storage API — falha aqui é logada mas não bloqueia o passo
+        seguinte (dado financeiro já removido no passo i); (iii) remove o
+        usuário de Supabase Auth via Admin API do GoTrue (nunca `DELETE FROM
+        auth.users` via SQL puro).
+
+        **Lacuna conhecida e documentada (não é bloqueio — mesmo padrão já
+        usado por BE-F3-08 para a foto de recibo)**: `BE-F3-04` (Open
+        Finance) ainda não foi implementada — não existe hoje nenhuma tabela
+        real de conexão/token Open Finance no schema `public` para esta
+        function cobrir. Quando `BE-F3-04` criar essa tabela (mesmo padrão
+        `user_id ... references auth.users on delete cascade` de toda tabela
+        "ownable"), `public.delete_user_data` precisa ganhar um novo `DELETE`
+        para ela — documentado no cabeçalho da migration desta tarefa.
+
+        Fotos de recibo: SEM OBJETO (`ADR-020`) — nenhuma foto é persistida
+        em nenhum caminho do sistema, nada a remover no passo (ii) além de
+        exports.
+
+        Corpo opcional — quando ausente, o alvo é sempre o próprio usuário
+        autenticado. Quando presente, `user_id` DEVE bater com o `sub` do JWT
+        (nunca aceito arbitrariamente) — critério de aceite literal "chamada
+        sem o JWT do próprio usuário-alvo é rejeitada".
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                  nullable: true
+                  description: "Opcional — se informado, deve ser idêntico ao usuário autenticado (JWT). Qualquer outro valor é rejeitado com 403."
+      responses:
+        "200":
+          description: "Conta excluída (ou storage_warning presente, se a limpeza de exports pendentes falhou — dado financeiro já removido de qualquer forma)."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  deleted_rows: { type: object, description: "contagem de linhas removidas por tabela, retornado por public.delete_user_data" }
+                  storage_removed_count: { type: integer }
+                  storage_warning: { type: string, nullable: true }
+        "400": { description: "invalid_body (JSON malformado) ou invalid_user_id (user_id de tipo inválido/string vazia)." }
+        "401": { description: "JWT ausente/inválido/expirado." }
+        "403": { description: "forbidden_target_mismatch — user_id informado no corpo não corresponde ao usuário autenticado (tentativa de excluir outro usuário, rejeitada)." }
+        "405": { description: "Método diferente de POST/OPTIONS." }
+        "500": { description: "auth_account_deletion_failed — CRÍTICO: dado de public já foi removido, mas a remoção do usuário em Supabase Auth falhou (estado parcial, partial:true na resposta, requer contato de suporte)." }
+        "502": { description: "account_data_deletion_failed — public.delete_user_data falhou; transação revertida, NENHUMA linha foi removida." }
+        "503": { description: "auth_unavailable — Auth indisponível ao validar a sessão." }
+
 x-changelog:
   - version: "0.1.0"
     date: "2026-09-02"
@@ -2769,3 +2854,32 @@ x-changelog:
       para quem já consumia results[].job_name=confirmed_receipt_photo_purge
       — nenhum consumidor real existia (endpoint interno/operacional, nunca
       Frontend/Mobile).
+
+  - version: "0.28.0"
+    date: "2026-09-15"
+    change: >-
+      /delete-account (BE-F3-09, ADR-011) — novo endpoint de exclusão de
+      conta a pedido do usuário. Edge Function privilegiada (role de
+      serviço, nunca exposta como operação direta do cliente) que remove,
+      nesta ordem: (i) toda linha de public associada ao usuário via nova
+      função SQL SECURITY DEFINER public.delete_user_data (GRANT restrito a
+      service_role), numa única transação atômica, cobrindo as 19 tabelas
+      "ownable" + profiles hoje existentes; (ii) exports pendentes do bucket
+      exports (BE-F3-07) via Storage API (fotos de recibo: sem objeto,
+      ADR-020); (iii) o usuário em Supabase Auth via Admin API do GoTrue.
+      Exige JWT do próprio usuário-alvo; user_id opcional no corpo, quando
+      informado, deve bater com o JWT (403 forbidden_target_mismatch caso
+      contrário). Nova migration
+      20260915090000_be_f3_09_delete_account_data.sql (+ down). Lacuna
+      conhecida e documentada (não bloqueio): tabela de Open Finance
+      (BE-F3-04, ainda não implementada) precisará ser adicionada a
+      delete_user_data quando existir. Teste automatizado:
+      supabase/functions/delete-account/lib.test.ts (11/11 PASS) +
+      supabase/tests/be_f3_09_delete_account_data.test.sql (5 casos, prova
+      com dado real em todas as 20 tabelas cobertas + isolamento entre
+      usuários, escrito e validado localmente nesta rodada — aplicação via
+      supabase db query --linked --file não executada nesta sessão, ambiente
+      sem CLI/credencial do projeto linkado disponível; mesma pendência
+      operacional já registrada para BE-F3-08). Regressão completa: deno
+      test supabase/functions/ 168/168 PASS (157 anteriores + 11 novos);
+      deno check/deno lint limpos.

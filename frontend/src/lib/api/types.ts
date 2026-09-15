@@ -397,6 +397,17 @@ export interface IncomeExpenseReportItem {
 }
 
 // ============================================================================
+// Fase 3 — Relatórios: evolução patrimonial (BE-F3-06)
+// ============================================================================
+
+export interface NetWorthEvolutionItem {
+  /** Sempre o 1º dia do mês. */
+  month: string;
+  /** Saldo consolidado (ou da conta filtrada) ao final do mês. */
+  balance_cents: number;
+}
+
+// ============================================================================
 // Fase 2.1 — Lançamentos: Hierarquia & Atalhos (BE-REF-02, ADR-015)
 // ============================================================================
 

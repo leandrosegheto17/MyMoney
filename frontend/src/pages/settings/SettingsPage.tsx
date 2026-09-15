@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Card, Modal } from "../../components/base";
+import { Alert, Button, Card, ConfirmationDialog, Modal } from "../../components/base";
 import { useToast } from "../../components/base/Toast";
 import { PinPad } from "../../components/domain/PinPad";
+import { deleteAccount } from "../../lib/api/deleteAccount";
+import { ApiError } from "../../lib/api/errors";
 import { useAuth } from "../../lib/auth/AuthContext";
 import { setPin, verifyPin } from "../../lib/auth/pin";
 import { getExistingPushSubscription, isPushSupported, subscribeToPush, unsubscribeFromPush } from "../../lib/push/subscribe";
@@ -100,6 +102,43 @@ export function SettingsPage() {
 
   const stepLabel = { current: "Digite seu PIN atual", new: "Digite o novo PIN", confirm: "Confirme o novo PIN" }[step];
 
+  // FE-F3-09 (ADR-011) — exclusão de conta: confirmação em DUAS etapas explícitas,
+  // nunca um único toque. Etapa 1 é um aviso genérico de irreversibilidade; só a
+  // etapa 2 mostra o aviso textual da cauda residual de até 30 dias em backup já
+  // emitido e o botão destrutivo final que de fato dispara a chamada ao BE-F3-09.
+  // Preliminar/estimativa marcada em TASK.md Seção 6.1.1 item UX-01 (UX-SPEC.md
+  // ainda não formaliza esta tela) — reaproveita ConfirmationDialog/Modal de FE-M-01.
+  const [deleteStep, setDeleteStep] = useState<"closed" | "warning" | "confirm">("closed");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  function openDeleteAccount() {
+    setDeleteError(null);
+    setDeleteStep("warning");
+  }
+
+  function closeDeleteAccount() {
+    if (isDeletingAccount) return;
+    setDeleteStep("closed");
+    setDeleteError(null);
+  }
+
+  async function handleConfirmDeleteAccount() {
+    setIsDeletingAccount(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+      // Só encerra a sessão após sucesso confirmado da Edge Function — nunca antes.
+      setDeleteStep("closed");
+      await signOut();
+    } catch (cause) {
+      const message = cause instanceof ApiError ? cause.message : "Não foi possível excluir a conta. Tente novamente.";
+      setDeleteError(message);
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-neutral-900">Configurações</h1>
@@ -115,6 +154,9 @@ export function SettingsPage() {
         </Button>
         <Button variant="destructive" onClick={() => void handleSignOut()} loading={isSigningOut} loadingLabel="Saindo">
           Sair
+        </Button>
+        <Button variant="destructive" onClick={openDeleteAccount}>
+          Excluir conta
         </Button>
       </Card>
 
@@ -171,6 +213,43 @@ export function SettingsPage() {
           <PinPad value={pinValue} onChange={setPinValue} onComplete={(value) => void handlePinPadComplete(value)} />
         </div>
       </Modal>
+
+      {/* FE-F3-09 — Etapa 1/2: aviso genérico de irreversibilidade. "Continuar" não exclui nada,
+          apenas avança para a etapa 2 (nunca um único toque dispara a exclusão). */}
+      <ConfirmationDialog
+        isOpen={deleteStep === "warning"}
+        onClose={closeDeleteAccount}
+        onConfirm={() => setDeleteStep("confirm")}
+        title="Excluir conta"
+        description="Esta ação é irreversível: todos os seus dados (lançamentos, orçamentos, cartões, metas e demais informações) serão removidos permanentemente."
+        confirmLabel="Continuar"
+        confirmVariant="primary"
+      />
+
+      {/* FE-F3-09 — Etapa 2/2: aviso textual da cauda residual de até 30 dias em backup já
+          emitido (ADR-011), visível ANTES da confirmação final. Só este botão dispara BE-F3-09. */}
+      <ConfirmationDialog
+        isOpen={deleteStep === "confirm"}
+        onClose={closeDeleteAccount}
+        onConfirm={() => void handleConfirmDeleteAccount()}
+        title="Confirmar exclusão definitiva"
+        description={
+          <div className="flex flex-col gap-3">
+            {deleteError && <Alert variant="danger">{deleteError}</Alert>}
+            <p>
+              Ao confirmar, sua conta e todos os seus dados serão excluídos permanentemente e sua sessão será encerrada.
+            </p>
+            <p className="font-medium text-neutral-900">
+              Mesmo após a exclusão, o dado pode persistir por até 30 dias em backup já emitido, até a rotação natural
+              daquele snapshot (ADR-011).
+            </p>
+          </div>
+        }
+        confirmLabel="Excluir permanentemente"
+        cancelLabel="Cancelar"
+        confirmVariant="destructive"
+        isConfirming={isDeletingAccount}
+      />
     </div>
   );
 }

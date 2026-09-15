@@ -10,6 +10,11 @@ vi.mock("../../lib/auth/AuthContext", () => ({
   useAuth: () => ({ session: { user: { email: "user@example.com" } }, signOut: signOutMock }),
 }));
 
+const deleteAccountMock = vi.fn();
+vi.mock("../../lib/api/deleteAccount", () => ({
+  deleteAccount: (...args: unknown[]) => deleteAccountMock(...args),
+}));
+
 const { SettingsPage } = await import("./SettingsPage");
 
 function renderPage() {
@@ -23,6 +28,7 @@ function renderPage() {
 beforeEach(async () => {
   await localAuthDb.pin.clear();
   signOutMock.mockReset();
+  deleteAccountMock.mockReset();
 });
 
 describe("SettingsPage — S-SET-01 (RF-MVP-08 AC3)", () => {
@@ -81,5 +87,54 @@ describe("SettingsPage — S-SET-02/03 (FE-F2-09)", () => {
   it("S-SET-03: documenta o achado de que não há preferência de usuário persistida para limiar padrão global", async () => {
     renderPage();
     expect(await screen.findByText(/não expõem uma tabela de preferências de usuário/)).toBeInTheDocument();
+  });
+});
+
+describe("SettingsPage — exclusão de conta (FE-F3-09, ADR-011)", () => {
+  it("um único clique em 'Excluir conta' não dispara a exclusão — apenas abre o aviso da etapa 1", async () => {
+    renderPage();
+    await userEvent.click(screen.getByRole("button", { name: "Excluir conta" }));
+
+    expect(await screen.findByRole("heading", { name: "Excluir conta" })).toBeInTheDocument();
+    expect(deleteAccountMock).not.toHaveBeenCalled();
+  });
+
+  it("o aviso de retenção de até 30 dias em backup aparece na etapa 2, antes da confirmação final, e só então a exclusão é disparada", async () => {
+    deleteAccountMock.mockResolvedValue({ ok: true, deleted_rows: {}, storage_removed_count: 0, storage_warning: null });
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Excluir conta" }));
+    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
+
+    expect(await screen.findByText(/até 30 dias em backup já emitido/)).toBeInTheDocument();
+    expect(deleteAccountMock).not.toHaveBeenCalled();
+
+    await userEvent.click(screen.getByRole("button", { name: "Excluir permanentemente" }));
+
+    await waitFor(() => expect(deleteAccountMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("confirmação completa (duas etapas) chama a Edge Function e encerra a sessão em caso de sucesso", async () => {
+    deleteAccountMock.mockResolvedValue({ ok: true, deleted_rows: {}, storage_removed_count: 0, storage_warning: null });
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Excluir conta" }));
+    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Excluir permanentemente" }));
+
+    await waitFor(() => expect(signOutMock).toHaveBeenCalledTimes(1));
+  });
+
+  it("erro da Edge Function não encerra a sessão — usuário permanece autenticado e vê a mensagem de erro", async () => {
+    deleteAccountMock.mockRejectedValue(new Error("account_data_deletion_failed"));
+    renderPage();
+
+    await userEvent.click(screen.getByRole("button", { name: "Excluir conta" }));
+    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    await userEvent.click(screen.getByRole("button", { name: "Excluir permanentemente" }));
+
+    await waitFor(() => expect(deleteAccountMock).toHaveBeenCalledTimes(1));
+    expect(signOutMock).not.toHaveBeenCalled();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível excluir a conta");
   });
 });
