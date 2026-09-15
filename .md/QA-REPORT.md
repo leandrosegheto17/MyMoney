@@ -3976,6 +3976,430 @@ rodada; a pendência operacional de publicação da Edge Function é sinalizada
 
 ---
 
+## 24. Veredito de Lote — "Relatórios (Fase 2)" (2026-09-15, lacuna de processo pré-existente)
+
+**Contexto**: as 2 tarefas do lote (`BE-F2-10`, `FE-F2-08`), ambas
+`Concluída` em `TASK.md` Seção 3.2 desde 2026-09-03, coluna Lote "Relatórios
+(Fase 2)". Este lote nunca teve veredito formal em `QA-REPORT.md`/
+`SECURITY-REVIEW.md` nem entrada na Seção 7 do `TASK.md` — lacuna de
+processo pré-existente, já sinalizada em rodadas de `/listar` anteriores,
+não um lote recém-fechado por execução. Mesmo procedimento de qualquer
+outro lote pronto (`EXECUTION-FLOW.md`, Comando 2, Seções 2-5). `BLOCKERS.md`
+conferido diretamente: nenhuma entrada `Aberto` afetando `BE-F2-10`/
+`FE-F2-08`/"Relatórios (Fase 2)".
+
+### 24.1 `test-strategy-planning`
+
+Estratégia: (a) execução própria e independente da suíte completa do
+Frontend (`cd frontend && npx vitest run` e `npx tsc -b`) — não reaproveito
+a nota do Executor de 2026-09-03; (b) leitura linha a linha da migration
+`20260903250000_be_f2_10_income_expense_report.sql` contra o critério de
+aceite literal de `RF-F2-10 AC1-2`; (c) leitura linha a linha do teste SQL
+`be_f2_10_income_expense_report.test.sql` — não pude reexecutá-lo contra o
+projeto Supabase real (ambiente de validação sem `deno`/`supabase` CLI
+disponível, confirmado por tentativa direta nesta rodada — mesma limitação
+já registrada nas rodadas 9/20/21/22/23), corroborado por leitura
+estrutural completa do arquivo, nunca por presunção da nota do Executor;
+(d) leitura linha a linha do código Frontend (`BarChart.tsx`,
+`IncomeExpenseReportPage.tsx`, `reports.ts`) contra o critério de aceite
+literal de `FE-F2-08`.
+
+**Execução própria (Frontend, não delegada à nota do Executor)**:
+
+| Comando | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` | **72 arquivos, 425 testes — todos passando.** Nenhuma falha, confirmando zero regressão de forma independente da nota do Executor original. |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo. |
+
+### 24.2 `acceptance-criteria-validation`
+
+- **`BE-F2-10`** (RF-F2-10 AC1-2 — "Com menos de 6 meses de dado, resposta
+  traz só os meses disponíveis, nunca zero para mês inexistente", AC2):
+  migration `20260903250000_be_f2_10_income_expense_report.sql` lida linha a
+  linha — `get_income_expense_report()` é `language sql`, `stable`, sem
+  `security definer` (portanto `SECURITY INVOKER` por padrão do Postgres,
+  confirmado pela ausência da cláusula, não presumido), `set search_path to
+  'public'`, escopada por `t.user_id = auth.uid()` dentro da própria query
+  (`:46`). **AC2 literal ("nunca zero fabricado")**: o `GROUP BY
+  date_trunc('month', t.transaction_date)` só produz 1 linha por mês com ao
+  menos 1 lançamento real — propriedade estrutural da consulta (não há
+  `generate_series`/join com calendário que pudesse fabricar mês vazio), a
+  mesma leitura da migration já confirma isso, e o **CASO C** do teste SQL
+  prova isso positivamente (`count(*) FROM get_income_expense_report() WHERE
+  income_cents = 0 AND expense_cents = 0` deve ser 0). **AC1 literal
+  (janela de 6 meses)**: `v_bounds` fixa `window_start`/`window_end` em mês
+  corrente + 5 anteriores (`America/Sao_Paulo`), provado pelo **CASO B**
+  (lançamento de 7 meses atrás não aparece) e **CASO D** (nunca mais de 6
+  linhas). `kind <> 'transfer'` excluído, mesmo critério de
+  `get_monthly_category_summary` (legado/`BE-M-07`) — decisão consistente,
+  não um desvio. **CASO A** prova o mês corrente refletindo o lançamento
+  inserido por comparação de delta (não valor absoluto, mesmo cuidado de
+  `BE-M-07`). **CASO E** prova isolamento cross-user (lançamento de outro
+  usuário, valor distintivo 777777, não vaza para o relatório de A). Teste
+  SQL não reexecutado contra o projeto real nesta rodada (`supabase` CLI
+  ausente do ambiente de validação) — corroborado por leitura estrutural
+  completa (167 linhas, 5 casos rotulados A-E, cada um com asserção
+  explícita via `RAISE EXCEPTION` em caso de falha, nenhum "assume que
+  passou"). **Aprovado**.
+- **`FE-F2-08`** (UX-FL-17 — "Menos de 6 meses de dado exibe nota 'Dados
+  disponíveis a partir de [mês]', nunca zero enganoso", RF-F2-10 AC2):
+  `BarChart.tsx`/`IncomeExpenseReportPage.tsx`/`reports.ts` lidos linha a
+  linha — o componente itera só `items` (o array que `getIncomeExpenseReport`
+  devolve via `unwrap(...rpc("get_income_expense_report", {}))`, sem
+  nenhum preenchimento client-side de mês ausente); quando `items.length < 6`
+  exibe a nota citando `formatMonth(items[0].month)` (o primeiro mês real da
+  janela, não um valor hardcoded); a nota não aparece com `items.length ===
+  6`. Estados vazio/carregando/erro/sucesso todos tratados
+  (`IncomeExpenseReportPage.tsx:24-36`). Confirmado também pelos 4 casos de
+  `BarChart.test.tsx` (nota com < 6 meses, ausência da nota com 6 meses,
+  estado vazio, alternativa textual "Ver como tabela" acessível) + 2 casos
+  de `IncomeExpenseReportPage.test.tsx` (render a partir da RPC real, estado
+  de erro), ambos reexecutados nesta rodada dentro da suíte completa
+  (Seção 24.1). **Aprovado**.
+
+### 24.3 `cross-platform-integration-testing`
+
+Cadeia `FE-F2-08` → `BE-F2-10` (`getIncomeExpenseReport` →
+`supabase.rpc("get_income_expense_report", {})`) confirmada por leitura
+ponta a ponta: nenhum mock intermediário, contrato `API-CONTRACT.yaml`
+v0.17.0 já publicado (`/rpc/get_income_expense_report`) consumido
+diretamente por `reports.ts`. O shape de retorno usado por
+`IncomeExpenseReportPage.tsx` (`item.month`/`item.income_cents`/
+`item.expense_cents`) bate exatamente com as 3 colunas que a RPC declara
+(`month date, income_cents bigint, expense_cents bigint`) — nenhuma
+divergência de contrato encontrada.
+
+### 24.4 `non-functional-validation` / checagem de dependência (Seção 4.2)
+
+- **RNF (segurança/autorização)**: RPC `SECURITY INVOKER` (confirmado pela
+  ausência de `security definer`, não presumido) e escopada por
+  `auth.uid()` dentro da própria query — sem tabela/policy nova a criar
+  (`DIR-33` não se aplica, sem Edge Function).
+- **Dependência Seção 4.2**: `BE-F2-10 | BE-M-06 (lançamentos já existem) |
+  Contrato` — satisfeita (`BE-M-06` `Concluída` desde 2026-09-03, muito
+  antes). `FE-F2-08 | BE-F2-10 (contrato) | Contrato` — satisfeita, sem uso
+  de mock (Seção 24.3, contrato já publicado antes da conclusão de
+  `FE-F2-08`, mesma data). Nenhuma dependência órfã/inconsistente relativa
+  a este lote.
+- **Nota de release-readiness, não achado novo**: este lote foi promovido a
+  produção em 2026-09-03 como parte da mesma promoção ampla já registrada em
+  `DEPLOY.md` §9.6 ("todos os lotes de Fase 2... Relatórios"), a mesma
+  classe de evento retroativo já formalizada para os lotes "Orçamento"
+  (`QA-REPORT.md` Seção 7) e "Autenticação & Segurança" (Seção 15) — este
+  registro de Seção 24 formaliza a dupla aprovação QA+DevSecOps que faltava
+  para "Relatórios (Fase 2)" especificamente, não é o gatilho de um novo
+  deploy.
+
+### 24.5 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite de cada tarefa do lote foi testado e está
+      passando (Seção 24.2), com verificação direta de código/migration/
+      teste (não da nota do Executor)
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 24.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 24.4)
+
+**Veredito do lote (chapéu QA): Aprovado** — Aprovado (2/2), nenhuma
+reprovação crítica nem simples. Nenhum débito novo de QA gerado por esta
+rodada.
+
+---
+
+## 25. Veredito de Lote — "Fechamento & Regressão Fase 2" (2026-09-15, lacuna de processo pré-existente)
+
+**Contexto**: `QA-F2-01`/`QA-F2-02` (Seção 3.2 do `TASK.md`, coluna Lote
+"Fechamento & Regressão Fase 2") estão `Concluída` desde 2026-09-04, e já
+foram citadas como aprovadas na linha solta do Log de Rodadas de
+2026-09-04 ("QA-M-02, QA-F2-01, QA-F2-02 (3) — Aprovado (3/3)") — mas esse
+registro era por **tarefa individual**, nunca um veredito de **lote**
+propriamente dito (`QA-REPORT.md`/`SECURITY-REVIEW.md` por lote, entrada na
+Seção 7 do `TASK.md`), mesma lacuna de processo já corrigida nesta sessão
+para "Relatórios (Fase 2)" (Seção 24 acima). `BLOCKERS.md` conferido
+diretamente: nenhuma entrada `Aberto` afetando `QA-F2-01`/`QA-F2-02`/
+"Fechamento & Regressão Fase 2".
+
+**Particularidade deste lote**: as 2 tarefas SÃO, elas mesmas, trabalho de
+QA — auditoria de cobertura de teste sobre a Fase 2 inteira (RN-01/02/06/07
+concentradas em Edge Functions/`pg_cron`, e regressão "E2E" via RTL dos
+fluxos de tela de Fase 2), não implementação de produto nova. Este veredito
+de lote, portanto, não reimplementa esse trabalho — **audita se a auditoria
+foi de fato feita com rigor**: confere, por leitura direta dos arquivos de
+teste reais (não da nota do Executor), se os casos que a nota alega
+existir realmente existem e cobrem o que dizem cobrir.
+
+### 25.1 `test-strategy-planning`
+
+Estratégia: (a) para `QA-F2-01`, ler linha a linha os 4 arquivos de teste
+SQL citados pela nota (`be_f2_02_invoices.test.sql`,
+`be_f2_03_recurring_templates.test.sql`,
+`be_f2_04_recurring_template_adjustments.test.sql`,
+`be_f2_05_installment_purchases.test.sql`) e confirmar que os casos
+rotulados (Caso A-E) realmente provam RN-01/02/06/07 como a nota descreve;
+(b) para `QA-F2-02`, revalidar a suíte completa do frontend de forma
+independente (`cd frontend && npx vitest run` e `npx tsc -b`) e confirmar,
+por `grep`/leitura direta, que os 7 componentes citados
+(`CreditCardsPage`, `InstallmentsPage`, `RecurringPage`, `FixedBillsPage`,
+`GoalsPage`, `IncomeExpenseReportPage`, `NotificationBell`) têm os testes
+de estado (vazio/carregando/erro/sucesso) alegados, e que a contagem "16
+casos novos" da nota bate com o que está no código.
+
+### 25.2 `acceptance-criteria-validation`
+
+**`QA-F2-01`** (RN-01/02/06/07, "cada regra tem teste automatizado que
+falha se o comportamento divergir do AC correspondente"):
+
+| Regra | Alegação da nota | Verificação direta | Resultado |
+|---|---|---|---|
+| RN-01 (fechamento de fatura) | `be_f2_02_invoices.test.sql` Casos A/B, clamps de mês curto (28/29 dias) + AC2 ponta a ponta | Lido linha a linha (275 linhas): **Caso A** (`DO $test$` linhas 28-67) prova `credit_card_effective_closing_date`/`credit_card_invoice_competencia` como funções puras, incluindo os 2 clamps citados (A2: fevereiro 28 dias; A3: fevereiro 29 dias, bissexto) e a competência corrente vs. próxima (A4/A5) + o caso combinado clamp+RN-01 (A6/A7, não citado na nota mas presente e correto — cobertura extra, não lacuna). **Caso B** (linhas 115-157) prova RN-01/AC2 ponta a ponta via o trigger real de `transactions` (não simulação): lançamento no dia do fechamento cai na fatura corrente (B1/B2), no dia seguinte cai na próxima, nunca na já fechada (B3/B4) | Confirmado, sem divergência |
+| RN-02 (reajuste prospectivo) | `be_f2_04_recurring_template_adjustments.test.sql` Casos A-D, resolução por `effective_from`, imutabilidade, rejeição retroativa, geração usa valor resolvido | Lido linha a linha (258 linhas): **Caso A** (linhas 85-128) prova resolução por `effective_from` mesmo com reajustes cadastrados fora de ordem cronológica de inserção (A2-A5). **Caso B** (130-152) prova `amount_cents` imutável via trigger (B1), outras colunas seguem editáveis (B2). **Caso C** (154-170) prova rejeição de `effective_from` retroativo. **Caso D** (203-249) prova que `generate_recurring_transactions` usa o valor resolvido nos 3 cenários: sem reajuste (D1), reajuste já vigente é usado (D2), reajuste futuro não vaza (D3) — os 2 lados de RN-02 citados na nota, literalmente confirmados | Confirmado, sem divergência |
+| RN-06 (limite de cartão) | `be_f2_02_invoices.test.sql` Caso E, `get_credit_cards_available_limit` soma todas as faturas aberta+fechada | **Caso E** (linhas 191-208): soma de `committed_cents` das 2 faturas (corrente + próxima) do cartão de teste, e confirmação de que o cartão de outro usuário (B) não vaza para a leitura de limite de A (E4) | Confirmado, sem divergência |
+| RN-07 (preservação de histórico) | `be_f2_03_recurring_templates.test.sql` Caso D e `be_f2_05_installment_purchases.test.sql` Caso E, `ON DELETE SET NULL` | `be_f2_03_...` Caso D (linhas 192-208): excluir o template não apaga o lançamento gerado, `recurring_rule_id` vira `NULL`. `be_f2_05_...` Caso E (linhas 249-260): mesmo padrão para `installment_plan_id` ao excluir o plano de parcelamento | Confirmado, sem divergência |
+
+**Nenhuma lacuna encontrada** entre o que a nota de `QA-F2-01` alega e o
+que os 4 arquivos de teste realmente contêm — a auditoria de cobertura foi
+feita com rigor, cada caso citado existe exatamente onde a nota diz que
+existe. **Aprovado**.
+
+**`QA-F2-02`** (UX-FL-02/03/12-17, "todo fluxo de tela percorrido ponta a
+ponta, incluindo os 4 estados de tela onde aplicável"):
+
+Execução própria e independente da suíte completa do Frontend (não
+reaproveitada da nota do Executor de 2026-09-04):
+
+| Comando | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` | **72 arquivos, 425 testes — todos passando.** (A nota original de 2026-09-04 registrava 210/210 — a suíte cresceu com lotes posteriores; nenhuma regressão nos testes deste lote especificamente, confirmado abaixo por `grep` dirigido.) |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo. |
+
+Confirmação por leitura direta (`grep`/leitura de arquivo, não da nota) de
+que os 7 componentes citados têm os testes de estado alegados, tag
+`(QA-F2-02)` usada como marcador literal no próprio código de teste:
+
+| Componente | Estados alegados como novos | Confirmado no arquivo de teste |
+|---|---|---|
+| `CreditCardsPage` | carregando/erro | `CreditCardsPage.test.tsx:104` (carregamento, `Skeleton`), `:110` (erro, `Alert`) — ambos com a tag `(QA-F2-02)` |
+| `InstallmentsPage` | carregando/erro | `InstallmentsPage.test.tsx:69`, `:75` — ambos tagueados |
+| `RecurringPage` | vazio/carregando/erro | `RecurringPage.test.tsx:109`, `:115`, `:121` — os 3 tagueados |
+| `FixedBillsPage` | vazio/carregando/erro | `FixedBillsPage.test.tsx:97`, `:104`, `:110` — os 3 tagueados |
+| `GoalsPage` | carregando/erro | `GoalsPage.test.tsx:83`, `:89` — ambos tagueados |
+| `IncomeExpenseReportPage` | carregando | `IncomeExpenseReportPage.test.tsx:27` — tagueado |
+| `NotificationBell`/`NotificationCenter` | carregando/erro | `NotificationBell.test.tsx:79`, `:87` — ambos tagueados (mesmo arquivo cobre os 2 componentes, `NotificationCenter` não tem arquivo próprio — está sempre acoplado 1:1 ao `NotificationBell` no mesmo módulo, confirmado por `grep -rl NotificationCenter src`, que só retorna o próprio `NotificationBell.tsx`/`.test.tsx`) |
+
+Soma direta: **15 casos** tagueados `(QA-F2-02)` no código real, não 16
+como a nota da tarefa afirma (`grep -rn "QA-F2-02" src | wc -l` = 15,
+confirmado por 2 métodos independentes de contagem). **Achado, classificado
+como simples, não-bloqueante**: divergência de contagem na nota de
+conclusão da tarefa (16 vs. 15) — não é um gap de cobertura funcional, os
+4 estados de tela (vazio/carregando/erro/sucesso) estão de fato cobertos
+em cada um dos 7 componentes exatamente como a nota descreve
+qualitativamente, e a suíte completa passa 425/425 sem regressão. É um
+erro de contagem na narrativa da tarefa, não um defeito de código nem uma
+lacuna de teste — **não compromete o critério de aceite central de
+`QA-F2-02`** ("todo fluxo percorrido... incluindo os 4 estados de tela onde
+aplicável", que está de fato satisfeito). Registrado como observação de
+qualidade de documentação, não como reprovação — não gera tarefa em
+`Refatoração Lote-X` (não há código/teste a corrigir, só um número a
+ajustar num texto histórico já registrado, sem valor de retrabalho).
+**Aprovado**.
+
+### 25.3 `cross-platform-integration-testing`
+
+Não aplicável como verificação nova nesta rodada — `QA-F2-01`/`QA-F2-02`
+são auditorias de cobertura de teste sobre features já validadas
+individualmente em rodadas anteriores (`QA-REPORT.md` Seções 16-20, lotes
+"Cartão & Fatura", "Recorrência & Parcelamento", "Contas Fixas", "Metas",
+"Notificações & Configurações", todos já `Aprovado`); a integração
+ponta a ponta de cada fluxo já foi confirmada nesses vereditos de lote
+específicos, e a suíte completa (Seção 25.1) reconfirma zero regressão
+cruzada nesta rodada.
+
+### 25.4 `non-functional-validation` / checagem de dependência (Seção 4.2)
+
+- **Dependência Seção 4.2**: `QA-F2-01 | BE-F2-02, BE-F2-03, BE-F2-04,
+  BE-F2-05 (implementação completa) | Implementação completa | QA-F2-02` —
+  satisfeita, as 4 tarefas Backend `Concluída` desde 2026-09-03. `QA-F2-02
+  | Todo o bloco FE-F2 (implementação completa) | Implementação completa |
+  QA-F2-01` — satisfeita, `FE-F2-01` a `FE-F2-08` (8 tarefas) todas
+  `Concluída` desde 2026-09-03. Nenhuma dependência órfã/inconsistente
+  relativa a este lote.
+- **Nota de release-readiness, não achado novo**: as features cobertas por
+  este lote de auditoria (Cartão & Fatura, Recorrência & Parcelamento,
+  Contas Fixas, Metas, Notificações, Relatórios) já estão em produção desde
+  2026-09-03 (`DEPLOY.md` §9.6) — este registro de Seção 25 formaliza a
+  dupla aprovação QA+DevSecOps que faltava para o lote de auditoria em si
+  ("Fechamento & Regressão Fase 2"), não para as features que ele audita
+  (já formalizadas em Seções 16-20/24), e não é o gatilho de um novo
+  deploy.
+
+### 25.5 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite de cada tarefa do lote foi testado e está
+      passando (Seção 25.2), com verificação direta de arquivo de teste
+      (não da nota do Executor)
+- [x] Nenhuma reprovação crítica em aberto
+- [x] 1 achado simples (divergência de contagem 16 vs. 15 na nota de
+      `QA-F2-02`) — não gera tarefa em `Refatoração Lote-X` (não é gap de
+      cobertura, só imprecisão de narrativa já registrada, sem
+      retrabalho de código/teste associado)
+- [x] Testes de integração cruzada executados e passando (Seção 25.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 25.4)
+
+**Veredito do lote (chapéu QA): Aprovado** — Aprovado (2/2), nenhuma
+reprovação crítica. 1 achado simples de documentação (divergência de
+contagem, não funcional) registrado nesta própria seção, sem tarefa nova.
+
+---
+
+## 26. Veredito de Lote — "Captura Automatizada — Importação de Extrato" (2026-09-15, lacuna de processo pré-existente)
+
+**Contexto**: `BE-F3-03`/`FE-F3-05` (Seção 3.3 do `TASK.md`, coluna Lote
+"Captura Automatizada — Importação de Extrato") estão `Concluída` desde
+2026-09-08, mas este lote nunca teve veredito formal de QA/DevSecOps nem
+entrada na Seção 7 do `TASK.md` — mesma lacuna de processo já corrigida
+nesta sessão para "Relatórios (Fase 2)" (Seção 24) e "Fechamento &
+Regressão Fase 2" (Seção 25). `BLOCKERS.md` conferido diretamente: nenhuma
+entrada `Aberto` afetando `BE-F3-03`/`FE-F3-05`/"Captura Automatizada —
+Importação de Extrato".
+
+### 26.1 `test-strategy-planning`
+
+Estratégia: (a) execução própria e independente da suíte completa do
+Frontend (`cd frontend && npx vitest run` e `npx tsc -b`) — não reaproveito
+a nota do Executor; (b) leitura linha a linha de
+`supabase/functions/statement-import/index.ts`/`lib.ts` contra o critério
+de aceite literal de RF-F3-03 AC1-2; (c) leitura linha a linha de
+`StatementImportFlow.tsx`/`CandidateList.tsx`/`ReconciliationHint.tsx`/
+`statementImport.ts` contra UX-FL-05/FL-05 e o AC literal de `FE-F3-05`
+("itens sinalizados como possível duplicata vêm desmarcados por padrão";
+"nada persiste antes da confirmação de seleção"); (d) `deno`/`supabase`
+CLI não disponíveis neste ambiente de validação (mesma limitação já
+registrada nas rodadas 9/20/21/22/23/24) — a suíte `deno test` de
+`statement-import` não foi reexecutada contra o projeto real; corroborada
+por leitura estrutural completa de `lib.test.ts` (23 casos, contagem
+batendo com a nota do Executor), nunca por presunção da nota.
+
+**Execução própria (Frontend, não delegada à nota do Executor)**:
+
+| Comando | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` | **72 arquivos, 425 testes — todos passando.** Nenhuma falha (inclusive `UnlockPage.test.tsx`, que rodou limpo nesta execução — mesmo flake pré-existente já documentado em rodadas anteriores, não uma regressão nova). |
+| `cd frontend && npx tsc -b` | Limpo, sem erro de tipo. |
+
+### 26.2 `acceptance-criteria-validation`
+
+- **`BE-F3-03`** (RF-F3-03 AC1-2 — "transação candidata coincidente com
+  lançamento existente é sinalizada antes da confirmação", AC2):
+  `supabase/functions/statement-import/index.ts`/`lib.ts` lidos linha a
+  linha. **AC1** (parsing OFX/CSV): `parseOfx` extrai blocos `<STMTTRN>`
+  por regex (decisão documentada — muitos OFX reais têm tag não fechada,
+  um parser XML estrito rejeitaria), `parseCsv` reconhece cabeçalho
+  pt-BR/en com delimitador autodetectado; ambos nunca lançam por linha
+  malformada — pulam e contam em `skipped_lines` (AC3/fallback gracioso),
+  confirmado pelo teste estrutural (23/23 casos, incluindo bloco OFX sem
+  `DTPOSTED`/`TRNAMT`, CSV com data/valor inválido, arquivo totalmente
+  ilegível retornando `422 unprocessable_file` via `index.ts:199-218`).
+  **AC2 literal ("sinalizada antes da confirmação")**: `findDuplicateMatch`
+  (`lib.ts:388-396`) é função pura, compara só
+  `transaction_date`+`amount_cents` contra `existing` — a lista de
+  lançamentos já existentes é buscada em `index.ts:229-251` via
+  `dbClient.from("transactions").select(...).eq("account_id", accountId)`,
+  com `dbClient = userClient(authHeader)` (RLS aplicada, nunca
+  `service_role` — confirmado, não presumido). Falha nessa query degrada
+  para "nenhuma duplicata sinalizada" sem derrubar a resposta (AC1
+  continua valendo), logada como erro — nunca finge sucesso silencioso.
+  `buildStatementCandidatePayload` marca `duplicate_of_transaction_id`
+  antes de qualquer persistência — a Edge Function em si **não persiste
+  nada** (confirmado: nenhuma chamada a `.insert()`/`.upsert()` em todo o
+  arquivo, só `.select()`), devolvendo a lista pronta para o Frontend
+  decidir. **Aprovado**.
+- **`FE-F3-05`** (UX-FL-05/FL-05 — "itens sinalizados como possível
+  duplicata vêm desmarcados por padrão" RF-F3-03 AC2; "nada persiste antes
+  da confirmação de seleção" AC3): `StatementImportFlow.tsx` lido linha a
+  linha. **AC2 literal (seleção inicial)**: `handleUpload`
+  (`:150-166`) monta `initialSelection` filtrando
+  `entry.candidate.duplicate_of_transaction_id === null` — duplicata fica
+  de fora do `Set` inicial, portanto desmarcada; os demais entram
+  marcados. **AC3 literal (nada persiste antes da confirmação)**: nenhuma
+  chamada a `createImportBatch`/`createCandidateTransaction`/
+  `confirmCandidateTransaction` ocorre fora de `handleConfirm` (`:203`),
+  que só executa a partir do clique explícito em "Confirmar N
+  lançamentos" (`canConfirm` exige seleção + forma de pagamento +
+  categoria, `:201`, botão desabilitado até então, `:353`). Confirmado
+  também pelos 7 casos de `StatementImportFlow.test.tsx` (upload chamando
+  `/statement-import` com base64/formato/conta corretos, duplicata
+  desmarcada por padrão vs. demais marcados, seleção individual/"Selecionar
+  todas"/"Limpar seleção", botão só habilita com seleção+forma de
+  pagamento+categoria, teste dedicado provando zero chamada de
+  persistência antes do clique, ordem exata
+  `import_batch`→`candidate_transaction`→`confirm` por item, falha parcial
+  preservando os já confirmados) + 3 casos de `CandidateList.test.tsx`
+  (vazio, `ReconciliationHint` só em duplicata, contador) — todos
+  reexecutados nesta rodada dentro da suíte completa (Seção 26.1).
+  **Falha parcial (RNF-01)**: `handleConfirm` (`:216-242`) nunca reverte o
+  que já foi confirmado — candidato que falha em `try/catch` interno
+  volta para `remaining`/`failedKeys`, os já confirmados saem da lista,
+  `Alert` claro cita quantos falharam (`:252-258`) — comportamento
+  confirmado por leitura direta, não só pela nota. **Aprovado**.
+
+### 26.3 `cross-platform-integration-testing`
+
+Cadeia `FE-F3-05` → `BE-F3-03` (`extractStatementImport` →
+`invokeEdgeFunction("statement-import", ...)`) confirmada por leitura
+ponta a ponta: `statementImport.ts` envia exatamente
+`file_content_base64`/`file_format`/`account_id`, o shape esperado por
+`validateStatementImportInput`; a resposta consumida
+(`result.candidates`/`result.skipped_lines`) bate com o que `index.ts`
+devolve (`candidates`/`total_parsed`/`skipped_lines`/`duplicate_count`).
+Contrato `API-CONTRACT.yaml` v0.23.0 (`/statement-import`) já publicado,
+sem divergência encontrada. Cadeia de confirmação `FE-F3-05` →
+`BE-F3-00` (`createImportBatch`/`createCandidateTransaction`/
+`confirmCandidateTransaction` → `/import_batch`/`/candidate_transaction`/
+`/rpc/confirm_candidate_transaction`, já publicados desde `BE-F3-00`)
+também confirmada — mesmo fluxo de revisão de candidatos reutilizado por
+voz/foto (FL-05), nenhum mecanismo de persistência paralelo.
+
+### 26.4 `non-functional-validation` / checagem de dependência (Seção 4.3)
+
+- **RNF-01 (revisão humana antes de persistir)**: confirmado na Seção
+  26.2 — `StatementImportFlow` nunca chama as 3 rotas de escrita fora de
+  `handleConfirm`, gatilhado só pelo clique explícito.
+- **Dependência Seção 4.3**: `BE-F3-03 | BE-F3-00; auditoria de Edge
+  Functions (DIR-33) | Implementação completa | BE-F3-01, BE-F3-02` —
+  satisfeita, `BE-F3-00` `Concluída` desde 2026-09-07, `DIR-33` checado
+  pelo próprio Executor (nenhuma function de importação pré-existente).
+  `FE-F3-05 | BE-F3-03 (contrato) | Contrato | FE-F3-04` — satisfeita,
+  contrato v0.23.0 publicado antes da conclusão de `FE-F3-05` (mesma
+  data, 2026-09-08). Nenhuma dependência órfã/inconsistente relativa a
+  este lote.
+- **Achado pré-existente reconfirmado, não novo desta rodada**: a nota de
+  conclusão de `BE-F3-03` já registrava que `SEC-DEBT-015`
+  (`SECURITY-REVIEW.md` Seção 1.31, `candidate_transaction.import_batch_id`
+  com `ON DELETE CASCADE`) permanece "inexploitável" até que este lote
+  gerasse consumo real de `import_batch_id` — confirmado por leitura
+  direta que `handleConfirm` (`StatementImportFlow.tsx:214-233`) agora
+  **de fato** cria `import_batch`/`candidate_transaction` vinculados em
+  fluxo real de produto. Isso não é um achado novo de QA (é achado de
+  segurança, já triado) — sinalizado ao chapéu DevSecOps desta mesma
+  rodada para confirmar se a condição de bloqueio automático já registrada
+  (`BE-DEBT-04`) está ativa.
+
+### 26.5 Definition of Done — checklist de lote
+
+- [x] Todo critério de aceite de cada tarefa do lote foi testado e está
+      passando (Seção 26.2), com verificação direta de código (não da
+      nota do Executor)
+- [x] Nenhuma reprovação crítica nem simples em aberto
+- [x] Testes de integração cruzada executados e passando (Seção 26.3)
+- [x] Requisito não funcional relevante ao lote validado (Seção 26.4)
+
+**Veredito do lote (chapéu QA): Aprovado** — Aprovado (2/2), nenhuma
+reprovação crítica nem simples. Nenhum débito novo de QA gerado por esta
+rodada; achado de segurança pré-existente (`SEC-DEBT-015`/`BE-DEBT-04`)
+reconfirmado como agora potencialmente ativo, encaminhado ao chapéu
+DevSecOps na mesma rodada (Seção 26.4).
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -4003,3 +4427,6 @@ rodada; a pendência operacional de publicação da Edge Function é sinalizada
 | 2026-09-05 (veredito de lote, retroativo — build já em produção, `DEPLOY.md` Seção 9.6) | Lote "Notificações & Configurações": BE-F2-09, FE-F2-07, FE-F2-09 (3) | **Aprovado** (lote) — Aprovado (3/3), nenhuma reprovação; teste SQL de `BE-F2-09` executado de forma independente contra o projeto Supabase real vinculado — `QA-REPORT.md` Seção 20 | 0 | Nenhum novo |
 | 2026-09-08 (veredito de lote) | Lote "Captura Automatizada — Voz & Foto": BE-F3-00, BE-F3-01, BE-F3-02, FE-F3-01, FE-F3-02, FE-F3-03, FE-F3-04 (7) | **Aprovado** (lote) — Aprovado (7/7), nenhuma reprovação; escrutínio redobrado de RNF-01/RNF-08 (`BE-F3-00`/`FE-F3-04`) incluindo reexecução independente da suíte SQL (9/9 `PASS`) e leitura linha-a-linha do teste crítico de fake-timers de 10 minutos; suíte de frontend completa 388/388 `PASS`, `tsc -b` sem erros — `QA-REPORT.md` Seção 21 | 0 | Nenhum novo (achado de segurança `SEC-DEBT-015` registrado pelo chapéu DevSecOps, agendado como `BE-DEBT-04`) |
 | 2026-09-15 (veredito de lote) | Lote "Retenção & Descarte de Dado / Exclusão de Conta": BE-F3-08, BE-F3-09, BE-F3-10, FE-F3-09, QA-F3-04 (5) | **Aprovado** (lote) — Aprovado (5/5), nenhuma reprovação; leitura linha-a-linha da migration `SECURITY DEFINER`/`delete_user_data` + auditoria independente de `validateTargetUserId` (`delete-account/lib.ts`) confirmando rejeição de alvo arbitrário; regressão de frontend 424/425 `PASS` (1 flake pré-existente de `UnlockPage.test.tsx`, não relacionado), `tsc -b` limpo — `QA-REPORT.md` Seção 22 | 0 | Nenhum novo (pendência operacional de aplicação de 2 migrations, mesma natureza já rastreada em `BE-F3-08`/Bloqueio 025 — sinalizada ao chapéu DevOps, sem tarefa de correção de código) |
+| 2026-09-15 (veredito de lote, lacuna de processo pré-existente — build já em produção, `DEPLOY.md` §9.6) | Lote "Relatórios (Fase 2)": BE-F2-10, FE-F2-08 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha-a-linha da migration `get_income_expense_report`/teste SQL (5 casos A-E) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 24 | 0 | Nenhum novo |
+| 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Fechamento & Regressão Fase 2": QA-F2-01, QA-F2-02 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; auditoria de rigor da própria auditoria de QA (leitura linha a linha dos 4 arquivos `be_f2_0{2,3,4,5}_*.test.sql` para RN-01/02/06/07 + `grep`/leitura direta dos 7 componentes de frontend citados por `QA-F2-02`) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 25 | 0 | 1 achado simples de documentação (contagem "16 casos novos" da nota de `QA-F2-02` não bate com os 15 tagueados no código; não é gap funcional, sem tarefa nova) |
+| 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Captura Automatizada — Importação de Extrato": BE-F3-03, FE-F3-05 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha a linha de `statement-import/index.ts`/`lib.ts` (AC1/AC2) + `StatementImportFlow.tsx` (seleção inicial desmarcando duplicata, zero persistência antes da confirmação) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 26 | 0 | Nenhum novo de QA (achado de segurança pré-existente `SEC-DEBT-015`/`BE-DEBT-04` reconfirmado como agora potencialmente ativo, encaminhado ao chapéu DevSecOps) |

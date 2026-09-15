@@ -2181,7 +2181,23 @@ de tarefas do lote) e **publicado em staging em 2026-09-09** (`/deploy`,
 2026-09-15** (nota de validação em Seção 3.3, linha acima da tabela "### 3.4")
 — **ainda não publicado** (2 migrations pendentes de aplicação ao projeto
 Supabase real, mesma natureza do Bloqueio 025; `/deploy` é o próximo passo,
-não disparado por este comando) — ver racional em 7.17 abaixo.
+não disparado por este comando) — ver racional em 7.17 abaixo. **Lote
+"Relatórios (Fase 2)" fechado em 2026-09-15** (`BE-F2-10`/`FE-F2-08`,
+`Concluída` desde 2026-09-03 — lacuna de rastreabilidade de processo
+pré-existente, já sinalizada em rodadas de `/listar` anteriores, corrigida
+por este registro; código já em produção desde 2026-09-03 como parte da
+promoção ampla registrada em `DEPLOY.md` §9.6) — ver racional em 7.18
+abaixo. **Lote "Fechamento & Regressão Fase 2" fechado em 2026-09-15**
+(`QA-F2-01`/`QA-F2-02`, `Concluída` desde 2026-09-04 — mesma classe de
+lacuna de rastreabilidade de processo, este lote nunca teve veredito
+formal por lote apesar de ambas as tarefas já terem sido aprovadas
+individualmente em 2026-09-04; corrigido por este registro) — ver racional
+em 7.19 abaixo. **Lote "Captura Automatizada — Importação de Extrato"
+fechado em 2026-09-15** (`BE-F3-03`/`FE-F3-05`, `Concluída` desde
+2026-09-08 — mesma classe de lacuna de rastreabilidade de processo,
+corrigido por este registro; achado de segurança pré-existente
+`SEC-DEBT-015` reconfirmado com condição de bloqueio de **produção** agora
+ativa, `BE-DEBT-04` segue `Não iniciada`) — ver racional em 7.20 abaixo.
 
 | Lote | Tarefas incluídas | Data de fechamento | Veredito QA | Veredito DevSecOps | Débitos registrados | Deploy |
 |---|---|---|---|---|---|---|
@@ -2198,6 +2214,9 @@ não disparado por este comando) — ver racional em 7.17 abaixo.
 | Cartão & Fatura | BE-F2-01, BE-F2-02, FE-F2-01, FE-F2-02 | 2026-09-05 | Aprovado (4/4, nenhuma reprovação — `QA-REPORT.md` Seção 16.6, "Aprovado — 4/4 tarefas aprovadas... nenhuma reprovação, nenhum achado de severidade alta/crítica, nenhum débito novo de baixa/média severidade identificado nesta rodada") | Aprovado, sem débito (`SECURITY-REVIEW.md` Seção 1.26, "Veredito final do Lote 'Cartão & Fatura' do ponto de vista de DevSecOps: Aprovado, sem débito") | Nenhum débito registrado nesta rodada — nem de QA nem de segurança — ver 7.11 | **Já em produção**, mesmo padrão dos lotes "Orçamento" (Seção 7.5) e "Autenticação & Segurança" (Seção 7.10) — código deste lote foi promovido a produção em 2026-09-03 como parte da mesma promoção mais ampla, autorizada explicitamente pelo stakeholder, **antes** da validação formal QA/DevSecOps por lote existir para "Cartão & Fatura" especificamente (`DEPLOY.md` §9.6/§9.7 — `dpl_7PjJSDGsufM7EsteptLX9ckRHRAp`, `mymoney-pink-phi.vercel.app`). Este registro de Seção 7 formaliza retroativamente a dupla aprovação QA+DevSecOps para este lote — não é o gatilho de um novo deploy (já realizado e confirmado `READY`), e sim o fechamento do gate de processo que valida o que já está servindo em produção |
 | Captura Automatizada — Voz & Foto | BE-F3-00, BE-F3-01, BE-F3-02, FE-F3-01, FE-F3-02, FE-F3-03, FE-F3-04 | 2026-09-08 | Aprovado (7/7, nenhuma reprovação — `QA-REPORT.md` Seção 21.6) | Aprovado com débito (`SEC-DEBT-015`, Média, condição de bloqueio automático antes de `BE-F3-03`/`BE-F3-04`, agendado como `BE-DEBT-04` — `SECURITY-REVIEW.md` Seção 1.31) | `BE-DEBT-04` (lote "Refatoração Lote-Captura Automatizada — Voz & Foto", Seção 3.7, `Não iniciada`) | **Concluído em staging** (2026-09-09, deploy real via Vercel CLI local — `objetivo-financeiro-ljs-staging.vercel.app`, ver `DEPLOY.md` §9.13). **Migração de destino de hospedagem nesta rodada**: decisão do stakeholder, fora da cadeia de agentes, de usar o projeto Vercel **novo** `objetivo-financeiro-ljs` em vez de continuar reaproveitando `mymoney` — ver `BLOCKERS.md` Bloqueio 004 (atualização 2026-09-09). Achado/incidente registrado com transparência: o primeiro deploy deste projeto novo foi tratado pela CLI como produção por padrão (`objetivo-financeiro-ljs.vercel.app`, `200 OK` sem login — mesmo padrão já aceito da produção legada `mymoney-pink-phi.vercel.app`); nenhuma ação adicional de produção foi tomada, pausa obrigatória da Seção 5 do Comando 3 segue em vigor. **Achado novo, não-bloqueante para este registro, mas pendente**: `receipt-ocr`/`voice-capture` (`BE-F3-01`/`BE-F3-02`) nunca foram publicadas no projeto Supabase real (`supabase functions list` não as lista) — voz/foto degradam graciosamente a preenchimento manual (caminho já auditado) até a publicação ser concluída; registrado como `BLOCKERS.md` Bloqueio 025, dono Backend. Deploy em produção: não realizado (fora do incidente acima, que não representa promoção intencional), pausa obrigatória do orquestrador, fora do escopo autorizado desta rodada |
 | Retenção & Descarte de Dado / Exclusão de Conta | BE-F3-08, BE-F3-09, BE-F3-10, FE-F3-09, QA-F3-04 | 2026-09-15 | Aprovado (5/5, nenhuma reprovação — `QA-REPORT.md` Seção 22.5) | Aprovado, sem débito de segurança novo (`SECURITY-REVIEW.md` Seção 1.32, "Veredito final do lote... Aprovado") | Nenhum débito de QA nem de segurança registrado nesta rodada — só pendência operacional (ver coluna Deploy) | **Ainda não publicado.** As 2 migrations deste lote (`20260915090000_be_f3_09_delete_account_data.sql`, `20260909122000_be_f3_08_adr020_drop_photo_comment.sql`) não foram aplicadas ao projeto Supabase real vinculado — mesma classe de pendência de publicação bloqueada pelo classificador de permissão do ambiente do Executor já registrada em `BLOCKERS.md` Bloqueio 025 (Edge Functions `receipt-ocr`/`voice-capture`, lote anterior); requisito operacional detalhado em `SECURITY-REVIEW.md` Seção 4 (aplicar as 2 migrations, `supabase functions deploy delete-account`, reexecutar os 2 testes SQL contra o projeto real). Nenhum código deste lote foi publicado em staging/produção nesta rodada — próximo passo é `/deploy` |
+| Relatórios (Fase 2) | BE-F2-10, FE-F2-08 | 2026-09-15 | Aprovado (2/2, nenhuma reprovação — `QA-REPORT.md` Seção 24.5) | Aprovado, sem débito (`SECURITY-REVIEW.md` Seção 1.34, "Veredito final do lote... Aprovado") | Nenhum débito de QA nem de segurança registrado nesta rodada | **Já em produção**, mesmo padrão dos lotes "Orçamento" (Seção 7.5), "Autenticação & Segurança" (Seção 7.10) e "Cartão & Fatura" (Seção 7.11) — código deste lote foi promovido a produção em 2026-09-03 como parte da mesma promoção mais ampla, autorizada explicitamente pelo stakeholder, **antes** da validação formal QA/DevSecOps por lote existir para "Relatórios (Fase 2)" especificamente (`DEPLOY.md` §9.6, que nomeia "Relatórios" explicitamente entre os lotes de Fase 2 promovidos). Este registro de Seção 7 formaliza retroativamente a dupla aprovação QA+DevSecOps para este lote — corrigindo a lacuna de rastreabilidade sinalizada em rodadas de `/listar` anteriores — e não é o gatilho de um novo deploy (já realizado e confirmado `READY`/`200 OK` em §9.6), e sim o fechamento do gate de processo que valida o que já está servindo em produção |
+| Fechamento & Regressão Fase 2 | QA-F2-01, QA-F2-02 | 2026-09-15 | Aprovado (2/2, nenhuma reprovação crítica; 1 achado simples de documentação — `QA-REPORT.md` Seção 25.5) | Aprovado, sem escopo de segurança aplicável além da checagem de prática insegura em teste (`SECURITY-REVIEW.md` Seção 1.35, "Veredito final do lote... Aprovado") | 1 achado simples de documentação (contagem "16 casos novos" da nota de `QA-F2-02` não bate com os 15 casos tagueados no código real — não é gap de cobertura funcional, sem tarefa em `Refatoração Lote-X`, ver `QA-REPORT.md` Seção 25.2) | **Sem deploy próprio** — este lote é trabalho de teste/auditoria de cobertura sobre features de Fase 2 já publicadas (ou com pendência de publicação já rastreada em seus próprios lotes de origem, ver linhas "Cartão & Fatura", "Recorrência & Parcelamento" etc. acima); nenhum artefato de produção novo. Este registro formaliza a lacuna de rastreabilidade de processo (as 2 tarefas já estavam aprovadas individualmente desde 2026-09-04, mas nunca tiveram veredito formal por lote) |
+| Captura Automatizada — Importação de Extrato | BE-F3-03, FE-F3-05 | 2026-09-15 | Aprovado (2/2, nenhuma reprovação — `QA-REPORT.md` Seção 26.5) | Aprovado com débito (`SEC-DEBT-015`, Média, condição de bloqueio de **produção** confirmada ativa nesta rodada, `BE-DEBT-04` segue `Não iniciada` — `SECURITY-REVIEW.md` Seção 1.36) | `BE-DEBT-04` (lote "Refatoração Lote-Captura Automatizada — Voz & Foto", Seção 3.7, `Não iniciada`) — mesmo débito já registrado em 1.31 para o lote "Captura Automatizada — Voz & Foto", agora com a condição de bloqueio de produção efetivamente atingida, não um débito novo | **Não publicado.** Nenhum deploy realizado para este lote nesta rodada — `/deploy` em **staging** liberado (achado é Média, não bloqueia staging); `/deploy` em **produção** bloqueado até `BE-DEBT-04` `Concluída` (`SECURITY-REVIEW.md` Seção 1.36, requisito de segurança operacional para o DevOps) |
 
 ### 7.1 Racional de fechamento — Bloqueio 007 e Bloqueio 012 (não impedem o registro do lote)
 
@@ -3660,6 +3679,219 @@ qualquer smoke test funcional de exclusão de conta em staging.
 Lote fecha **Validado (com ressalvas)** — ressalva exclusivamente
 operacional (aplicação de migrations pendente), sem nenhuma reprovação
 funcional ou de segurança.
+
+### 7.18 Racional de fechamento — lote "Relatórios (Fase 2)" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Contexto da lacuna**: `BE-F2-10`/`FE-F2-08` estão `Concluída` desde
+2026-09-03 (Seção 3.2), mas este lote nunca passou pelo "Critério de
+Aprovação de Lote" — não tinha veredito em `QA-REPORT.md`/
+`SECURITY-REVIEW.md` nem entrada nesta Seção 7, apesar de outros lotes
+concluídos na mesma janela (Orçamento, Autenticação & Segurança, Cartão &
+Fatura, Recorrência & Parcelamento, Contas Fixas, Metas, Notificações &
+Configurações) já terem sido formalizados retroativamente (Seções 7.5,
+7.10-7.15). Lacuna de rastreabilidade de processo, já sinalizada em
+rodadas de `/listar` anteriores — corrigida por este registro, seguindo
+exatamente o mesmo procedimento (`EXECUTION-FLOW.md`, Comando 2, Seções
+2-5) de qualquer outro lote pronto para validação.
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de
+7.1-7.17.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção
+   3.2 — as 2 tarefas do lote (`BE-F2-10`, `FE-F2-08`) têm status
+   `Concluída`. Dependências da Seção 4.2 verificadas: `BE-F2-10` →
+   `BE-M-06` (`Concluída`, lançamentos já existem); `FE-F2-08` →
+   `BE-F2-10` (contrato, satisfeita, mesmo lote). Nenhuma dependência
+   órfã; nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 24.5, texto
+   literal "Aprovado (2/2), nenhuma reprovação crítica nem simples.
+   Nenhum débito novo de QA gerado por esta rodada." Passa, sem ressalva
+   de lote.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.34,
+   "Veredito final do lote 'Relatórios (Fase 2)' do ponto de vista de
+   DevSecOps: Aprovado" — sem débito de segurança novo. Nenhum achado,
+   nem simples nem de débito — não há tarefa de `Refatoração
+   Lote-Relatórios (Fase 2)` a criar nesta rodada. Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: conferido
+   diretamente — nenhum bloqueio hoje aberto cita `BE-F2-10`/`FE-F2-08`/
+   "Relatórios (Fase 2)" por nome. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem
+   achado nesta rodada que aponte violação de diretriz vigente. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 2 tarefas
+   somam a estimativa já registrada na Seção 3.2 desde a rodada de
+   2026-09-03; nenhum desvio grande de escopo/estimativa reportado nesta
+   rodada de validação (só confirmação de trabalho já concluído). Passa.
+
+**Nenhum achado a tratar** — esta rodada não produziu nenhum débito de QA
+nem de segurança; nenhuma tarefa nova de `Refatoração Lote-Relatórios
+(Fase 2)` é criada, e o lote de origem não é reaberto.
+
+**Deploy**: mesmo padrão já registrado em 7.5 ("Orçamento"), 7.10
+("Autenticação & Segurança") e 7.11 ("Cartão & Fatura") — este lote já
+está em produção desde 2026-09-03, como parte da mesma promoção mais
+ampla autorizada pelo stakeholder (`DEPLOY.md` §9.6, que nomeia
+"Relatórios" explicitamente entre os lotes de Fase 2 promovidos), anterior
+à validação formal QA/DevSecOps por lote existir para "Relatórios (Fase
+2)" especificamente. Este registro de Seção 7 formaliza retroativamente a
+dupla aprovação — não dispara um novo deploy.
+
+**Nenhuma inconsistência estrutural encontrada** — nenhuma dependência
+órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma referência
+quebrada nas Seções 3.2/4.2 relativas a este lote.
+
+Lote fecha **Validado**, sem ressalvas.
+
+### 7.19 Racional de fechamento — lote "Fechamento & Regressão Fase 2" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Contexto da lacuna**: `QA-F2-01`/`QA-F2-02` estão `Concluída` desde
+2026-09-04 (Seção 3.2) e já apareceram no Log de Rodadas do `QA-REPORT.md`
+como aprovadas por **tarefa individual** ("QA-M-02, QA-F2-01, QA-F2-02 (3)
+— Aprovado (3/3)"), mas este lote nunca passou pelo "Critério de Aprovação
+de Lote" propriamente dito — sem veredito de lote em `QA-REPORT.md`/
+`SECURITY-REVIEW.md`, sem entrada nesta Seção 7. Mesma classe de lacuna já
+corrigida nesta sessão para "Relatórios (Fase 2)" (Seção 7.18) — seguindo
+exatamente o mesmo procedimento (`EXECUTION-FLOW.md`, Comando 2, Seções
+2-5).
+
+**Particularidade deste lote**: as 2 tarefas são, elas mesmas, trabalho de
+QA (auditoria de cobertura de teste sobre RN-01/02/06/07 e sobre os fluxos
+de tela de Fase 2) — o veredito de lote aqui auditou o rigor dessa
+auditoria (leitura linha a linha dos 4 arquivos de teste SQL citados por
+`QA-F2-01` e verificação direta, por `grep`/leitura de arquivo, dos 7
+componentes de frontend citados por `QA-F2-02`), em vez de reimplementar o
+trabalho.
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de
+7.1-7.18.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção
+   3.2 — as 2 tarefas do lote (`QA-F2-01`, `QA-F2-02`) têm status
+   `Concluída`. Dependências da Seção 4.2 verificadas: `QA-F2-01` →
+   `BE-F2-02`/`03`/`04`/`05` (todas `Concluída` desde 2026-09-03); `QA-F2-02`
+   → todo o bloco `FE-F2` (`FE-F2-01` a `08`, todas `Concluída` desde
+   2026-09-03). Nenhuma dependência órfã; nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 25.5, texto
+   literal "Aprovado (2/2), nenhuma reprovação crítica. 1 achado simples de
+   documentação (divergência de contagem, não funcional) registrado nesta
+   própria seção, sem tarefa nova." Passa — o único achado (contagem "16
+   vs. 15" na nota de `QA-F2-02`) foi classificado como simples e **não**
+   gerou tarefa em `Refatoração Lote-X`: não é gap de cobertura funcional
+   (os 4 estados de tela estão de fato cobertos em cada componente citado,
+   qualitativamente exatamente como a nota descreve), só um número impreciso
+   num texto histórico já registrado — sem retrabalho de código/teste
+   associado, então não haveria o que uma tarefa de refatoração corrigiria.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**: Seção 1.35,
+   "Veredito final do lote... Aprovado (sem débito de segurança novo)" —
+   os 11 arquivos de teste tocados por este lote (4 SQL + 7 frontend)
+   conferidos diretamente, nenhuma prática insegura introduzida. Passa.
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: conferido
+   diretamente — nenhum bloqueio hoje aberto cita `QA-F2-01`/`QA-F2-02`/
+   "Fechamento & Regressão Fase 2" por nome. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem
+   achado nesta rodada que aponte violação de diretriz vigente. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 2 tarefas
+   somam a estimativa já registrada na Seção 3.2 desde a rodada de
+   2026-09-04; nenhum desvio grande de escopo/estimativa reportado nesta
+   rodada de validação (só confirmação de trabalho já concluído). Passa.
+
+**Achado tratado nesta rodada**: 1 achado simples de documentação
+(`QA-REPORT.md` Seção 25.2 — contagem "16 casos novos" da nota de
+`QA-F2-02` não bate com os 15 casos efetivamente tagueados `(QA-F2-02)` no
+código de teste real). Não gera tarefa em `Refatoração Lote-X` pelo motivo
+já explicado no item 2 acima — não há lacuna funcional/de cobertura a
+corrigir, só uma imprecisão de contagem num texto já concluído.
+
+**Deploy**: não aplicável — este lote não introduz nenhum código de
+produção novo, é trabalho de teste/auditoria sobre features de Fase 2 que
+seguem seus próprios registros de deploy (linhas "Cartão & Fatura",
+"Recorrência & Parcelamento", "Contas Fixas", "Notificações &
+Configurações", "Relatórios (Fase 2)" acima).
+
+**Nenhuma inconsistência estrutural encontrada** — nenhuma dependência
+órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma referência quebrada
+nas Seções 3.2/4.2 relativas a este lote.
+
+### 7.20 Racional de fechamento — lote "Captura Automatizada — Importação de Extrato" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Contexto da lacuna**: `BE-F3-03`/`FE-F3-05` estão `Concluída` desde
+2026-09-08 (Seção 3.3, lote "Captura Automatizada — Importação de
+Extrato"), mas este lote nunca passou pelo "Critério de Aprovação de
+Lote" — sem veredito de lote em `QA-REPORT.md`/`SECURITY-REVIEW.md`, sem
+entrada nesta Seção 7, mesma classe de lacuna já corrigida nesta sessão
+para "Relatórios (Fase 2)" (Seção 7.18) e "Fechamento & Regressão Fase 2"
+(Seção 7.19) — seguindo exatamente o mesmo procedimento
+(`EXECUTION-FLOW.md`, Comando 2, Seções 2-5).
+
+Apliquei o "Critério de Aprovação de Lote" item a item, mesmo rigor de
+7.1-7.19.
+
+1. **Toda tarefa `Concluída`**: confirmado por leitura direta da Seção
+   3.3 — `BE-F3-03` e `FE-F3-05` têm status `Concluída`. Dependências da
+   Seção 4.3 verificadas: `BE-F3-03 | BE-F3-00; auditoria de Edge
+   Functions (DIR-33) | Implementação completa` — satisfeita (`BE-F3-00`
+   `Concluída` desde 2026-09-07). `FE-F3-05 | BE-F3-03 (contrato) |
+   Contrato` — satisfeita, contrato `API-CONTRACT.yaml` v0.23.0 publicado
+   antes da conclusão de `FE-F3-05` (mesma data, 2026-09-08). Nenhuma
+   dependência órfã; nenhuma tarefa `Bloqueada`. Passa.
+2. **`QA-REPORT.md` Aprovado/Aprovado com ressalvas**: Seção 26.5, texto
+   literal "Aprovado (2/2), nenhuma reprovação crítica nem simples."
+   Verificação independente desta rodada (não delegada à nota do
+   Executor): leitura linha a linha de `statement-import/index.ts`/
+   `lib.ts` contra RF-F3-03 AC1-2 e de `StatementImportFlow.tsx` contra o
+   AC literal de `FE-F3-05` (seleção inicial desmarcando duplicata; zero
+   chamada de persistência antes do clique em "Confirmar"), mais
+   reexecução independente da suíte de frontend (`npx vitest run` —
+   72 arquivos/425 testes, todos passando; `npx tsc -b` limpo). Passa.
+3. **`SECURITY-REVIEW.md` Aprovado/Aprovado com débito**:
+   `SECURITY-REVIEW.md` Seção 1.36, "Veredito final do lote... Aprovado
+   com débito" — `SEC-DEBT-015` (Média severidade) é débito, não
+   reprovação; deploy em staging liberado. Passa (débito é compatível com
+   "Aprovado com débito", não bloqueia o fechamento do lote em si).
+4. **Nenhum `BLOCKERS.md` `Aberto` afetando o lote**: conferido
+   diretamente — nenhum bloqueio hoje aberto cita `BE-F3-03`/`FE-F3-05`/
+   "Captura Automatizada — Importação de Extrato" por nome. Passa.
+5. **Nenhuma diretriz da Seção 1 violada sem exceção registrada**: sem
+   achado nesta rodada que aponte violação de diretriz vigente sem
+   exceção já documentada. Passa.
+6. **Esforço real reconciliado com a estimativa original**: as 2 tarefas
+   somam a estimativa já registrada na Seção 3.3 desde a rodada de
+   2026-09-07/08; nenhum desvio grande de escopo/estimativa reportado
+   nesta rodada de validação (só confirmação de trabalho já concluído).
+   Passa.
+
+**Achado tratado nesta rodada — não é um achado novo, é a confirmação de
+uma condição pré-registrada**: `SEC-DEBT-015` (`SECURITY-REVIEW.md` Seção
+1.31, originado no fechamento do lote "Captura Automatizada — Voz & Foto",
+7.16) já previa que a condição de bloqueio automático de produção
+("antes de `BE-F3-03`/`BE-F3-04` serem consideradas prontas para
+produção") se tornaria ativa quando este lote fechasse com consumo real
+de `import_batch_id`. `SECURITY-REVIEW.md` Seção 1.36 confirma, por
+leitura direta de `StatementImportFlow.tsx`, que `handleConfirm` agora
+cria candidatos vinculados a `import_batch_id` real — a condição está
+**atingida**. `BE-DEBT-04` (Seção 3.7, "Refatoração Lote-Captura
+Automatizada — Voz & Foto") segue `Não iniciada`; não crio tarefa nova em
+`Refatoração Lote-X` porque a tarefa de correção já existe e já está
+posicionada corretamente na ordem de execução (Seção 4, nota da própria
+`BE-DEBT-04`) — só atualizo, nesta rodada, o status da condição na tabela
+de "Achados triados" do `SECURITY-REVIEW.md` (Seção 2) e a coluna Deploy
+desta linha da Seção 7.
+
+**Deploy**: **não publicado nesta rodada**. Staging permanece liberado
+(achado Média não bloqueia staging, mesmo padrão de `SEC-DEBT-002`/`006`)
+— disparar `/deploy` para staging é decisão do usuário, fora do escopo
+deste comando. **Produção fica bloqueada** para este lote especificamente
+até `BE-DEBT-04` `Concluída` — requisito de segurança operacional
+explícito registrado por DevSecOps (`SECURITY-REVIEW.md` Seção 1.36).
+
+**Nenhuma inconsistência estrutural encontrada** — nenhuma dependência
+órfã, nenhuma tarefa `Bloqueada` sem resolução, nenhuma referência quebrada
+nas Seções 3.3/4.3 relativas a este lote. Nenhuma escalação ao
+`coordenador` necessária (a condição de `SEC-DEBT-015` já era prevista e
+endereçada por uma tarefa existente, não exige redesenho de dependência/
+decomposição).
+
+Lote fecha **Validado**, com a ressalva registrada (achado simples de
+documentação, sem tarefa de correção pendente).
 
 ---
 

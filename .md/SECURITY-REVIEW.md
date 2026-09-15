@@ -1507,7 +1507,7 @@ resolvida antes/durante o próximo `/deploy`).
 | SEC-DEBT-012 | `categories.color` (coluna `text` livre, sem `CHECK` de formato) renderizado pela primeira vez como valor de CSS inline em `CategoryCard.tsx` (`style={{ backgroundColor: color }}`), sem validação de formato hexadecimal — hoje sem exploitabilidade prática (nenhuma UI expõe campo para o usuário definir essa cor; RLS impede leitura cross-tenant) | Baixa | Não | Antes de qualquer funcionalidade futura que exponha um campo de UI para definir `categories.color`/`accounts.color` livremente — adicionar validação de formato (regex/`CHECK` constraint); sem urgência hoje | frontend / backend |
 | SEC-DEBT-013 | `recurring_template_adjustments` permite `DELETE` de reajuste histórico pelo próprio dono via RLS, sem trigger de imutabilidade equivalente ao que protege `amount_cents` contra `UPDATE` — apaga o rastro de um reajuste e pode mudar a resolução de valor para competências futuras ainda não geradas (lançamentos já persistidos não são afetados); sem caminho de UI no Frontend, só via REST direto (1.27) | Baixa | Não | Sem urgência — corrigir no próximo toque em `recurring_template_adjustments`: trigger `BEFORE DELETE` bloqueando exclusão de reajuste já vigente/consumido, ou restringir `DELETE` só ao reajuste mais recente ainda futuro | backend |
 | SEC-DEBT-014 | Conteúdo de push notification (`notify_user()`/`push-dispatch`) expõe nome de categoria + percentual de orçamento, ou descrição + data de conta fixa, em texto claro na notificação nativa visível mesmo com dispositivo bloqueado — nenhum valor monetário exposto, mas mais detalhe contextual do que o mínimo necessário (1.30) | Baixa | Não | Próximo lote que tocar `notify_user()`/`push-dispatch`: considerar título genérico, detalhe só após desbloqueio | frontend/backend |
-| SEC-DEBT-015 | `candidate_transaction.import_batch_id` com `ON DELETE CASCADE` (migration `20260904170000`) permite apagar o registro de auditoria de um candidato já `confirmed`/`discarded` ao excluir seu `import_batch` — contradiz `candidate_transaction_delete_own_pending` (que só permite DELETE direto enquanto `pending`) e o texto já publicado em `API-CONTRACT.yaml` ("nenhum candidato é apagado em cascata pelo lote", ON DELETE SET NULL); sem impacto cross-tenant nem em saldo/`Transaction` real; inexploitável pelo fluxo real de voz/foto hoje (nenhum candidato deste lote tem `import_batch_id` preenchido) (1.31) | Média | Não hoje — **bloqueio automático condicional**, mesmo padrão de SEC-DEBT-002/006 | Antes de `BE-F3-03`/`BE-F3-04` (Importação de Extrato/Open Finance, primeiros consumidores reais de `import_batch` com candidatos vinculados) serem consideradas prontas para produção — agendado como `BE-DEBT-04` (`TASK.md` Seção 3.7) | backend |
+| SEC-DEBT-015 | `candidate_transaction.import_batch_id` com `ON DELETE CASCADE` (migration `20260904170000`) permite apagar o registro de auditoria de um candidato já `confirmed`/`discarded` ao excluir seu `import_batch` — contradiz `candidate_transaction_delete_own_pending` (que só permite DELETE direto enquanto `pending`) e o texto já publicado em `API-CONTRACT.yaml` ("nenhum candidato é apagado em cascata pelo lote", ON DELETE SET NULL); sem impacto cross-tenant nem em saldo/`Transaction` real; **condição de bloqueio automático ATINGIDA em 1.36 (2026-09-15)** — `BE-F3-03`/`FE-F3-05` (Importação de Extrato) `Concluída`, `handleConfirm` de `StatementImportFlow.tsx` agora cria `candidate_transaction` vinculado a `import_batch_id` real em fluxo de produto genuíno, não mais teórico (1.31/1.36) | Média | **Sim, a partir de 1.36 — bloqueia deploy em produção de `BE-F3-03`/`FE-F3-05`** (staging não bloqueado, mesmo padrão de SEC-DEBT-002/006) | `BE-DEBT-04` deve estar `Concluída` **antes** do próximo `/deploy` em produção que inclua "Captura Automatizada — Importação de Extrato" (`TASK.md` Seção 3.7, ainda `Não iniciada`) | backend |
 
 **Achado #3 (schema baseline não referenciado)** e **SEC-DEBT-005** (gaps
 remanescentes do mesmo achado, `BLOCKERS.md` Bloqueio 012) não entram na leitura
@@ -4533,3 +4533,358 @@ ponto de vista de DevSecOps: Aprovado** (sem débito de segurança novo;
 deploy tecnicamente liberado do ponto de vista de segurança, condicionado à
 pendência operacional de aplicação de migrations registrada na Seção 4 ser
 resolvida antes/durante o próximo `/deploy`).
+
+### 1.34 — Auditoria completa (veredito de lote) — "Relatórios (Fase 2)" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Gatilho**: `QA-REPORT.md` Seção 24 aprovou (Aprovado, 2/2) `BE-F2-10`,
+`FE-F2-08` — ambas `Concluída` desde 2026-09-03, mas este lote nunca teve
+veredito formal de QA/DevSecOps nem entrada na Seção 7 do `TASK.md`, lacuna
+de processo pré-existente já sinalizada em `/listar` anteriores, não um
+lote recém-fechado por execução. Libera a auditoria completa, respeitando o
+próprio gate de entrada (QA antes de DevSecOps). `BLOCKERS.md` conferido
+diretamente: nenhuma entrada `Aberto` bloqueando `BE-F2-10`/`FE-F2-08`/
+"Relatórios (Fase 2)".
+
+#### `static-security-analysis` — leitura direta da migration `get_income_expense_report`
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) `get_income_expense_report` é `SECURITY INVOKER`, não `SECURITY DEFINER` | Leitura direta da migration | `20260903250000_be_f2_10_income_expense_report.sql:26-52` — `language sql stable set search_path to 'public'`, sem cláusula `security definer` em nenhum ponto (ausência confirmada por leitura completa do arquivo, não presumida) — por padrão do Postgres, função sem essa cláusula roda com os privilégios de quem chama | Passa |
+| (b) Escopo por `auth.uid()` dentro da própria query, não delegado só à RLS da tabela | Leitura direta da migration | `:46` — `where t.user_id = auth.uid()` explícito no `WHERE` da query, reforçando (não substituindo) a policy RLS de `public.transactions` já existente — mesmo padrão de `get_month_provision`/`get_budget_status`/`get_monthly_category_summary` | Passa |
+| (c) Isolamento cross-user provado, não só assumido pela policy | Leitura direta do teste SQL | `be_f2_10_income_expense_report.test.sql` CASO E (linhas 135-158) — usuário B insere lançamento com valor distintivo (777777) no mês corrente; relatório de A, reconsultado sob a mesma identidade JWT do CASO A, permanece idêntico (`v_income_isol = v_income_after`) — prova por comparação de delta, não por ausência de contra-exemplo | Passa |
+| (d) Nenhum vazamento de dado de outro usuário no Frontend | Leitura direta de `reports.ts`/`IncomeExpenseReportPage.tsx` | `getIncomeExpenseReport()` chama `getSupabaseClient().rpc(...)` sem nenhum parâmetro de usuário — identidade resolvida inteiramente pelo JWT de sessão do client Supabase, nunca por um valor no payload que o client poderia manipular; nenhum `console.*`/`localStorage` novo introduzido pela página | Passa |
+| (e) `GRANT`/`REVOKE` da função — sem privilégio herdado indevido | Leitura direta da migration | Nenhum `GRANT EXECUTE` explícito na migration — mesma família de `get_net_worth_evolution`/`get_report_export_rows` (já auditadas nas Seções 1.31/23), que dependem do padrão de `EXECUTE` a `PUBLIC` em funções novas do schema `public`, mitigado pelo próprio `WHERE user_id = auth.uid()` (sem esse filtro a função devolveria erro de "sem linha", nunca dado de terceiro) — mesmo risco residual já aceito para toda essa família de RPCs de leitura agregada, não um achado novo específico deste lote | Passa |
+
+Nenhum achado novo de severidade alta/crítica. Nenhum achado novo de baixa/
+média severidade nesta rodada — as 2 atenções do dispatch (`SECURITY
+INVOKER` confirmado, ausência de vazamento no Frontend) foram corroboradas
+por leitura direta, sem divergência entre o comportamento real do código e
+o que a nota do Executor de 2026-09-03 já descrevia.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+Nenhum requisito de criptografia/autenticação/isolamento multi-tenant
+adicional se aplica a este lote além do já coberto no ponto (b)/(c) acima
+— `get_income_expense_report` é uma RPC de leitura agregada pura, sem
+tabela/coluna nova, sem dado sensível novo introduzido (reaproveita
+`public.transactions`, já sob RLS/G-19 desde `BE-M-13`). Nenhum gap desta
+classe encontrado.
+
+#### `compliance-validation` — LGPD
+
+Este lote não introduz nenhum tratamento de dado pessoal novo — é uma
+agregação de leitura sobre dado financeiro que já existe (`transactions`),
+sem nova coluna de PII, sem exportação/transferência a terceiro. Nenhum
+achado de compliance obrigatório em aberto específico deste lote.
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*` fora de padrão estruturado e por qualquer
+inclusão de linha bruta de `public.transactions` em resposta HTTP/log, em
+`frontend/src/pages/reports/IncomeExpenseReportPage.tsx`,
+`frontend/src/lib/api/reports.ts` e
+`frontend/src/components/domain/BarChart.tsx`: zero ocorrências. Erro de
+rede exibido só via `Alert` (`role`/mensagem genérica de `ApiError`), sem
+persistir nada em armazenamento local do dispositivo. `title`/`aria-label`
+do `BarChart` expõem só valor formatado em BRL do próprio usuário
+autenticado (mesmo dado que a RPC já devolveria, RLS-protegida) — nenhuma
+exposição adicional.
+
+#### `finding-severity-classification`
+
+Nenhum achado novo nesta rodada. Diferente dos 2 lotes mais recentes
+(Seções 1.32/23 — migrations/Edge Function ainda pendentes de aplicação/
+publicação), este lote já está em produção desde 2026-09-03 como parte da
+promoção ampla registrada em `DEPLOY.md` §9.6 ("todos os lotes de Fase
+2... Relatórios") — não há pendência operacional de publicação a registrar
+aqui.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum** (aliás, já
+  publicado).
+- **Achados de severidade Alta/Crítica em aberto tocando este lote:
+  nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhuma.
+- **Débito novo registrado nesta rodada**: nenhum.
+- **Requisitos de segurança operacional para o DevOps**: nenhum item novo —
+  este lote já está publicado em produção (`DEPLOY.md` §9.6), sem pendência
+  de aplicação de migration/Edge Function pendente.
+
+**Veredito do lote: Aprovado, sem débito** — build já em produção desde
+2026-09-03; este registro formaliza retroativamente a dupla aprovação
+QA+DevSecOps que faltava especificamente para "Relatórios (Fase 2)", mesmo
+tratamento já dado aos lotes "Orçamento" (Seção 1.15/`QA-REPORT.md` Seção
+7) e "Autenticação & Segurança" (Seção 1.25/`QA-REPORT.md` Seção 15) — não
+é o gatilho de um novo deploy.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — este
+lote não produziu achado de relevância estratégica; a única observação
+relevante (lacuna de rastreabilidade de processo, agora corrigida por este
+próprio registro) é operacional/de processo, não de segurança/negócio.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum
+      achado de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/
+      condição — não aplicável, nenhum achado técnico novo nesta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — não
+      aplicável, lote já publicado sem pendência operacional
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não
+      aplicável, nenhum achado desta natureza
+
+**Veredito final do lote "Relatórios (Fase 2)" do ponto de vista de
+DevSecOps: Aprovado** (sem débito de segurança novo; deploy já realizado em
+produção desde 2026-09-03, `DEPLOY.md` §9.6 — este registro fecha
+retroativamente o gate de processo, não libera um deploy novo).
+
+### 1.35 — Auditoria completa (veredito de lote) — "Fechamento & Regressão Fase 2" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Gatilho**: `QA-REPORT.md` Seção 25 aprovou (Aprovado, 2/2) `QA-F2-01`,
+`QA-F2-02` — ambas `Concluída` desde 2026-09-04, mas este lote nunca teve
+veredito formal de QA/DevSecOps por lote nem entrada na Seção 7 do
+`TASK.md`, mesma classe de lacuna já corrigida nesta sessão para
+"Relatórios (Fase 2)" (Seção 1.34). `BLOCKERS.md` conferido diretamente:
+nenhuma entrada `Aberto` bloqueando `QA-F2-01`/`QA-F2-02`/"Fechamento &
+Regressão Fase 2".
+
+**Particularidade deste lote — escopo de auditoria distinto**: `QA-F2-01`/
+`QA-F2-02` não introduzem nenhum código de produção novo (nenhuma
+migration, nenhuma Edge Function, nenhum componente de UI novo) — são elas
+mesmas trabalho de teste/auditoria de cobertura sobre features já
+implementadas e já auditadas em segurança individualmente nos lotes de
+origem ("Cartão & Fatura" Seção 1.26, "Recorrência & Parcelamento" Seção
+1.27, "Contas Fixas" Seção 1.28, "Notificações & Configurações" Seção
+1.30). A auditoria de segurança aqui não repete essa auditoria de produto
+— confere especificamente se algum **arquivo de teste tocado por este
+lote** introduziu prática insegura.
+
+#### `static-security-analysis` — arquivos de teste tocados por `QA-F2-01`/`QA-F2-02`
+
+| Arquivo | O que foi verificado | Resultado |
+|---|---|---|
+| `be_f2_02_invoices.test.sql`, `be_f2_03_recurring_templates.test.sql`, `be_f2_04_recurring_template_adjustments.test.sql`, `be_f2_05_installment_purchases.test.sql` | `grep` dirigido por `DISABLE ROW LEVEL SECURITY`, `GRANT ALL`, `password`, `service_role`, `secret`, `api_key`/`apikey` nos 4 arquivos — zero ocorrências. Todos os 4 seguem o padrão já auditado do projeto: `BEGIN`...`ROLLBACK` (nenhuma linha real persistida), fixture de usuário B via `auth.users`/`allowed_signup_emails` só dentro da transação de teste, `SET LOCAL ROLE authenticated` (nunca `postgres`/owner) para exercitar RLS real, `RESET ROLE` antes de qualquer `RAISE EXCEPTION` de falha — nenhum teste desativa RLS permanentemente nem usa credencial hardcoded | Passa |
+| `CreditCardsPage.test.tsx`, `InstallmentsPage.test.tsx`, `RecurringPage.test.tsx`, `FixedBillsPage.test.tsx`, `GoalsPage.test.tsx`, `IncomeExpenseReportPage.test.tsx`, `NotificationBell.test.tsx` (frontend, tocados pelos 15 casos novos de `QA-F2-02`) | `grep` dirigido por `password`, `secret`, `api[_-]key`, atribuição literal de `token` nos 7 arquivos — zero ocorrências. Mocks seguem o padrão já estabelecido de mockar só na fronteira de rede (`vi.mock` do módulo de API), nenhum valor sensível hardcoded nos novos casos de estado (vazio/carregando/erro) | Passa |
+
+Nenhum achado novo de severidade alta/crítica. Nenhum achado novo de
+baixa/média severidade — os arquivos de teste tocados por este lote não
+introduzem nenhuma prática insegura, seguem exatamente o mesmo padrão já
+auditado do resto do projeto.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+Não aplicável como verificação nova — este lote não introduz requisito de
+autenticação/autorização/criptografia/isolamento multi-tenant novo (é
+trabalho de teste sobre requisito já coberto pelos lotes de origem, já
+auditados). Nenhum gap desta classe encontrado nos arquivos de teste
+tocados.
+
+#### `compliance-validation` — LGPD
+
+Este lote não introduz nenhum tratamento de dado pessoal novo — os dados
+usados nos testes SQL (e-mails `test-b-f2*@example.com`, valores
+monetários fictícios) já seguem o mesmo padrão de fixture descartável
+(dentro de transação com `ROLLBACK`) já auditado em todos os lotes
+anteriores de Fase 2. Nenhum achado de compliance obrigatório em aberto.
+
+#### `sensitive-data-exposure-check`
+
+Grep dirigido por `console.*` fora de padrão estruturado nos 7 arquivos de
+teste de frontend tocados: zero ocorrências fora do padrão já existente no
+projeto. Nenhum dado sensível real (CPF, e-mail real, credencial) hardcoded
+em nenhum dos 11 arquivos (4 SQL + 7 frontend) tocados por este lote.
+
+#### `finding-severity-classification`
+
+Nenhum achado novo nesta rodada — este lote é puramente de teste/auditoria,
+sem código de produção novo, sem pendência operacional de deploy própria
+(as features que ele audita já estão publicadas ou com pendência já
+rastreada em seus próprios lotes de origem).
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy deste lote hoje: nenhum** (aliás, não há
+  deploy próprio associado — é trabalho de teste, não código de produção).
+- **Achados de severidade Alta/Crítica em aberto tocando este lote:
+  nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhuma.
+- **Débito novo registrado nesta rodada**: nenhum de segurança (1 achado de
+  documentação registrado pelo chapéu QA, `QA-REPORT.md` Seção 25.2 —
+  divergência de contagem "16 vs. 15", sem componente de segurança).
+- **Requisitos de segurança operacional para o DevOps**: nenhum item novo.
+
+**Veredito do lote: Aprovado, sem escopo de segurança aplicável além da
+checagem de prática insegura em teste** — confirmado, não presumido: os 11
+arquivos de teste tocados por este lote não introduzem nenhuma prática
+insegura, e o lote em si não altera nenhum código de produção.
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma — este
+lote não produziu achado de relevância estratégica.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum
+      achado de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com prazo/
+      condição — não aplicável, nenhum achado técnico novo nesta rodada
+- [x] Requisitos de segurança operacional para o DevOps definidos — não
+      aplicável, lote sem código de produção/deploy próprio
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não
+      aplicável, nenhum achado desta natureza
+
+**Veredito final do lote "Fechamento & Regressão Fase 2" do ponto de vista
+de DevSecOps: Aprovado** (sem débito de segurança novo; lote sem deploy
+próprio associado — as features que ele audita seguem seus próprios
+registros de deploy já existentes).
+
+### 1.36 — Auditoria completa (veredito de lote) — "Captura Automatizada — Importação de Extrato" — 2026-09-15 (lacuna de processo pré-existente)
+
+**Gatilho**: `QA-REPORT.md` Seção 26 aprovou (Aprovado, 2/2) `BE-F3-03`,
+`FE-F3-05` — ambas `Concluída` desde 2026-09-08, mas este lote nunca teve
+veredito formal de QA/DevSecOps por lote nem entrada na Seção 7 do
+`TASK.md`, mesma classe de lacuna já corrigida nesta sessão para
+"Relatórios (Fase 2)" (Seção 1.34) e "Fechamento & Regressão Fase 2"
+(Seção 1.35). `BLOCKERS.md` conferido diretamente: nenhuma entrada
+`Aberto` bloqueando `BE-F3-03`/`FE-F3-05`/"Captura Automatizada —
+Importação de Extrato".
+
+**Item de entrada obrigatório desta auditoria (sinalizado por
+`QA-REPORT.md` Seção 26.4)**: confirmar se a condição de bloqueio
+automático já registrada para `SEC-DEBT-015` (achado 1.31, "antes de
+`BE-F3-03`/`BE-F3-04`... serem consideradas prontas para produção")
+está agora ativa, já que este é exatamente o lote que a originou.
+
+#### `static-security-analysis` — Edge Function `statement-import` + fluxo de confirmação do Frontend
+
+| Ponto verificado | Verificação | Evidência | Resultado |
+|---|---|---|---|
+| (a) JWT de sessão exigido, mesmo padrão de `receipt-ocr`/`voice-capture` | Leitura direta de `index.ts` | `getAuthenticatedUser` (`:120-136`) valida o JWT via `authClient.auth.getUser(jwt)` com timeout de 5s; requisição sem sessão válida retorna `401` (`:166-173`) antes de qualquer parsing/consulta | Passa |
+| (b) Isolamento por usuário (RLS) na única leitura ao banco (checagem de duplicata) | Leitura direta de `index.ts` | `:224` — `dbClient = userClient(authHeader)`, não `service_role`; a query `:232-240` roda sob o JWT do próprio usuário, RLS de `public.transactions` (já auditada em lotes anteriores) aplica o filtro de `user_id = auth.uid()` — `account_id` do body é só um filtro adicional dentro do universo já restrito pela RLS, nunca usado para escapar do próprio tenant | Passa |
+| (c) Nenhuma persistência pela Edge Function (AC1/AC3) | Leitura direta de `index.ts`/`lib.ts`, busca por `.insert(`/`.upsert(` em ambos arquivos | Zero ocorrências — a única chamada ao banco é o `.select()` de `:232-240`; a resposta HTTP devolve `candidates` já formatados via `buildStatementCandidatePayload`, sem nenhuma escrita | Passa |
+| (d) Validação de entrada do arquivo importado (tamanho/formato) | Leitura direta de `lib.ts` | `validateStatementImportInput` (`:85-132`): rejeita `file_content_base64` ausente/vazio, `file_format` fora de `["ofx","csv"]`, `account_id` não-uuid (regex `:53`), base64 inválido (try/catch em `base64ToBytes`), arquivo vazio após decodificação e arquivo acima de `MAX_FILE_BYTES` (5MB, `:50`) — todas as 4 classes de entrada maliciosa/malformada testadas por `lib.test.ts` (23/23, contagem confirmada) | Passa |
+| (e) Superfície de injeção nos parsers (regex sobre conteúdo do arquivo do usuário) | Leitura direta de `lib.ts` | `STMTTRN_BLOCK_RE`/`OFX_TAG_RE` são padrões estáticos aplicados ao texto do arquivo (nunca o inverso — o conteúdo do usuário nunca vira parte de um `RegExp` construído dinamicamente a partir de entrada não confiável); parsing de CSV usa split por caractere, não `eval`/`Function`; nenhum parser grava em variável de ambiente/executa comando; toda saída de parsing é string/number tipado, nunca interpolada de volta em SQL (consumo via `supabase-js`, parametrizado) | Passa |
+| (f) Logging não expõe dado financeiro sensível | Leitura direta de `index.ts` | `log(...)` só recebe `format`/`total_parsed`/`skipped_lines`/`duplicate_count` como `extra` — nunca `fileText`/`candidates`/valores monetários; mesmo padrão já auditado em `receipt-ocr`/`voice-capture` | Passa |
+| (g) CORS — mesma lista de origens permitidas do padrão já auditado | Leitura direta de `index.ts` | `ALLOWED_ORIGINS` reaproveita `WEBAUTHN_ORIGIN` (`:51-54`), mesmo secret/padrão já usado por `receipt-ocr`/`voice-capture`, sem wildcard | Passa |
+
+Nenhum achado novo de severidade alta/crítica na Edge Function em si.
+
+#### `security-requirement-validation` — `SDD.md` Seção 7 + `GUARDRAILS.md`
+
+Isolamento multi-tenant (RLS) e autenticação por JWT confirmados na tabela
+acima, itens (a)/(b) — nenhum requisito novo de criptografia se aplica
+(extrato bancário trafega só em trânsito, via HTTPS padrão do Supabase
+Edge Functions, sem persistência do arquivo em si). Requisito central deste
+lote (RNF-01 "revisão humana antes de persistir") já confirmado pelo chapéu
+QA (`QA-REPORT.md` Seção 26.2) — reconfirmado aqui, sem divergência: a
+Edge Function não escreve nada (item (c) acima), e o Frontend só escreve a
+partir do clique explícito em "Confirmar" (`StatementImportFlow.tsx:203`).
+
+**Item central desta auditoria — condição de bloqueio de `SEC-DEBT-015`
+(achado 1.31)**: confirmado por leitura direta que este lote é o gatilho
+real. `StatementImportFlow.tsx:214-233` (`handleConfirm`) chama
+`createImportBatch` seguido de `createCandidateTransaction` **com
+`import_batch_id: batch.id` preenchido** para cada candidato selecionado,
+em fluxo de produto genuíno (não mais um cenário só teoricamente possível
+via chamada direta à API, como estava em 1.31) — a migration
+`20260904170000_be_f3_00_...sql:136` continua com
+`import_batch_id uuid references public.import_batch(id) on delete
+cascade` (confirmado, `BE-DEBT-04` segue `Não iniciada` em `TASK.md`
+Seção 3.7). **A condição de bloqueio automático registrada em 1.31 está,
+portanto, ATIVA a partir deste registro** — ver classificação abaixo.
+
+#### `compliance-validation` — LGPD
+
+Extrato bancário é dado financeiro sensível do próprio usuário — nenhuma
+transferência a terceiro, nenhuma nova categoria de dado pessoal
+introduzida além do que já é tratado por `candidate_transaction`/
+`transactions` (já auditados). Direito ao esquecimento: exclusão de conta
+(`ADR-011`, mecanismo formal, fora do escopo deste lote) segue removendo
+`candidate_transaction`/`import_batch` via `ON DELETE CASCADE` de
+`user_id` (não o `import_batch_id` interno, objeto de `SEC-DEBT-015`).
+Nenhum achado de compliance obrigatório em aberto.
+
+#### `sensitive-data-exposure-check`
+
+`grep` dirigido por `console.*` fora de padrão estruturado e por qualquer
+inclusão de conteúdo bruto do arquivo importado (`fileText`/base64) em log
+ou em mensagem de erro exibida ao usuário, em
+`supabase/functions/statement-import/index.ts`/`lib.ts` e
+`frontend/src/components/domain/StatementImportFlow.tsx`/
+`CandidateList.tsx`/`ReconciliationHint.tsx`/`lib/api/statementImport.ts`:
+zero ocorrências — erros propagam só como `ApiError.message` genérico
+(`friendlyError`, `StatementImportFlow.tsx:31-33`), nunca o payload do
+arquivo. Nenhum uso de `localStorage`/armazenamento local para o arquivo
+importado ou seus candidatos (tudo em estado de componente React,
+descartado ao fechar o fluxo sem confirmar).
+
+#### `finding-severity-classification`
+
+- **`SEC-DEBT-015` (achado 1.31, reclassificado nesta rodada)**: severidade
+  permanece **Média** (mesma análise de exploitabilidade de 1.31 — sem
+  impacto cross-tenant, sem afetar saldo/`Transaction` real, é perda do
+  registro de auditoria do candidato ao excluir o lote) — o que muda é o
+  **status da condição de bloqueio**, de "Não hoje" para "Sim, a partir de
+  agora, para deploy em produção deste lote especificamente". Não é achado
+  novo (já existia desde 1.31), é a confirmação de que a condição
+  pré-registrada se cumpriu.
+- Nenhum achado novo de severidade alta/crítica nesta rodada.
+
+#### `security-report-drafting` — veredito consolidado do lote
+
+- **Achados que bloqueiam o deploy em staging deste lote hoje: nenhum** —
+  `SEC-DEBT-015` é Média, mesmo padrão de débito condicional já usado para
+  `SEC-DEBT-002`/`006` (bloqueia só produção, não staging).
+- **Achados que bloqueiam o deploy em PRODUÇÃO deste lote: `SEC-DEBT-015`**
+  — condição atingida nesta rodada (ver acima). `BE-DEBT-04` precisa estar
+  `Concluída` antes do próximo `/deploy` em produção que inclua este lote.
+- **Achados de severidade Alta/Crítica em aberto tocando este lote:
+  nenhum.**
+- **Compliance obrigatório (LGPD)**: nenhum achado.
+- **Exposição de dado sensível**: nenhuma.
+- **Débito novo registrado nesta rodada**: nenhum débito novo — `SEC-DEBT-015`
+  é reconfirmação/ativação de achado já existente (1.31), não um achado
+  novo; `BE-DEBT-04` já existe como tarefa em `TASK.md` Seção 3.7
+  ("Refatoração Lote-Captura Automatizada — Voz & Foto"), status
+  atualizado nesta rodada apenas na tabela de "Achados triados" (linha
+  `SEC-DEBT-015`, não uma nova entrada).
+- **Requisitos de segurança operacional para o DevOps**: antes de incluir
+  "Captura Automatizada — Importação de Extrato" num `/deploy` de
+  **produção**, confirmar `BE-DEBT-04` `Concluída` (migration aditiva
+  trocando `ON DELETE CASCADE` por `ON DELETE SET NULL` em
+  `candidate_transaction.import_batch_id`, aplicada e testada) — não
+  bloqueia deploy em staging.
+
+**Veredito do lote: Aprovado com débito** (`SEC-DEBT-015`, Média
+severidade, condição de bloqueio de produção agora ativa — não bloqueia
+staging nem a validação deste lote em si, mesmo padrão já usado para
+`SEC-DEBT-002`/`006`).
+
+**Sinalização ao Gestor (paralela, não pré-requisito)**: nenhuma de
+relevância estratégica nova — a condição de bloqueio em si já foi
+sinalizada como decisão técnica pelo CTO/DevSecOps em 1.31; esta rodada
+só confirma que o gatilho se cumpriu, sem introduzir uma decisão de
+negócio nova.
+
+**Checklist — Critérios de Pronto desta rodada**:
+
+- [x] Nenhum achado de severidade alta/crítica em aberto
+- [x] Todo achado de compliance obrigatório (LGPD) resolvido — nenhum
+      achado de compliance nesta rodada
+- [x] Achado de baixa/média severidade registrado como débito com
+      prazo/condição — `SEC-DEBT-015`/`BE-DEBT-04`, condição de produção
+      agora ativa, sem prazo-calendário (mesmo padrão de SEC-DEBT-002/006)
+- [x] Requisitos de segurança operacional para o DevOps definidos (ver
+      acima — gate de produção explícito)
+- [x] Achado de relevância estratégica sinalizado ao Gestor — não
+      aplicável, nenhum achado desta natureza nesta rodada
+
+**Veredito final do lote "Captura Automatizada — Importação de Extrato" do
+ponto de vista de DevSecOps: Aprovado com débito** (`SEC-DEBT-015`, Média
+severidade; deploy em staging liberado; deploy em **produção** deste lote
+condicionado a `BE-DEBT-04` estar `Concluída` — condição já pré-registrada
+em 1.31, confirmada ativa nesta rodada).
