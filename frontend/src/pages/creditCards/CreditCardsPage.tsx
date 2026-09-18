@@ -8,17 +8,28 @@ import { createCreditCard, getCreditCardsAvailableLimit, listCreditCards, listIn
 import { listCategories } from "../../lib/api/categories";
 import { listTransactions } from "../../lib/api/transactions";
 import { ApiError } from "../../lib/api/errors";
-import { formatCentsToBRL } from "../../lib/currency";
+import { Num } from "../../components/base/Num";
 import type { Category, CreditCard, CreditCardAvailableLimitItem, Invoice, NewCreditCard, Transaction } from "../../lib/api/types";
 
 type FormState = { name: string; limitCents: number; closingDay: string; dueDay: string };
 const EMPTY_FORM: FormState = { name: "", limitCents: 0, closingDay: "", dueDay: "" };
+
+/** Próximo vencimento (DD/MM) a partir de hoje, dado o dia de vencimento do cartão. */
+function nextDueLabel(dueDay: number): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = dueDay < now.getDate() ? now.getMonth() + 1 : now.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const date = new Date(year, month, Math.min(dueDay, lastDay));
+  return `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
 
 /** S-CARD-01/02 (FE-F2-01) + S-CARD-03 (FE-F2-02, `InvoiceTimeline`) — UX-SPEC.md Padrão A. */
 export function CreditCardsPage() {
   const { showToast } = useToast();
   const [cards, setCards] = useState<CreditCard[] | null>(null);
   const [limits, setLimits] = useState<CreditCardAvailableLimitItem[]>([]);
+  const [currentInvoiceTotals, setCurrentInvoiceTotals] = useState<Record<string, number>>({});
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,8 +51,28 @@ export function CreditCardsPage() {
       const [cardList, limitList] = await Promise.all([listCreditCards(), getCreditCardsAvailableLimit()]);
       setCards(cardList);
       setLimits(limitList);
+      void loadCurrentInvoiceTotals(cardList);
     } catch (cause) {
       setLoadError(cause instanceof ApiError ? cause.message : "Não foi possível carregar os cartões.");
+    }
+  }
+
+  /** Melhor esforço: falha aqui só omite o destaque da fatura atual, sem derrubar a lista. */
+  async function loadCurrentInvoiceTotals(cardList: CreditCard[]) {
+    try {
+      const [txs, invoiceLists] = await Promise.all([listTransactions(), Promise.all(cardList.map((c) => listInvoicesByCard(c.id)))]);
+      const currentCompetencia = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
+      const totals: Record<string, number> = {};
+      cardList.forEach((card, index) => {
+        // Mesma regra de InvoiceTimeline: primeira fatura do horizonte (competência >= atual) = "Fatura Atual".
+        const current = (invoiceLists[index] ?? [])
+          .filter((invoice) => invoice.competencia >= currentCompetencia)
+          .sort((a, b) => a.competencia.localeCompare(b.competencia))[0];
+        if (current) totals[card.id] = (txs ?? []).filter((t) => t.card_invoice_id === current.id).reduce((sum, t) => sum + t.amount_cents, 0);
+      });
+      setCurrentInvoiceTotals(totals);
+    } catch {
+      setCurrentInvoiceTotals({});
     }
   }
 
@@ -131,7 +162,7 @@ export function CreditCardsPage() {
           <Card>
             <p className="text-sm text-neutral-500">Limite disponível</p>
             <p className="text-xl font-semibold tabular-nums text-neutral-900">
-              {formatCentsToBRL(selectedLimit.available_cents)} de {formatCentsToBRL(selectedLimit.limit_cents)}
+              <Num value={selectedLimit.available_cents} format="currency" /> de <Num value={selectedLimit.limit_cents} format="currency" />
             </p>
           </Card>
         )}
@@ -161,32 +192,61 @@ export function CreditCardsPage() {
       )}
 
       {cards && cards.length > 0 && (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
           {cards.map((card) => {
             const limit = limits.find((l) => l.credit_card_id === card.id);
+            const usedPercent = limit && card.limit_cents > 0 ? Math.min(100, Math.round((limit.committed_cents / card.limit_cents) * 100)) : 0;
+            const currentTotal = currentInvoiceTotals[card.id];
             return (
               <li key={card.id}>
-                <Card className="flex flex-wrap items-center justify-between gap-4">
-                  <button
-                    type="button"
-                    onClick={() => void openDetail(card)}
-                    className="min-w-0 flex-1 text-left focus-visible:outline-2 focus-visible:outline-primary"
-                  >
-                    <p className="truncate font-medium text-neutral-900" title={card.name}>
-                      {card.name}
-                    </p>
-                    <p className="text-sm text-neutral-500">
-                      Fecha dia {card.closing_day} · Vence dia {card.due_day}
-                    </p>
-                    {limit && (
-                      <p className="text-sm text-neutral-600">
-                        Disponível: {formatCentsToBRL(limit.available_cents)} de {formatCentsToBRL(card.limit_cents)}
+                <Card className="flex flex-col gap-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => void openDetail(card)}
+                      className="min-w-0 flex-1 text-left focus-visible:outline-2 focus-visible:outline-primary"
+                    >
+                      <p className="truncate font-medium text-neutral-900" title={card.name}>
+                        {card.name}
                       </p>
-                    )}
-                  </button>
-                  <Button variant="ghost" onClick={() => openEditForm(card)}>
-                    Editar
-                  </Button>
+                      <p className="text-sm text-neutral-600">vence {nextDueLabel(card.due_day)}</p>
+                      <p className="text-xs text-neutral-500">
+                        Fecha dia {card.closing_day} · Vence dia {card.due_day}
+                      </p>
+                    </button>
+                    <Button variant="ghost" onClick={() => openEditForm(card)}>
+                      Editar
+                    </Button>
+                  </div>
+                  {currentTotal !== undefined && (
+                    <div>
+                      <p className="text-sm text-neutral-600">Fatura atual</p>
+                      <p className="text-[26px] font-semibold tabular-nums text-neutral-900"><Num value={currentTotal} format="currency" /></p>
+                    </div>
+                  )}
+                  {limit && (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center justify-between text-sm text-neutral-600">
+                        <span>Limite usado</span>
+                        <span className="flex gap-1 tabular-nums">
+                          <span data-testid="limit-used-percent"><Num value={usedPercent} format="percent" /></span>
+                          <span>de</span>
+                          <span data-testid="limit-total"><Num value={card.limit_cents} format="currency" /></span>
+                        </span>
+                      </div>
+                      <div
+                        role="progressbar"
+                        aria-label={`Limite usado de ${card.name}`}
+                        aria-valuenow={usedPercent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        className="h-2 w-full overflow-hidden rounded-full bg-neutral-200"
+                      >
+                        <div className="h-full bg-primary" style={{ width: `${usedPercent}%` }} />
+                      </div>
+                      <p className="text-sm text-neutral-600">Disponível: <Num value={limit.available_cents} format="currency" /></p>
+                    </div>
+                  )}
                 </Card>
               </li>
             );
