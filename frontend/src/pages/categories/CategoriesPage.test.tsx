@@ -63,7 +63,7 @@ describe("CategoriesPage — S-CAT-01/01a/02/03 (RF-REF-05, RN-09)", () => {
     renderPage();
 
     expect(await screen.findByText("Alimentação")).toBeInTheDocument();
-    expect(screen.getByText("R$ 980,00 este mês")).toBeInTheDocument();
+    expect(screen.getByText(/R\$\s*980,00/)).toBeInTheDocument();
     expect(screen.getByText("1 subcategoria")).toBeInTheDocument();
   });
 
@@ -76,7 +76,7 @@ describe("CategoriesPage — S-CAT-01/01a/02/03 (RF-REF-05, RN-09)", () => {
     ]);
     renderPage();
 
-    expect(await screen.findByText("R$ 150,00 este mês")).toBeInTheDocument();
+    expect(await screen.findByText(/R\$\s*150,00/)).toBeInTheDocument();
   });
 
   it("AC3: clique no corpo do card abre S-CAT-01a com a lista de subcategorias", async () => {

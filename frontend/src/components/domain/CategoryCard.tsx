@@ -1,6 +1,6 @@
 import { useId } from "react";
 import { Card } from "../base/Card";
-import { formatCentsToBRL } from "../../lib/currency";
+import { Num } from "../base/Num";
 
 export interface CategoryCardProps {
   name: string;
@@ -61,7 +61,7 @@ export function CategoryCard({ name, icon, color, totalSpentCents, subcategoryCo
           </span>
         </span>
         <span id={totalId} className="text-sm text-neutral-600">
-          {formatCentsToBRL(totalSpentCents)} este mês
+          <Num value={totalSpentCents} format="currency" /> este mês
         </span>
         <span id={countId} className="text-sm text-neutral-500">
           {subcategoryCount} {subcategoryLabel}

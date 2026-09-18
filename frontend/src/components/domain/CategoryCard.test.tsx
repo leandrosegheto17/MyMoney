@@ -18,7 +18,9 @@ describe("CategoryCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 5 (RF-RE
     );
 
     expect(screen.getByText("Alimentação")).toBeInTheDocument();
-    expect(screen.getByText("R$ 980,00 este mês")).toBeInTheDocument();
+    const value = screen.getByText(/R\$\s*980,00/);
+    expect(value).toHaveClass("font-serif", "tabular-nums");
+    expect(value.parentElement).toHaveTextContent(/R\$\s*980,00 este mês/);
     expect(screen.getByText("4 subcategorias")).toBeInTheDocument();
   });
 
