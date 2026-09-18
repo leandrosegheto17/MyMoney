@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Button, Input, Select } from "../../components/base";
+import { Alert, AuthCard, AuthLayout, Button, Input, Select } from "../../components/base";
 import { CurrencyInput } from "../../components/domain/CurrencyInput";
 import { createAccount } from "../../lib/api/accounts";
 import { ApiError } from "../../lib/api/errors";
@@ -50,12 +50,12 @@ export function FirstAccountPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-alt p-4">
-      <div className="w-full max-w-sm rounded-lg bg-surface p-6 shadow-elevation-md">
-        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-neutral-400">Passo 1 de 2</p>
-        <h1 className="mb-1 text-xl font-semibold text-neutral-900">Vamos cadastrar sua primeira conta</h1>
-        <p className="mb-6 text-sm text-neutral-500">Toda organização financeira começa por aqui.</p>
-
+    <AuthLayout>
+      <AuthCard
+        eyebrow="Passo 1 de 2"
+        title="Vamos cadastrar sua primeira conta"
+        description="Toda organização financeira começa por aqui."
+      >
         {error && (
           <div className="mb-4">
             <Alert variant="danger">{error}</Alert>
@@ -79,7 +79,7 @@ export function FirstAccountPage() {
             Continuar
           </Button>
         </form>
-      </div>
-    </div>
+      </AuthCard>
+    </AuthLayout>
   );
 }

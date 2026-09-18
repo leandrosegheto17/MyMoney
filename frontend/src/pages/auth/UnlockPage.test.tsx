@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { axe } from "jest-axe";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { localAuthDb } from "../../lib/auth/localAuthDb";
@@ -30,6 +31,12 @@ afterEach(() => {
 });
 
 describe("UnlockPage — S-AUTH-03/05 (RF-MVP-08 AC2, DIR-18/G-17)", () => {
+  it("não tem violações axe no estado normal", async () => {
+    const { container } = render(<UnlockPage />);
+    await screen.findByLabelText("PIN", { selector: "input" });
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it("desbloqueia com o PIN correto", async () => {
     render(<UnlockPage />);
     const input = await screen.findByLabelText("PIN", { selector: "input" });

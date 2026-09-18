@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { Lock } from "lucide-react";
+import { AuthCard, AuthLayout } from "../../components/base";
 import { PinPad } from "../../components/domain/PinPad";
 import { getLockoutStatus, recordFailedAttempt, recordSuccessfulUnlock } from "../../lib/auth/lockout";
 import type { LockoutStatus } from "../../lib/auth/lockout";
@@ -100,44 +102,51 @@ export function UnlockPage() {
   const remainingMs = lockout.lockedUntil ? lockout.lockedUntil - now : 0;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-surface-alt p-4 text-center">
-      <div>
-        <p className="text-2xl font-semibold text-primary">MyMoney</p>
-        <p className="mt-2 text-lg text-neutral-700">🔒 Desbloqueie o app</p>
-      </div>
+    <AuthLayout>
+      <AuthCard
+        align="center"
+        eyebrow="MyMoney"
+        title="Desbloqueie o app"
+        description={
+          <span className="inline-flex items-center gap-2">
+            <Lock aria-hidden="true" className="h-4 w-4" />
+            Seus dados ficam protegidos neste dispositivo
+          </span>
+        }
+      >
+        <div className="flex flex-col items-center gap-6">
+          {lockout.locked ? (
+            <div role="alert" className="flex flex-col items-center gap-2">
+              <p className="text-sm text-neutral-700">Muitas tentativas. Tente novamente em</p>
+              <p className="text-3xl font-semibold tabular-nums text-danger" aria-live="assertive">
+                {formatCountdown(remainingMs)}
+              </p>
+            </div>
+          ) : (
+            <PinPad value={pinValue} onChange={setPinValue} onComplete={(v) => void handlePinComplete(v)} error={pinError ?? undefined} disabled={isCheckingSession} />
+          )}
 
-      {lockout.locked ? (
-        <div role="alert" className="flex flex-col items-center gap-2">
-          <p className="text-sm text-neutral-700">Muitas tentativas. Tente novamente em</p>
-          <p className="text-3xl font-semibold tabular-nums text-danger" aria-live="assertive">
-            {formatCountdown(remainingMs)}
-          </p>
+          {isWebAuthnAvailable() && !lockout.locked && (
+            <button
+              type="button"
+              onClick={() => {
+                webauthnAttempted.current = false;
+                void authenticateWithWebAuthn()
+                  .then(async () => {
+                    await recordSuccessfulUnlock();
+                    unlock();
+                  })
+                  .catch(() => {
+                    /* fallback silencioso, mesmo tratamento do efeito automático acima */
+                  });
+              }}
+              className="min-h-11 text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              Tentar biometria novamente
+            </button>
+          )}
         </div>
-      ) : (
-        <>
-          <PinPad value={pinValue} onChange={setPinValue} onComplete={(v) => void handlePinComplete(v)} error={pinError ?? undefined} disabled={isCheckingSession} />
-        </>
-      )}
-
-      {isWebAuthnAvailable() && !lockout.locked && (
-        <button
-          type="button"
-          onClick={() => {
-            webauthnAttempted.current = false;
-            void authenticateWithWebAuthn()
-              .then(async () => {
-                await recordSuccessfulUnlock();
-                unlock();
-              })
-              .catch(() => {
-                /* fallback silencioso, mesmo tratamento do efeito automático acima */
-              });
-          }}
-          className="min-h-11 text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-        >
-          Tentar biometria novamente
-        </button>
-      )}
-    </div>
+      </AuthCard>
+    </AuthLayout>
   );
 }

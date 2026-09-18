@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Button } from "../../components/base";
+import { Alert, AuthCard, AuthLayout, Button } from "../../components/base";
 import { PinPad } from "../../components/domain/PinPad";
 import { isValidPinFormat, PIN_LENGTH, setPin } from "../../lib/auth/pin";
 import { isWebAuthnAvailable, registerWebAuthnCredential } from "../../lib/auth/webauthn";
@@ -79,50 +79,47 @@ export function PinSetupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-alt p-4">
-      <div className="w-full max-w-sm rounded-lg bg-surface p-6 text-center shadow-elevation-md">
-        {phase === "pin" ? (
-          <>
-            <h1 className="mb-1 text-xl font-semibold text-neutral-900">Configure um PIN</h1>
-            <p className="mb-6 text-sm text-neutral-500">
-              Configure um PIN de {PIN_LENGTH} dígitos para desbloquear o app rapidamente, mesmo sem conexão.
-            </p>
-
-            {error && (
-              <div className="mb-4 text-left">
-                <Alert variant="danger">{error}</Alert>
-              </div>
-            )}
-
-            {pinStep === "enter" ? (
-              <PinPad key="enter" value={firstPin} onChange={setFirstPin} onComplete={handleFirstComplete} disabled={isSaving} />
-            ) : (
-              <PinPad key="confirm" value={confirmPin} onChange={setConfirmPin} onComplete={(v) => void handleConfirmComplete(v)} disabled={isSaving} />
-            )}
-            <p className="mt-4 text-sm text-neutral-500">{pinStep === "enter" ? "Digite um PIN novo" : "Confirme o PIN digitado"}</p>
-          </>
-        ) : (
-          <>
-            <h1 className="mb-1 text-xl font-semibold text-neutral-900">Usar biometria?</h1>
-            <p className="mb-6 text-sm text-neutral-500">
-              Além do PIN, você pode usar a biometria/senha do dispositivo para desbloquear mais rápido.
-            </p>
-            {error && (
-              <div className="mb-4 text-left">
-                <Alert variant="warning">{error}</Alert>
-              </div>
-            )}
-            <div className="flex flex-col gap-3">
-              <Button onClick={() => void handleEnableBiometrics()} loading={isRegisteringBiometrics}>
-                Usar biometria
-              </Button>
-              <Button variant="ghost" onClick={() => void handleSkipBiometrics()} disabled={isRegisteringBiometrics}>
-                Continuar só com PIN
-              </Button>
+    <AuthLayout>
+      {phase === "pin" ? (
+        <AuthCard
+          align="center"
+          title="Configure um PIN"
+          description={`Configure um PIN de ${PIN_LENGTH} dígitos para desbloquear o app rapidamente, mesmo sem conexão.`}
+        >
+          {error && (
+            <div className="mb-4 text-left">
+              <Alert variant="danger">{error}</Alert>
             </div>
-          </>
-        )}
-      </div>
-    </div>
+          )}
+
+          {pinStep === "enter" ? (
+            <PinPad key="enter" value={firstPin} onChange={setFirstPin} onComplete={handleFirstComplete} disabled={isSaving} />
+          ) : (
+            <PinPad key="confirm" value={confirmPin} onChange={setConfirmPin} onComplete={(v) => void handleConfirmComplete(v)} disabled={isSaving} />
+          )}
+          <p className="mt-4 text-sm text-neutral-600">{pinStep === "enter" ? "Digite um PIN novo" : "Confirme o PIN digitado"}</p>
+        </AuthCard>
+      ) : (
+        <AuthCard
+          align="center"
+          title="Usar biometria?"
+          description="Além do PIN, você pode usar a biometria/senha do dispositivo para desbloquear mais rápido."
+        >
+          {error && (
+            <div className="mb-4 text-left">
+              <Alert variant="warning">{error}</Alert>
+            </div>
+          )}
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => void handleEnableBiometrics()} loading={isRegisteringBiometrics}>
+              Usar biometria
+            </Button>
+            <Button variant="ghost" onClick={() => void handleSkipBiometrics()} disabled={isRegisteringBiometrics}>
+              Continuar só com PIN
+            </Button>
+          </div>
+        </AuthCard>
+      )}
+    </AuthLayout>
   );
 }
