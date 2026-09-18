@@ -1339,6 +1339,12 @@ sem dependência interna a sequenciar.
 |---|---|---|---|---|---|---|---|
 | FE-DEBT-05 | Cobertura de teste permanente de acessibilidade do `CategoryCard`: asserção `axe`/`toHaveNoViolations()` em `CategoryCard.test.tsx` (sonda ad hoc do Validador passou sem violações) | Frontend | `QA-REPORT.md` Seção 28 (achado S-1), tarefas `FE-RS-12`, `FE-RS-13` | Teste novo passa; suíte completa sem resíduo | 0.1 dia (prazo: antes do fechamento do Lote 5) | Concluída. Nota: axe/toHaveNoViolations em CategoryCard.test.tsx. Suíte 463/463. | Refatoração Lote-4 |
 
+#### Refatoração Lote-5 (Auth/Onboarding, Redesign v2.0)
+
+| ID | Descrição | Responsável | Origem | Critério de aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-DEBT-06 | (1) Convergir estados de carregamento pré-sessão (`OnboardingGate` skeleton; `AuthGate` spinner, hoje `text-neutral-400`) ao padrão `AuthLayout` — `AuthGate` fica em `lib/auth`, exige autorização explícita do usuário (G-21); (2) estabilizar o teste de lockout de `UnlockPage` (falha sob carga, pré-existente em `main`), sem enfraquecer a asserção; (3) `axe` permanente em `LoginPage` e na fase biometria de `PinSetupPage` | Frontend | `QA-REPORT.md` Seção 30 (S-1 a S-3), tarefas `FE-RS-18`, `FE-RS-19`, `FE-RS-20` | Testes passam; suíte completa determinística em 3 execuções seguidas; nenhum arquivo de `lib/auth` alterado sem autorização | 0.25 dia (prazo: antes do fechamento do Lote 6) | Não iniciada | Refatoração Lote-5 |
+
 ---
 
 ## 4. Dependências e Ordem de Execução

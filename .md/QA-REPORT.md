@@ -4682,6 +4682,63 @@ Nenhuma reprovação crítica; nenhum padrão recorrente a escalar.
 
 ---
 
+## 30. Veredito de Lote — "Autenticação/Sessão + Onboarding (Redesign v2.0), Lote 5" (2026-09-18)
+
+Escopo: `FE-RS-16` a `FE-RS-22` (Concluída) + `QA-RS-08` (fechamento, Parcial). Worktree `MyMoney-lote5`, branch `lote5-auth`, HEAD `be708f6` (4 commits vs `main`).
+
+### 30.1 Evidência (rodada independente do Validador)
+- Suíte completa: 78 arquivos / 500 testes; 499 PASS, 1 FAIL (`UnlockPage` "bloqueia por 5 minutos após a 5ª tentativa", timeout do `findByText(/Muitas tentativas/)`). Isolado 3x: 4/4 verde nas 3. Reproduzido também em `main` (sem nenhuma mudança do lote) num subconjunto `src/pages src/components src/lib/auth`, 2 de 2 execuções: falha **pré-existente, dependente de carga**, não regressão do Lote 5. Registrada, não mascarada (S-2).
+- `tsc -b` limpo; `npm run build` OK (PWA gerado); `oxlint` nos arquivos do lote sem erro.
+- Sonda axe ad hoc (arquivo temporário, removido) em `LoginPage`: 0 violações. Demais telas têm axe permanente (`AuthCard`, `PinPad`, `PinSetupPage` fase PIN, `UnlockPage`, `FirstAccountPage`, `TaxonomyReviewPage`).
+- G-20/G-21: `git diff main..HEAD` sem `supabase/**`, `lib/api/**`, `API-CONTRACT.yaml`. Em `lib/` só `lib/auth/AuthGate.test.tsx` (2 matchers "🔒 Desbloqueie o app" para "Desbloqueie o app") — **exceção pontual ao G-21 autorizada pelo usuário**, verificada como mudança só de string em teste, sem código de produção de `lib/auth` alterado. Registrada como exceção, não como violação.
+- RF-MVP-08: PinSetup sem "pular" (teste explícito passa; `handleSkipBiometrics` = "Continuar só com PIN", biometria opcional, PIN obrigatório); lockout e WebAuthn de `UnlockPage` com lógica idêntica (diff só de estrutura JSX); `LoginPage` sem chamada nova a `signIn*`/`send*`; sem 2º fator por e-mail.
+
+### 30.2 Checklist N1 (rodado agora)
+- Duplicata do wrapper de card: grep `rounded-lg bg-surface|shadow-elevation-md|max-w-(sm|md)` em `pages/auth` e `pages/onboarding` (sem testes): **0 ocorrência**. Cinco páginas usam `AuthLayout`/`AuthCard`.
+- Hex/rampa Tailwind crua em páginas, `AuthCard`, `PinPad`: **0**. `text-neutral-400` nas páginas: **0** (eyebrow `neutral-600`, DIR-44).
+- Container único pré-sessão: `min-h-screen` centralizado só em `AuthLayout` dentro de `pages/**`. **Divergência menor** nos estados transitórios de carregamento: `lib/onboarding/OnboardingGate.tsx:34` (skeleton com container próprio) e `lib/auth/AuthGate.tsx:19` (spinner com `min-h-screen` próprio e `text-neutral-400`, decorativo sem texto). Ver S-1.
+- Fundo do `AuthLayout` usa `bg-surface-alt` em vez do literal `bg-bg` do critério de FE-RS-16; `index.css` documenta `surface-alt`/`neutral-50` = `--bg` (#FAF8F3). Equivalente, sem achado.
+- Emoji "🔒" substituído por `lucide-react` `Lock` `aria-hidden`.
+
+### 30.3 Verificação por tarefa
+| Tarefa | Resultado |
+|---|---|
+| FE-RS-16 | AC atendido: só tokens, `h1` único, slots opcionais sem nó vazio, `size`/`align`, axe, eyebrow `neutral-600` |
+| FE-RS-17 | AC atendido: `PinPad.test.tsx` original preservado (só adições), axe, ícone SVG `aria-hidden` + texto no erro, `min-h-11 min-w-11` mantido, apagar `neutral-600` |
+| FE-RS-18 | AC atendido: 8 testes de caracterização; wrapper removido; rodapé com alternância e "Esqueci minha senha" |
+| FE-RS-19 | AC atendido: 9 testes; sem "pular"; falha WebAuthn não bloqueia; `align=center`. Axe só na fase PIN (S-3) |
+| FE-RS-20 | AC atendido: `UnlockPage.test.tsx` sem alteração de asserção de comportamento (só axe adicionado); lockout/contagem `role=alert`/`aria-live`/WebAuthn intactos; sem emoji |
+| FE-RS-21 | AC atendido: 6 testes + axe; payload de `createAccount` inalterado; eyebrow legível |
+| FE-RS-22 | AC atendido: 5 testes + axe; lista `max-h-72` rolável por teclado; fetch inalterado |
+| QA-RS-08 | (a) N4 verde com ressalva do flake; (d) N1 ok com S-1; (e) diff limpo (exceção G-21 registrada); (b) N3 navegador real e (c) N2 assinatura **pendentes do stakeholder** |
+
+### 30.4 Achados
+| ID | Achado | Classificação | Destino |
+|---|---|---|---|
+| S-1 | Carregamento de `OnboardingGate` (skeleton) e `AuthGate` (spinner, `text-neutral-400`) com container próprio fora de `AuthLayout`; `AuthGate` é `lib/auth` (G-21, exige autorização) | Simples | `FE-DEBT-06` (1) |
+| S-2 | Teste de lockout de `UnlockPage` falha sob carga (pré-existente, reproduzido em `main`); suíte completa não determinística | Simples | `FE-DEBT-06` (2) |
+| S-3 | Sem axe permanente em `LoginPage` (sonda ad hoc passou) nem na fase biometria de `PinSetupPage` | Simples | `FE-DEBT-06` (3) |
+| P-1 | Ausência de mockup de Auth (DET-22): N2 contra `UX-SPEC.md` 3.2 + tokens | Observação de processo | Stakeholder assina N2 |
+| P-2 | N3 em navegador real pendente (lacuna recorrente) | Pendência do stakeholder | Não é reprovação |
+
+Nenhuma reprovação crítica; nenhum bug alta/crítica; nenhum padrão recorrente a escalar ao `coordenador`.
+
+### 30.5 Fechamento estrutural
+7 tarefas de FE `Concluída`; dependências da Seção 4 (FE-RS-16/17 -> 18-22 -> QA-RS-08) consistentes, sem órfã; nenhuma `Bloqueada`. Criada `Refatoração Lote-5 (Auth/Onboarding, Redesign v2.0)` com `FE-DEBT-06` no `TASK.md`. `QA-RS-08` permanece `Parcial` até N2/N3 do stakeholder.
+
+### 30.6 Definition of Done
+- [x] Critério de aceite de cada tarefa testado e passando
+- [x] Nenhuma reprovação crítica em aberto
+- [x] Achados simples viraram tarefa (`FE-DEBT-06`)
+- [x] Integração cruzada: sem contrato novo; `API-CONTRACT.yaml` intocado (cross-platform não aplicável além do web)
+- [ ] NFR a11y/visual: parcial (N3 navegador real e N2 pendentes)
+
+**Veredito por tarefa**: `FE-RS-16` a `FE-RS-22` Aprovado (7/7); `QA-RS-08` Aprovado com ressalvas (Parcial, pendência do stakeholder).
+
+**Veredito do lote (chapéu QA): Aprovado com ressalvas.** Liberado ao chapéu DevSecOps (atenção redobrada a RF-MVP-08).
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -4715,3 +4772,4 @@ Nenhuma reprovação crítica; nenhum padrão recorrente a escalar.
 | 2026-09-18 (veredito de lote) | Lote "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15 (3) + QA-RS-04 (execução desta rodada) | **Aprovado com ressalvas** (lote) — Aprovado (3/3) + QA-RS-04 aprovada com ressalvas; suíte 448/448 PASS, build OK — `QA-REPORT.md` Seção 27 | 0 | `FE-DEBT-03` (simples: axe permanente + teste de layout do Dashboard); ressalvas: `QA-RS-02` não implementada, navegador real e assinatura N2 pendentes |
 | 2026-09-18 (veredito de lote) | Lote 3 "Contas & Cartões (Redesign v2.0)": FE-RS-09, FE-RS-10, FE-RS-11, QA-RS-06 (4) | **Aprovado com ressalvas** (lote) — Seção 28 | 0 | FE-DEBT-04 (simples) |
 | 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 29 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |
+| 2026-09-18 (veredito de lote) | Lote 5 "Autenticação/Sessão + Onboarding (Redesign v2.0)": FE-RS-16 a FE-RS-22 (7) + QA-RS-08 (execução desta rodada, Parcial) | **Aprovado com ressalvas** (lote) — suíte 499/500 (1 flake pré-existente reproduzido em main), build OK — `QA-REPORT.md` Seção 30 | 0 | FE-DEBT-06 (simples) |
