@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../components/base/Toast";
 import { ApiError } from "../../lib/api/errors";
@@ -47,6 +48,13 @@ describe("AccountsPage — S-ACC-01/02/04 (Padrão A/B)", () => {
     apiMocks.listAccounts.mockResolvedValue([]);
     renderPage();
     expect(await screen.findByText("Nenhuma conta cadastrada ainda")).toBeInTheDocument();
+  });
+
+  it("não tem violações de acessibilidade detectáveis por axe-core (FE-DEBT-04)", async () => {
+    apiMocks.listAccounts.mockResolvedValue([ACCOUNT, { ...ACCOUNT, id: "acc-2", name: "Poupança X", is_active: false }]);
+    const { container } = renderPage();
+    await screen.findByText("Conta Corrente");
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("lista contas com saldo atual formatado em BRL", async () => {

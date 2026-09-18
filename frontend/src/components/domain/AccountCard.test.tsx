@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AccountCard } from "./AccountCard";
@@ -11,6 +12,11 @@ describe("AccountCard — UX-SPEC.md Seção 2.2 (Redesign v2.0, Padrão C)", ()
     expect(screen.getByText("Conta corrente")).toBeInTheDocument();
     expect(screen.getByText("Nubank")).toBeInTheDocument();
     expect(screen.getByText("R$ 85,00")).toBeInTheDocument();
+  });
+
+  it("não tem violações de acessibilidade detectáveis por axe-core (FE-DEBT-04)", async () => {
+    const { container } = render(<AccountCard {...base} />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("mostra badge Inativa somente quando inativa", () => {
