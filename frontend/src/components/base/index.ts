@@ -13,3 +13,4 @@ export * from "./FilterBar";
 export * from "./ConfirmationDialog";
 export * from "./DatePicker";
 export * from "./Num";
+export * from "./AuthCard";

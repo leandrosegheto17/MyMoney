@@ -69,7 +69,7 @@ export function PinPad({ length = PIN_LENGTH, value, onChange, onComplete, disab
           onChange={(event) => applyChange(event.target.value)}
           aria-describedby={error ? errorId : undefined}
           aria-invalid={Boolean(error) || undefined}
-          className="min-h-11 w-40 rounded-md border border-neutral-300 px-3 py-2 text-center text-2xl tracking-[0.5em] text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary disabled:bg-neutral-100"
+          className="min-h-11 w-40 rounded-md border border-neutral-300 bg-surface px-3 py-2 text-center text-2xl tracking-[0.5em] text-neutral-900 focus-visible:outline-2 focus-visible:outline-primary aria-[invalid=true]:border-2 aria-[invalid=true]:border-danger disabled:cursor-not-allowed disabled:border-dashed disabled:bg-neutral-100 disabled:text-neutral-600"
         />
         <p aria-live="polite" className="sr-only">
           {value.length} de {length} dígitos digitados
@@ -77,7 +77,10 @@ export function PinPad({ length = PIN_LENGTH, value, onChange, onComplete, disab
       </div>
 
       {error && (
-        <p id={errorId} role="alert" className="text-center text-sm text-danger">
+        <p id={errorId} role="alert" className="flex items-center justify-center gap-1 text-center text-sm font-medium text-danger">
+          <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="currentColor">
+            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm-.75 4h1.5v5h-1.5V6zm0 6.5h1.5V14h-1.5v-1.5z" />
+          </svg>
           {error}
         </p>
       )}
@@ -90,7 +93,7 @@ export function PinPad({ length = PIN_LENGTH, value, onChange, onComplete, disab
             onClick={() => pressDigit(digit)}
             disabled={disabled}
             aria-label={`Dígito ${digit}`}
-            className="min-h-11 min-w-11 rounded-full text-xl font-medium text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="min-h-11 min-w-11 rounded-full border border-neutral-300 bg-surface text-xl font-medium text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:border-dashed disabled:opacity-50"
           >
             {digit}
           </button>
@@ -101,7 +104,7 @@ export function PinPad({ length = PIN_LENGTH, value, onChange, onComplete, disab
           onClick={() => pressDigit("0")}
           disabled={disabled}
           aria-label="Dígito 0"
-          className="min-h-11 min-w-11 rounded-full text-xl font-medium text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-11 min-w-11 rounded-full border border-neutral-300 bg-surface text-xl font-medium text-neutral-800 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:border-dashed disabled:opacity-50"
         >
           0
         </button>
@@ -110,7 +113,7 @@ export function PinPad({ length = PIN_LENGTH, value, onChange, onComplete, disab
           onClick={pressBackspace}
           disabled={disabled}
           aria-label="Apagar último dígito"
-          className="min-h-11 min-w-11 rounded-full text-xl font-medium text-neutral-500 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-11 min-w-11 rounded-full border border-neutral-300 bg-surface text-xl font-medium text-neutral-600 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:border-dashed disabled:opacity-50"
         >
           ⌫
         </button>
