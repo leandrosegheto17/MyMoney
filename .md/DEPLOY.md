@@ -2056,6 +2056,38 @@ autodisciplina de processo.
 exatos já documentados ali para quem tiver a permissão/execução necessária
 rodar.
 
+### 9.14 Execução — 2026-09-18 (lotes "Retenção & Descarte de Dado / Exclusão de Conta", "Relatórios & Exportação (Fase 3)", "Captura Automatizada — Importação de Extrato", "Dashboard (Redesign v2.0), Lote 1") — STAGING, frontend apenas
+
+**Escopo**: chapéu DevOps, `/deploy` Seção 4. Confirmação final limpa (447/448 testes; 1 flaky de carga em `AccountsPage.test.tsx`, passa 5/5 isolado; build e lint OK). HEAD `091e697`.
+
+**O que foi publicado**: build cumulativo do frontend em `objetivo-financeiro-ljs`, com `vercel deploy --target=preview --yes` (`--target=preview` explícito, lição de §9.13).
+- Deployment: `dpl_8TPzeWYtYv59tQHTBo6n6em2t1mk`, `target: preview`, status `READY`, build 19s. URL: `https://objetivo-financeiro-lf3f3be3u-leandrosegheto17s-projects.vercel.app`.
+- Alias `objetivo-financeiro-ljs-staging.vercel.app` reatribuído a este deployment (rollback: reatribuir o alias ao deployment anterior `objetivo-financeiro-4dgfotmip`, preview de 9 dias atrás, `READY`).
+- **Origem do código = HEAD limpo, não a working tree.** A working tree tinha 3 arquivos modificados e NÃO commitados (`ShortcutChip.tsx`, `TransactionsPage.tsx`, `TransactionsPage.test.tsx`) que não fazem parte do que foi validado. Para não publicar código não validado, o deploy foi feito a partir de `git archive HEAD frontend` em diretório temporário, com o mesmo `.vercel/project.json`. Essas mudanças NÃO estão em staging.
+- Nota operacional: o processo da CLI não retornou dentro de 600s (ficou pendurado após o build); `vercel ls`/`inspect` confirmaram `READY` e `target: preview`.
+- Produção intocada: `vercel ls` continua listando um único deployment Production (o do incidente de §9.13, 9 dias). Nenhum `--prod`/promote. `objetivo-financeiro-ljs.vercel.app` responde `200`, como antes.
+
+**Smoke test**: `curl -I https://objetivo-financeiro-ljs-staging.vercel.app` retorna `302` (SSO da Vercel), como esperado.
+
+**Backend (somente leitura, nada aplicado)** — `supabase migration list --linked` e `supabase functions list`:
+- Migration pendente no remoto: `20260915090000` (be_f3_09). Todas as demais estão em sincronia. Observação: a migration be_f3_08 não aparece como pendente na lista, então aparentemente já está aplicada ou foi renumerada (não verifiquei).
+- Functions publicadas: `auth-email-mfa`, `webauthn-*`, `backup-export`, `invoice-close`, `recurring-generate`, `fixed-bill-generate`, `push-dispatch`, `data-retention-purge`.
+- Functions NÃO publicadas (o frontend depende delas e degradará até a publicação): `delete-account`, `report-export`, `statement-import`, `receipt-ocr`, `voice-capture` (as duas últimas, pendência já registrada em §9.13.3/Bloqueio 025).
+- Nenhum `supabase db push` nem `functions deploy` foi executado; o backend é compartilhado staging/produção e exige confirmação humana.
+
+**Observabilidade**: sem mudança de infraestrutura nesta rodada. Continuam válidos os logs e métricas nativos da Vercel e os logs das Edge Functions do Supabase (§5). Não há alerta ativo próprio, lacuna já registrada em §5.
+
+**Rollback**: disponível e testável por reatribuição de alias (comando acima). Não foi executado nesta rodada.
+
+**NFR**: validação possível apenas no nível do frontend (build OK, `READY`, SSO 302). As funcionalidades dependentes das Edge Functions/migration pendentes não podem ter NFR validado em staging até serem publicadas.
+
+**Pendências operacionais (confirmação humana)**:
+1. Aplicar a migration `20260915090000` no Supabase.
+2. `supabase functions deploy` de `delete-account`, `report-export`, `statement-import`, `receipt-ocr` e `voice-capture` (com `verify_jwt` conforme cada `index.ts`).
+3. Reexecutar smoke/testes SQL contra o projeto real, conforme `SECURITY-REVIEW.md` Seção 4.
+
+**Ressalva de produção**: a Importação de Extrato está **bloqueada para PRODUÇÃO** até `BE-DEBT-04` `Concluída` (`SEC-DEBT-015`, `SECURITY-REVIEW.md` Seção 1.36). Nenhuma promoção a produção autorizada nesta rodada.
+
 ## 10. Incidentes Pós-Deploy
 
 **Staging**: nenhum incidente registrado nos 8 deploys realizados (§9.2-9.5,

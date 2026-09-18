@@ -11,11 +11,19 @@ import { deleteTransaction, listTransactions } from "../../lib/api/transactions"
 import { getTransactionShortcuts } from "../../lib/api/shortcuts";
 import { ApiError } from "../../lib/api/errors";
 import { currentMonthRange, formatDayHeading } from "../../lib/date";
-import { formatCentsToBRL } from "../../lib/currency";
+import { Num } from "../../components/base/Num";
 import { derivePaymentMethodLabel } from "../../lib/paymentMethods/derivePaymentMethodLabel";
 import type { Account, Category, PaymentMethod, Transaction, TransactionShortcut } from "../../lib/api/types";
 import { TransactionFormModal } from "./TransactionFormModal";
 import type { ShortcutPrefill } from "./TransactionFormModal";
+
+/** Índice estável 1..8 do token `--color-chart-N` por categoria (ponto colorido, 9px). */
+function categoryColorIndex(categoryId: string | null): number {
+  if (!categoryId) return 8;
+  let hash = 0;
+  for (const char of categoryId) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return (hash % 8) + 1;
+}
 
 /** S-TXN-01 — Lista de lançamentos (UX-SPEC.md Seção 2.2): FilterBar + lista agrupada por dia, mês corrente por padrão (RF-MVP-04 AC5). */
 export function TransactionsPage() {
@@ -198,29 +206,49 @@ export function TransactionsPage() {
     setSearchParams({});
   }
 
+  const periodSummary = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+    for (const transaction of transactions ?? []) {
+      if (transaction.kind === "income") income += transaction.amount_cents;
+      else if (transaction.kind === "expense") expense += transaction.amount_cents;
+    }
+    return { income, expense, balance: income - expense };
+  }, [transactions]);
+  const monthLabel = useMemo(() => new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(new Date()), []);
+  const count = transactions?.length ?? 0;
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">Lançamentos</h1>
+      {/* Cabeçalho v2.0 (RF-RS-02 item 1): h1 serifado + subtítulo --text-2 à esquerda, ação à direita. */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-[2rem] leading-tight font-medium text-neutral-900">Lançamentos</h1>
+          {transactions && (
+            <p className="text-sm text-neutral-600">
+              {count} {count === 1 ? "lançamento" : "lançamentos"} em {monthLabel}
+            </p>
+          )}
+        </div>
         <Button onClick={openNewForm}>+ Novo lançamento</Button>
       </div>
 
+      {/* RF-REF-03 / AMB-19: barra obrigatória, aguarda `referenceDataReady` (achado FE-REF-03) para não renderizar chip sem nome/ícone. */}
+      <ShortcutBar isLoading={shortcuts === null || !referenceDataReady} items={shortcutItems} onSelect={openFormFromShortcut} />
+
+      {/* Filtros em pílula (RF-RS-02 item 2); "Forma de pagamento" mantido (comportamento preservado). */}
       <FilterBar onClear={clearFilters}>
-        <Select label="Conta" placeholder="Todas" options={accounts.map((a) => ({ value: a.id, label: a.name }))} value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} />
+        <Select className="rounded-full border-neutral-300" label="Conta" placeholder="Todas" options={accounts.map((a) => ({ value: a.id, label: a.name }))} value={accountFilter} onChange={(e) => setAccountFilter(e.target.value)} />
         <Select
+          className="rounded-full border-neutral-300"
           label="Forma de pagamento"
           placeholder="Todas"
           options={paymentMethods.map((m) => ({ value: m.id, label: paymentMethodLabelById.get(m.id) ?? m.name }))}
           value={paymentMethodFilter}
           onChange={(e) => setPaymentMethodFilter(e.target.value)}
         />
-        <Select label="Categoria" placeholder="Todas" options={categories.map((c) => ({ value: c.id, label: c.name }))} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} />
+        <Select className="rounded-full border-neutral-300" label="Categoria" placeholder="Todas" options={categories.map((c) => ({ value: c.id, label: c.name }))} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} />
       </FilterBar>
-
-      {/* Achado de qualidade (FE-REF-03): também aguarda `referenceDataReady` — sem isso, a
-          barra podia renderizar chips sem nome/ícone (`categories` ainda vazio) numa corrida
-          transitória entre a RPC de atalhos e `loadReferenceData()`. */}
-      <ShortcutBar isLoading={shortcuts === null || !referenceDataReady} items={shortcutItems} onSelect={openFormFromShortcut} />
 
       {loadError && <Alert variant="danger">{loadError}</Alert>}
       {!transactions && !loadError && <Skeleton lines={6} aria-label="Carregando lançamentos" />}
@@ -228,62 +256,73 @@ export function TransactionsPage() {
         <EmptyState title="Nenhum lançamento neste período" action={<Button onClick={openNewForm}>+ Novo lançamento</Button>} />
       )}
 
+      {transactions && transactions.length > 0 && (
+        <Card aria-label="Resumo do período" className="grid grid-cols-3 gap-4" data-testid="period-summary">
+          <div>
+            <p className="text-xs text-neutral-600">Entradas</p>
+            <p className="font-semibold text-income"><Num value={periodSummary.income} format="currency" /></p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-600">Saídas</p>
+            <p className="font-semibold text-expense"><Num value={periodSummary.expense} format="currency" /></p>
+          </div>
+          <div>
+            <p className="text-xs text-neutral-600">Saldo do período</p>
+            <p className="font-semibold text-neutral-900"><Num value={periodSummary.balance} format="currency" /></p>
+          </div>
+        </Card>
+      )}
+
       {transactions && groupedByDay.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <Card className="flex flex-col p-0" data-testid="transactions-list">
           {groupedByDay.map(([date, items]) => (
-            <div key={date}>
-              <h2 className="mb-2 text-sm font-medium text-neutral-500">{formatDayHeading(date)}</h2>
-              <ul className="flex flex-col gap-2">
+            <section key={date} className="border-b border-neutral-200 last:border-b-0">
+              <h2 className="px-4 pt-3 pb-1 text-[13px] font-semibold text-neutral-600">{formatDayHeading(date)}</h2>
+              <ul className="flex flex-col">
                 {items.map((transaction) => {
-                  // FE-REF-02 (S-TXN-01 revisado, RN-17/RN-18): linha 1 é a subcategoria (maior
-                  // destaque, nó folha de `category_id`); linha 2 é descrição (quando preenchida)
-                  // + forma de pagamento, texto secundário. Descrição vazia é omitida por
-                  // completo — nunca "(sem descrição)" nem "·" solto.
+                  // RN-17/RN-18 (preservados, AMB-18): linha 1 subcategoria (--text semibold);
+                  // linha 2 descrição · forma de pagamento em --text-2 (nunca --text-3).
                   const subcategoryName = transaction.category_id ? categoryNameById.get(transaction.category_id) ?? "" : "";
-                  // FE-REF-05 (RNF-13): rótulo desambiguado de RN-14, mesma função `derivePaymentMethodLabel()`
-                  // consumida pelo formulário (`FE-REF-04`) e pelo filtro (JSX acima) — nenhuma reimplementação local.
                   const paymentMethodLabel = transaction.payment_method_id ? paymentMethodLabelById.get(transaction.payment_method_id) ?? "" : "";
                   const secondaryLine = [transaction.description || null, paymentMethodLabel || null].filter(Boolean).join(" · ");
+                  const dotColor = `var(--color-chart-${categoryColorIndex(transaction.category_id)})`;
 
                   return (
-                    <li key={transaction.id}>
-                      <Card className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          {/* RN-17: mesmo tratamento da linha 2 — sem categoria resolvida (kind=transfer,
-                              dado legado/importado), a linha 1 também some por completo, nunca um
-                              parágrafo vazio (`title=""`) ocupando espaço. */}
-                          {subcategoryName && (
-                            <p className="truncate text-base font-semibold text-neutral-900" title={subcategoryName}>
-                              {subcategoryName}
-                            </p>
-                          )}
-                          {secondaryLine && (
-                            <p className="truncate text-sm text-neutral-500" title={secondaryLine}>
-                              {secondaryLine}
-                            </p>
-                          )}
+                    <li key={transaction.id} className="flex flex-wrap items-center gap-4 border-b border-neutral-200 px-4 py-3 last:border-b-0">
+                      <span aria-hidden="true" className="size-[9px] shrink-0 rounded-full" style={{ backgroundColor: dotColor }} />
+                      <div className="min-w-0 flex-1">
+                        {subcategoryName && (
+                          <p className="truncate text-base font-semibold text-neutral-900" title={subcategoryName}>
+                            {subcategoryName}
+                          </p>
+                        )}
+                        {secondaryLine && (
+                          <p className="truncate text-sm text-neutral-600" title={secondaryLine}>
+                            {secondaryLine}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className={transaction.kind === "income" ? "font-semibold text-income" : "font-semibold text-expense"}>
+                          <span aria-hidden="true">{transaction.kind === "income" ? "↑" : "↓"} </span>
+                          <Num value={transaction.amount_cents} format="currency" />
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          <Button variant="ghost" onClick={() => openEditForm(transaction)}>
+                            Editar
+                          </Button>
+                          <Button variant="ghost" onClick={() => setDeleteTarget(transaction)}>
+                            Excluir
+                          </Button>
                         </div>
-                        <div className="flex flex-wrap items-center gap-4">
-                          <span className={transaction.kind === "income" ? "font-semibold text-income" : "font-semibold text-expense"}>
-                            {transaction.kind === "income" ? "↑" : "↓"} {formatCentsToBRL(transaction.amount_cents)}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            <Button variant="ghost" onClick={() => openEditForm(transaction)}>
-                              Editar
-                            </Button>
-                            <Button variant="ghost" onClick={() => setDeleteTarget(transaction)}>
-                              Excluir
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
+                      </div>
                     </li>
                   );
                 })}
               </ul>
-            </div>
+            </section>
           ))}
-        </div>
+        </Card>
       )}
 
       <TransactionFormModal

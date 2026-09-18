@@ -95,7 +95,42 @@ describe("TransactionsPage — S-TXN-01/02 (RF-MVP-04 AC5)", () => {
     transactionsMock.listTransactions.mockResolvedValue([TRANSACTION]);
     renderPage();
     expect(await screen.findByText("Compras da semana · Pix")).toBeInTheDocument();
-    expect(screen.getByText(/↓ R\$ 45,00/)).toBeInTheDocument();
+    expect(within(screen.getByTestId("transactions-list")).getByText(/R\$ 45,00/).closest("span.text-expense")).toHaveTextContent(/↓/);
+  });
+
+  describe("FE-RS-07 — redesign v2.0", () => {
+    it("RN-18: linha 1 = subcategoria --text semibold; linha 2 = --text-2, nunca --text-3, e linha 1 precede linha 2", async () => {
+      transactionsMock.listTransactions.mockResolvedValue([TRANSACTION]);
+      renderPage();
+      const line1 = await screen.findByText("Mercado", { selector: "p" });
+      const line2 = screen.getByText("Compras da semana · Pix", { selector: "p" });
+      expect(line1).toHaveClass("font-semibold", "text-neutral-900");
+      expect(line2).toHaveClass("text-neutral-600");
+      expect(line2.className).not.toMatch(/text-neutral-(400|500)/);
+      expect(line2.className).not.toMatch(/font-semibold/);
+      expect(line1.compareDocumentPosition(line2) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it("cabeçalho com subtítulo de contagem e card de resumo do período", async () => {
+      transactionsMock.listTransactions.mockResolvedValue([TRANSACTION, { ...TRANSACTION, id: "t2", kind: "income", amount_cents: 10000 }]);
+      renderPage();
+      expect(await screen.findByText(/^2 lançamentos em /)).toBeInTheDocument();
+      const summary = within(screen.getByTestId("period-summary"));
+      expect(summary.getByText("Entradas")).toBeInTheDocument();
+      expect(summary.getByText(/100,00/)).toBeInTheDocument();
+      expect(summary.getByText(/45,00/)).toBeInTheDocument();
+      expect(summary.getByText(/55,00/)).toBeInTheDocument();
+    });
+
+    it("um único Card envolve a lista; ShortcutChip em pílula com tokens v2.0", async () => {
+      transactionsMock.listTransactions.mockResolvedValue([TRANSACTION]);
+      shortcutsMock.getTransactionShortcuts.mockResolvedValue([{ category_id: SUBCATEGORY.id, payment_method_id: PAYMENT_METHOD.id }]);
+      categoriesMock.listCategories.mockResolvedValue([CATEGORY, SUBCATEGORY]);
+      renderPage();
+      expect(await screen.findByTestId("transactions-list")).toBeInTheDocument();
+      const chip = await screen.findByRole("button", { name: "Lançar em Restaurante" });
+      expect(chip).toHaveClass("rounded-full", "bg-primary-soft");
+    });
   });
 
   describe("FE-REF-02 — hierarquia visual do item (RN-17/RN-18, S-TXN-01 revisado)", () => {

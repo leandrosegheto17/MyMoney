@@ -25,8 +25,8 @@ export function ShortcutChip({ icon, label, onClick }: ShortcutChipProps) {
       onClick={onClick}
       aria-label={`Lançar em ${label}`}
       className={[
-        "inline-flex min-h-11 shrink-0 scroll-ml-4 items-center gap-2 whitespace-nowrap rounded-full border border-neutral-300 bg-white px-4 py-2",
-        "text-sm font-medium text-neutral-700 transition-colors duration-200 hover:bg-neutral-100",
+        "inline-flex min-h-11 shrink-0 scroll-ml-4 items-center gap-2 whitespace-nowrap rounded-full border border-neutral-300 bg-primary-soft px-4 py-2",
+        "text-sm font-medium text-primary transition-colors duration-200 hover:bg-primary hover:text-white",
         "focus-visible:outline-2 focus-visible:outline-primary",
         "[scroll-snap-align:start]",
       ].join(" ")}
