@@ -1085,7 +1085,80 @@ B.5: zero mudança de schema/RLS/Edge Function/contrato de API).
 | QA-RS-06 | Fechamento do Lote 3 (Contas & Cartões), com **atenção redobrada em N4** (RF-RS-03 AC3, risco de regressão mais alto do Grupo A): mesmos 4 itens (N1-N4), incluindo confirmação explícita de que RN-01 (fechamento)/RN-06 (limite) e o horizonte de faturas permanecem intocados, e que `InvoiceTimeline`/`S-CARD-03` não foi alterado | QA | `FL-09`; RF-RS-03 AC2-4 | 0 regressões funcionais (N4, com verificação explícita de RN-01/RN-06) e de acessibilidade (N3); checklist N2 assinado contra `ContasCartoes.dc.html`/mobile; N1 sem divergência | 1.25 dias | **Concluída (2026-09-18) — Aprovada com ressalvas.** Suíte 458/459 na execução completa (1 falha = flake conhecido `UnlockPage`, passa isolado 3/3), build OK, N4 sem regressão (RN-01/RN-06/horizonte de faturas/`InvoiceTimeline` intocados, `git diff 6a9ea52..HEAD`). Ressalvas: `QA-RS-02` ausente (N3 só estático), N2 com assinatura do stakeholder pendente, artboard `.dc.html` não localizável no repositório. Achados simples roteados a `FE-DEBT-04`. Ver `QA-REPORT.md` Seção 28. | Contas & Cartões (Redesign v2.0) |
 | QA-RS-07 | Fechamento do Lote 4 (Categorias): mesmos 4 itens (N1-N4); comparação N2 é contra os tokens/padrões consolidados do Lote 0 (não contra o artboard "Categorias" literal, que diverge — Bloqueio 023 resolvido), confirmando que o Padrão C foi preservado dentro da linguagem v2.0 | QA | `FL-09`; RF-RS-04 AC2-3 | 0 regressões funcionais (N4) e de acessibilidade (N3); checklist N2 confirma tokens v2.0 aplicados sobre `CategoryCard` sem reversão de padrão; N1 sem divergência | 0.5 dia | **Concluída (2026-09-18) — Aprovado com ressalvas (`QA-REPORT.md` Seção 28).** N1/N3/N4 ok (451/451, tsc/build OK); N2 confirma Padrão C preservado com tokens do Lote 0; ressalvas: assinatura N2 do stakeholder pendente, cobertura axe permanente ausente (`FE-DEBT-04`). | Categorias (Redesign v2.0) |
 
+### 3.5.1 Redesign Visual "MyMoney v2.0" — Lote 5 (Autenticação/Sessão + Onboarding), detalhamento
+
+**Nova subseção — 2026-09-18.** Primeiro lote do Grupo B detalhado, sob a regra
+incremental de `BLOCKERS.md` Bloqueio 021 (item 1): a condição vinculante (Lote 0 +
+ao menos 1 lote do Grupo A executados e validados) está satisfeita — Lote 0 fechado
+(Seção 7.9) e Lotes 1-4 com todas as tarefas `Concluída` e `QA-RS-04`/`06`/`07`
+validados (`QA-REPORT.md` Seções 27-28). Estimativas abaixo **calibradas** pela
+velocidade observada (ver "Calibração"), **restritas ao Lote 5** — a estimativa
+agregada dos Lotes 6-13 continua não comprometida (Seção 3.6). Convenção de ID
+mantida: numeração sequencial `RS` (`FE-RS-16` a `FE-RS-22`, `QA-RS-08`). **Nenhuma
+tarefa de Backend** (G-20/RN-19; nenhum arquivo de `supabase/**`, `lib/api/**` ou
+`lib/auth/**` é tocado — G-21). Status inicial `Não iniciada` para todas.
+
+**Escopo (inventário confirmado por leitura do código, 2026-09-18)**: 5 páginas +
+1 componente de domínio + 1 componente-base novo. `LoginPage` (S-AUTH-01),
+`PinSetupPage` (S-AUTH-04, 2 fases), `UnlockPage` (S-AUTH-03/05, mesmo componente),
+`FirstAccountPage` (S-ONB-01), `TaxonomyReviewPage` (S-ONB-02), `PinPad` (usado por 3
+delas). S-AUTH-02 segue descontinuada (`ADR-014`, não recriar). Achado de base
+(`UX-SPEC.md` Seção 3.0.1, Achado 3): 4 páginas duplicam
+`w-full max-w-sm|md rounded-lg bg-surface p-6 shadow-elevation-md`; `UnlockPage` usa
+layout borderless (`bg-surface-alt`, sem card) — 2 padrões para a mesma família.
+Nenhum `AuthCard`/`AuthLayout` existe ainda em `frontend/src` (Lote 0 só publicou a
+especificação mínima, `UX-SPEC.md` Seção 3.2). **Cobertura de teste atual**: só
+`UnlockPage.test.tsx` e `PinPad.test.tsx`; `LoginPage`, `PinSetupPage`,
+`FirstAccountPage`, `TaxonomyReviewPage` **não têm teste de página** — por isso cada
+tarefa de página inclui teste de caracterização escrito **antes** da migração
+(rede de segurança de RF-MVP-08, análoga à de `FE-RS-04`).
+
+**`Num` (DIR-41)**: nenhuma tarefa de migração — `grep formatCentsToBRL` em
+`pages/auth/**` e `pages/onboarding/**` retorna 0 ocorrência. O contador regressivo
+`mm:ss` de S-AUTH-05 não é moeda/percentual/contagem (contrato de `Num`, `UX-SPEC.md`
+Seção 3.2); permanece `tabular-nums` na fonte de corpo. Dívida `Num` deste lote: zero.
+
+#### Frontend
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-RS-16 | Criar `AuthLayout` + `AuthCard` em `components/base/` (exportados no barrel) conforme `UX-SPEC.md` Seção 3.2: `AuthLayout` = página inteira sem `AppLayout`, centraliza o card (`bg-bg`, `min-h-screen`, `p-4`); `AuthCard` = `Card` existente (`--shadow-sm`, `--r-md`) com slots `eyebrow` (opcional, ex. "Passo 1 de 2"), título `h1` em `Newsreader`, `description`, corpo (children) e `footer` (links secundários), prop `size="sm"\|"md"` (`max-w-sm`/`max-w-md`) e `align="left"\|"center"` (PinSetup/Unlock centralizam). Nenhuma página é migrada nesta tarefa | Frontend | `UX-SPEC.md` Seção 3.2 (`AuthCard`/`AuthLayout`), 3.0.1 Achado 3; RF-RS-00 AC2 (4ª superfície) | Componentes existem e usam só tokens v2.0/`Card` (grep: zero hex/`rounded-lg bg-surface p-6 shadow-elevation-md` literal no componente); `h1` único por card; slots opcionais não renderizam nó vazio; `AuthCard.test.tsx` cobre slots, `size`, `align` e `toHaveNoViolations()`; contraste do `eyebrow` ≥4,5:1 (nunca `neutral-400`, DIR-44); nenhuma página tocada | 0.75 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-17 | Redesign visual de `PinPad` (`components/domain/PinPad.tsx`) com tokens v2.0: teclas como botões circulares `surface`/`border`, foco visível `accent`, campo de PIN e mensagem de erro com `danger` + ícone/texto (não só cor), rodapé do teclado ("apagar") em `neutral-600`+ (nunca `neutral-400`). **Comportamento, `aria-*`, `sr-only`, `PIN_LENGTH`, ordem de foco e API de props inalterados** | Frontend | `PRD-TECNICO.md` Adendo B B.1.2 (Lote 5); `UX-SPEC.md` Seção 3.3 (`PinPad`); DIR-44 | `PinPad.test.tsx` existente passa sem alteração de asserção de comportamento; `toHaveNoViolations()` adicionado; teclas ≥44px (`min-h-11 min-w-11` preservado); estado `disabled` e `error` visualmente distintos sem depender só de cor; grep: zero cor fora de token | 0.5 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-18 | Migrar `LoginPage` (S-AUTH-01) para `AuthLayout`/`AuthCard` (título "Entrar no MyMoney" em `Newsreader`; alternância senha/link mágico e "Esqueci minha senha" no slot de rodapé), **precedida de teste de caracterização** (`LoginPage.test.tsx`, novo): login por senha, envio de link mágico, redefinição de senha (e-mail vazio → erro), erro `ApiError`, estado `loading`. Nenhuma mudança em `lib/auth/session` | Frontend | `UX-SPEC.md` Seção 2.2 (S-AUTH-01), 4.2 (estados); RF-MVP-08 (preservado); `ADR-014` (sem 2º fator) | Teste de caracterização escrito e passando **contra o código atual antes** da migração e depois dela; 4 estados cobertos (vazio/inicial, `loading`, erro, sucesso "link enviado") ou justificados; `Alert` de erro/sucesso preservado com `role`/anúncio; foco visível e ordem de Tab preservados; nenhuma chamada nova a `signIn*`/`send*`; `LoginPage` sem o wrapper duplicado | 1.0 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-19 | Migrar `PinSetupPage` (S-AUTH-04, fases "pin" e "biometria") para `AuthLayout`/`AuthCard` (`align="center"`), **precedida de teste de caracterização** (`PinSetupPage.test.tsx`, novo): digitar PIN → confirmar (divergente → erro, igual → salva), oferta de biometria (ativar / continuar só com PIN / falha de WebAuthn não bloqueia). Sem opção "Pular por agora" (RF-MVP-08 AC1) | Frontend | `UX-SPEC.md` Seção 2.2 (S-AUTH-04); RF-MVP-08 AC1 | Teste de caracterização antes/depois; PIN divergente exibe erro e volta ao passo 1; nenhuma via de pular o PIN foi introduzida (teste explícito); biometria falha → `Alert warning` e setup conclui; usa `PinPad` de `FE-RS-17`; 4 estados/justificativa; a11y (`axe`) sem violação | 0.75 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-20 | Migrar `UnlockPage` (S-AUTH-03/05) para `AuthLayout`/`AuthCard` (`align="center"`), convergindo o 2º padrão (borderless) ao padrão único; trocar o emoji "🔒" por ícone `lucide-react` `aria-hidden` (mesma convenção de `FE-RS-03`); estado de bloqueio temporário (`role="alert"`, contador `tabular-nums` em `danger`) preservado. **`UnlockPage.test.tsx` existente deve passar sem alteração de asserção de comportamento** | Frontend | `UX-SPEC.md` Seção 2.2 (S-AUTH-03/05), 4.2; RF-MVP-08; `DIR-16`/`ADR-010` (desbloqueio 100% local) | `UnlockPage.test.tsx` passa; lockout 5 tentativas/5 min, prompt WebAuthn automático uma vez e "Tentar biometria novamente" inalterados (nenhuma linha de `lib/auth/**` alterada, G-21); contagem regressiva preservada e anunciada (`aria-live`); desvio já aceito (PinPad sempre visível em vez de link "Usar PIN") mantido e documentado, salvo decisão do usuário (Seção 6.2); `axe` sem violação; sem emoji | 1.0 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-21 | Migrar `FirstAccountPage` (S-ONB-01) para `AuthLayout`/`AuthCard` (`eyebrow` "Passo 1 de 2" com contraste corrigido: hoje `text-neutral-400`, viola DIR-44), **precedida de teste de caracterização** (`FirstAccountPage.test.tsx`, novo): validação de nome/tipo obrigatórios, `CurrencyInput` de saldo inicial, `createAccount` → navega a `/onboarding/categorias`, erro `ApiError`, `loading`. Preserva RF-MVP-01 | Frontend | `UX-SPEC.md` Seção 2.2 (S-ONB-01); RF-MVP-01 (preservado); DIR-44 | Teste antes/depois; campos inválidos mostram erro sem chamar API; sucesso navega com `replace`; 4 estados/justificativa; `eyebrow` ≥4,5:1; `axe` sem violação; `createAccount` recebe exatamente o mesmo payload de hoje | 0.75 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+| FE-RS-22 | Migrar `TaxonomyReviewPage` (S-ONB-02) para `AuthLayout`/`AuthCard` (`size="md"`, `eyebrow` "Passo 2 de 2" com contraste corrigido, lista de categorias/subcategorias com `neutral-800`/`neutral-600`), **precedida de teste de caracterização** (`TaxonomyReviewPage.test.tsx`, novo): `Skeleton` de carregamento, erro, lista com hierarquia raiz/sub, "Concluir" navega a `/` com `replace`. Preserva RF-MVP-03/RN-09 | Frontend | `UX-SPEC.md` Seção 2.2 (S-ONB-02); RF-MVP-03; RN-09; DIR-44 | Teste antes/depois; 3 estados (carregando, erro, lista) cobertos; lista rolável `max-h` preservada e alcançável por teclado; nenhuma alteração no fetch de categorias; `axe` sem violação | 0.5 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+
+#### QA
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| QA-RS-08 | Fechamento do Lote 5 (Autenticação/Sessão + Onboarding), com **atenção redobrada em N4 sobre RF-MVP-08** (superfície de segurança): (a) suíte completa + `npm run build` (N4, `DIR-45`); (b) N3 — `axe` (já em `test/setup.ts`) nas 6 telas/componentes + checklist manual de contraste/foco/teclado, **em navegador real** quando disponível (lacuna recorrente dos Lotes 1-3); (c) N2 — comparação contra `UX-SPEC.md` Seção 3.2 e tokens do Lote 0 (não há artboard de Auth, ver Seção 6.2), assinatura do stakeholder; (d) N1 — `design-system-consistency-check`: zero duplicata do wrapper de card, zero hex/rampa Tailwind, um único padrão de container pré-sessão; (e) `git diff` confirma zero arquivo em `lib/auth/**`, `lib/api/**`, `supabase/**`, `API-CONTRACT.yaml` (G-20/G-21) | QA | `FL-09`; RF-RS-00 AC2; RF-MVP-08; `ADR-014`; G-20/G-21 | 0 regressão funcional (lockout 5/5 min, PIN obrigatório sem "pular", WebAuthn opcional, sem 2º fator por e-mail) e de acessibilidade; N1 sem divergência; diff limpo de `lib/**`/`supabase/**`; `FE-DEBT-05` concluída (prazo declarado "antes do fechamento do Lote 5"); flake conhecido de `UnlockPage` re-executado isoladamente 3x e registrado, não mascarado | 1.0 dia | Não iniciada | Autenticação/Sessão + Onboarding (Redesign v2.0) |
+
+**Calibração (`BLOCKERS.md` Bloqueio 021, item 1) — velocidade real observada.**
+Lotes 1-4 tinham 13.25 dias ideais estimados (L1 4.0, L2 3.25, L3 4.75, L4 1.25);
+pelas datas de conclusão registradas nas Seções 3.5/7 (`FE-RS-05` 2026-09-15 a
+`QA-RS-06`/`07` 2026-09-18) foram executados e validados em ~4 dias corridos, incluindo
+fix-loops — **razão ≈ 0,3 dia corrido por dia ideal** (aproximação por datas de status,
+não cronometrada). Tarefas de "aplicar token/migrar `Num`" (0.25-0.5 dia) fecharam sem
+estouro; as que estouraram foram as com **lacuna de spec-compliance** (`FE-RS-05`
+corrigida em fix-loop) ou **revalidação** (QA sempre com ressalvas por ausência de
+navegador real/assinatura N2). As estimativas de `FE-RS-16` a `22` **mantêm a unidade
+"dia ideal" (~1 dia-pessoa)** por consistência com a Seção 3; **não** foram
+comprimidas pelo fator 0,3, pois 4 das 5 páginas não têm teste hoje e o lote toca
+segurança. Previsão de calendário (informativa, não compromisso): **≈ 2 dias corridos**
+para 6.25 dias ideais, se o padrão dos Lotes 1-4 se repetir.
+
+**Totais do Lote 5**: 8 tarefas (7 Frontend + 1 QA) — Frontend **5.25** dias
+(0.75+0.5+1.0+0.75+1.0+0.75+0.5) + QA **1.0** = **6.25 dias ideais**. Efeito na
+Seção 5: Frontend +5.25, QA +1.0, total remanescente ≈ 156.25 + 6.25 (contando o Grupo B
+detalhado; Lotes 6-13 continuam sem estimativa).
+
 ### 3.6 Redesign Visual "MyMoney v2.0" — Grupo B (Lotes 5-13, inventário e prioridade — sem tarefa nem estimativa nesta rodada)
+
+> **Atualização 2026-09-18**: o **Lote 5 foi detalhado** na Seção 3.5.1 (8 tarefas,
+> 6.25 dias ideais). Os Lotes 6-13 abaixo seguem sem tarefa nem estimativa.
 
 **Nova subseção — 2026-09-04.** Segue à risca a condição vinculante do CTO
 (`BLOCKERS.md` Bloqueio 021, item 1): **nenhuma tarefa (`FE-RS-NN`) é criada para os
@@ -1097,7 +1170,7 @@ esses dois documentos.
 
 | Lote | Domínio | Prioridade (`PRD.md` Seção B.5) | Dependência estrutural | Estimativa |
 |---|---|---|---|---|
-| 5 | Autenticação/Sessão + Onboarding | **Next** | Lote 0 (consolidação de `AuthCard`/`AuthLayout`, especificação mínima já publicada em `UX-SPEC.md` Seção 3.2) | **Pendente de calibração** |
+| 5 | Autenticação/Sessão + Onboarding | **Next** | Lote 0 (consolidação de `AuthCard`/`AuthLayout`, especificação mínima já publicada em `UX-SPEC.md` Seção 3.2) | **Detalhado em 2026-09-18 (Seção 3.5.1): 6.25 dias ideais, 8 tarefas** |
 | 6 | Orçamento | **Next** | Lote 0 + Lote 4 (Padrão C já validado em produção) | **Pendente de calibração** |
 | 9 | Recorrência, Parcelamento, Contas Fixas, Metas | **Later** | Lote 0 | **Pendente de calibração** |
 | 7 | Formas de Pagamento | **Later** | Lote 0 (forte sobreposição visual esperada com o Lote 3 — decisão de agrupamento delegada ao `ux-ui`/Tech Lead quando este lote for detalhado) | **Pendente de calibração** |
@@ -1572,6 +1645,35 @@ Dependência explícita e vinculante (`BLOCKERS.md` Bloqueio 021, resolução do
 estarem executados e validados em produção**. Esta condição é carregada adiante
 integralmente, não decidida por este documento.
 
+### 4.5.1 Redesign Visual "MyMoney v2.0" — Lote 5 (detalhamento, 2026-09-18)
+
+#### Lote 5 — Autenticação/Sessão + Onboarding (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-16 | Lote 0 completo (tokens, `Card`, `Input`, `Button`, `Alert`) — já fechado | Implementação completa | FE-RS-17 |
+| FE-RS-17 | Lote 0 completo | Implementação completa | FE-RS-16 |
+| FE-RS-18 | FE-RS-16 (`AuthLayout`/`AuthCard`) | Contrato (componente) | FE-RS-19, 20, 21, 22 |
+| FE-RS-19 | FE-RS-16; FE-RS-17 (`PinPad` restilizado) | Contrato (componente) | FE-RS-18, 20, 21, 22 |
+| FE-RS-20 | FE-RS-16; FE-RS-17 | Contrato (componente) | FE-RS-18, 19, 21, 22 |
+| FE-RS-21 | FE-RS-16 | Contrato (componente) | FE-RS-18, 19, 20, 22 |
+| FE-RS-22 | FE-RS-16 | Contrato (componente) | FE-RS-18, 19, 20, 21 |
+| QA-RS-08 | FE-RS-16 a FE-RS-22 (implementação completa); `FE-DEBT-05` concluída (prazo próprio, tarefa de outro agente, não alterada aqui) | Implementação completa | — |
+
+**Ondas para o Executor (worktree própria por lote, G-21/memória do projeto)**:
+Onda 1 = 2 instâncias (FE-RS-16 ∥ FE-RS-17, arquivos distintos; só FE-RS-16 toca o
+barrel `components/base/index.ts`); Onda 2 = até **5 instâncias** (FE-RS-18 ∥ 19 ∥ 20 ∥
+21 ∥ 22 — cada uma em arquivo de página + teste próprio, sem arquivo compartilhado);
+Onda 3 = QA-RS-08 (após reunir as 5 e rodar suíte completa única, DIR-45). Como cada
+página inclui teste de caracterização escrito antes da migração, a Onda 2 pode
+começar o teste antes de `FE-RS-16` fechar, mas a migração só depois.
+
+**Caminho crítico**: FE-RS-16 (0.75) → FE-RS-20 (1.0, maior da Onda 2) → QA-RS-08 (1.0)
+= **2.75 dias ideais** com paralelismo pleno, contra **6.25 sequencial**. Lote 5 não
+depende de nenhum lote do Grupo A além do Lote 0 (`PRD.md` B.5: prioridade *Next*,
+risco de regressão baixo) — mas a segurança de RF-MVP-08 justifica o teste de
+caracterização antes de mexer nas páginas.
+
 ### 4.6 Refatoração de Lote (Débitos Técnicos)
 
 #### Refatoração Lote-Autenticação & Segurança
@@ -1993,6 +2095,19 @@ nesta decomposição (`DET-12` a `DET-20`, sendo `DET-19`/`DET-20` acrescentadas
 documento/sequenciamento dentro da autoridade normal do Tech Lead — nenhuma toca
 mérito de arquitetura nem reabre `UX-SPEC.md`/`SDD.md`. Nenhum `BLOCKERS.md` novo foi
 necessário nesta rodada.
+
+#### 6.2.1 Lacunas de detalhe — Lote 5 (Autenticação/Sessão + Onboarding), 2026-09-18
+
+Decididas pelo Tech Lead, dentro da autoridade normal; nenhuma reabre
+`SDD.md`/`ADR`. As 3 primeiras exigem **confirmação do usuário** (não bloqueiam o
+início de `FE-RS-16`/`17`, que independem delas).
+
+| # | Lacuna | Decisão adotada | Racional / o que o usuário pode alterar |
+|---|---|---|---|
+| DET-21 | `PRD-TECNICO.md` Adendo B não tem `RF-RS-05` com AC para o Lote 5 (só linha de inventário B.1.2) — os Lotes 1-4 tinham RF-RS-01 a 04 | Critérios de aceite derivados de RF-RS-00 AC2, RN-19/RN-20, RF-MVP-08/`ADR-014`, RF-MVP-01/03, G-20/G-21 e `UX-SPEC.md` Seção 3.2 | Sem requisito novo inventado. Se o Gestor preferir RF/AC formais, é rodada de PRD antes de `FE-RS-18` |
+| DET-22 | Nenhum artboard `.dc.html` retrata Auth/Onboarding (`UX-SPEC.md` Seção 3.0.1, AC2) | N2 de `QA-RS-08` compara com `UX-SPEC.md` Seção 3.2 + tokens do Lote 0 (mesmo tratamento do Lote 4/Bloqueio 023); estilo extrapolado pelo `AuthCard` | Risco visual: assinatura N2 do stakeholder sobre tela sem referência. Usuário pode fornecer mockup antes de `FE-RS-18` a `22` |
+| DET-23 | `UnlockPage`: wireframe pede link "Usar PIN em vez disso"; código mantém `PinPad` sempre visível (desvio aceito antes) | Manter o `PinPad` visível; só reestilizar | Sem mudança de comportamento (G-20). Usuário pode exigir o link do wireframe, o que seria requisito novo |
+| DET-24 | Contraste: "Passo N de 2" das telas ONB usa `text-neutral-400` (`--text-3`), proibido para informação real (DIR-44); emoji "🔒" no Unlock | `eyebrow` do `AuthCard` em `neutral-600`; emoji trocado por ícone `lucide-react` `aria-hidden` | Detalhe de conformidade, sem escalar. `IconButton` de design system (sugerido na `UX-SPEC.md` "Lote 0/5") **não** criado: não há botão de ícone nestas telas |
 
 ### 6.3 Racional do Agrupamento em Lotes (Seção 3) — retroatividade documental, 2026-09-03
 
