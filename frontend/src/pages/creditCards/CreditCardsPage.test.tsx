@@ -66,7 +66,49 @@ describe("CreditCardsPage — S-CARD-01/02/03 (FE-F2-01/02)", () => {
     renderPage();
     expect(await screen.findByText("Nubank")).toBeInTheDocument();
     expect(screen.getByText("Fecha dia 10 · Vence dia 17")).toBeInTheDocument();
-    expect(screen.getByText(/Disponível: R\$ 4\.000,00 de R\$ 5\.000,00/)).toBeInTheDocument();
+    expect(screen.getByText(/^vence \d{2}\/\d{2}$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Disponível:/)).toHaveTextContent(/Disponível: R\$\s4\.000,00/);
+  });
+
+  it("RF-RS-03: grade grid-cols-2, fatura atual em destaque e limite usado com percentual e valor separados", async () => {
+    const competencia = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
+    creditCardsMocks.listCreditCards.mockResolvedValue([CARD]);
+    creditCardsMocks.getCreditCardsAvailableLimit.mockResolvedValue([
+      { credit_card_id: "card-1", name: "Nubank", limit_cents: 500000, committed_cents: 100000, available_cents: 400000 },
+    ]);
+    creditCardsMocks.listInvoicesByCard.mockResolvedValue([
+      { id: "inv-1", user_id: "u1", credit_card_id: "card-1", competencia, status: "aberta", created_at: "x", updated_at: "x" },
+    ]);
+    transactionsMocks.listTransactions.mockResolvedValue([
+      { id: "t1", card_invoice_id: "inv-1", amount_cents: 12345 },
+      { id: "t2", card_invoice_id: "outra", amount_cents: 999 },
+    ]);
+    const { container } = renderPage();
+    expect(await screen.findByText("Fatura atual")).toBeInTheDocument();
+    expect(await screen.findByText("R$ 123,45")).toBeInTheDocument();
+    expect(container.querySelector("ul")?.className).toContain("md:grid-cols-2");
+    expect(screen.getByTestId("limit-used-percent")).toHaveTextContent("20%");
+    expect(screen.getByTestId("limit-total")).toHaveTextContent("R$ 5.000,00");
+    expect(screen.getByRole("progressbar", { name: /Limite usado de Nubank/ })).toHaveAttribute("aria-valuenow", "20");
+  });
+
+  it("falha ao carregar faturas não derruba a lista (melhor esforço)", async () => {
+    creditCardsMocks.listCreditCards.mockResolvedValue([CARD]);
+    creditCardsMocks.listInvoicesByCard.mockRejectedValue(new Error("x"));
+    renderPage();
+    expect(await screen.findByText("Nubank")).toBeInTheDocument();
+    expect(screen.queryByText("Fatura atual")).not.toBeInTheDocument();
+  });
+
+  it("DET-14: campo Limite (R$) usa CurrencyInput (máscara BRL), não input type=number", async () => {
+    creditCardsMocks.listCreditCards.mockResolvedValue([]);
+    renderPage();
+    await screen.findByText("Nenhum cartão cadastrado ainda");
+    await userEvent.click(screen.getByRole("button", { name: "+ Novo cartão" }));
+    const field = screen.getByLabelText("Limite (R$)", { exact: false }) as HTMLInputElement;
+    expect(field.type).not.toBe("number");
+    await userEvent.type(field, "500000");
+    expect(field.value).toMatch(/5\.000,00/);
   });
 
   it("S-CARD-03: abre a fatura do cartão e mostra o limite disponível sempre visível (RN-06)", async () => {

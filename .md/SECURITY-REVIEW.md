@@ -4974,9 +4974,56 @@ inalterado).
 |---|---|---|---|---|
 | 2026-09-18 | "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15, QA-RS-04 (Seção 1.37) | **Aprovado** | 0 | Nenhum (SEC-DEBT-012 pré-existente, inalterado) |
 
-### 1.38 — Auditoria completa (veredito de lote) — "Categorias (Redesign v2.0), Lote 4" — 2026-09-18
 
-Gate de entrada: `QA-REPORT.md` Seção 28 Aprovado com ressalvas (QA antes de DevSecOps). Escopo: `git diff` do commit `2fce746`.
+### 1.38 — Auditoria completa (veredito de lote) — "Contas & Cartões (Redesign v2.0), Lote 3" — 2026-09-18
+
+**Gatilho**: `QA-REPORT.md` Seção 28 aprovou com ressalvas `FE-RS-09`, `FE-RS-10`, `FE-RS-11` e `QA-RS-06`. Auditoria sobre `git diff 6a9ea52..HEAD` (7 arquivos, todos em `frontend/src` e `.md/TASK.md`; nenhum arquivo de `supabase/`, `lib/api`, `package.json` ou lockfile alterado). Lote 100% frontend.
+
+#### `static-security-analysis` / `security-requirement-validation`
+
+| Ponto | Verificação | Resultado |
+|---|---|---|
+| (a) API/query/autorização nova | `AccountCard`/`AccountsPage`: nenhuma. `CreditCardsPage`: reutiliza `listInvoicesByCard` e `listTransactions()` já existentes (mesmo cliente Supabase, SELECT sob RLS); nenhuma função/endpoint novo, nenhum `service_role` | Passa |
+| (b) `dangerouslySetInnerHTML`/`innerHTML`/`eval` | Zero ocorrências nos 3 arquivos de produção | Passa |
+| (c) CSS inline com dado de usuário | `AccountCard.tsx`: `style={{ backgroundColor: color }}` com `account.color` (coluna de usuário, sem validação de formato) — **primeira renderização de `accounts.color` como CSS inline**. Mesmo padrão de `SEC-DEBT-012` (`categories.color`). Exploitabilidade prática nula hoje: nenhum formulário (`AccountsPage`) expõe campo para definir `color`, React escapa valor de `style` (sem injeção de HTML/JS), RLS mantém o impacto self-scoped. `CreditCardsPage`: `width: ${usedPercent}%` é numérico calculado no cliente (clamp 0-100) | Passa, com **extensão de SEC-DEBT-012** (abaixo) |
+| (d) Log/console/armazenamento local | Zero `console.*`/`localStorage` novos | Passa |
+| (e) Superfície multi-tenant | Fatura atual soma `listTransactions()` já filtrada por RLS do próprio usuário; sem parâmetro de tenant vindo do cliente | Passa |
+
+#### `sensitive-data-exposure-check`
+
+Testes usam fixtures sintéticas (`acc-1`, `card-1`, "Nubank", valores fictícios). Nenhum token/e-mail/segredo, nenhum dado novo em log/erro (falha de fatura é engolida em `catch` silencioso, sem expor mensagem). Saldos/limites exibidos são os mesmos dados do próprio titular. Nenhuma exposição.
+
+#### Dependências
+
+Nenhuma alteração em `package.json`/lockfile. Superfície de dependência inalterada (último `npm audit`: 0 vulnerabilidades, Seção 1.37).
+
+#### `compliance-validation` (LGPD)
+
+Nenhum dado pessoal novo coletado, tratado ou transmitido. Sem novo terceiro, cookie ou telemetria. Nota de minimização (informativa): a fatura atual carrega `listTransactions()` sem filtro — traz ao cliente mais linhas do próprio titular do que o necessário para o destaque; não é exposição a terceiro, é ineficiência já roteada em `FE-DEBT-04` (QA, Seção 28).
+
+#### `finding-severity-classification`
+
+| ID | Achado | Severidade | Bloqueia? | Tratamento |
+|---|---|---|---|---|
+| SEC-DEBT-012 (extensão) | `accounts.color` agora também é valor de CSS inline (`AccountCard.tsx`), sem validação de formato | Baixa (inalterada) | Não | Gatilho existente ("antes de qualquer UI que defina `categories.color`/`accounts.color` livremente") já cobre `accounts.color`; prazo inalterado, sem tarefa nova de segurança. Ao tratar, validar as duas colunas juntas |
+
+Nenhum achado alto/crítico. Nenhum compliance obrigatório em aberto.
+
+#### `security-report-drafting` — veredito
+
+- Bloqueia deploy: nada. Alta/crítica: nenhuma. Compliance: nenhum pendente.
+- Requisitos operacionais para DevOps: sem novos; gates pré-existentes mantidos.
+- Sinalização ao Gestor: nenhuma de relevância estratégica.
+
+**Veredito do lote "Contas & Cartões (Redesign v2.0), Lote 3" do ponto de vista de DevSecOps: Aprovado com débito** (apenas SEC-DEBT-012, baixa, com escopo estendido a `accounts.color`; sem tarefa nova).
+
+| Data | Lote / tarefas | Veredito | Alta/crítica | Débitos novos |
+|---|---|---|---|---|
+| 2026-09-18 | "Contas & Cartões (Redesign v2.0), Lote 3": FE-RS-09, FE-RS-10, FE-RS-11, QA-RS-06 (Seção 1.38) | **Aprovado com débito** | 0 | Nenhum novo (SEC-DEBT-012 estendido a `accounts.color`) |
+
+### 1.39 — Auditoria completa (veredito de lote) — "Categorias (Redesign v2.0), Lote 4" — 2026-09-18
+
+Gate de entrada: `QA-REPORT.md` Seção 29 Aprovado com ressalvas (QA antes de DevSecOps). Escopo: `git diff` do commit `2fce746`.
 
 - SAST manual do diff: só troca de formatação monetária por `<Num />`; sem `dangerouslySetInnerHTML`, `eval`, storage, `console.*`, nova chamada de rede ou nova entrada de usuário. Sem alteração de schema/RLS/Edge Function/contrato de API.
 - Dados sensíveis: valor e nome já eram exibidos; nenhum novo vazamento.

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Button, Card, ConfirmationDialog, EmptyState, Modal, Select, Skeleton } from "../../components/base";
+import { Alert, Button, ConfirmationDialog, EmptyState, Modal, Select, Skeleton } from "../../components/base";
 import { Input } from "../../components/base";
+import { AccountCard } from "../../components/domain/AccountCard";
 import { CurrencyInput } from "../../components/domain/CurrencyInput";
 import { createAccount, deleteAccount, inactivateAccount, listAccounts, updateAccount } from "../../lib/api/accounts";
 import { ApiError } from "../../lib/api/errors";
-import { formatCentsToBRL } from "../../lib/currency";
 import type { Account, AccountType, NewAccount } from "../../lib/api/types";
 import { useToast } from "../../components/base/Toast";
 
@@ -16,12 +16,15 @@ const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
 };
 const ACCOUNT_TYPE_OPTIONS = (Object.entries(ACCOUNT_TYPE_LABELS) as [AccountType, string][]).map(([value, label]) => ({ value, label }));
 
+/** Padrão C — colapso 1→2→3→4 colunas (mesmo de CategoriesPage/BudgetPage). */
+const CARD_GRID_CLASSES = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4";
+
 type FormState = { name: string; type: AccountType | ""; initialBalanceCents: number };
 const EMPTY_FORM: FormState = { name: "", type: "", initialBalanceCents: 0 };
 
 /**
- * S-ACC-01/02/04 — UX-SPEC.md Padrão A (lista + form CRUD) e Padrão B (confirmação de
- * inativação, RN-08). "Card de conta mostra saldo atual em destaque, cor neutra."
+ * S-ACC-01/02/04 — UX-SPEC.md Seção 2.2 (Redesign v2.0): Padrão C (grade de AccountCard)
+ * e Padrão B (confirmação de inativação, RN-08).
  */
 export function AccountsPage() {
   const { showToast } = useToast();
@@ -137,31 +140,19 @@ export function AccountsPage() {
       )}
 
       {accounts && accounts.length > 0 && (
-        <ul className="flex flex-col gap-3">
+        <ul className={CARD_GRID_CLASSES} data-testid="accounts-grid">
           {accounts.map((account) => (
-            <li key={account.id}>
-              <Card className="flex flex-wrap items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-medium text-neutral-900" title={account.name}>
-                      {account.name}
-                    </p>
-                    {!account.is_active && <Badge tone="neutral">Inativa</Badge>}
-                  </div>
-                  <p className="text-sm text-neutral-500">{ACCOUNT_TYPE_LABELS[account.type]}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-4">
-                  <p className="text-lg font-semibold tabular-nums text-neutral-800">{formatCentsToBRL(account.current_balance_cents)}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button variant="ghost" onClick={() => openEditForm(account)}>
-                      Editar
-                    </Button>
-                    <Button variant="ghost" onClick={() => askDelete(account)}>
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+            <li key={account.id} className="min-w-0">
+              <AccountCard
+                name={account.name}
+                typeLabel={ACCOUNT_TYPE_LABELS[account.type]}
+                icon={account.icon}
+                color={account.color}
+                currentBalanceCents={account.current_balance_cents}
+                isActive={account.is_active}
+                onEdit={() => openEditForm(account)}
+                onDelete={() => askDelete(account)}
+              />
             </li>
           ))}
         </ul>

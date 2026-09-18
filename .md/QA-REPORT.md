@@ -4524,25 +4524,154 @@ commitado. Liberado para o chapéu DevSecOps.
 
 ---
 
-## 28. Veredito de Lote — "Categorias (Redesign v2.0), Lote 4" (2026-09-18)
+## 28. Veredito de Lote — "Contas & Cartões (Redesign v2.0), Lote 3" (2026-09-18)
+
+**Contexto**: `FE-RS-09`, `FE-RS-10`, `FE-RS-11` `Concluída`; `QA-RS-06` executada.
+Estado validado: worktree `MyMoney-lote3` (branch `lote3-contas-cartoes` = `main`,
+commitado). Escopo real (`git diff 6a9ea52..HEAD`): `AccountCard.tsx` (novo),
+`AccountsPage.tsx`, `CreditCardsPage.tsx` e 3 testes.
+
+### 28.1 Execução
+
+| Comando | Resultado |
+|---|---|
+| `npm test -- --run` (1ª execução completa) | 8 falhas / 451 pass (sob carga) |
+| `npm test -- --run` (2ª execução completa) | **458/459**; única falha `UnlockPage.test.tsx` (flake conhecido) |
+| `npx vitest run src/pages/auth/UnlockPage.test.tsx` (isolado) | **3/3 PASS** |
+| `npx vitest run` accounts + creditCards + AccountCard + settings | 29/29 PASS |
+| `npm run build` | Sem erro (tsc + vite + PWA, 33 entradas; só warning de chunk já conhecido) |
+| `npx oxlint src` | 0 erros; warnings `react(set-state-in-effect)` (padrão pré-existente em várias páginas, inclusive `CreditCardsPage.tsx:80`, linha anterior ao lote) |
+
+Nota: a 1ª execução com 8 falhas não foi identificada por arquivo (saída truncada);
+a 2ª, sem carga, reduziu a 1 flake conhecido e os arquivos do lote passam
+isolados. Observação de robustez da suíte (ver Seção 27 e anteriores), não do lote.
+
+### 28.2 Critério de aceite por tarefa
+
+- **`FE-RS-09` — Aprovado.** `AccountCard` (iconChip decorativo `aria-hidden`, tipo
+  `text-neutral-600`, nome, badge Inativa, saldo via `Num`); ações Editar/Excluir
+  como botões irmãos com `aria-label` por nome e `min-h-11`; grade
+  `grid-cols-1 sm:2 lg:3 xl:4` travada por teste; fluxo Editar/Excluir/RN-08
+  (confirmação de inativação) preservado (teste ajustado só para o novo aria-label).
+- **`FE-RS-10` — Aprovado.** Grade `md:grid-cols-2` (1 col no mobile); nome, "vence
+  DD/MM", fatura atual em destaque, "Limite usado" com `progressbar`
+  (`aria-valuenow/min/max`, `aria-label` com nome do cartão), percentual e total
+  em elementos separados, "Disponível". DET-14 cumprido: campo Limite usa
+  `CurrencyInput` (teste com máscara BRL).
+- **`FE-RS-11` — Aprovado.** Nenhum `formatCentsToBRL` restante nas 3 páginas
+  (grep); valores via `Num`.
+
+### 28.3 `QA-RS-06` — itens
+
+- **N4 (regressão, atenção redobrada) — Cumprido, sem regressão.**
+  `git diff 6a9ea52..HEAD`: nenhuma alteração em `InvoiceTimeline*`, `lib/api/*`,
+  `lib/*` de domínio, `supabase/` (RN-01 fechamento e RN-06 limite vivem no
+  backend/`getCreditCardsAvailableLimit`, não tocados). Em `CreditCardsPage` o
+  `closing_day`/`due_day` continuam sendo lidos/gravados do mesmo payload
+  (`NewCreditCard`, linha 113) e o texto "Fecha dia X · Vence dia Y" foi
+  mantido; `limit.available_cents`/`committed_cents` seguem vindo de
+  `getCreditCardsAvailableLimit` (o percentual é só apresentação:
+  `committed/limit`, clamp 0-100). `InvoiceTimeline`/S-CARD-03 continua sendo
+  aberto por `openDetail` sem mudança (única ocorrência no diff é um comentário
+  e uma referência à regra). Horizonte de faturas intocado. Teste de
+  `CreditCardsPage` (`Disponível: R$ 4.000,00`) passa.
+- **N3 (acessibilidade) — Parcial.** `QA-RS-02` **não existe/`Não iniciada`**;
+  lacuna registrada. Sem navegador real: análise estática — texto secundário
+  `neutral-600` (>=4,5:1, corrigido por `QA-BUG-001`), `neutral-500` só em texto
+  `text-xs` redundante ("Fecha dia · Vence dia", `#6E726B` >=4,5:1); foco visível
+  em botões do `AccountCard` e no botão de detalhe do cartão;
+  `progressbar` com nome e valores; ícones decorativos `aria-hidden`; barra sem
+  dependência só de cor (percentual em texto). Nenhum teste axe nas 3 telas
+  (S-2). Pendente: contraste/tab order em navegador real.
+- **N1 (tokens/componentes Lote 0) — Cumprido, com 2 observações.** Sem hex/`rgb`
+  literal nos 3 arquivos (grep); usa `Card`, `Badge`, `Num`, `Button`,
+  `CurrencyInput`. Observações: `text-[26px]` em `CreditCardsPage.tsx:224`
+  (tamanho arbitrário fora da escala, embora o padrão exista em outras páginas) e
+  `style={{ backgroundColor: color }}` em `AccountCard` (dado de usuário, ver
+  `SECURITY-REVIEW.md` 1.38). Sem `bg-red/green/amber/blue-*`.
+- **N2 (checklist contra `ContasCartoes.dc.html`) — Pendente de assinatura.** O
+  arquivo `.dc.html` **não foi localizado no repositório/worktree** (só
+  referenciado em `UX-SPEC.md`/`TASK.md`); checklist preenchido contra a
+  descrição da `UX-SPEC.md` Seção 2.2 (Lote 3): conta em card com iconChip, tipo,
+  nome e saldo — OK; cartão com fatura atual + barra de limite usado, sem
+  timeline — OK; grade responsiva — OK. **Assinatura do stakeholder N2:
+  pendente.** Observação: `nextDueLabel` (vence DD/MM) não é testado com relógio
+  controlado (teste só valida o formato).
+
+### 28.4 Desvio registrado — fatura atual calculada no cliente
+
+`loadCurrentInvoiceTotals`: 1 `listInvoicesByCard` por cartão (N chamadas) + 1
+`listTransactions()` **sem filtro** (todas as transações do usuário), somando
+`card_invoice_id` no cliente. Regra de "fatura atual" (primeira com
+`competencia >=` mês atual) replica a de `InvoiceTimeline` — coerente com RN-01.
+
+- **Risco funcional: baixo.** Falha isolada cai em `catch` e só omite o destaque
+  (teste cobre); não afeta lista, limite nem fechamento. A soma é só exibição.
+  Possível divergência de sinal/estorno versus o total oficial da fatura (soma
+  bruta de `amount_cents`) — não verificável sem regra de RN de total; mesma
+  regra usada em outras leituras do cliente.
+- **Custo: médio, crescente.** Payload proporcional ao histórico total de
+  transações a cada abertura da página; N+1 chamadas por cartão; sem paginação.
+  Aceitável hoje (uso pessoal, poucos cartões), degrada com volume.
+- **Classificação: Simples** (não compromete critério de aceite nem bloqueia
+  outra tarefa) → `FE-DEBT-04` em `Refatoração Lote-Contas & Cartões (Redesign
+  v2.0)`, com prazo.
+
+### 28.5 Achados
+
+| ID | Descrição | Classificação | Tratamento |
+|---|---|---|---|
+| S-1 | Fatura atual no cliente (N+1 + `listTransactions()` irrestrito) | **Simples** | `FE-DEBT-04` (1) |
+| S-2 | Nenhum teste axe em `AccountsPage`/`AccountCard`/`CreditCardsPage`; `QA-RS-02` pendente no Lote 0 | **Simples** | `FE-DEBT-04` (3); `QA-RS-02` segue na fila |
+| S-3 | Botão "Editar" do card de cartão sem `aria-label` com o nome (leitor de tela lê N "Editar" iguais; `AccountCard` já faz certo) | **Simples** | `FE-DEBT-04` (2) |
+| S-4 | `text-[26px]` fora da escala tipográfica | Simples (baixa) | `FE-DEBT-04` (4) |
+| P-1 | Artboard `ContasCartoes.dc.html` ausente do repositório; N2 sem assinatura | Observação de processo | Stakeholder assina N2 |
+
+Nenhuma reprovação **Crítica**; nenhum bug alta/crítica; nenhum padrão recorrente
+que justifique escalar ao `coordenador`. Falha de 8 testes na 1ª execução sob
+carga é flake de ambiente, não do lote.
+
+### 28.6 Fechamento estrutural
+
+3 tarefas do lote `Concluída`; dependências da Seção 4.5 (FE-RS-09 ∥ 10 -> 11 ->
+QA-RS-06) consistentes, sem órfã; nenhuma `Bloqueada`. `Refatoração Lote-Contas &
+Cartões (Redesign v2.0)` criado na Seção 3.7 do `TASK.md` com `FE-DEBT-04`.
+`QA-RS-06` marcada `Concluída` (aprovada com ressalvas). Sem necessidade de
+escalar ao `coordenador`.
+
+### 28.7 Definition of Done — checklist de lote
+
+- [x] Critério de aceite de cada tarefa testado e passando (28.2)
+- [x] Nenhuma reprovação crítica em aberto
+- [x] Achados simples viraram tarefa em `Refatoração Lote-Contas & Cartões (Redesign v2.0)` (`FE-DEBT-04`)
+- [x] Integração cruzada verificada (só APIs existentes; `API-CONTRACT.yaml` sem divergência)
+- [ ] NFR de acessibilidade: parcial — `QA-RS-02` ausente; navegador real e assinatura N2 pendentes (ressalvas)
+
+**Veredito por tarefa**: `FE-RS-09` Aprovado; `FE-RS-10` Aprovado; `FE-RS-11`
+Aprovado; `QA-RS-06` Aprovado com ressalvas (Concluída).
+
+**Veredito do lote (chapéu QA): Aprovado com ressalvas.** Liberado para o chapéu
+DevSecOps (veredito: `SECURITY-REVIEW.md` Seção 1.38, Aprovado com débito).
+
+## 29. Veredito de Lote — "Categorias (Redesign v2.0), Lote 4" (2026-09-18)
 
 Escopo: `FE-RS-12`, `FE-RS-13` (Concluída) + `QA-RS-07` (fechamento). Worktree `MyMoney-lote4`, branch `lote4-categorias`, commit `2fce746`.
 
-### 28.1 Evidência
+### 29.1 Evidência
 - Suíte frontend completa: 72 arquivos / 451 testes PASS; `tsc -b` limpo; `npm run build` OK; `oxlint` só warnings pré-existentes (`set-state-in-effect`, inclusive `CategoriesPage.tsx:62`), 0 erros.
 - `git diff HEAD~1`: `CategoryCard.tsx` só troca `formatCentsToBRL` por `<Num value format="currency" />`; sem mudança de estrutura, handlers, `aria-*` ou ação de editar.
 - Sonda axe ad hoc (arquivo temporário, removido) sobre `CategoryCard` com ícone/cor: 0 violações.
 
-### 28.2 Checklist QA-RS-07 (N1-N4)
+### 29.2 Checklist QA-RS-07 (N1-N4)
 - N1: usa `Card` (elevação `sm`, `rounded-lg`, `bg-surface`) e `Num` do Lote 0; sem estilo ad-hoc novo. OK.
 - N2 (contra tokens/padrões do Lote 0): Padrão C preservado (grade de cards, dois interativos irmãos), sem reversão para lista-árvore (Bloqueio 023); valor em `font-serif tabular-nums`. OK. Assinatura do stakeholder pendente.
 - N3: `aria-label`/`aria-describedby` intactos, alvo "Editar" 44px, axe sem violações. OK.
 - N4: testes de CategoryCard/CategoriesPage passam; ajustes só na query do valor, sem enfraquecer asserções. OK.
 
-### 28.3 Achados
+### 29.3 Achados
 | ID | Achado | Classificação | Destino |
 |---|---|---|---|
-| S-1 | Sem asserção axe permanente para `CategoryCard` | Simples | `FE-DEBT-04` (Refatoração Lote-4) |
+| S-1 | Sem asserção axe permanente para `CategoryCard` | Simples | `FE-DEBT-05` (Refatoração Lote-4) |
 | S-2 | Linha `FE-RS-12` estava `Não iniciada` no `TASK.md` (trabalho herdado do Lote 0) | Estrutural menor (documental) | Corrigido para `Concluída` |
 | S-3 | Assinatura N2 do stakeholder pendente | Observação | Ação do stakeholder |
 
@@ -4584,4 +4713,5 @@ Nenhuma reprovação crítica; nenhum padrão recorrente a escalar.
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Fechamento & Regressão Fase 2": QA-F2-01, QA-F2-02 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; auditoria de rigor da própria auditoria de QA (leitura linha a linha dos 4 arquivos `be_f2_0{2,3,4,5}_*.test.sql` para RN-01/02/06/07 + `grep`/leitura direta dos 7 componentes de frontend citados por `QA-F2-02`) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 25 | 0 | 1 achado simples de documentação (contagem "16 casos novos" da nota de `QA-F2-02` não bate com os 15 tagueados no código; não é gap funcional, sem tarefa nova) |
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Captura Automatizada — Importação de Extrato": BE-F3-03, FE-F3-05 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha a linha de `statement-import/index.ts`/`lib.ts` (AC1/AC2) + `StatementImportFlow.tsx` (seleção inicial desmarcando duplicata, zero persistência antes da confirmação) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 26 | 0 | Nenhum novo de QA (achado de segurança pré-existente `SEC-DEBT-015`/`BE-DEBT-04` reconfirmado como agora potencialmente ativo, encaminhado ao chapéu DevSecOps) |
 | 2026-09-18 (veredito de lote) | Lote "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15 (3) + QA-RS-04 (execução desta rodada) | **Aprovado com ressalvas** (lote) — Aprovado (3/3) + QA-RS-04 aprovada com ressalvas; suíte 448/448 PASS, build OK — `QA-REPORT.md` Seção 27 | 0 | `FE-DEBT-03` (simples: axe permanente + teste de layout do Dashboard); ressalvas: `QA-RS-02` não implementada, navegador real e assinatura N2 pendentes |
-| 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 28 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |
+| 2026-09-18 (veredito de lote) | Lote 3 "Contas & Cartões (Redesign v2.0)": FE-RS-09, FE-RS-10, FE-RS-11, QA-RS-06 (4) | **Aprovado com ressalvas** (lote) — Seção 28 | 0 | FE-DEBT-04 (simples) |
+| 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 29 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |

@@ -56,6 +56,20 @@ describe("AccountsPage — S-ACC-01/02/04 (Padrão A/B)", () => {
     expect(screen.getByText("R$ 85,00")).toBeInTheDocument();
   });
 
+  it("Padrão C: renderiza grade de AccountCard com colapso 1→2→3→4 colunas, ações e badge Inativa preservados", async () => {
+    apiMocks.listAccounts.mockResolvedValue([ACCOUNT, { ...ACCOUNT, id: "acc-2", name: "Poupança X", is_active: false }]);
+    renderPage();
+    const grid = await screen.findByTestId("accounts-grid");
+    expect(grid.className).toContain("grid-cols-1");
+    expect(grid.className).toContain("sm:grid-cols-2");
+    expect(grid.className).toContain("lg:grid-cols-3");
+    expect(grid.className).toContain("xl:grid-cols-4");
+    expect(screen.getAllByTestId("account-card")).toHaveLength(2);
+    expect(screen.getByText("Inativa")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Editar Conta Corrente" }));
+    expect(await screen.findByText("Editar conta")).toBeInTheDocument();
+  });
+
   it("estado de erro: falha ao carregar mostra Alert", async () => {
     apiMocks.listAccounts.mockRejectedValue(new ApiError({ message: "Não foi possível carregar as contas.", kind: "network" }));
     renderPage();
@@ -83,9 +97,8 @@ describe("AccountsPage — S-ACC-01/02/04 (Padrão A/B)", () => {
     apiMocks.inactivateAccount.mockResolvedValue({ ...ACCOUNT, is_active: false });
     renderPage();
 
+    await userEvent.click(await screen.findByRole("button", { name: "Excluir Conta Corrente" }));
     await userEvent.click(await screen.findByRole("button", { name: "Excluir" }));
-    const dialogConfirm = (await screen.findAllByRole("button", { name: "Excluir" }))[1];
-    await userEvent.click(dialogConfirm);
 
     expect(await screen.findByText(/será inativada, não excluída/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Inativar" }));
