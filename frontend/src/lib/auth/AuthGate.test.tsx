@@ -65,14 +65,14 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
     pinMocks.hasPinConfigured.mockResolvedValue(true);
     renderApp();
-    expect(await screen.findByText("🔒 Desbloqueie o app")).toBeInTheDocument();
+    expect(await screen.findByText("Desbloqueie o app")).toBeInTheDocument();
   });
 
   it("só renderiza o conteúdo autenticado quando totalmente desbloqueado", async () => {
     sessionMocks.getCurrentSession.mockResolvedValue(FAKE_SESSION);
     pinMocks.hasPinConfigured.mockResolvedValue(true);
     renderApp();
-    await screen.findByText("🔒 Desbloqueie o app");
+    await screen.findByText("Desbloqueie o app");
     expect(screen.queryByText("Conteúdo autenticado")).not.toBeInTheDocument();
   });
 });
