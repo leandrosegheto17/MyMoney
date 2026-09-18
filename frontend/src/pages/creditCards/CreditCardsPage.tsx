@@ -4,7 +4,7 @@ import { Input } from "../../components/base";
 import { useToast } from "../../components/base/Toast";
 import { CurrencyInput } from "../../components/domain/CurrencyInput";
 import { InvoiceTimeline } from "../../components/domain/InvoiceTimeline";
-import { createCreditCard, getCreditCardsAvailableLimit, listCreditCards, listInvoicesByCard, updateCreditCard } from "../../lib/api/creditCards";
+import { createCreditCard, getCreditCardsAvailableLimit, listCreditCards, listInvoicesByCard, listInvoicesByCards, updateCreditCard } from "../../lib/api/creditCards";
 import { listCategories } from "../../lib/api/categories";
 import { listTransactions } from "../../lib/api/transactions";
 import { ApiError } from "../../lib/api/errors";
@@ -60,15 +60,21 @@ export function CreditCardsPage() {
   /** Melhor esforço: falha aqui só omite o destaque da fatura atual, sem derrubar a lista. */
   async function loadCurrentInvoiceTotals(cardList: CreditCard[]) {
     try {
-      const [txs, invoiceLists] = await Promise.all([listTransactions(), Promise.all(cardList.map((c) => listInvoicesByCard(c.id)))]);
+      const allInvoices = await listInvoicesByCards(cardList.map((c) => c.id));
       const currentCompetencia = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
-      const totals: Record<string, number> = {};
-      cardList.forEach((card, index) => {
+      const currentByCard: Record<string, Invoice> = {};
+      cardList.forEach((card) => {
         // Mesma regra de InvoiceTimeline: primeira fatura do horizonte (competência >= atual) = "Fatura Atual".
-        const current = (invoiceLists[index] ?? [])
-          .filter((invoice) => invoice.competencia >= currentCompetencia)
-          .sort((a, b) => a.competencia.localeCompare(b.competencia))[0];
-        if (current) totals[card.id] = (txs ?? []).filter((t) => t.card_invoice_id === current.id).reduce((sum, t) => sum + t.amount_cents, 0);
+        const current = allInvoices
+          .filter((invoice) => invoice.credit_card_id === card.id && invoice.competencia >= currentCompetencia)
+          .sort((x, y) => x.competencia.localeCompare(y.competencia))[0];
+        if (current) currentByCard[card.id] = current;
+      });
+      const invoiceIds = Object.values(currentByCard).map((invoice) => invoice.id);
+      const txs = invoiceIds.length > 0 ? await listTransactions({ cardInvoiceIds: invoiceIds }) : [];
+      const totals: Record<string, number> = {};
+      Object.entries(currentByCard).forEach(([cardId, current]) => {
+        totals[cardId] = (txs ?? []).filter((t) => t.card_invoice_id === current.id).reduce((sum, t) => sum + t.amount_cents, 0);
       });
       setCurrentInvoiceTotals(totals);
     } catch {
@@ -214,14 +220,14 @@ export function CreditCardsPage() {
                         Fecha dia {card.closing_day} · Vence dia {card.due_day}
                       </p>
                     </button>
-                    <Button variant="ghost" onClick={() => openEditForm(card)}>
+                    <Button variant="ghost" aria-label={`Editar ${card.name}`} onClick={() => openEditForm(card)}>
                       Editar
                     </Button>
                   </div>
                   {currentTotal !== undefined && (
                     <div>
                       <p className="text-sm text-neutral-600">Fatura atual</p>
-                      <p className="text-[26px] font-semibold tabular-nums text-neutral-900"><Num value={currentTotal} format="currency" /></p>
+                      <p className="text-2xl font-semibold tabular-nums text-neutral-900"><Num value={currentTotal} format="currency" /></p>
                     </div>
                   )}
                   {limit && (

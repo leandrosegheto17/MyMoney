@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../components/base/Toast";
 
@@ -10,6 +11,7 @@ const creditCardsMocks = vi.hoisted(() => ({
   deleteCreditCard: vi.fn(),
   getCreditCardPaymentMethod: vi.fn(),
   listInvoicesByCard: vi.fn(),
+  listInvoicesByCards: vi.fn(),
   getCreditCardsAvailableLimit: vi.fn(),
 }));
 vi.mock("../../lib/api/creditCards", () => creditCardsMocks);
@@ -76,7 +78,7 @@ describe("CreditCardsPage — S-CARD-01/02/03 (FE-F2-01/02)", () => {
     creditCardsMocks.getCreditCardsAvailableLimit.mockResolvedValue([
       { credit_card_id: "card-1", name: "Nubank", limit_cents: 500000, committed_cents: 100000, available_cents: 400000 },
     ]);
-    creditCardsMocks.listInvoicesByCard.mockResolvedValue([
+    creditCardsMocks.listInvoicesByCards.mockResolvedValue([
       { id: "inv-1", user_id: "u1", credit_card_id: "card-1", competencia, status: "aberta", created_at: "x", updated_at: "x" },
     ]);
     transactionsMocks.listTransactions.mockResolvedValue([
@@ -86,15 +88,26 @@ describe("CreditCardsPage — S-CARD-01/02/03 (FE-F2-01/02)", () => {
     const { container } = renderPage();
     expect(await screen.findByText("Fatura atual")).toBeInTheDocument();
     expect(await screen.findByText("R$ 123,45")).toBeInTheDocument();
+    expect(creditCardsMocks.listInvoicesByCards).toHaveBeenCalledTimes(1);
+    expect(transactionsMocks.listTransactions).toHaveBeenCalledWith({ cardInvoiceIds: ["inv-1"] });
+    expect(screen.getByRole("button", { name: "Editar Nubank" })).toBeInTheDocument();
     expect(container.querySelector("ul")?.className).toContain("md:grid-cols-2");
     expect(screen.getByTestId("limit-used-percent")).toHaveTextContent("20%");
     expect(screen.getByTestId("limit-total")).toHaveTextContent("R$ 5.000,00");
     expect(screen.getByRole("progressbar", { name: /Limite usado de Nubank/ })).toHaveAttribute("aria-valuenow", "20");
   });
 
+  it("não tem violações de acessibilidade detectáveis por axe-core (FE-DEBT-04)", async () => {
+    creditCardsMocks.listCreditCards.mockResolvedValue([CARD]);
+    creditCardsMocks.listInvoicesByCards.mockResolvedValue([]);
+    const { container } = renderPage();
+    await screen.findByText("Nubank");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
   it("falha ao carregar faturas não derruba a lista (melhor esforço)", async () => {
     creditCardsMocks.listCreditCards.mockResolvedValue([CARD]);
-    creditCardsMocks.listInvoicesByCard.mockRejectedValue(new Error("x"));
+    creditCardsMocks.listInvoicesByCards.mockRejectedValue(new Error("x"));
     renderPage();
     expect(await screen.findByText("Nubank")).toBeInTheDocument();
     expect(screen.queryByText("Fatura atual")).not.toBeInTheDocument();

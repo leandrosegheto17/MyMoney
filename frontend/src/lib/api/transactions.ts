@@ -10,6 +10,8 @@ export interface ListTransactionsFilters {
   fromDate?: string;
   /** Data final (inclusive), formato `YYYY-MM-DD`. */
   toDate?: string;
+  /** Restringe a lançamentos destas faturas de cartão (`card_invoice_id in (...)`). */
+  cardInvoiceIds?: string[];
 }
 
 /** `GET /transactions` — mês corrente por padrão (RF-MVP-04 AC5), ordenado do mais recente para o mais antigo. */
@@ -20,6 +22,7 @@ export async function listTransactions(filters: ListTransactionsFilters = {}): P
   if (filters.categoryId) query = query.eq("category_id", filters.categoryId);
   if (filters.fromDate) query = query.gte("transaction_date", filters.fromDate);
   if (filters.toDate) query = query.lte("transaction_date", filters.toDate);
+  if (filters.cardInvoiceIds) query = query.in("card_invoice_id", filters.cardInvoiceIds);
   return unwrap(query);
 }
 

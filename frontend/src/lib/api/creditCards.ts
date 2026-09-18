@@ -38,6 +38,14 @@ export async function listInvoicesByCard(creditCardId: string): Promise<Invoice[
   );
 }
 
+/** `GET /invoices?credit_card_id=in.(...)` — faturas de vários cartões em uma única consulta (evita N+1). */
+export async function listInvoicesByCards(creditCardIds: string[]): Promise<Invoice[]> {
+  if (creditCardIds.length === 0) return [];
+  return unwrap(
+    getSupabaseClient().from("invoices").select("*").in("credit_card_id", creditCardIds).order("competencia", { ascending: true }),
+  );
+}
+
 /** `POST /rpc/get_credit_cards_available_limit` (RN-06) — limite disponível por cartão, sempre visível em S-CARD-03. */
 export async function getCreditCardsAvailableLimit(): Promise<CreditCardAvailableLimitItem[]> {
   return unwrap(getSupabaseClient().rpc("get_credit_cards_available_limit", {}));

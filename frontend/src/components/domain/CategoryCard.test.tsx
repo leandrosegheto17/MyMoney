@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { CategoryCard } from "./CategoryCard";
 
@@ -22,6 +23,13 @@ describe("CategoryCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 5 (RF-RE
     expect(value).toHaveClass("font-serif", "tabular-nums");
     expect(value.parentElement).toHaveTextContent(/R\$\s*980,00 este mês/);
     expect(screen.getByText("4 subcategorias")).toBeInTheDocument();
+  });
+
+  it("não tem violações de acessibilidade detectáveis por axe-core (FE-DEBT-05)", async () => {
+    const { container } = render(
+      <CategoryCard name="Alimentação" icon="🍔" color={null} totalSpentCents={98000} subcategoryCount={4} onOpenSubcategories={() => {}} onEdit={() => {}} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 
   it("usa singular para exatamente 1 subcategoria", () => {
