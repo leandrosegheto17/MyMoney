@@ -4524,6 +4524,35 @@ commitado. Liberado para o chapéu DevSecOps.
 
 ---
 
+## 28. Veredito de Lote — "Categorias (Redesign v2.0), Lote 4" (2026-09-18)
+
+Escopo: `FE-RS-12`, `FE-RS-13` (Concluída) + `QA-RS-07` (fechamento). Worktree `MyMoney-lote4`, branch `lote4-categorias`, commit `2fce746`.
+
+### 28.1 Evidência
+- Suíte frontend completa: 72 arquivos / 451 testes PASS; `tsc -b` limpo; `npm run build` OK; `oxlint` só warnings pré-existentes (`set-state-in-effect`, inclusive `CategoriesPage.tsx:62`), 0 erros.
+- `git diff HEAD~1`: `CategoryCard.tsx` só troca `formatCentsToBRL` por `<Num value format="currency" />`; sem mudança de estrutura, handlers, `aria-*` ou ação de editar.
+- Sonda axe ad hoc (arquivo temporário, removido) sobre `CategoryCard` com ícone/cor: 0 violações.
+
+### 28.2 Checklist QA-RS-07 (N1-N4)
+- N1: usa `Card` (elevação `sm`, `rounded-lg`, `bg-surface`) e `Num` do Lote 0; sem estilo ad-hoc novo. OK.
+- N2 (contra tokens/padrões do Lote 0): Padrão C preservado (grade de cards, dois interativos irmãos), sem reversão para lista-árvore (Bloqueio 023); valor em `font-serif tabular-nums`. OK. Assinatura do stakeholder pendente.
+- N3: `aria-label`/`aria-describedby` intactos, alvo "Editar" 44px, axe sem violações. OK.
+- N4: testes de CategoryCard/CategoriesPage passam; ajustes só na query do valor, sem enfraquecer asserções. OK.
+
+### 28.3 Achados
+| ID | Achado | Classificação | Destino |
+|---|---|---|---|
+| S-1 | Sem asserção axe permanente para `CategoryCard` | Simples | `FE-DEBT-04` (Refatoração Lote-4) |
+| S-2 | Linha `FE-RS-12` estava `Não iniciada` no `TASK.md` (trabalho herdado do Lote 0) | Estrutural menor (documental) | Corrigido para `Concluída` |
+| S-3 | Assinatura N2 do stakeholder pendente | Observação | Ação do stakeholder |
+
+Nenhuma reprovação crítica; nenhum padrão recorrente a escalar.
+
+**Veredito por tarefa**: `FE-RS-12` Aprovado; `FE-RS-13` Aprovado; `QA-RS-07` Aprovado com ressalvas (Concluída).
+**Veredito do lote (chapéu QA): Aprovado com ressalvas.** Liberado ao chapéu DevSecOps.
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -4555,3 +4584,4 @@ commitado. Liberado para o chapéu DevSecOps.
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Fechamento & Regressão Fase 2": QA-F2-01, QA-F2-02 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; auditoria de rigor da própria auditoria de QA (leitura linha a linha dos 4 arquivos `be_f2_0{2,3,4,5}_*.test.sql` para RN-01/02/06/07 + `grep`/leitura direta dos 7 componentes de frontend citados por `QA-F2-02`) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 25 | 0 | 1 achado simples de documentação (contagem "16 casos novos" da nota de `QA-F2-02` não bate com os 15 tagueados no código; não é gap funcional, sem tarefa nova) |
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Captura Automatizada — Importação de Extrato": BE-F3-03, FE-F3-05 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha a linha de `statement-import/index.ts`/`lib.ts` (AC1/AC2) + `StatementImportFlow.tsx` (seleção inicial desmarcando duplicata, zero persistência antes da confirmação) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 26 | 0 | Nenhum novo de QA (achado de segurança pré-existente `SEC-DEBT-015`/`BE-DEBT-04` reconfirmado como agora potencialmente ativo, encaminhado ao chapéu DevSecOps) |
 | 2026-09-18 (veredito de lote) | Lote "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15 (3) + QA-RS-04 (execução desta rodada) | **Aprovado com ressalvas** (lote) — Aprovado (3/3) + QA-RS-04 aprovada com ressalvas; suíte 448/448 PASS, build OK — `QA-REPORT.md` Seção 27 | 0 | `FE-DEBT-03` (simples: axe permanente + teste de layout do Dashboard); ressalvas: `QA-RS-02` não implementada, navegador real e assinatura N2 pendentes |
+| 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 28 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |
