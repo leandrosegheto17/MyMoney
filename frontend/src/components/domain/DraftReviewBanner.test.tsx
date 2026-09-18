@@ -1,5 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DraftReviewBanner } from "./DraftReviewBanner";
 import type { DraftSource } from "./DraftReviewBanner";
@@ -276,5 +277,71 @@ describe("DraftReviewBanner — S-CAP-03/S-CAP-05 / UX-FL-04 (FE-F3-04, RNF-01/R
     expect(screen.getByRole("button", { name: "Confirmar lançamento" })).toBeInTheDocument();
 
     vi.useRealTimers();
+  });
+});
+
+describe("DraftReviewBanner — acessibilidade WCAG 2.1 AA (QA-F3-02)", () => {
+  beforeEach(() => {
+    Object.values(accountsMock).forEach((m) => m.mockReset());
+    Object.values(paymentMethodsMock).forEach((m) => m.mockReset());
+    Object.values(categoriesMock).forEach((m) => m.mockReset());
+    Object.values(candidateMock).forEach((m) => m.mockReset());
+    accountsMock.listAccounts.mockResolvedValue([ACCOUNT]);
+    paymentMethodsMock.listPaymentMethods.mockResolvedValue([PAYMENT_METHOD]);
+    categoriesMock.listCategories.mockResolvedValue([CATEGORY_ALIMENTACAO]);
+    candidateMock.createCandidateTransaction.mockResolvedValue(CANDIDATE);
+    candidateMock.deleteCandidateTransaction.mockResolvedValue(undefined);
+    candidateMock.confirmCandidateTransaction.mockResolvedValue("txn-1");
+  });
+
+  it("estado carregado (fonte voz, com AutoFillTag/campos) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const { container } = render(<DraftReviewBanner source={voiceSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    await waitFor(() => expect(screen.getAllByText("✨ sugerido").length).toBeGreaterThanOrEqual(4));
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estado com AutoFillAttentionHint (foto sem campos obrigatórios extraídos) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const { container } = render(<DraftReviewBanner source={photoSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    await screen.findAllByText("⚠ preencha");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estados de erro (criação do rascunho e carga de referência falharam) não têm violações de acessibilidade detectáveis por axe-core", async () => {
+    accountsMock.listAccounts.mockRejectedValue(new Error("network down"));
+    paymentMethodsMock.listPaymentMethods.mockRejectedValue(new Error("network down"));
+    categoriesMock.listCategories.mockRejectedValue(new Error("network down"));
+    candidateMock.createCandidateTransaction.mockRejectedValue(new Error("network down"));
+
+    const { container } = render(<DraftReviewBanner source={photoSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    await screen.findAllByText(/Não foi possível salvar o rascunho/);
+    await screen.findAllByText(/Não foi possível carregar os dados de referência/);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("grupo 'Tipo de lançamento' expõe role=group com aria-label, para leitor de tela anunciar o contexto dos botões Saída/Entrada", async () => {
+    render(<DraftReviewBanner source={voiceSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    expect(await screen.findByRole("group", { name: "Tipo de lançamento" })).toBeInTheDocument();
+  });
+
+  it("erros de validação/confirmação/descarte são anunciados via role=alert (Alert do design system), não só texto visual", async () => {
+    candidateMock.confirmCandidateTransaction.mockRejectedValue(new Error("network down"));
+    render(<DraftReviewBanner source={voiceSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    await waitFor(() => expect(candidateMock.createCandidateTransaction).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("combobox", { name: "Conta" })).not.toBeDisabled());
+
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Conta" }), "acc-1");
+    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Forma de pagamento" }), "pm-1");
+    const confirmButton = screen.getByRole("button", { name: "Confirmar lançamento" });
+    await waitFor(() => expect(confirmButton).not.toBeDisabled());
+    await userEvent.click(confirmButton);
+
+    expect((await screen.findAllByRole("alert")).length).toBeGreaterThan(0);
+  });
+
+  it("nenhum timer/auto-confirmação (WCAG 2.2.1 já coberto acima) — Cancelar/Confirmar continuam sendo <button> reais, alcançáveis por Tab", async () => {
+    render(<DraftReviewBanner source={voiceSource()} onConfirmed={vi.fn()} onDiscarded={vi.fn()} />);
+    await waitFor(() => expect(candidateMock.createCandidateTransaction).toHaveBeenCalled());
+    expect(screen.getByRole("button", { name: "Cancelar" }).tagName).toBe("BUTTON");
+    expect(screen.getByRole("button", { name: "Confirmar lançamento" }).tagName).toBe("BUTTON");
   });
 });

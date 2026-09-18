@@ -4400,6 +4400,130 @@ DevSecOps na mesma rodada (Seção 26.4).
 
 ---
 
+## 27. Veredito de Lote — "Dashboard (Redesign v2.0), Lote 1" (2026-09-18)
+
+**Contexto**: `FE-RS-05`, `FE-RS-06`, `FE-RS-15` (Seção 3.5 do `TASK.md`)
+`Concluída`; `QA-RS-04` (fechamento de QA do lote) executada nesta rodada.
+Estado validado: **working tree real** (alterações ainda **não commitadas**
+em `DashboardPage.tsx`, `DonutChart.tsx`, `Card.tsx`, `index.css`,
+`test/setup.ts`, `package.json` e testes). Risco de processo: o código
+validado não está versionado; recomenda-se commit antes do `/deploy`.
+
+### 27.1 `test-strategy-planning`
+
+Execução própria (não a nota do Executor): `npx vitest run` e
+`npm run build` em `frontend/`; leitura linha a linha de `DashboardPage.tsx`,
+`DonutChart.tsx`, `Card.tsx`, `index.css`; comparação com `UX-SPEC.md`
+Seção 2.2 (linhas 611-718); sonda axe ad hoc (arquivo temporário, removido —
+nada permanece no disco).
+
+| Comando | Resultado |
+|---|---|
+| `cd frontend && npx vitest run` | **72 arquivos, 448/448 PASS** (sem flake nesta execução) |
+| `cd frontend && npm run build` | **Sem erro** (tsc + vite + PWA, 33 entradas precache; só o warning de chunk size já conhecido) |
+| Sonda `jest-axe` sobre `DashboardPage` completo (saldo, KPIs, donut, orçamento, últimos lançamentos), temporária | 0 violações (jsdom: não cobre contraste real) |
+
+### 27.2 `acceptance-criteria-validation`
+
+- **`FE-RS-05` — Aprovado.** Composição bate com o wireframe desktop da
+  Seção 2.2: Linha 1 `grid-cols-1 lg:grid-cols-5` (esquerda `lg:col-span-3` =
+  saldo hero com `Card elevation="md"` + 3 KPIs `grid-cols-3`; direita
+  `lg:col-span-2` = donut+legenda); Linha 2 `lg:grid-cols-2` = Orçamentos |
+  Últimos lançamentos. Ordem no DOM = sequência mobile (saldo, KPIs, donut,
+  orçamentos, últimos), sem `order`/JS (RNF-10). `onSliceClick` ->
+  `/lancamentos?categoria=` e "ver todos" -> `/lancamentos` preservados;
+  `load()` usa as mesmas 5 chamadas (0 API nova). Card `rounded-lg` =
+  `--radius-lg` 20px; `md` = `--shadow-elevation-md`.
+- **`FE-RS-06` — Aprovado.** Nenhum `formatCentsToBRL` em
+  `DashboardPage.tsx`/`DonutChart.tsx` (grep); saldo, 2 KPIs e "Lançamentos"
+  via `<Num>`; seta em `<span aria-hidden>` irmão do `<Num>`; legenda e
+  tabela do donut com dois `<Num>` distintos (currency + percent).
+- **`FE-RS-15` — Aprovado.** `index.css` declara `--color-chart-1..8`;
+  `DonutChart.tsx` sem hex literal (grep), `PALETTE` = 8
+  `var(--color-chart-N)`. Contraste registrado no CSS (mínimo 3,04:1 em
+  chart-3 sobre `--bg`) coerente com o limiar 3:1 (WCAG 1.4.11). Comportamento
+  do donut inalterado.
+
+### 27.3 `cross-platform-integration-testing`
+
+Dashboard consome apenas funções de API já existentes
+(`getMonthProvision`, `getMonthlyCategorySummary`,
+`getMonthTransactionCount`, `getBudgetStatus`, `listTransactions`); nenhuma
+mudança de contrato, `API-CONTRACT.yaml` sem divergência. Integração
+Dashboard -> `Num`/`Card`/`Badge` (Lote 0) verificada por build + 448 testes.
+Navegação donut/"ver todos" -> Lançamentos verificada por leitura direta.
+
+### 27.4 `QA-RS-04` — itens (a)-(d)
+
+- **(a) Suíte completa (N4, DIR-45)**: 448/448 + build OK. **Cumprido.**
+- **(b) Acessibilidade (N3)**: **`QA-RS-02` NÃO foi implementada** (segue
+  `Não iniciada` no `TASK.md`). Existe `jest-axe` no working tree
+  (`package.json`/`test/setup.ts`, vindo de `QA-F3-02`), usado só em 5 testes
+  de componentes de captura (`AutoFillTag`, `CandidateList`,
+  `DraftReviewBanner`, `ReceiptCameraCapture`, `VoiceRecorderUI`); **nenhum**
+  teste de `DashboardPage`, `DonutChart`, `Num`, `Card` ou dos componentes do
+  Lote 0 usa axe, e não há documentação do que a automação cobre/não cobre.
+  Impacto: o Dashboard não tem guarda automatizada permanente contra
+  regressão de labels/roles/landmarks; a sonda ad hoc passou, mas não
+  persiste. **Ressalva, não bloqueio**: `QA-RS-02` pertence ao Lote 0 e deve
+  ser concluída independentemente. Checklist manual de contraste/foco:
+  **sem navegador real neste ambiente**, feito por análise estática e
+  cálculo — `text-neutral-500` = `#6E726B` (corrigido por `QA-BUG-001`,
+  >=4,5:1 confirmado na Seção 14.8); tons do donut >=3:1; foco visível: todos
+  os `button` do Dashboard/Donut têm
+  `focus-visible:outline-2 focus-visible:outline-primary` e alvo `min-h-11`;
+  setas decorativas `aria-hidden`; donut com alternativa em tabela
+  (`aria-expanded`/`aria-controls`) e `role="img"` + `aria-label`.
+  **Pendente**: conferência visual real de contraste/tab order em navegador.
+- **(c) Comparação com o wireframe (S-DASH-01, UX-SPEC 2.2)**: saldo + badge
+  "sincronizado agora" OK; 3 KPIs OK; donut à direita com legenda (R$ e %)
+  OK; Orçamentos | Últimos lançamentos lado a lado OK; "ver todos" OK; mobile
+  single-column OK. Observação sem reprovação: sem orçamentos
+  (`data.budgets.length === 0`), "Últimos lançamentos" ocupa só a coluna
+  esquerda da Linha 2 (wireframe não define o estado vazio). **Assinatura do
+  stakeholder (N2) não obtida pelo QA** — pendente; comparação feita via
+  UX-SPEC, mockups `.dc.html` não abertos em navegador.
+- **(d) N1 `design-system-consistency-check`**: `DashboardPage.tsx`/
+  `DonutChart.tsx` sem hex, sem `bg-red/green/amber/blue-*`, só
+  tokens/componentes do Lote 0. Único estilo inline:
+  `style={{ backgroundColor: color }}` na bolinha da legenda, com
+  `var(--color-chart-N)` (token). **Cumprido.**
+
+### 27.5 Achados (`bug-documentation`)
+
+| ID | Descrição | Classificação | Tratamento |
+|---|---|---|---|
+| S-1 | Nenhum teste permanente com axe para `DashboardPage`/`DonutChart` (e `QA-RS-02` pendente no Lote 0) | **Simples** | `FE-DEBT-03` (Refatoração Lote-Dashboard); `QA-RS-02` segue na fila |
+| S-2 | Nenhum teste trava o layout responsivo de `FE-RS-05` (`lg:grid-cols-*`); jsdom não valida CSS | **Simples** | `FE-DEBT-03` |
+| S-3 | Estado sem orçamentos deixa coluna direita da Linha 2 vazia (não especificado no wireframe) | Simples / observação (sem tarefa) | Decisão de UX/stakeholder na assinatura N2 |
+| P-1 | Alterações não commitadas no working tree | Observação de processo | Commitar antes de `/deploy` |
+
+Nenhuma reprovação **Crítica**. Nenhum bug alta/crítica. Nenhum padrão
+recorrente que justifique escalar ao `coordenador`. Fechamento estrutural:
+3 tarefas do lote `Concluída`, dependências da Seção 4 (FE-RS-05 -> 06 -> 15
+-> QA-RS-04) respeitadas, nenhuma `Bloqueada`; `Refatoração Lote-Dashboard
+(Redesign v2.0)` criado no `TASK.md` (Seção 3.7) com `FE-DEBT-03`, prazo
+antes do fechamento do Lote 2. `QA-RS-04` marcada `Concluída` (aprovada com
+ressalvas).
+
+### 27.6 Definition of Done — checklist de lote
+
+- [x] Critério de aceite de cada tarefa testado e passando (27.2)
+- [x] Nenhuma reprovação crítica em aberto
+- [x] Achados simples viraram tarefa em `Refatoração Lote-Dashboard (Redesign v2.0)` (`FE-DEBT-03`)
+- [x] Integração cruzada verificada (27.3)
+- [ ] NFR de acessibilidade: parcial — `QA-RS-02` ausente; contraste/foco em navegador real e assinatura N2 pendentes (ressalvas)
+
+**Veredito por tarefa**: `FE-RS-05` Aprovado; `FE-RS-06` Aprovado;
+`FE-RS-15` Aprovado; `QA-RS-04` Aprovado com ressalvas (Concluída).
+
+**Veredito do lote (chapéu QA): Aprovado com ressalvas** — 3/3 tarefas
+aprovadas, 0 reprovações críticas; ressalvas: `QA-RS-02` não implementada,
+verificação em navegador real e assinatura N2 pendentes, código não
+commitado. Liberado para o chapéu DevSecOps.
+
+---
+
 ## Log de Rodadas
 
 | Data | Tarefas validadas | Veredito | Bugs alta/crítica | Débitos registrados |
@@ -4430,3 +4554,4 @@ DevSecOps na mesma rodada (Seção 26.4).
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente — build já em produção, `DEPLOY.md` §9.6) | Lote "Relatórios (Fase 2)": BE-F2-10, FE-F2-08 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha-a-linha da migration `get_income_expense_report`/teste SQL (5 casos A-E) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 24 | 0 | Nenhum novo |
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Fechamento & Regressão Fase 2": QA-F2-01, QA-F2-02 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; auditoria de rigor da própria auditoria de QA (leitura linha a linha dos 4 arquivos `be_f2_0{2,3,4,5}_*.test.sql` para RN-01/02/06/07 + `grep`/leitura direta dos 7 componentes de frontend citados por `QA-F2-02`) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 25 | 0 | 1 achado simples de documentação (contagem "16 casos novos" da nota de `QA-F2-02` não bate com os 15 tagueados no código; não é gap funcional, sem tarefa nova) |
 | 2026-09-15 (veredito de lote, lacuna de processo pré-existente) | Lote "Captura Automatizada — Importação de Extrato": BE-F3-03, FE-F3-05 (2) | **Aprovado** (lote) — Aprovado (2/2), nenhuma reprovação; leitura linha a linha de `statement-import/index.ts`/`lib.ts` (AC1/AC2) + `StatementImportFlow.tsx` (seleção inicial desmarcando duplicata, zero persistência antes da confirmação) + suíte de frontend completa 425/425 `PASS`, `tsc -b` limpo — `QA-REPORT.md` Seção 26 | 0 | Nenhum novo de QA (achado de segurança pré-existente `SEC-DEBT-015`/`BE-DEBT-04` reconfirmado como agora potencialmente ativo, encaminhado ao chapéu DevSecOps) |
+| 2026-09-18 (veredito de lote) | Lote "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15 (3) + QA-RS-04 (execução desta rodada) | **Aprovado com ressalvas** (lote) — Aprovado (3/3) + QA-RS-04 aprovada com ressalvas; suíte 448/448 PASS, build OK — `QA-REPORT.md` Seção 27 | 0 | `FE-DEBT-03` (simples: axe permanente + teste de layout do Dashboard); ressalvas: `QA-RS-02` não implementada, navegador real e assinatura N2 pendentes |

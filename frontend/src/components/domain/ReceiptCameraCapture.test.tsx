@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ReceiptCameraCapture } from "./ReceiptCameraCapture";
 import * as receiptImage from "../../lib/receiptImage";
@@ -157,5 +158,67 @@ describe("ReceiptCameraCapture — S-CAP-04 / UX-FL-04 (FE-F3-03)", () => {
 
       expect(await screen.findByAltText("Pré-visualização do recibo capturado")).toBeInTheDocument();
     });
+  });
+});
+
+describe("ReceiptCameraCapture — acessibilidade WCAG 2.1 AA (QA-F3-02)", () => {
+  afterEach(() => {
+    Object.defineProperty(navigator, "mediaDevices", { value: originalMediaDevices(), configurable: true });
+    vi.restoreAllMocks();
+  });
+
+  function originalMediaDevices() {
+    return navigator.mediaDevices;
+  }
+
+  it("estado 'unavailable' (câmera indisponível, só upload) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    Object.defineProperty(navigator, "mediaDevices", { value: undefined, configurable: true });
+    const { container } = render(<ReceiptCameraCapture onConfirm={vi.fn()} onCancel={vi.fn()} />);
+    await screen.findByText(/Câmera indisponível/);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estado 'streaming' (viewfinder + upload lado a lado) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const stream = makeStream();
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(stream) },
+    });
+    const { container } = render(<ReceiptCameraCapture onConfirm={vi.fn()} onCancel={vi.fn()} />);
+    await screen.findByText("Posicione o recibo dentro da moldura");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estado de pré-visualização (foto capturada) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const stream = makeStream();
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(stream) },
+    });
+    const { container } = render(<ReceiptCameraCapture onConfirm={vi.fn()} onCancel={vi.fn()} />);
+    await userEvent.click(await screen.findByRole("button", { name: /Capturar foto/ }));
+    await screen.findByAltText("Pré-visualização do recibo capturado");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("o <video> do viewfinder é aria-hidden (decorativo, sem legenda) — a instrução real é o texto visível 'Posicione o recibo dentro da moldura'", async () => {
+    const stream = makeStream();
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(stream) },
+    });
+    render(<ReceiptCameraCapture onConfirm={vi.fn()} onCancel={vi.fn()} />);
+    await screen.findByText("Posicione o recibo dentro da moldura");
+    const video = document.querySelector("video");
+    expect(video).not.toBeNull();
+    expect(video).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText("Posicione o recibo dentro da moldura")).toBeInTheDocument();
+  });
+
+  it("o input de arquivo (sr-only) tem nome acessível via <label htmlFor>, alcançável por teclado mesmo visualmente oculto", () => {
+    Object.defineProperty(navigator, "mediaDevices", { value: undefined, configurable: true });
+    render(<ReceiptCameraCapture onConfirm={vi.fn()} onCancel={vi.fn()} />);
+    const input = screen.getByLabelText("Selecionar arquivo");
+    expect(input).toHaveAccessibleName("Selecionar arquivo");
   });
 });

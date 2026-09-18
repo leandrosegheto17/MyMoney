@@ -45,7 +45,7 @@ describe("DashboardPage — S-DASH-01 (RF-MVP-05/06)", () => {
     expect(await screen.findByText("R$ 8.420,15")).toBeInTheDocument();
     expect(screen.getByText(/R\$ 6.200,00/)).toBeInTheDocument();
     expect(screen.getAllByText(/R\$ 980,00/).length).toBeGreaterThan(0);
-    expect(screen.getByText("42 este mês")).toBeInTheDocument();
+    expect(screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "42 este mês")).toBeInTheDocument();
   });
 
   it("gráfico é o 2º bloco visível, logo após os números-resumo (não anexo secundário)", async () => {
@@ -65,7 +65,7 @@ describe("DashboardPage — S-DASH-01 (RF-MVP-05/06)", () => {
     renderPage();
 
     expect(await screen.findByText("Nenhum lançamento este mês ainda")).toBeInTheDocument();
-    expect(screen.getByText("0 este mês")).toBeInTheDocument();
+    expect(screen.getByText((_, element) => element?.tagName === "P" && element.textContent === "0 este mês")).toBeInTheDocument();
   });
 
   it("estado de erro: mostra Banner de recarregamento", async () => {

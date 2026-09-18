@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { formatCentsToBRL } from "../../lib/currency";
+import { Num } from "../base/Num";
 
 export interface DonutChartSlice {
   id: string;
@@ -13,7 +13,19 @@ export interface DonutChartProps {
   onSliceClick?: (id: string) => void;
 }
 
-const PALETTE = ["#2563EB", "#16A34A", "#D97706", "#DC2626", "#7C3AED", "#0891B2", "#DB2777", "#4B5563"];
+// Paleta categórica — UX-SPEC Seção 3.0.1 Achado 2 (`UX-03`), `FE-RS-15`. Consome
+// os 8 tokens `--color-chart-N` de `index.css` (contraste ≥3:1 sobre `--surface`/
+// `--bg` já calculado e documentado lá) em vez de hex literal.
+const PALETTE = [
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+  "var(--color-chart-6)",
+  "var(--color-chart-7)",
+  "var(--color-chart-8)",
+];
 
 /**
  * DonutChart — UX-SPEC.md Seção 3.3: "Gráfico + legenda tocável, navega para lista
@@ -90,7 +102,7 @@ export function DonutChart({ slices, onSliceClick }: DonutChartProps) {
                   <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
                   <span className="flex-1 text-neutral-700">{slice.label}</span>
                   <span className="font-medium text-neutral-900">
-                    {formatCentsToBRL(slice.valueCents)} ({pct}%)
+                    <Num value={slice.valueCents} format="currency" /> (<Num value={pct} format="percent" />)
                   </span>
                 </button>
               </li>
@@ -128,8 +140,12 @@ export function DonutChart({ slices, onSliceClick }: DonutChartProps) {
               {slices.map((slice) => (
                 <tr key={slice.id}>
                   <td>{slice.label}</td>
-                  <td className="text-right tabular-nums">{formatCentsToBRL(slice.valueCents)}</td>
-                  <td className="text-right tabular-nums">{Math.round((slice.valueCents / total) * 100)}%</td>
+                  <td className="text-right tabular-nums">
+                    <Num value={slice.valueCents} format="currency" />
+                  </td>
+                  <td className="text-right tabular-nums">
+                    <Num value={Math.round((slice.valueCents / total) * 100)} format="percent" />
+                  </td>
                 </tr>
               ))}
             </tbody>

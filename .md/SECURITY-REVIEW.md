@@ -4888,3 +4888,88 @@ ponto de vista de DevSecOps: Aprovado com débito** (`SEC-DEBT-015`, Média
 severidade; deploy em staging liberado; deploy em **produção** deste lote
 condicionado a `BE-DEBT-04` estar `Concluída` — condição já pré-registrada
 em 1.31, confirmada ativa nesta rodada).
+
+
+---
+
+### 1.37 — Auditoria completa (veredito de lote) — "Dashboard (Redesign v2.0), Lote 1" — 2026-09-18
+
+**Gatilho**: `QA-REPORT.md` Seção 27 aprovou com ressalvas `FE-RS-05`,
+`FE-RS-06`, `FE-RS-15` e `QA-RS-04` (suíte 448/448, build OK). Auditoria feita
+sobre o estado real do disco (`git status`/`git diff` do working tree, alterações
+ainda não commitadas). Lote 100% frontend/apresentação.
+
+#### `static-security-analysis` / `security-requirement-validation`
+
+| Ponto verificado | Verificação | Resultado |
+|---|---|---|
+| (a) Chamada de API/query/Edge Function nova ou mudança de autorização | `git diff` de `DashboardPage.tsx`: única import nova é `Num` (`components/base/Num`, formatação pura via `Intl.NumberFormat`/`formatCentsToBRL`). Nenhum `fetch`, cliente Supabase, `api.*`, hook de dados novo; fonte de dados do dashboard inalterada | Passa |
+| (b) `dangerouslySetInnerHTML`/`innerHTML`/`eval` | Busca nos 4 arquivos de produção (`DashboardPage`, `DonutChart`, `Card`, `Num`): zero ocorrências | Passa |
+| (c) CSS inline com valor não sanitizado (SEC-DEBT-012) | Único `style=` do lote é `DonutChart.tsx:102` (`backgroundColor: color`), e `color` vem de `PALETTE[index % 8]`, agora constantes `var(--color-chart-N)` definidas em `index.css`. Nenhum dado de usuário/`category.color` chega a esse estilo. O lote reduz a superfície (antes hex literal). SEC-DEBT-012 não é tocado nem ampliado (segue restrito a `CategoryCard.tsx`) | Passa |
+| (d) `Card` `elevation` | Prop tipada `"sm" \| "md"`, mapeada por ternário a classes Tailwind estáticas; sem interpolação de entrada externa | Passa |
+| (e) `index.css` | Somente 8 custom properties `--color-chart-*` (hex estáticos) e comentário; sem `url()`/`@import` externo | Passa |
+| (f) Log/console/armazenamento local | Busca por `console.*`/`localStorage` nos arquivos de produção do lote: zero | Passa |
+
+#### `sensitive-data-exposure-check`
+
+- Testes novos (jest-axe em `AutoFillTag`, `CandidateList`, `DraftReviewBanner`,
+  `ReceiptCameraCapture`, `VoiceRecorderUI`; ajuste em `DashboardPage.test.tsx`)
+  usam fixtures sintéticas ("Supermercado", "Restaurante", ids `acc-1`/`txn-1`,
+  erro `network down`); nenhum token, e-mail, chave ou dado real.
+- `test/setup.ts`: apenas `expect.extend(toHaveNoViolations)`; sem segredo.
+- `AutoFillTag.tsx`: só troca de classe de cor (contraste WCAG); sem dado novo.
+- Nenhum payload de API, log ou mensagem de erro novo.
+- Resultado: nenhuma exposição.
+
+#### Dependências (`frontend/package.json` / `package-lock.json`)
+
+- Adições, todas `devDependencies`: `jest-axe@^9.0.0` e `@types/jest-axe@^3.5.9`
+  (+ transitivas: `axe-core`, `jest-diff`, `jest-matcher-utils`, `expect`,
+  `@jest/*`, `@types/jest`, `chalk` etc., ~620 linhas de lockfile).
+- Nenhuma dependência de runtime/produção adicionada: não entram no bundle
+  entregue ao usuário.
+- `resolved` de todas as entradas novas aponta ao registry npm oficial (nenhum
+  URL/git/tarball externo).
+- `npm audit` (completo e `--omit=dev`): **0 vulnerabilidades**.
+- Observação de higiene (informativa, sem débito): `@types/jest` transitivo
+  coexiste com Vitest; possível conflito de tipos globais é tema de build, não
+  de segurança (build já OK em QA Seção 27).
+
+#### `compliance-validation` (LGPD)
+
+- Nenhum dado pessoal novo coletado, tratado, persistido ou transmitido.
+  Valores exibidos (saldo, entradas, saídas, contagem, fatias do donut) são os
+  mesmos dados financeiros do próprio titular já servidos antes, apenas com
+  nova apresentação (`Num`).
+- Sem novo operador/terceiro, cookie, telemetria ou armazenamento local.
+- Nenhum achado de compliance.
+
+#### `finding-severity-classification`
+
+- Achados novos: **nenhum** (nem alta/crítica, nem média, nem baixa).
+- SEC-DEBT-012 (baixa, pré-existente): inalterado, sem agravamento.
+- Débitos que exigem nova tarefa em `Refatoração Lote-Dashboard (Redesign v2.0)`:
+  nenhum. `FE-DEBT-03` (QA, cobertura de teste) já existe no `TASK.md` e não é
+  de segurança. Nenhuma tarefa `FE-DEBT-NN` criada por DevSecOps.
+
+#### `security-report-drafting` — veredito
+
+- Achados que bloqueiam deploy: nenhum.
+- Alta/crítica em aberto: nenhuma. Compliance obrigatório em aberto: nenhum.
+- Requisitos de segurança operacional para DevOps: sem novos; manter gates
+  pré-existentes (`SEC-DEBT-015`/`BE-DEBT-04` para produção de outro lote).
+- Sinalização ao Gestor: nenhuma de relevância estratégica.
+
+**Checklist — Critérios de Pronto**: [x] nenhuma alta/crítica; [x] nenhum
+compliance pendente; [x] nenhum débito novo a rotear; [x] requisitos
+operacionais definidos (sem mudança); [x] nada estratégico a sinalizar.
+
+**Veredito do lote "Dashboard (Redesign v2.0), Lote 1" do ponto de vista de
+DevSecOps: Aprovado** (sem débito novo; apenas SEC-DEBT-012 pré-existente,
+inalterado).
+
+#### Log de Rodadas (DevSecOps)
+
+| Data | Lote / tarefas | Veredito | Alta/crítica | Débitos novos |
+|---|---|---|---|---|
+| 2026-09-18 | "Dashboard (Redesign v2.0), Lote 1": FE-RS-05, FE-RS-06, FE-RS-15, QA-RS-04 (Seção 1.37) | **Aprovado** | 0 | Nenhum (SEC-DEBT-012 pré-existente, inalterado) |

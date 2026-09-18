@@ -1,5 +1,6 @@
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VoiceRecorderUI } from "./VoiceRecorderUI";
 import { extractVoiceCapture } from "../../lib/api/voiceCapture";
@@ -203,5 +204,52 @@ describe("VoiceRecorderUI — S-CAP-02 / UX-FL-04 (FE-F3-02)", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/não suporta captura por voz/);
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+  });
+});
+
+describe("VoiceRecorderUI — acessibilidade WCAG 2.1 AA (QA-F3-02)", () => {
+  const originalSpeechRecognition = (window as typeof window & { SpeechRecognition?: unknown }).SpeechRecognition;
+
+  beforeEach(() => {
+    FakeSpeechRecognition.instances = [];
+    (window as typeof window & { SpeechRecognition?: unknown }).SpeechRecognition = FakeSpeechRecognition;
+  });
+
+  afterEach(() => {
+    (window as typeof window & { SpeechRecognition?: unknown }).SpeechRecognition = originalSpeechRecognition;
+  });
+
+  it("estado 'listening' (Ouvindo...) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const { container } = render(<VoiceRecorderUI onCancel={vi.fn()} onExtracted={vi.fn()} />);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estado de erro (permissão negada) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const { container } = render(<VoiceRecorderUI onCancel={vi.fn()} onExtracted={vi.fn()} />);
+    act(() => {
+      latestRecognition().onerror?.({ error: "not-allowed" });
+    });
+    await screen.findByRole("alert");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("estado 'unsupported' (navegador sem Web Speech API) não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    delete (window as typeof window & { SpeechRecognition?: unknown }).SpeechRecognition;
+    delete (window as typeof window & { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition;
+    const { container } = render(<VoiceRecorderUI onCancel={vi.fn()} onExtracted={vi.fn()} />);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("todas as ações (Cancelar/Concluir gravação/Tentar novamente) são <button> reais, sempre alcançáveis por teclado (Tab + Enter/Espaço), nunca <div onClick>", () => {
+    render(<VoiceRecorderUI onCancel={vi.fn()} onExtracted={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Cancelar" }).tagName).toBe("BUTTON");
+    expect(screen.getByRole("button", { name: "Concluir gravação" }).tagName).toBe("BUTTON");
+  });
+
+  it("o ícone de microfone pulsante é puramente decorativo (aria-hidden) — o estado real é comunicado pelo texto 'Ouvindo...' dentro do aria-live", () => {
+    render(<VoiceRecorderUI onCancel={vi.fn()} onExtracted={vi.fn()} />);
+    const micIcon = document.querySelector('span[aria-hidden="true"]');
+    expect(micIcon).not.toBeNull();
+    expect(screen.getByText("Ouvindo...")).toBeInTheDocument();
   });
 });

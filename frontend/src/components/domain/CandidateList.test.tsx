@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { CandidateList } from "./CandidateList";
@@ -42,5 +43,40 @@ describe("CandidateList — S-CAP-07 (FE-F3-05)", () => {
     );
 
     expect(screen.getByText(/2 transações encontradas/)).toHaveTextContent("2 selecionadas");
+  });
+});
+
+describe("CandidateList — acessibilidade WCAG 2.1 AA (QA-F3-02)", () => {
+  it("estado vazio não tem violações de acessibilidade detectáveis por axe-core", async () => {
+    const { container } = renderList([]);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("lista com item duplicado (checkbox + ⚠ decorativo + hint textual) não tem violações de acessibilidade", async () => {
+    const { container } = renderList(
+      [
+        { key: "a", date: "2026-08-12", description: "Supermercado", amountCents: 1000, kind: "expense", isDuplicate: false, duplicateOfTransactionId: null },
+        { key: "b", date: "2026-08-13", description: "Restaurante", amountCents: 2000, kind: "expense", isDuplicate: true, duplicateOfTransactionId: "txn-1" },
+      ],
+      new Set(["a"]),
+    );
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("cada checkbox tem nome acessível (via <label> envolvente) — nunca um input 'mudo' para leitor de tela", () => {
+    renderList([
+      { key: "a", date: "2026-08-12", description: "Supermercado", amountCents: 1000, kind: "expense", isDuplicate: false, duplicateOfTransactionId: null },
+    ]);
+    const checkbox = screen.getByRole("checkbox");
+    expect(checkbox).toHaveAccessibleName(/Supermercado/);
+  });
+
+  it("o indicador '⚠' de duplicata é decorativo (aria-hidden) — a informação real é veiculada pelo texto 'Possível duplicata...' adjacente, nunca só pelo ícone", () => {
+    renderList([
+      { key: "a", date: "2026-08-12", description: "Restaurante", amountCents: 2000, kind: "expense", isDuplicate: true, duplicateOfTransactionId: "txn-1" },
+    ]);
+    const icon = screen.getByText("⚠");
+    expect(icon).toHaveAttribute("aria-hidden", "true");
+    expect(screen.getByText(/Possível duplicata de lançamento existente/)).toBeInTheDocument();
   });
 });
