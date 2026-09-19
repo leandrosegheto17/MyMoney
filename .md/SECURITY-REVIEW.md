@@ -5080,3 +5080,14 @@ Nenhum achado (0 crítico/alto/médio/baixo). Sem débito de segurança novo; `S
 | Data | Lote / tarefas | Veredito | Alta/crítica | Débitos novos |
 |---|---|---|---|---|
 | 2026-09-18 | "Auth/Onboarding (Redesign v2.0), Lote 5": FE-RS-16..22, QA-RS-08 (Seção 1.40) | **Aprovado** | 0 | Nenhum |
+
+### 1.41 — Auditoria de Refatoração — "Refatoração Lote-5 (FE-DEBT-06)" — 2026-09-18
+
+Pré-condição: QA (Seção 31) Aprovado com ressalvas, sem alta/crítica. Commit `247052e`, branch `fe-debt-06`.
+
+- Escopo: estado `loading` de `AuthGate.tsx` e `OnboardingGate.tsx` (troca de container visual para `AuthLayout`) mais testes. Sem lógica de autenticação, sessão, PIN, lockout ou WebAuthn alterada; o `switch` de `stage` dos demais casos está intacto (conferido por `git diff`).
+- `lib/auth`: só o `loading` de `AuthGate.tsx`, coberto pela autorização explícita do usuário (G-21). Zero alteração em `lib/api/**`, `supabase/**`, `API-CONTRACT.yaml`.
+- Sem novo dado sensível, log, armazenamento local, dependência ou endpoint; `role="status"`/`aria-label` mantidos. Testes de RF-MVP-08 (lockout, PIN, PinSetup, UnlockPage) verdes nas 3 execuções.
+- Achados de segurança: nenhum. FE-DEBT-07 (timeouts sob carga) é débito de QA, sem redução de cobertura das asserções de segurança.
+
+**Veredito (chapéu DevSecOps): Aprovado**, sem débito de segurança novo. Requisitos operacionais ao DevOps inalterados. Nenhuma sinalização ao Gestor.
