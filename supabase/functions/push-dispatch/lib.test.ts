@@ -17,7 +17,7 @@ Deno.test("isAuthorizedCronRequest: aceita quando os valores coincidem exatament
   assertEquals(isAuthorizedCronRequest("segredo-real", "segredo-real"), true);
 });
 
-Deno.test("buildPushPayload: notificação de orçamento monta título/corpo/data corretos", () => {
+Deno.test("buildPushPayload: notificação de orçamento tem payload genérico (sem categoria/percentual) e data correto", () => {
   const payload = buildPushPayload({
     id: "11111111-1111-1111-1111-111111111111",
     user_id: "22222222-2222-2222-2222-222222222222",
@@ -27,13 +27,16 @@ Deno.test("buildPushPayload: notificação de orçamento monta título/corpo/dat
     related_entity_id: "33333333-3333-3333-3333-333333333333",
   });
   assertEquals(payload.title, "Orçamento");
-  assertEquals(payload.body, "Orçamento de Alimentação está próximo do teto (85% gasto)");
+  assertEquals(payload.body, "Orçamento requer atenção");
+  const serialized = JSON.stringify(payload);
+  assertEquals(serialized.includes("Alimentação"), false);
+  assertEquals(serialized.includes("85"), false);
   assertEquals(payload.data.notification_id, "11111111-1111-1111-1111-111111111111");
   assertEquals(payload.data.type, "budget_alert");
   assertEquals(payload.data.related_entity_type, "budget_warning");
 });
 
-Deno.test("buildPushPayload: notificação de conta fixa monta título correto", () => {
+Deno.test("buildPushPayload: notificação de conta fixa tem payload genérico (sem descrição)", () => {
   const payload = buildPushPayload({
     id: "id",
     user_id: "user",
@@ -43,7 +46,8 @@ Deno.test("buildPushPayload: notificação de conta fixa monta título correto",
     related_entity_id: "bill-id",
   });
   assertEquals(payload.title, "Conta fixa");
-  assertEquals(payload.body, "Aluguel vence em 15/09");
+  assertEquals(payload.body, "Conta a vencer");
+  assertEquals(JSON.stringify(payload).includes("Aluguel"), false);
 });
 
 Deno.test("isExpiredSubscriptionStatus: reconhece 404 e 410 como expirado", () => {

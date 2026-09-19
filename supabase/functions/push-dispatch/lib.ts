@@ -42,13 +42,18 @@ export interface PushPayload {
   };
 }
 
-/** DIR-14: título curto + mensagem completa no corpo; `data` carrega o
- *  suficiente pro client navegar até a entidade relacionada ao tocar. */
+/** BE-DEBT-03/SEC-DEBT-014: a notificação nativa do SO aparece com o aparelho
+ *  bloqueado — título/corpo são genéricos (sem categoria, percentual nem
+ *  descrição de conta). O detalhe completo fica só em `notifications.message`,
+ *  lido no NotificationCenter após autenticação. `data` carrega o suficiente
+ *  pro client navegar até a entidade relacionada ao tocar. */
 export function buildPushPayload(notification: NotificationRow): PushPayload {
-  const title = notification.type === "budget_alert" ? "Orçamento" : "Conta fixa";
+  const generic = notification.type === "budget_alert"
+    ? { title: "Orçamento", body: "Orçamento requer atenção" }
+    : { title: "Conta fixa", body: "Conta a vencer" };
   return {
-    title,
-    body: notification.message,
+    title: generic.title,
+    body: generic.body,
     data: {
       notification_id: notification.id,
       type: notification.type,
