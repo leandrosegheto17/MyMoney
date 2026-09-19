@@ -2107,6 +2107,23 @@ rodar.
 
 **Lacunas**: sem verificação autenticada/visual do BudgetPage em staging; NFR (Lighthouse etc.) não medido; observabilidade inalterada (§5, sem alerta próprio); rollback não exercitado. Pendências de §9.14 (migrations, Edge Functions, `BE-DEBT-04` para produção) seguem abertas, acrescidas das migrations be-debt acima.
 
+### 9.16 Execução — 2026-09-19 (lote "Orçamento (Redesign v2.0), Lote 6") — PRODUÇÃO, frontend apenas
+
+**Escopo**: chapéu DevOps, `/deploy` etapa 5, com confirmação EXPLÍCITA do usuário para produção. Código = HEAD `832bae5` (frontend idêntico ao validado em `8b18aec`; só docs mudaram depois), working tree limpa, via `git archive HEAD frontend` em diretório temporário + mesmo `.vercel/project.json` (`objetivo-financeiro-ljs`), como §9.14/9.15.
+
+**Rollback (registrado antes de publicar)**: produção anterior = `dpl_3GRgrfBb7qpBq7rNjWA7YzzdGS6v` (`objetivo-financeiro-q5ji7lqiw-leandrosegheto17s-projects.vercel.app`, `READY`, 9 dias, aliases `objetivo-financeiro-ljs.vercel.app` e `-leandrosegheto17s-projects`). Reverter: `npx vercel promote <url>` ou `npx vercel alias set <url> objetivo-financeiro-ljs.vercel.app`. Não exercitado.
+
+**Publicado**: `npx vercel deploy --prod --yes` -> `dpl_HvMayKWbxX5ePndANJAvHApygSx9`, `target: production`, `READY`, build 28s, URL `https://objetivo-financeiro-4vlc8ocxc-leandrosegheto17s-projects.vercel.app`. É um build novo de produção (não promote do artefato de staging, §9.6), portanto o bundle não é byte-idêntico ao de staging. Aliases de produção reatribuídos automaticamente.
+
+**Verificações**: `vercel inspect` (READY, production, aliases corretos); `vercel ls` mostra 1 deployment novo; `curl https://objetivo-financeiro-ljs.vercel.app` = 200 e bundle `assets/index-BqtIWPVC.js` = 200. Não executados: migrations, Edge Functions, alteração de env vars/flags.
+
+**Importação de Extrato (SEC-DEBT-015/BE-DEBT-04)**: o frontend não tem feature flag de código para a importação (a opção "Importar extrato" do CaptureFab está no bundle). O bloqueio efetivo é de backend: `statement-import` NÃO publicada no Supabase (última verificação §9.14; `supabase functions list` agora retorna 403, não reverificado) e nenhuma migration be-debt aplicada. Nenhuma flag alterada; a importação degrada por função ausente, o que é bloqueio implícito, não uma flag desligada.
+
+**Lacunas / achados**:
+1. `vercel env ls`: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` existem só para Preview; produção não tem env vars e o bundle de produção não contém URL do Supabase. O app em produção provavelmente não fala com o backend (já era assim no build anterior, herança de §9.13). Não alterado por restrição. Ação humana: definir as vars em Production e redeployar. Ver Bloqueio 026.
+2. Sem smoke autenticado/funcional do BudgetPage; NFR não medido; observabilidade inalterada (§5); rollback não exercitado.
+3. Pendências de §9.14/9.15 (migrations, functions, BE-DEBT-04) seguem abertas.
+
 ## 10. Incidentes Pós-Deploy
 
 **Staging**: nenhum incidente registrado nos 8 deploys realizados (§9.2-9.5,

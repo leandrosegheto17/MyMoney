@@ -3240,3 +3240,10 @@ quem reportou.
   especificamente, a funcionalidade de auto-preenchimento por voz/foto
   estar de fato operante em qualquer ambiente até a publicação ser
   concluída por alguém com a permissão necessária.
+
+## Bloqueio 026 — 2026-09-19
+
+**Origem**: validador (chapéu DevOps), `/deploy` etapa 5, deploy de produção `dpl_HvMayKWbxX5ePndANJAvHApygSx9` (DEPLOY.md §9.16).
+**Status**: Aberto (ação humana).
+**Descrição**: o projeto Vercel `objetivo-financeiro-ljs` tem `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` apenas em Preview. O build de produção (novo e o anterior) não embute a URL do Supabase, então o app em produção provavelmente não acessa o backend. Não corrigido: o usuário proibiu alterar env vars nesta rodada.
+**Ação sugerida**: adicionar as duas vars ao ambiente Production e redeployar. Também: a Importação de Extrato não tem flag de código; o bloqueio de produção (SEC-DEBT-015/BE-DEBT-04) depende só de `statement-import` não estar publicada.
