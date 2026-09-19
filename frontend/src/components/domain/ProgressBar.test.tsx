@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
 import { describe, expect, it } from "vitest";
 import { ProgressBar } from "./ProgressBar";
 
@@ -43,5 +44,14 @@ describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () 
     expect(bar).toHaveAttribute("aria-valuemax", "100");
     expect(bar).toHaveAttribute("aria-valuetext", "120% do orçamento utilizado");
     expect(screen.getByText(/120% do teto .estourado./)).toBeInTheDocument();
+  });
+
+  it.each([
+    ["none", 34],
+    ["warning", 85],
+    ["exceeded", 120],
+  ] as const)("axe: sem violações no nível %s", async (level, pct) => {
+    const { container } = render(<ProgressBar label="Lazer" pctSpent={pct} alertLevel={level} detailText="R$ 1,00 de R$ 2,00" />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

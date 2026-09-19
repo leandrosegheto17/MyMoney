@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../components/base/Toast";
+import { ApiError } from "../../lib/api/errors";
 
 const budgetMocks = vi.hoisted(() => ({
   getBudgetStatus: vi.fn(),
@@ -80,8 +81,10 @@ describe("BudgetPage — S-BUD-01/02 (RF-REF-06, grade de BudgetCard, RN-04)", (
     renderPage();
     expect(await screen.findByText("Alimentação")).toBeInTheDocument();
     expect(screen.getByText(/⚠/)).toBeInTheDocument();
-    expect(screen.getByText(/85% do teto/)).toBeInTheDocument();
-    expect(screen.getByText("R$ 850,00 de R$ 1.000,00")).toBeInTheDocument();
+    // Tolerante a fragmentação de texto (ex.: `Num` dividindo valores em spans).
+    const card = screen.getByRole("button", { name: "Editar orçamento de Alimentação" });
+    expect(card).toHaveTextContent(/85% do teto/);
+    expect(card).toHaveTextContent(/R\$\s*850,00\s*de\s*R\$\s*1\.000,00/);
   });
 
   it("nunca renderiza card vazio para categoria sem orçamento definido no mês (AC4) — grade contém só as categorias de get_budget_status", async () => {
@@ -141,5 +144,84 @@ describe("BudgetPage — S-BUD-01/02 (RF-REF-06, grade de BudgetCard, RN-04)", (
     await userEvent.click(await screen.findByRole("button", { name: "+ Novo orçamento" }));
     expect(await screen.findByRole("heading", { name: "Novo orçamento" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Remover orçamento" })).not.toBeInTheDocument();
+  });
+});
+
+const CAT_1 = { id: "cat-1", user_id: "u1", name: "Alimentação", kind: "expense", parent_category_id: null, icon: null, color: null, created_at: "", updated_at: "" };
+
+async function fillNewForm(threshold?: string) {
+  await userEvent.click(await screen.findByRole("button", { name: "+ Novo orçamento" }));
+  await userEvent.selectOptions(await screen.findByLabelText(/Categoria/), "cat-1");
+  await userEvent.type(screen.getByLabelText(/Teto/), "50000");
+  if (threshold) await userEvent.selectOptions(screen.getByLabelText("Limiar de alerta"), threshold);
+  await userEvent.click(screen.getByRole("button", { name: "Salvar" }));
+}
+
+describe("BudgetPage — caracterização (FE-RS-26)", () => {
+  it("carregando: role=status 'Carregando orçamentos' enquanto a carga não resolve", () => {
+    budgetMocks.getBudgetStatus.mockReturnValue(new Promise(() => {}));
+    renderPage();
+    expect(screen.getByRole("status", { name: "Carregando orçamentos" })).toBeInTheDocument();
+  });
+
+  it("erro de carga: exibe Alert com a mensagem do ApiError", async () => {
+    budgetMocks.getBudgetStatus.mockRejectedValue(new ApiError({ message: "Falha X", kind: "network" }));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Falha X");
+    expect(screen.queryByRole("status", { name: "Carregando orçamentos" })).not.toBeInTheDocument();
+  });
+
+  it("erro de carga genérico: mensagem padrão", async () => {
+    budgetMocks.getBudgetStatus.mockRejectedValue(new Error("boom"));
+    renderPage();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Não foi possível carregar os orçamentos.");
+  });
+
+  it("criar: chama createBudget com {category_id, month, limit_cents, alert_threshold_pct}", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    budgetMocks.createBudget.mockResolvedValue(BUDGET_1);
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await fillNewForm("90");
+    expect(budgetMocks.createBudget).toHaveBeenCalledWith({ category_id: "cat-1", month: "2026-09-01", limit_cents: 50000, alert_threshold_pct: 90 });
+  });
+
+  it.each(["70", "80", "90"])("limiar %s%% é enviado em alert_threshold_pct", async (pct) => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    budgetMocks.createBudget.mockResolvedValue(BUDGET_1);
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await fillNewForm(pct);
+    expect(budgetMocks.createBudget).toHaveBeenCalledWith(expect.objectContaining({ alert_threshold_pct: Number(pct) }));
+  });
+
+  it("validação: sem categoria e sem teto mostra as duas mensagens e não chama a API", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    renderPage();
+    await userEvent.click(await screen.findByRole("button", { name: "+ Novo orçamento" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Salvar" }));
+    expect(await screen.findByText("Selecione a categoria.")).toBeInTheDocument();
+    expect(screen.getByText("Informe um teto maior que zero.")).toBeInTheDocument();
+    expect(budgetMocks.createBudget).not.toHaveBeenCalled();
+    expect(budgetMocks.updateBudget).not.toHaveBeenCalled();
+  });
+
+  it("saveError: falha de ApiError ao salvar exibe a mensagem e mantém o modal aberto", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    budgetMocks.createBudget.mockRejectedValue(new ApiError({ message: "Orçamento duplicado", kind: "conflict" }));
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await fillNewForm();
+    expect(await screen.findByText("Orçamento duplicado")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Novo orçamento" })).toBeInTheDocument();
+  });
+
+  it("edição: select de categoria fica desabilitado", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([STATUS_WARNING]);
+    budgetMocks.listBudgets.mockResolvedValue([BUDGET_1]);
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await userEvent.click(await screen.findByRole("button", { name: "Editar orçamento de Alimentação" }));
+    expect(await screen.findByLabelText(/Categoria/)).toBeDisabled();
   });
 });

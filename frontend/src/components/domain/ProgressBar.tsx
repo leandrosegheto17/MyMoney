@@ -19,10 +19,10 @@ export interface ProgressBarProps {
   detailTextClassName?: string;
 }
 
-const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; textClass: string }> = {
-  none: { barClass: "bg-primary", icon: "", textClass: "text-neutral-600" },
-  warning: { barClass: "bg-warning", icon: "⚠", textClass: "text-warning" },
-  exceeded: { barClass: "bg-danger", icon: "⛔", textClass: "text-danger" },
+const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; iconClass: string }> = {
+  none: { barClass: "bg-primary", icon: "", iconClass: "" },
+  warning: { barClass: "bg-warning", icon: "⚠", iconClass: "text-[color:var(--color-warning)]" },
+  exceeded: { barClass: "bg-danger", icon: "⛔", iconClass: "text-danger" },
 };
 
 /**
@@ -42,8 +42,12 @@ export function ProgressBar({ label, pctSpent, alertLevel, detailText, detailTex
         <span className="min-w-0 flex-1 truncate font-medium text-neutral-800" title={label}>
           {label}
         </span>
-        <span className={["shrink-0 font-medium", config.textClass].join(" ")}>
-          {config.icon && <span aria-hidden="true">{config.icon} </span>}
+        <span className="shrink-0 font-medium text-neutral-800">
+          {config.icon && (
+            <span aria-hidden="true" className={config.iconClass}>
+              {config.icon}{" "}
+            </span>
+          )}
           {roundedPct}%{alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
         </span>
       </div>
