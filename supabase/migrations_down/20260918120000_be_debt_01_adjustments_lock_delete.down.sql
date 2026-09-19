@@ -1,0 +1,4 @@
+-- Rollback manual de 20260918120000_be_debt_01_adjustments_lock_delete.sql
+
+drop trigger if exists recurring_template_adjustments_before_delete_lock on public.recurring_template_adjustments;
+drop function if exists public.recurring_template_adjustments_lock_delete_when_effective();
