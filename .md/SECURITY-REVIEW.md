@@ -5091,3 +5091,24 @@ Pré-condição: QA (Seção 31) Aprovado com ressalvas, sem alta/crítica. Comm
 - Achados de segurança: nenhum. FE-DEBT-07 (timeouts sob carga) é débito de QA, sem redução de cobertura das asserções de segurança.
 
 **Veredito (chapéu DevSecOps): Aprovado**, sem débito de segurança novo. Requisitos operacionais ao DevOps inalterados. Nenhuma sinalização ao Gestor.
+
+### 1.42 — Auditoria completa (veredito de lote) — "Orçamento (Redesign v2.0), Lote 6" — 2026-09-19
+
+Pré-condição: QA (Seção 32) Aprovado com ressalvas, sem alta/crítica. Diff `cda0452..d707e21` (branch `lote6-orcamento`), FE-RS-23..28 e QA-RS-09.
+
+- `static-security-analysis`: 8 arquivos, só `frontend/src/components/domain` (ProgressBar, BudgetCard e testes), `pages/budget/BudgetPage(.test).tsx`, `TASK.md`, `QA-REPORT.md`. Sem `dangerouslySetInnerHTML`, `eval`, `innerHTML`, `console.*`, `fetch`, `localStorage`, token/segredo/PII (grep no diff). Fixtures de teste usam valores sintéticos.
+- Injeção: `detailText` passou de `string` para `ReactNode`; o conteúdo é JSX com `Num`, que renderiza texto via `Intl.NumberFormat`/`formatCentsToBRL` a partir de `number`, escapado pelo React. `label` segue como texto. Sem superfície de injeção.
+- `security-requirement-validation` (SDD Seção 7): zero alteração em `lib/api`, `lib/auth`, `supabase/**`, `API-CONTRACT.yaml`; ownership/RLS/`withOwnerId` não afetados; G-21 não acionado.
+- Dependências: `package.json`/lockfile inalterados; `npm audit --omit=dev`: 0 vulnerabilidades.
+- `compliance-validation` (LGPD): sem novo dado pessoal, cookie, telemetria ou armazenamento.
+- `BLOCKERS.md`: nenhum bloqueio Aberto toca o Lote 6.
+
+#### `finding-severity-classification`
+
+Nenhum achado (0 crítico/alto/médio/baixo). Sem débito de segurança novo; `SEC-DEBT` abertos inalterados.
+
+**Veredito (chapéu DevSecOps) do Lote 6: Aprovado.** Dupla aprovação concedida; deploy não executado. Requisitos operacionais ao DevOps inalterados. Nenhuma sinalização ao Gestor.
+
+| Data | Lote / tarefas | Veredito | Alta/crítica | Débitos novos |
+|---|---|---|---|---|
+| 2026-09-19 | "Orçamento (Redesign v2.0), Lote 6": FE-RS-23..28, QA-RS-09 (Seção 1.42) | **Aprovado** | 0 | Nenhum |
