@@ -1155,10 +1155,87 @@ para 6.25 dias ideais, se o padrão dos Lotes 1-4 se repetir.
 Seção 5: Frontend +5.25, QA +1.0, total remanescente ≈ 156.25 + 6.25 (contando o Grupo B
 detalhado; Lotes 6-13 continuam sem estimativa).
 
+### 3.5.2 Redesign Visual "MyMoney v2.0" — Lote 6 (Orçamento), detalhamento
+
+**Nova subseção — 2026-09-18.** Segundo lote do Grupo B detalhado (Bloqueio 021, item
+1; condição vinculante já satisfeita, ver 3.5.1). Numeração sequencial `RS`:
+últimas usadas `FE-RS-22` e `QA-RS-08` → novas `FE-RS-23` a `FE-RS-28` e `QA-RS-09`.
+**Nenhuma tarefa de Backend/SQL** (G-20/RN-19; zero arquivo em `supabase/**`,
+`lib/api/**`, `lib/auth/**`, `API-CONTRACT.yaml` — G-21). Status inicial `Não iniciada`.
+Execução em **worktree própria** (memória do projeto: `/executar` nunca na árvore
+principal). Pré-requisitos já atendidos: Lote 0 e Lote 4 fechados; `FE-DEBT-06`/`07`
+(prazo "antes do fechamento do Lote 6") `Concluída`; `FE-DEBT-02` (`aria-valuenow`
+do `ProgressBar`) já em produção — **não pode regredir**. Nenhum bloqueio Aberto de
+`BLOCKERS.md` identificado como tocando `BudgetPage`/`ProgressBar`/`BudgetCard`
+(busca por termos de Orçamento + leitura dos cabeçalhos/escopo dos Abertos 009, 020,
+025; os demais Abertos são de infra/segurança/backend). Nenhum registro novo foi
+necessário.
+
+**Escopo (inventário por leitura do código, 2026-09-18)**: `BudgetPage`
+(`S-BUD-01` grade + `S-BUD-02` modal + `ConfirmationDialog`), `BudgetCard`,
+`ProgressBar` (compartilhado com `DashboardPage`, bloco "Orçamentos do mês"; o
+`GoalProgressBar` de Metas é componente distinto e **não** é tocado — Lote 9).
+**Achados de base**: (1) `ProgressBar` usa `text-warning` como cor de **texto** (viola
+`DIR-44`/UX-SPEC Seção 5; `--warn` ≈3:1); (2) `formatCentsToBRL` cru em
+`BudgetCard` (string `"R$ x de R$ y"` em prop `detailText: string`) e `{pct}%` cru em
+`ProgressBar` — dívida `Num` (ADR-019) que exige alargar `detailText` para
+`ReactNode`; (3) **cobertura de página insuficiente**: `BudgetPage.test.tsx` cobre
+vazio/grade/AC1/AC4/editar/remover, mas **não** cobre carregando, erro de carga,
+criação (payload `createBudget` com `monthKey()`), validação de categoria/teto,
+`saveError` nem categoria travada na edição — caracterização antes da migração
+(mesma disciplina do Lote 5); (4) os testes atuais usam `getByText("R$ 850,00 de R$
+1.000,00")` e `/85% do teto/`, que **quebram por fragmentação de nós** ao migrar
+`Num` (precedente: `FE-RS-06`/`FE-RS-13` ajustaram matcher, mesma asserção semântica).
+
+#### Frontend
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| FE-RS-23 | Skin v2.0 do `ProgressBar` (`components/domain/ProgressBar.tsx`) **sem tocar números**: texto do percentual em `neutral-800` (remove `text-warning` como cor de texto, `DIR-44`); glifo `⚠`/`⛔` mantido em `<span aria-hidden>` com cor `--warn`/`--danger` como elemento gráfico; estouro pode manter `text-danger`; trilho/preenchimento com tokens (sem hex/rampa Tailwind, `DIR-46`). **`role`/`aria-*` (incl. `aria-valuenow` clampado 0-100, `aria-valuetext` >100, `min`/`max`), largura clampada em 100%, textos "do teto"/"(estourado)", props e `detailTextClassName` inalterados** | Frontend | `UX-SPEC.md` Seção 2.2 (bloco "Lote 6"), Seção 5; `DIR-44`, `DIR-46`; RN-04; RF-MVP-07 AC2-4; `FE-DEBT-02` | `ProgressBar.test.tsx` existente passa **sem alterar nenhuma asserção**; `toHaveNoViolations()` adicionado nos 3 níveis; grep: zero `text-warning` no componente, zero hex/`red-*`/`amber-*`; contraste do texto do percentual ≥4,5:1 sobre `surface`, `warning-soft` e `danger-soft`; `DashboardPage.test.tsx` passa sem alteração | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+| FE-RS-24 | Migrar `ProgressBar` para `<Num />`: percentual `{roundedPct}%` → `<Num format="percent" />` (sufixo "do teto"/"(estourado)" **fora** do primitivo, nó irmão); `detailText` alargado de `string` para `ReactNode` (compatível; `GoalProgressBar`/demais consumidores não afetados); `aria-valuetext` permanece `string` simples. `ADR-019`, `DIR-41` | Frontend | `UX-SPEC.md` Seção 2.2 (bloco "Lote 6"), 3.2 (`Num`); `ADR-019` | Todo percentual do componente via `<Num />`; nenhum `{n}%` cru restante (grep); `ProgressBar.test.tsx` ajustado **somente** nos matchers de texto afetados pela fragmentação (mesma asserção semântica, registrado na nota), todo o resto e o teste QA-DEBT-010 intactos; `DashboardPage.test.tsx` passa sem alteração de asserção; `npm run build` sem erro | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+| FE-RS-25 | `BudgetCard` (`components/domain/BudgetCard.tsx`): migrar `detailText` para `<Num format="currency" />` × 2 com " de " fora do primitivo (usa o `ReactNode` de `FE-RS-24`); verificar tokens/foco (`focus-visible` `primary`, `Card` v2.0); **preservar** `aria-label` "Editar orçamento de X", `aria-describedby`, `data-severity`, `border-2`+`style` inline de severidade e overrides de contraste (`neutral-600` em alerta/estouro, `neutral-500` em normal). Sem mudança de props | Frontend | `UX-SPEC.md` Seção 2.2 (bloco "Lote 6"), 2.1 (Padrão C); `ADR-019`; DIR-41/44 | `BudgetCard.test.tsx` ajustado só nos matchers fragmentados (`"R$ 820,00 de R$ 1.000,00"` → verificação por `textContent`/`toHaveTextContent`, mesma semântica) e **+ `toHaveNoViolations()` nas 3 severidades**; testes de destaque, `aria-describedby` (texto descrito continua contendo "R$ 800,00 de R$ 1.000,00" e "80%"), contraste e truncate passam; nenhum `formatCentsToBRL` cru (grep) | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+| FE-RS-26 | **Rede de segurança de `BudgetPage`** (só `BudgetPage.test.tsx`, nenhum código de produção): (a) novos casos de caracterização contra o código **atual** — carregando (`role="status"` "Carregando orçamentos"), erro de carga (`Alert`), criar (payload `createBudget({category_id, month: monthKey(), limit_cents, alert_threshold_pct})`), validação "Selecione a categoria."/"Informe um teto maior que zero." sem chamar API, `saveError` (`ApiError`), categoria desabilitada na edição, limiar 70/80/90; (b) reescrever as 2 asserções existentes sensíveis a `Num` (linhas do `getByText` de valores/percentual) para forma **tolerante a fragmentação** (`toHaveTextContent` no card), verdes antes **e** depois da migração | Frontend | `RF-REF-06` AC1-4; RN-04; RF-MVP-07; mesma disciplina de caracterização de `FE-RS-18` a `22` | Todos os testes novos e reescritos passam contra o código **pré-migração** (execução registrada na nota); nenhum arquivo fora de `BudgetPage.test.tsx` alterado; nenhuma asserção existente de comportamento removida/relaxada; `updateBudget` chamado com `{limit_cents, alert_threshold_pct}` (sem `category_id`) coberto | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+| FE-RS-27 | Migrar **`S-BUD-01`** em `BudgetPage.tsx` (região grade/cabeçalho/estados): `h1` serifado (`font-serif font-medium`, padrão de `S-TXN-01`) + "+ Novo orçamento" à direita; grade Padrão C (`CARD_GRID_CLASSES`) e skeleton de 6 cards preservados (token, sem hex); `EmptyState` e `Alert` de erro mantidos; grade dirigida **só** por `BudgetStatusItem` (regressão AC1) | Frontend | `UX-SPEC.md` Seção 2.2 (bloco "Lote 6"), 4.2; RF-REF-06 AC1-4; RN-04 | `BudgetPage.test.tsx` (com `FE-RS-26`) passa sem alterar asserção de comportamento; 4 estados (vazio/carregando/erro/sucesso) cobertos; `toHaveNoViolations()` em grade com 3 severidades, vazio e erro; `h1` único; nenhum `getBudgetStatus`/`listBudgets`/`listCategories` alterado nem chamada nova; **não altera** a região do `Modal`/`ConfirmationDialog` (`FE-RS-28`) | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+| FE-RS-28 | Migrar **`S-BUD-02`** em `BudgetPage.tsx` (região `Modal` + `ConfirmationDialog`): sem mudança estrutural (campos `Select` categoria/`CurrencyInput` teto/`Select` limiar, botões, ordem de foco, "Remover orçamento" `Button ghost` existente); verificar espaçamento/tokens do formulário no `Modal` do Lote 0; a11y do modal aberto | Frontend | `UX-SPEC.md` Seção 2.2 (bloco "Lote 6"); RF-MVP-07; RN-04 | Testes de `FE-RS-26` (criar/validar/erro/editar/remover) passam sem alteração; `toHaveNoViolations()` com modal aberto (novo e edição) e com `ConfirmationDialog`; foco preso/retorno ao card preservados; nenhuma variante de `Button` nova; sem `formatCentsToBRL` cru | 0.5 dia | Não iniciada | Orçamento (Redesign v2.0) |
+
+#### QA
+
+| ID | Tarefa | Time | Origem (componente/tela) | Critério de Aceite | Estimativa | Status | Lote |
+|---|---|---|---|---|---|---|---|
+| QA-RS-09 | Fechamento do Lote 6 (Orçamento), com **regressão cruzada no Dashboard** (`ProgressBar` compartilhado): (a) N4 — suíte completa + `npm run build` + `tsc` (`DIR-45`), com `DashboardPage.test.tsx` e `ProgressBar.test.tsx` (incl. QA-DEBT-010) verdes; (b) N3 — `axe` em `ProgressBar`, `BudgetCard`, `BudgetPage` (grade/vazio/modal/dialog) + checklist manual contraste/foco/teclado sobre `warning-soft`/`danger-soft`, **em navegador real quando disponível** (lacuna recorrente); (c) N2 — comparação contra `UX-SPEC.md` Seção 2.2 (bloco "Lote 6") e a barra "Orçamentos do mês" de `Main.dc.html` (não há artboard de Orçamento), assinatura do stakeholder; (d) N1 — `design-system-consistency-check`: zero `text-warning` em texto, zero hex/rampa, zero `formatCentsToBRL`/`%` cru em `BudgetCard`/`ProgressBar`; (e) `git diff` confirma zero arquivo em `lib/**`, `supabase/**`, `API-CONTRACT.yaml`, `DashboardPage.tsx`, `GoalProgressBar*` (G-20/G-21); (f) RN-04 (80%/100%+) e cálculo intactos: nenhum recálculo de `alert_level`/`pct_spent` no cliente | QA | `FL-09`; RF-RS-00 AC2; RF-REF-06; RN-04; RF-MVP-07; G-20/G-21 | 0 regressão funcional (3 severidades, estouro >100% com `aria-valuenow`=100, clique-edita, remover, criar) e de acessibilidade; Dashboard "Orçamentos do mês" sem regressão funcional; N1 sem divergência; diff limpo; flakes de timing (se houver) reexecutados isoladamente 3x e registrados, não mascarados | 0.75 dia | Não iniciada | Orçamento (Redesign v2.0) |
+
+**Autocheck de granularidade (chapéu Tech Lead) — nota antes/depois.** Primeira
+decomposição intuitiva do lote: **3 tarefas** — (i) "ProgressBar + BudgetCard v2.0 +
+Num" (~2 dias), (ii) "BudgetPage v2.0 com testes" (~1.5 dia), (iii) QA. Violava:
+tamanho-alvo ~1 dia (i e ii), **não-mistura** (ii juntava 2 telas — `S-BUD-01` e
+`S-BUD-02` — e escrita de teste com migração), e (i) misturava skin de componente
+compartilhado com Dashboard e mudança de contrato de prop (`string`→`ReactNode`).
+**Re-dividido em 6 FE + 1 QA**: (i) → `FE-RS-23` (skin) / `FE-RS-24` (`Num` +
+contrato) / `FE-RS-25` (`BudgetCard`) — mesma separação skin×`Num` já usada em
+`FE-RS-05/06` e `FE-RS-12/13`, e um arquivo por tarefa; (ii) → `FE-RS-26` (testes
+antes da migração, sem código de produção) / `FE-RS-27` (`S-BUD-01`) / `FE-RS-28`
+(`S-BUD-02`). Após a divisão: nenhuma tarefa acima de 0.5 dia; nenhuma mistura
+tela/endpoint/regra/SQL (zero endpoint, zero SQL, zero regra nova); canário ~300k
+tokens: maior contexto previsto = `BudgetPage.tsx` (235 linhas) + `BudgetPage.test.tsx`
+(145) + `BudgetCard`/`ProgressBar` (+ testes) ≈ <60k — folga ampla.
+**Inseparabilidade documentada**: `FE-RS-27`/`FE-RS-28` editam o mesmo arquivo em
+regiões distintas — **não** paralelizáveis entre si (sequência 27→28, ver 4.5.2), e
+`FE-RS-23/24/25` idem em `ProgressBar.tsx`→`BudgetCard.tsx` (23→24→25).
+
+**Calibração.** Mantém a unidade "dia ideal"; razão observada ≈0,3 dia corrido por dia
+ideal (3.5.1). Tarefas deste lote são de perfil "aplicar token/migrar `Num`"
+(fecharam sem estouro nos Lotes 1-4) com `FE-RS-26` reduzindo o risco de spec-compliance.
+Previsão informativa, não compromisso: ≈ 1-1,5 dia corrido.
+
+**Totais do Lote 6**: 7 tarefas (6 Frontend + 1 QA) — Frontend **3.0** dias
+(6 × 0.5) + QA **0.75** = **3.75 dias ideais**. Efeito na Seção 5: Frontend +3.0, QA
++0.75. Lotes 7-13 continuam sem estimativa.
+
 ### 3.6 Redesign Visual "MyMoney v2.0" — Grupo B (Lotes 5-13, inventário e prioridade — sem tarefa nem estimativa nesta rodada)
 
 > **Atualização 2026-09-18**: o **Lote 5 foi detalhado** na Seção 3.5.1 (8 tarefas,
-> 6.25 dias ideais). Os Lotes 6-13 abaixo seguem sem tarefa nem estimativa.
+> 6.25 dias ideais) e o **Lote 6 (Orçamento)** na Seção 3.5.2 (7 tarefas, 3.75 dias
+> ideais). Os Lotes 7-13 abaixo seguem sem tarefa nem estimativa.
 
 **Nova subseção — 2026-09-04.** Segue à risca a condição vinculante do CTO
 (`BLOCKERS.md` Bloqueio 021, item 1): **nenhuma tarefa (`FE-RS-NN`) é criada para os
@@ -1171,7 +1248,7 @@ esses dois documentos.
 | Lote | Domínio | Prioridade (`PRD.md` Seção B.5) | Dependência estrutural | Estimativa |
 |---|---|---|---|---|
 | 5 | Autenticação/Sessão + Onboarding | **Next** | Lote 0 (consolidação de `AuthCard`/`AuthLayout`, especificação mínima já publicada em `UX-SPEC.md` Seção 3.2) | **Detalhado em 2026-09-18 (Seção 3.5.1): 6.25 dias ideais, 8 tarefas** |
-| 6 | Orçamento | **Next** | Lote 0 + Lote 4 (Padrão C já validado em produção) | **Pendente de calibração** |
+| 6 | Orçamento | **Next** | Lote 0 + Lote 4 (Padrão C já validado em produção) | **Detalhado em 2026-09-18 (Seção 3.5.2): 3.75 dias ideais, 7 tarefas** |
 | 9 | Recorrência, Parcelamento, Contas Fixas, Metas | **Later** | Lote 0 | **Pendente de calibração** |
 | 7 | Formas de Pagamento | **Later** | Lote 0 (forte sobreposição visual esperada com o Lote 3 — decisão de agrupamento delegada ao `ux-ui`/Tech Lead quando este lote for detalhado) | **Pendente de calibração** |
 | 10 | Notificações | **Later** | Lote 0 | **Pendente de calibração** |
@@ -1681,6 +1758,36 @@ depende de nenhum lote do Grupo A além do Lote 0 (`PRD.md` B.5: prioridade *Nex
 risco de regressão baixo) — mas a segurança de RF-MVP-08 justifica o teste de
 caracterização antes de mexer nas páginas.
 
+### 4.5.2 Redesign Visual "MyMoney v2.0" — Lote 6 (detalhamento, 2026-09-18)
+
+#### Lote 6 — Orçamento (Redesign v2.0)
+
+| Tarefa | Depende de | Tipo | Pode rodar em paralelo com |
+|---|---|---|---|
+| FE-RS-23 | Lote 0 completo (tokens, `Card`) — já fechado; Lote 4 fechado | Implementação completa | FE-RS-26, 27, 28 |
+| FE-RS-24 | FE-RS-23 (mesmo arquivo `ProgressBar.tsx`/`.test.tsx`) | Contrato/mesmo arquivo (prop `detailText` → `ReactNode`) | FE-RS-26, 27, 28 |
+| FE-RS-25 | FE-RS-24 (consome o `ReactNode` de `detailText`) | Contrato (componente) | FE-RS-26, 27, 28 |
+| FE-RS-26 | Nenhuma (só `BudgetPage.test.tsx`, contra código atual — pode começar já) | — | FE-RS-23, 24, 25 |
+| FE-RS-27 | FE-RS-26 (caracterização antes da migração) | Implementação completa | FE-RS-23, 24, 25 |
+| FE-RS-28 | FE-RS-27 (mesmo arquivo `BudgetPage.tsx`, regiões distintas); FE-RS-26 | Contrato/mesmo arquivo | FE-RS-23, 24, 25 |
+| QA-RS-09 | FE-RS-23 a FE-RS-28 (implementação completa) | Implementação completa | — |
+
+**Ondas para o Executor (worktree própria, G-21/memória do projeto)**: Onda 1 = 2
+instâncias (FE-RS-23 ∥ FE-RS-26 — arquivos disjuntos: `ProgressBar.*` vs
+`BudgetPage.test.tsx`); Onda 2 = 2 (FE-RS-24 ∥ FE-RS-27); Onda 3 = 2 (FE-RS-25 ∥
+FE-RS-28); Onda 4 = QA-RS-09 (suíte completa única após reunir as ondas, `DIR-45`).
+Dois trilhos independentes: **trilho componente** (23→24→25) e **trilho página**
+(26→27→28); só se encontram em `QA-RS-09`. Testes de `BudgetPage` escritos em
+`FE-RS-26` são tolerantes à fragmentação de `Num`, por isso o trilho página não espera
+o trilho componente (e vice-versa).
+
+**Caminho crítico**: FE-RS-23 (0.5) → FE-RS-24 (0.5) → FE-RS-25 (0.5) → QA-RS-09
+(0.75) = **2.25 dias ideais** com paralelismo pleno, contra **3.75 sequencial**. Lote
+6 não depende de nenhum lote além do Lote 0/Lote 4 (`PRD.md` B.5: *Next*). **Risco de
+regressão (N1-N4)**: superfície média — o `ProgressBar` alimenta também o Dashboard;
+mitigação = `DashboardPage.test.tsx` sem alteração de asserção em `FE-RS-23/24` e
+regressão cruzada explícita em `QA-RS-09` (a).
+
 ### 4.6 Refatoração de Lote (Débitos Técnicos)
 
 #### Refatoração Lote-Autenticação & Segurança
@@ -2115,6 +2222,24 @@ início de `FE-RS-16`/`17`, que independem delas).
 | DET-22 | Nenhum artboard `.dc.html` retrata Auth/Onboarding (`UX-SPEC.md` Seção 3.0.1, AC2) | N2 de `QA-RS-08` compara com `UX-SPEC.md` Seção 3.2 + tokens do Lote 0 (mesmo tratamento do Lote 4/Bloqueio 023); estilo extrapolado pelo `AuthCard` | Risco visual: assinatura N2 do stakeholder sobre tela sem referência. Usuário pode fornecer mockup antes de `FE-RS-18` a `22` |
 | DET-23 | `UnlockPage`: wireframe pede link "Usar PIN em vez disso"; código mantém `PinPad` sempre visível (desvio aceito antes) | Manter o `PinPad` visível; só reestilizar | Sem mudança de comportamento (G-20). Usuário pode exigir o link do wireframe, o que seria requisito novo |
 | DET-24 | Contraste: "Passo N de 2" das telas ONB usa `text-neutral-400` (`--text-3`), proibido para informação real (DIR-44); emoji "🔒" no Unlock | `eyebrow` do `AuthCard` em `neutral-600`; emoji trocado por ícone `lucide-react` `aria-hidden` | Detalhe de conformidade, sem escalar. `IconButton` de design system (sugerido na `UX-SPEC.md` "Lote 0/5") **não** criado: não há botão de ícone nestas telas |
+
+#### 6.2.2 Lacunas de detalhe — Lote 6 (Orçamento), 2026-09-18
+
+Decididas pelo Tech Lead/`ux-ui` (mesmo agente) dentro da autoridade normal; nenhuma
+reabre `SDD.md`/`ADR`. **DET-29, DET-31 e DET-33 pedem confirmação do usuário** (não
+bloqueiam `FE-RS-23`/`24`/`26`).
+
+| # | Lacuna | Decisão adotada | Racional / o que o usuário pode alterar |
+|---|---|---|---|
+| DET-25 | Sem `RF-RS-06` com AC no `PRD-TECNICO.md` Adendo B (só inventário B.1.2) | AC derivados de RF-RS-00 AC2, RF-REF-06 AC1-4, RN-04, RF-MVP-07, RN-19/20, G-20/G-21 | Mesmo tratamento de DET-21; RF formal exigiria rodada de PRD antes de `FE-RS-27` |
+| DET-26 | Nenhum artboard retrata Orçamento | N2 de `QA-RS-09` contra `UX-SPEC.md` Seção 2.2 + tokens + barra "Orçamentos do mês" de `Main.dc.html` (máx. 87%; nenhum exemplo >100%) | Risco visual em estouro/alerta: assinatura do stakeholder sobre extrapolação. Mockup adicional pode ser fornecido antes de `FE-RS-23` |
+| DET-27 | `ProgressBar` compartilhado com o Dashboard (Lote 1, validado) | Alterado uma vez (`DIR-40`, fonte única); visual do bloco "Orçamentos do mês" muda (texto do percentual em `neutral-800`, percentual em serifa) sem tocar `DashboardPage`; `DIR-41` aplicada por ser componente do próprio Lote 6 | Alternativa (clonar componente) proibida por `DIR-40`. Regressão cruzada em `QA-RS-09` |
+| DET-28 | `ProgressBar` `text-warning` como texto viola `DIR-44`; glifos `⚠`/`⛔` são texto | Corrigir a cor do texto; **manter** os glifos (`aria-hidden`, redundantes com o texto) em vez de trocar por `lucide-react` | Trocar por ícone quebraria asserções existentes (`getByText(/⚠/)`) sem ganho de conformidade; conversão fica para lote futuro de ícones se o usuário quiser |
+| DET-29 | Cabeçalho `h1` de Orçamento: outras páginas de lotes fechados (Contas, Categorias) ainda usam `text-xl font-semibold` | Orçamento adota o `h1` serifado de `S-TXN-01`; **não** converge Contas/Categorias (lotes fechados, fora de escopo, `DIR-41`-análogo) | Inconsistência temporária aceita e anotada em N1. Usuário pode preferir manter o `h1` antigo (remove ~0.1 dia de `FE-RS-27`) ou abrir refatoração de convergência |
+| DET-30 | Nomes de arquivo de teste: `FE-RS-26` altera só `BudgetPage.test.tsx`; cada tarefa de componente altera o próprio teste | Propriedade de arquivo por tarefa evita conflito nas ondas paralelas; matchers tolerantes desde `FE-RS-26` | Se `FE-RS-24`/`25` precisarem tocar `BudgetPage.test.tsx`, registrar na nota e serializar |
+| DET-31 | `BudgetPage` mostra teto/gasto do mês corrente sem rótulo de mês | Sem elemento novo (redesign sem dado/texto novo, RN-20) | Rótulo de mês seria requisito novo — usuário decide em PRD |
+| DET-32 | Seção 7 (Log de Lotes Fechados) não registra os vereditos dos Lotes 1-5 (existem em `QA-REPORT.md` Seções 27-31) | Lacuna de processo pré-existente, **não** corrigida aqui (competência do Validador no fechamento); não bloqueia o Lote 6 | Mesmo padrão de 7.18-7.20; sinalizado para o Validador antes de fechar o Lote 6 |
+| DET-33 | `UX-SPEC.md` Seção 4.2 prevê "Banner de recarregamento" no erro de `S-BUD-01`; o código só mostra `Alert` sem "Tentar novamente" | **Não** adicionar (seria mudança de comportamento, G-20/RN-20); registrado como divergência preexistente | Se o usuário quiser, vira tarefa/débito separado (`FE-DEBT`) com teste próprio |
 
 ### 6.3 Racional do Agrupamento em Lotes (Seção 3) — retroatividade documental, 2026-09-03
 

@@ -859,6 +859,49 @@ lista), teto (CurrencyInput), limiar de alerta (select, padrão 80%, RN-04).
 >   `S-BUD-02` para editar o teto — mesma tela já especificada, sem alteração.
 > - Grade colapsa conforme Padrão C (1 → 2 → 3 → 4 colunas).
 
+> **`S-BUD-01/02` — Redesign visual v2.0 (Lote 6) [NOVO, 2026-09-18].** Detalhamento
+> do Lote 6 sob a regra incremental do Bloqueio 021. **Não reescreve** o que já está
+> coberto: grade Padrão C, dado exibido, severidade RN-04 e clique-para-editar
+> (bloco acima, RF-REF-06) permanecem exatamente como especificados; `Card`
+> (Seção 3.2), tokens (Seção 3.1), regras anti-corte e o breakpoint 1→2→3→4 colunas
+> (Seção 6) já são os do Lote 0/Lote 4. **Nenhum componente novo** (`ProgressBar` e
+> `BudgetCard` são existentes; `AuthCard` não se aplica). Só o que muda:
+>
+> | Elemento | Estado atual (verificado no código, 2026-09-18) | Especificação v2.0 |
+> |---|---|---|
+> | `ProgressBar` — texto de percentual | `warning` usa `text-warning` como **cor de texto** (`--warn` ≈3:1 sobre branco, pior sobre `warning-soft`) — viola a regra da Seção 5/`DIR-44` | Texto do percentual sempre `--text` (`neutral-800`); severidade comunicada por glifo `⚠`/`⛔` (`aria-hidden`, cor `--warn`/`--danger` como elemento gráfico, SC 1.4.11) + texto "do teto"/"(estourado)". Estouro pode manter `--danger` no texto (9,03:1) |
+> | `ProgressBar` — trilho/preenchimento | `bg-neutral-200` + `bg-primary`/`bg-warning`/`bg-danger` | Mantidos (já são tokens v2.0); altura `h-2`, `rounded-full`. Sem hex/rampa Tailwind (`DIR-46`) |
+> | `ProgressBar` — números | `{pct}%` e `detailText: string` ("R$ x de R$ y") cru, fonte única | `<Num format="percent">` no percentual; `detailText` passa de `string` a `ReactNode` (alargamento compatível) e o consumidor monta `<Num currency/> de <Num currency/>` com o "de" fora do primitivo (ADR-019/`DIR-41`). `aria-valuenow`/`aria-valuetext`/`aria-valuemin`/`aria-valuemax` **intocados** (QA-DEBT-010/`FE-DEBT-02`) |
+> | `BudgetCard` | `Card` + botão único; destaque de severidade via `style` inline (`--color-warning-soft`/`--color-danger-soft` + borda) | Estrutura, `aria-label`/`aria-describedby`, `data-severity`, `border-2` e overrides de contraste do `detailText` (`neutral-600` em alerta/estouro, `neutral-500` em normal) **preservados**; muda só a migração `Num` e a verificação de tokens/foco |
+> | `S-BUD-01` cabeçalho | `h1` `text-xl font-semibold` | `h1` serifado (`font-serif font-medium`, mesmo padrão de `S-TXN-01`) + botão "+ Novo orçamento" à direita; sem subtítulo novo (nenhum texto/dado novo) |
+> | `S-BUD-02` (Modal) | `Modal` + `Select`/`CurrencyInput` do Lote 0 | Sem mudança estrutural; "Remover orçamento" permanece `Button ghost` (variante existente, sem variante nova); ordem de foco preservada |
+>
+> **4 estados de `S-BUD-01`** (Seção 4.2 permanece a referência): *vazio* — `EmptyState`
+> "Nenhum orçamento definido este mês" + CTA "Cadastrar"; *carregando* — grade de 6
+> retângulos `h-32`, `role="status"` `aria-label="Carregando orçamentos"`; *erro* —
+> `Alert variant="danger"` (**sem** "Tentar novamente": divergência já existente da
+> Seção 4.2, "Banner de recarregamento"; **não** corrigida aqui por ser mudança de
+> comportamento, ver `TASK.md` DET-33); *sucesso* — grade com 3 sub-estados de
+> severidade + toast "Orçamento salvo"/"Orçamento removido". `S-BUD-02`: erro de campo
+> (categoria/teto), erro de salvamento (`Alert`), `loading` no "Salvar"; vazio/sucesso
+> não se aplicam (formulário; o sucesso é o toast + fechamento).
+>
+> **Acessibilidade (não negociável)**: `axe` sem violação em `ProgressBar` (3 níveis),
+> `BudgetCard` (3 severidades), `BudgetPage` (grade, vazio, modal aberto,
+> `ConfirmationDialog`); contraste do texto secundário sobre `warning-soft`/
+> `danger-soft` ≥4,5:1 (valores já medidos: 6,81/6,39); nunca só cor (glifo + texto);
+> alvo do card inteiro ≥44px; foco visível `--primary`. **Responsivo**: coberto pelo
+> Padrão C (Seção 6); nenhuma mudança. **Restrição técnica (autochecagem contra o
+> `SDD.md`)**: nenhuma — redesign de camada de apresentação (`G-20`/`G-21`); o
+> percentual e o `alert_level` continuam vindos do backend (`get_budget_status`),
+> nunca recalculados no cliente. **Trade-off documentado**: `ProgressBar` é também
+> consumido pelo Dashboard (`S-DASH-01`, já validado no Lote 1) — o ajuste de cor de
+> texto e a fonte serifada do percentual mudam visualmente o bloco "Orçamentos do
+> mês" sem tocar `DashboardPage`; aceito por ser o mesmo componente (uma só fonte de
+> verdade, `DIR-40`), com regressão coberta em `QA-RS-09`. Não há artboard de
+> Orçamento; a referência visual de N2 é a barra "Orçamentos do mês" de `Main.dc.html`
+> (máx. 87%) + tokens do Lote 0.
+
 #### Cartão & Fatura (Fase 2)
 
 **S-CARD-01/02** seguem Padrão A (limite, dia de fechamento, dia de vencimento).
@@ -1073,7 +1116,7 @@ domínios tem artboard próprio no canvas — a diretriz abaixo é herança de p
 | Lote | Domínio | Telas | Padrão de layout já aplicável (herda do Grupo A/já vigente) | Restrições que a diretriz não pode contrariar | Diretriz de aplicação do Lote 0 |
 |---|---|---|---|---|---|
 | 5 | Autenticação/Sessão + Onboarding | S-AUTH-01/03/04/05, S-ONB-01/02 | Nenhum ainda — é o próprio candidato de consolidação em `AuthCard`/`AuthLayout` (Seção 3.2) | RF-MVP-08 (login seguro) e a remoção definitiva do 2º fator por e-mail (`ADR-014`) não podem ser tocados; onboarding preserva RF-MVP-01/RF-MVP-03/RN-09 | Consolidar as 3 páginas duplicadas em `AuthCard`/`AuthLayout` (especificação mínima já publicada, Seção 3.2), aplicando os tokens de cor/raio/elevação da Seção 3.1 (mesmo card, `radius.lg`/`elevation.sm`); nenhuma mudança de fluxo/estado, só consolidação de componente + skin |
-| 6 | Orçamento | S-BUD-01/02 | Padrão C (grade de cards) já validado desde o Lote 4 (Categorias) e desde o Pacote de Refinamento (`BudgetCard`) | RN-04 (limiares 80%/100%+) e o cálculo de RF-MVP-07 não podem mudar | Extensão incremental direta do Padrão C — menor esforço de extrapolação esperado; nenhum token/componente novo previsto |
+| 6 | Orçamento | S-BUD-01/02 | Padrão C (grade de cards) já validado desde o Lote 4 (Categorias) e desde o Pacote de Refinamento (`BudgetCard`) | RN-04 (limiares 80%/100%+) e o cálculo de RF-MVP-07 não podem mudar | Extensão incremental direta do Padrão C — menor esforço de extrapolação esperado; nenhum token/componente novo previsto. **Detalhado em 2026-09-18** — ver Seção 2.2, bloco "`S-BUD-01/02` — Redesign visual v2.0 (Lote 6)" (confirmado: nenhum componente novo; achado `ProgressBar` `text-warning` vs `DIR-44`) |
 | 7 | Formas de Pagamento | S-PAY-01/02 | Padrão A (lista + formulário) | RN-14/RN-15/RN-16 preservadas; RF-REF-04 segue bloqueado pelas 3 pré-condições do risco A3 (Adendo A), independentemente deste redesign | Aplicar tokens/regras anti-corte da Seção 3.1.1 ao Padrão A já existente; forte sobreposição visual esperada com o Lote 3 — decisão final de agrupamento (mesclar `S-PAY-01` na tela de Contas ou manter separado) delegada ao `ux-ui`/Tech Lead quando este lote for detalhado, não decidida aqui |
 | 8 | Cartão & Fatura detalhado | S-CARD-01/02/03, parte não coberta pelo Lote 3 | Abas por competência (`Tabs`), `InvoiceTimeline` | `InvoiceTimeline` é lógica de negócio sensível — RN-01, RN-06, FL-02 não podem ser alterados pelo redesign | Depende de o Lote 3 já ter validado, em produção, o padrão de "tela com lógica de negócio sensível" antes de avançar; escopo real deste lote só é confirmado depois que o acesso visual ao artboard "ContasCartoes" (pendente, Seção 7.2) definir o que o Lote 3 já cobriu (AMB-17) |
 | 9 | Recorrência, Parcelamento, Contas Fixas, Metas | S-REC-01..04, S-INST-01/02, S-FIX-01..03, S-GOAL-01..04 | Padrão A + Padrão B (confirmação de reajuste, `S-REC-03`) | RN-02 (reajuste prospectivo com confirmação obrigatória) e RN-07 (preservação de histórico ao cancelar) não podem mudar | Aplicar tokens/regras anti-corte da Seção 3.1.1 (grid 2 colunas a partir de `md` para os formulários de 8 campos já identificados: `S-INST-01`, `S-FIX-02`, `S-REC-02`); Tech Lead pode subdividir o lote em sub-domínios menores sem reabrir o `PRD.md` |
