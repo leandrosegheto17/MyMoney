@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import type { BudgetAlertLevel } from "../../lib/api/types";
+import { Num } from "../base/Num";
 
 export interface ProgressBarProps {
   label: string;
@@ -6,7 +8,7 @@ export interface ProgressBarProps {
   pctSpent: number;
   alertLevel: BudgetAlertLevel;
   /** Texto secundário opcional (ex.: "R$ 820,00 de R$ 1.000,00"). */
-  detailText?: string;
+  detailText?: ReactNode;
   /**
    * Override de classe de cor do `detailText` — `text-neutral-500` (padrão) foi
    * calibrado para ≥4.5:1 só sobre `color.surface` (`UX-SPEC.md` Seção 5, tabela de
@@ -19,10 +21,10 @@ export interface ProgressBarProps {
   detailTextClassName?: string;
 }
 
-const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; textClass: string }> = {
-  none: { barClass: "bg-primary", icon: "", textClass: "text-neutral-600" },
-  warning: { barClass: "bg-warning", icon: "⚠", textClass: "text-warning" },
-  exceeded: { barClass: "bg-danger", icon: "⛔", textClass: "text-danger" },
+const LEVEL_CONFIG: Record<BudgetAlertLevel, { barClass: string; icon: string; iconClass: string }> = {
+  none: { barClass: "bg-primary", icon: "", iconClass: "" },
+  warning: { barClass: "bg-warning", icon: "⚠", iconClass: "text-[color:var(--color-warning)]" },
+  exceeded: { barClass: "bg-danger", icon: "⛔", iconClass: "text-danger" },
 };
 
 /**
@@ -42,9 +44,14 @@ export function ProgressBar({ label, pctSpent, alertLevel, detailText, detailTex
         <span className="min-w-0 flex-1 truncate font-medium text-neutral-800" title={label}>
           {label}
         </span>
-        <span className={["shrink-0 font-medium", config.textClass].join(" ")}>
-          {config.icon && <span aria-hidden="true">{config.icon} </span>}
-          {roundedPct}%{alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
+        <span className="shrink-0 font-medium text-neutral-800">
+          {config.icon && (
+            <span aria-hidden="true" className={config.iconClass}>
+              {config.icon}{" "}
+            </span>
+          )}
+          <Num value={roundedPct} format="percent" />
+          {alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
         </span>
       </div>
       <div

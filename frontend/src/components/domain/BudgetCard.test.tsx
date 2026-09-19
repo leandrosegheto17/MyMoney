@@ -1,7 +1,11 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { BudgetCard } from "./BudgetCard";
+
+// Num fragmenta os valores em <span>; casa o <p> de detalhe pelo textContent agregado (mesma semântica).
+const detailOf = (text: string) => (_: string, el: Element | null) => el?.tagName === "P" && el.textContent === text;
 
 describe("BudgetCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 2.2 (RF-REF-06)", () => {
   it("exibe categoria, gasto vs. teto e percentual sem exigir clique adicional (AC2)", () => {
@@ -10,8 +14,9 @@ describe("BudgetCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 2.2 (RF-RE
     );
 
     expect(screen.getByText("Alimentação")).toBeInTheDocument();
-    expect(screen.getByText("R$ 820,00 de R$ 1.000,00")).toBeInTheDocument();
-    expect(screen.getByText(/82%/)).toBeInTheDocument();
+    expect(screen.getByText(detailOf("R$ 820,00 de R$ 1.000,00"))).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Alimentação" })).toHaveAttribute("aria-valuenow", "82");
+    expect(screen.getByText((_, el) => !!el && el.className.includes("shrink-0") && /82%/.test(el.textContent ?? ""))).toBeInTheDocument();
   });
 
   it("clique no corpo do card chama onEdit (abre S-BUD-02)", async () => {
@@ -55,14 +60,14 @@ describe("BudgetCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 2.2 (RF-RE
 
   it("achado de qualidade (WCAG): texto secundário usa text-neutral-600 (não text-neutral-500) quando o card tem destaque de severidade, para manter contraste sobre o novo fundo", () => {
     render(<BudgetCard categoryName="Saúde" spentCents={85000} limitCents={100000} pctSpent={85} alertLevel="warning" onEdit={() => {}} />);
-    const detail = screen.getByText("R$ 850,00 de R$ 1.000,00");
+    const detail = screen.getByText(detailOf("R$ 850,00 de R$ 1.000,00"));
     expect(detail.className).toContain("text-neutral-600");
     expect(detail.className).not.toContain("text-neutral-500");
   });
 
   it("achado de qualidade (WCAG): texto secundário mantém text-neutral-500 (padrão, já validado) quando não há destaque de severidade", () => {
     render(<BudgetCard categoryName="Lazer" spentCents={10000} limitCents={100000} pctSpent={10} alertLevel="none" onEdit={() => {}} />);
-    const detail = screen.getByText("R$ 100,00 de R$ 1.000,00");
+    const detail = screen.getByText(detailOf("R$ 100,00 de R$ 1.000,00"));
     expect(detail.className).toContain("text-neutral-500");
   });
 
@@ -79,5 +84,16 @@ describe("BudgetCard — UX-SPEC.md Seção 2.1 (Padrão C) / Seção 2.2 (RF-RE
     );
     const label = screen.getByText("Uma categoria com nome extremamente longo para testar corte");
     expect(label.className).toContain("truncate");
+  });
+
+  it.each([
+    ["none", 10],
+    ["warning", 85],
+    ["exceeded", 150],
+  ] as const)("axe: sem violações na severidade %s", async (level, pct) => {
+    const { container } = render(
+      <BudgetCard categoryName="Lazer" spentCents={pct * 1000} limitCents={100000} pctSpent={pct} alertLevel={level} onEdit={() => {}} />,
+    );
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

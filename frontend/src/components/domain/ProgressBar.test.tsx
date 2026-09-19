@@ -1,6 +1,10 @@
 import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
 import { describe, expect, it } from "vitest";
 import { ProgressBar } from "./ProgressBar";
+
+// Num fragmenta o percentual em <span> proprio; casa o texto agregado do rotulo (mesma asserção semantica).
+const textOf = (re: RegExp) => (_: string, el: Element | null) => !!el && el.className.includes("shrink-0") && re.test(el.textContent ?? "");
 
 describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () => {
   it("estado normal (< 80%): sem ícone de alerta", () => {
@@ -12,13 +16,13 @@ describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () 
   it("estado de alerta (>=80%): ícone + texto + cor de aviso, nunca só cor", () => {
     render(<ProgressBar label="Transporte" pctSpent={85} alertLevel="warning" />);
     expect(screen.getByText(/⚠/)).toBeInTheDocument();
-    expect(screen.getByText(/85% do teto/)).toBeInTheDocument();
+    expect(screen.getByText(textOf(/85% do teto/))).toBeInTheDocument();
   });
 
   it("estado de estouro (>100%): severidade maior, texto/ícone diferentes do alerta", () => {
     render(<ProgressBar label="Lazer" pctSpent={120} alertLevel="exceeded" />);
     expect(screen.getByText(/⛔/)).toBeInTheDocument();
-    expect(screen.getByText(/120% do teto \(estourado\)/)).toBeInTheDocument();
+    expect(screen.getByText(textOf(/120% do teto \(estourado\)/))).toBeInTheDocument();
   });
 
   it("largura visual da barra nunca ultrapassa 100%, mesmo em estouro", () => {
@@ -42,6 +46,15 @@ describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () 
     expect(bar).toHaveAttribute("aria-valuenow", "100");
     expect(bar).toHaveAttribute("aria-valuemax", "100");
     expect(bar).toHaveAttribute("aria-valuetext", "120% do orçamento utilizado");
-    expect(screen.getByText(/120% do teto .estourado./)).toBeInTheDocument();
+    expect(screen.getByText(textOf(/120% do teto .estourado./))).toBeInTheDocument();
+  });
+
+  it.each([
+    ["none", 34],
+    ["warning", 85],
+    ["exceeded", 120],
+  ] as const)("axe: sem violações no nível %s", async (level, pct) => {
+    const { container } = render(<ProgressBar label="Lazer" pctSpent={pct} alertLevel={level} detailText="R$ 1,00 de R$ 2,00" />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

@@ -4773,6 +4773,7 @@ Nenhuma reprovação crítica; nenhum bug alta/crítica; nenhum padrão recorren
 | 2026-09-18 (veredito de lote) | Lote 3 "Contas & Cartões (Redesign v2.0)": FE-RS-09, FE-RS-10, FE-RS-11, QA-RS-06 (4) | **Aprovado com ressalvas** (lote) — Seção 28 | 0 | FE-DEBT-04 (simples) |
 | 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 29 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |
 | 2026-09-18 (veredito de lote) | Lote 5 "Autenticação/Sessão + Onboarding (Redesign v2.0)": FE-RS-16 a FE-RS-22 (7) + QA-RS-08 (execução desta rodada, Parcial) | **Aprovado com ressalvas** (lote) — suíte 499/500 (1 flake pré-existente reproduzido em main), build OK — `QA-REPORT.md` Seção 30 | 0 | FE-DEBT-06 (simples) |
+| 2026-09-19 (veredito de lote) | Lote 6 "Orçamento (Redesign v2.0)": FE-RS-23 a FE-RS-28 (6) + QA-RS-09 (execução desta rodada) | **Aprovado com ressalvas** (lote) — Seção 32 | 0 | QA-DEBT-011 (glifo ⚠ 2,73:1 sobre warning-soft, baixa), QA-DEBT-012 (retorno de foco ao card sem teste, baixa) |
 
 ## 31. Veredito de Refatoração — "Refatoração Lote-5 (FE-DEBT-06)" (2026-09-18)
 
@@ -4794,3 +4795,39 @@ Worktree `MyMoney-debt06`, branch `fe-debt-06`, commit `247052e`. Diff vs `main`
 **Veredito: Aprovado com ressalvas** (FE-DEBT-06 aprovada tecnicamente; ressalva = critério de 3x determinístico pendente de FE-DEBT-07).
 
 **Fechamento estrutural**: FE-DEBT-06 permanece `Concluída`; sem dependência órfã; sem tarefa `Bloqueada`; sem escalonamento ao Coordenador (achado isolado de infraestrutura de teste).
+
+## 32. Veredito de Lote — "Orçamento (Redesign v2.0), Lote 6" (2026-09-19)
+
+Worktree `MyMoney-lote6`, branch `lote6-orcamento`, commits `cda0452..cdbf4ff`. Tarefas: FE-RS-23 a FE-RS-28 + QA-RS-09 (esta rodada).
+
+**(a) N4 — executado pelo Validador.** `npx vitest run` = 80 arquivos / 539 testes PASS; `tsc --noEmit` sem erro; `npm run build` OK (PWA gerado). `DashboardPage.test.tsx`, `ProgressBar.test.tsx` (incl. QA-DEBT-010: `aria-valuenow`=100, `aria-valuemax`=100, `aria-valuetext` "120% do orçamento utilizado") e `BudgetPage.test.tsx` verdes. Reexecução isolada 3x de Dashboard + `components/domain` + `pages/budget`: 202/202 nas 3, sem flake.
+
+**(e)/(f) Diff.** `git diff cda0452..HEAD --stat` = 7 arquivos: `TASK.md`, `BudgetCard(.test).tsx`, `ProgressBar(.test).tsx`, `BudgetPage(.test).tsx`. Zero arquivo em `lib/**`, `supabase/**`, `API-CONTRACT.yaml`, `DashboardPage.tsx`, `GoalProgressBar*`. `aria-valuenow` (clamp 0-100), `aria-valuetext`, `min/max`, largura clampada e textos "do teto"/"(estourado)" intactos; nenhum recálculo de `alert_level`/`pct_spent`. RN-04 preservado. `ProgressBar` só é consumido por `BudgetCard` e `DashboardPage`.
+
+**(d) N1.** `text-warning` como cor de texto: zero em `ProgressBar`/`BudgetCard`/`BudgetPage` (usos remanescentes em Badge/AutoFillTag/CandidateList/OfflineSyncBadge são de outros lotes). Zero hex e zero rampa Tailwind. Zero `formatCentsToBRL` e zero `{n}%` cru em `BudgetCard`/`ProgressBar` (percentual e valores via `<Num />`). Divergência: nenhuma. Inconsistência aceita (DET-29): `h1` de Contas/Categorias ainda não serifado.
+
+**(b) N3 — axe em jsdom (jest-axe), sem navegador real (ressalva recorrente).** `ProgressBar` 3 níveis, `BudgetCard` 3 severidades, `BudgetPage` grade/vazio/erro/modal novo/modal edição/ConfirmationDialog: 0 violações. Contraste calculado a partir dos tokens de `index.css`: texto do percentual `neutral-800` (#33362f) = 12,28:1 sobre `surface`, 10,40:1 sobre `warning-soft`, 10,35:1 sobre `danger-soft` (≥4,5:1 com folga). Glifo ⚠ (`--color-warning` #b9862f) = 3,22:1 sobre `surface`, **2,73:1 sobre `warning-soft`** (<3:1, WCAG 1.4.11 não texto). Glifo é `aria-hidden` e redundante ao texto "do teto" (nunca só cor), logo não reprova; débito baixo. ⛔ em `text-danger`: 9,58/8,11/8,07:1. Checklist manual de foco/teclado/contraste real e leitor de tela: **não executado** (sem navegador real), ressalva recorrente.
+
+**(c) N2.** Comparação contra `UX-SPEC.md` Seção 2.2 bloco "Lote 6": h1 serifado (padrão S-TXN-01), grade Padrão C, `Num` em % e valores, percentual em `neutral-800`, glifo como elemento gráfico, Modal/ConfirmationDialog sem mudança estrutural, nenhuma variante nova. Conforme. Sem artboard de Orçamento; visual de estouro/alerta é extrapolação. **Assinatura do stakeholder pendente = ressalva.**
+
+**Veredito por tarefa**
+| Tarefa | Veredito | Observação |
+|---|---|---|
+| FE-RS-23 | Aprovado com ressalvas | Critérios atendidos (neutral-800, zero text-warning/hex, aria/largura/props intactos, axe 3 níveis, Dashboard verde). Ressalva: glifo ⚠ com `text-[color:var(--color-warning)]` (arbitrary value) e 2,73:1 sobre warning-soft (QA-DEBT-011). |
+| FE-RS-24 | Aprovado com ressalvas | `Num format="percent"`, `detailText: ReactNode`, aria-valuetext string. Só 3 matchers trocados (função sobre o rótulo agregado), mesma semântica; aria-* e QA-DEBT-010 intactos. Ressalva: matcher depende da classe `shrink-0` (acoplado a estilo). |
+| FE-RS-25 | Aprovado | `Num` x2, " de " fora; aria-label/aria-describedby/data-severity/overrides preservados; testes por textContent + axe 3 severidades. |
+| FE-RS-26 | Aprovado | 17 testes (criar, validação, saveError, categoria desabilitada, limiar 70/80/90, loading, erro, `updateBudget` sem `category_id`, remover); asserções Num reescritas com `toHaveTextContent`. |
+| FE-RS-27 | Aprovado | h1 serifado único, grade/skeleton/estados inalterados, axe grade/vazio/erro, nenhuma chamada de API nova. |
+| FE-RS-28 | Aprovado com ressalvas | Sem código de produção (região já usa componentes do Lote 0); axe em 3 estados com regra `region` desativada (artefato de render isolado; demais regras ativas, aceito). Ressalva: "retorno de foco ao card" **não testado** (só foco dentro do diálogo) — QA-DEBT-012. |
+| QA-RS-09 | Aprovado com ressalvas | (a),(d),(e),(f) plenos; (b) sem navegador real; (c) sem assinatura. |
+
+Desvios relatados: matcher QA-DEBT-010 trocado (aceito, aria-* intactos); axe `region` off (aceito); glifo ⚠ com var (aceito com débito); retorno de foco não testado (débito).
+
+**Bugs alta/crítica: 0. Reprovações: 0 (críticas 0, simples 0).**
+
+**Débitos (Refatoração Lote-6, baixa, prazo antes do fechamento do Lote 7)**
+- QA-DEBT-011: glifo ⚠ 2,73:1 sobre `warning-soft` e arbitrary value; avaliar tom mais escuro ou utilitário de token.
+- QA-DEBT-012: teste de retorno de foco ao card após fechar Modal/ConfirmationDialog.
+- Lacuna recorrente: checklist manual em navegador real e assinatura do stakeholder sobre extrapolação de Orçamento.
+
+**Veredito do lote: Aprovado com ressalvas.** Fechamento estrutural: tarefas FE `Concluída`; sem dependência órfã; sem tarefa `Bloqueada`; sem escalonamento ao Coordenador. DevSecOps não aberto neste dispatch.
