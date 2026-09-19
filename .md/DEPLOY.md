@@ -2124,6 +2124,16 @@ rodar.
 2. Sem smoke autenticado/funcional do BudgetPage; NFR não medido; observabilidade inalterada (§5); rollback não exercitado.
 3. Pendências de §9.14/9.15 (migrations, functions, BE-DEBT-04) seguem abertas.
 
+### 9.17 Execução — 2026-09-19 — PRODUÇÃO, resolução do Bloqueio 026 (env vars Supabase)
+
+**Autorização**: usuário ("pode configurar"). **Confronto prévio**: `VITE_SUPABASE_URL` de Preview aponta para o project ref `xrcxbzrglndetrrhavhc`, o mesmo projeto Supabase de produção/legado documentado neste arquivo. Prosseguido.
+
+**O que mudou**: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` copiadas de Preview para Production do projeto `objetivo-financeiro-ljs` (pull para arquivo temporário fora do repo + `vercel env add production`, apagado depois). Nenhuma outra variável alterada; Preview intacto; sem `service_role`; sem migrations/Edge Functions.
+**Deploy**: `git archive HEAD frontend` (2531525) em diretório temporário, `vercel deploy --prod`. Produção atual: `dpl_DGVYaMK82tBfXUsruzRSzQ1mjKhi` (READY, target production, aliases `objetivo-financeiro-ljs.vercel.app` e `objetivo-financeiro-ljs-leandrosegheto17s-projects.vercel.app`). Observação: um primeiro deploy (`objetivo-financeiro-rj654bl78`) concluiu READY e um segundo, equivalente, foi disparado por engano de fluxo do CLI; o alias aponta para o segundo.
+**Rollback**: `dpl_HvMayKWbxX5ePndANJAvHApygSx9` (§9.16, sem env vars Supabase: devolve o app ao estado sem backend; usar só se o novo build falhar).
+**Verificações**: curl 200 no alias; bundle `index-BcUQiTnc.js` contém o host `xrcxbzrglndetrrhavhc` e a anon key; `GET /auth/v1/health` com a anon key do bundle = 200; `/rest/v1/` raiz = 401 (esperado para anon). Sem login nem leitura de dados de usuário.
+**Lacunas**: sem teste autenticado/visual em produção; `vercel env pull` de Production devolve valor vazio (vars criadas como sensíveis), sem impacto no build; observabilidade formal e janela de 24h seguem como em §9.16.
+
 ## 10. Incidentes Pós-Deploy
 
 **Staging**: nenhum incidente registrado nos 8 deploys realizados (§9.2-9.5,

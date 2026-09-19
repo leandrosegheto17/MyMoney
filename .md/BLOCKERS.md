@@ -3244,6 +3244,6 @@ quem reportou.
 ## Bloqueio 026 — 2026-09-19
 
 **Origem**: validador (chapéu DevOps), `/deploy` etapa 5, deploy de produção `dpl_HvMayKWbxX5ePndANJAvHApygSx9` (DEPLOY.md §9.16).
-**Status**: Aberto (ação humana).
+**Status**: Resolvido em 2026-09-19 (vars copiadas de Preview para Production; redeploy `dpl_DGVYaMK82tBfXUsruzRSzQ1mjKhi`; DEPLOY.md §9.17).
 **Descrição**: o projeto Vercel `objetivo-financeiro-ljs` tem `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` apenas em Preview. O build de produção (novo e o anterior) não embute a URL do Supabase, então o app em produção provavelmente não acessa o backend. Não corrigido: o usuário proibiu alterar env vars nesta rodada.
 **Ação sugerida**: adicionar as duas vars ao ambiente Production e redeployar. Também: a Importação de Extrato não tem flag de código; o bloqueio de produção (SEC-DEBT-015/BE-DEBT-04) depende só de `statement-import` não estar publicada.
