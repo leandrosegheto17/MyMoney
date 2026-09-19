@@ -4773,3 +4773,24 @@ Nenhuma reprovação crítica; nenhum bug alta/crítica; nenhum padrão recorren
 | 2026-09-18 (veredito de lote) | Lote 3 "Contas & Cartões (Redesign v2.0)": FE-RS-09, FE-RS-10, FE-RS-11, QA-RS-06 (4) | **Aprovado com ressalvas** (lote) — Seção 28 | 0 | FE-DEBT-04 (simples) |
 | 2026-09-18 (veredito de lote) | Lote "Categorias (Redesign v2.0), Lote 4": FE-RS-12, FE-RS-13 (2) + QA-RS-07 (execução desta rodada) | **Aprovado com ressalvas** (lote) — suíte 451/451 PASS, build OK — `QA-REPORT.md` Seção 29 | 0 | `FE-DEBT-04` (simples: axe permanente em `CategoryCard`); ressalva: assinatura N2 pendente |
 | 2026-09-18 (veredito de lote) | Lote 5 "Autenticação/Sessão + Onboarding (Redesign v2.0)": FE-RS-16 a FE-RS-22 (7) + QA-RS-08 (execução desta rodada, Parcial) | **Aprovado com ressalvas** (lote) — suíte 499/500 (1 flake pré-existente reproduzido em main), build OK — `QA-REPORT.md` Seção 30 | 0 | FE-DEBT-06 (simples) |
+
+## 31. Veredito de Refatoração — "Refatoração Lote-5 (FE-DEBT-06)" (2026-09-18)
+
+Worktree `MyMoney-debt06`, branch `fe-debt-06`, commit `247052e`. Diff vs `main` = 8 arquivos em `frontend/src` + `TASK.md`.
+
+**Verificações (executadas pelo Validador, não pela nota do Executor)**
+- Suíte completa, 3 execuções seguidas (`npx vitest run`): run 1 = 499/504 (5 timeouts de 5s); run 2 = 502/504 (1 timeout + 1 falha de opção "acc-1" não encontrada); run 3 = 504/504. A run 3 ocorreu com a máquina menos carregada (47s contra 105-135s nas runs 1-2). Havia processos Node de outros projetos ativos (FutebolApp, EstudoBiblico, SportsLM), não do MyMoney; não os encerrei.
+- Falhas: CaptureFab, DraftReviewBanner, GoalsPage, PaymentMethodsPage, TransactionsPage (run 1); CaptureFab e SettingsPage "alterar PIN" (run 2). Nenhum está no diff, nem é de UnlockPage/PinSetupPage/LoginPage/AuthGate/OnboardingGate.
+- Comparação com `main` (1 execução, também sob carga): 499/500, falha em PinSetupPage "PIN divergente" (timeout). O flake de carga é pré-existente e não introduzido pelo diff. Na branch, PinSetupPage e UnlockPage (lockout) passaram nas 3 execuções.
+- `tsc -b`: OK. `npm run build`: OK.
+- Diff limpo: `lib/api/**`, `supabase/**`, `API-CONTRACT.yaml` sem alteração. `lib/auth/**`: só `AuthGate.tsx` (apenas o estado `loading`, autorizado pelo usuário, G-21) e `AuthGate.test.tsx`. `lib/onboarding/OnboardingGate.tsx` está fora de `lib/auth`.
+- N1: grep no diff sem hex e sem rampa Tailwind; `text-neutral-400` substituído por `text-primary` dentro de `AuthLayout`.
+
+**Critério "suíte completa determinística em 3 execuções seguidas": NÃO comprovado.** Só 1 de 3 execuções foi 504/504 nesta máquina; o relato de 3x verde do Executor não se reproduziu (consistente com a reverificação do orquestrador). Itens (1) loading convergido, (2) lockout de UnlockPage estável e (3) axe em Login/biometria passaram em todas as execuções; a não-determinismo restante vem de outros testes, por timeout padrão de 5s sob carga.
+
+**Classificação: achado simples (débito), não crítico.** Não compromete o critério funcional, existe em `main` e as falhas mudam de teste conforme a carga. Não foi mascarado.
+- S-1: flake de timeout de 5s sob carga em testes não tocados -> tarefa **FE-DEBT-07** criada em `Refatoração Lote-5` (`TASK.md`), prazo antes do fechamento do Lote 6.
+
+**Veredito: Aprovado com ressalvas** (FE-DEBT-06 aprovada tecnicamente; ressalva = critério de 3x determinístico pendente de FE-DEBT-07).
+
+**Fechamento estrutural**: FE-DEBT-06 permanece `Concluída`; sem dependência órfã; sem tarefa `Bloqueada`; sem escalonamento ao Coordenador (achado isolado de infraestrutura de teste).

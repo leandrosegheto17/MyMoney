@@ -112,8 +112,16 @@ describe("PinSetupPage — S-AUTH-04 (RF-MVP-08 AC1)", () => {
     await waitFor(() => expect(unlockMock).toHaveBeenCalled());
   });
 
-  it("não tem violações axe (fase PIN e biometria)", async () => {
+  it("não tem violações axe (fase PIN)", async () => {
     const { container } = render(<PinSetupPage />);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("não tem violações axe (fase biometria)", async () => {
+    const { container } = render(<PinSetupPage />);
+    await typePin("123456");
+    await typePin("123456");
+    await screen.findByRole("heading", { name: "Usar biometria?" });
     expect(await axe(container)).toHaveNoViolations();
   });
 });

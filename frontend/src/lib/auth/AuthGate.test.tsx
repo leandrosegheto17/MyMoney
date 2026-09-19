@@ -75,4 +75,12 @@ describe("AuthGate — máquina de estado UX-FL-10", () => {
     await screen.findByText("Desbloqueie o app");
     expect(screen.queryByText("Conteúdo autenticado")).not.toBeInTheDocument();
   });
+
+  it("estado de carregamento usa o padrão AuthLayout (bg-surface-alt, sem cor neutra hardcoded)", () => {
+    sessionMocks.getCurrentSession.mockReturnValue(new Promise(() => {}));
+    renderApp();
+    const status = screen.getByRole("status", { name: "Carregando" });
+    expect(status.parentElement).toHaveClass("bg-surface-alt");
+    expect(status.className).not.toMatch(/neutral-400/);
+  });
 });

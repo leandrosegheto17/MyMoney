@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { listAccounts } from "../api/accounts";
-import { Skeleton } from "../../components/base";
+import { AuthLayout, Skeleton } from "../../components/base";
 
 /**
  * UX-FL-11 (Onboarding) — "Sem conta cadastrada, usuário não avança (RF-MVP-01 é
@@ -31,9 +31,9 @@ export function OnboardingGate() {
 
   if (state === "loading") {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
+      <AuthLayout>
         <Skeleton lines={3} className="w-full max-w-sm" aria-label="Verificando cadastro inicial" />
-      </div>
+      </AuthLayout>
     );
   }
   if (state === "needs-onboarding") {

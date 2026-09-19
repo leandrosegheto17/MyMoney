@@ -42,4 +42,11 @@ describe("OnboardingGate — UX-FL-11 (RF-MVP-01 pré-requisito estrutural)", ()
     renderApp();
     expect(await screen.findByText("App autenticado")).toBeInTheDocument();
   });
+
+  it("estado de carregamento usa o padrão AuthLayout (bg-surface-alt)", () => {
+    listAccountsMock.mockReturnValue(new Promise(() => {}));
+    renderApp();
+    const skeleton = screen.getByLabelText("Verificando cadastro inicial");
+    expect(skeleton.closest(".bg-surface-alt")).not.toBeNull();
+  });
 });
