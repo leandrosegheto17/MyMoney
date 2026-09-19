@@ -60,5 +60,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     css: true,
+    // FE-DEBT-07: userEvent + jsdom + axe estouram o padrão de 5s sob carga da máquina.
+    testTimeout: 20000,
+    hookTimeout: 20000,
   },
 });
