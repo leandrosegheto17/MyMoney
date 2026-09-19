@@ -153,8 +153,8 @@ export function BudgetPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-neutral-900">Orçamento</h1>
+      <div className="flex items-start justify-between gap-4">
+        <h1 className="font-serif text-[2rem] leading-tight font-medium text-neutral-900">Orçamento</h1>
         <Button onClick={openNewForm}>+ Novo orçamento</Button>
       </div>
 

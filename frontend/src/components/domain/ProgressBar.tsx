@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import type { BudgetAlertLevel } from "../../lib/api/types";
+import { Num } from "../base/Num";
 
 export interface ProgressBarProps {
   label: string;
@@ -6,7 +8,7 @@ export interface ProgressBarProps {
   pctSpent: number;
   alertLevel: BudgetAlertLevel;
   /** Texto secundário opcional (ex.: "R$ 820,00 de R$ 1.000,00"). */
-  detailText?: string;
+  detailText?: ReactNode;
   /**
    * Override de classe de cor do `detailText` — `text-neutral-500` (padrão) foi
    * calibrado para ≥4.5:1 só sobre `color.surface` (`UX-SPEC.md` Seção 5, tabela de
@@ -48,7 +50,8 @@ export function ProgressBar({ label, pctSpent, alertLevel, detailText, detailTex
               {config.icon}{" "}
             </span>
           )}
-          {roundedPct}%{alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
+          <Num value={roundedPct} format="percent" />
+          {alertLevel === "exceeded" ? " do teto (estourado)" : alertLevel === "warning" ? " do teto" : ""}
         </span>
       </div>
       <div

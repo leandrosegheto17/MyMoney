@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ToastProvider } from "../../components/base/Toast";
 import { ApiError } from "../../lib/api/errors";
@@ -223,5 +224,33 @@ describe("BudgetPage — caracterização (FE-RS-26)", () => {
     renderPage();
     await userEvent.click(await screen.findByRole("button", { name: "Editar orçamento de Alimentação" }));
     expect(await screen.findByLabelText(/Categoria/)).toBeDisabled();
+  });
+});
+
+describe("BudgetPage — acessibilidade e cabeçalho (FE-RS-27)", () => {
+  it("grade com 3 severidades: sem violações axe e h1 único", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([
+      { ...STATUS_NORMAL, budget_id: "b-n" },
+      { ...STATUS_WARNING, budget_id: "b-w" },
+      { ...STATUS_WARNING, budget_id: "b-e", category_name: "Lazer", pct_spent: 120, alert_level: "exceeded" as const },
+    ]);
+    const { container } = renderPage();
+    expect(await screen.findByText("Lazer")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("vazio: sem violações axe", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    const { container } = renderPage();
+    await screen.findByText("Nenhum orçamento definido este mês");
+    expect(await axe(container)).toHaveNoViolations();
+  });
+
+  it("erro: sem violações axe", async () => {
+    budgetMocks.getBudgetStatus.mockRejectedValue(new Error("boom"));
+    const { container } = renderPage();
+    await screen.findByRole("alert");
+    expect(await axe(container)).toHaveNoViolations();
   });
 });
