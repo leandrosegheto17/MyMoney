@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { PinPad } from "./PinPad";
 
@@ -54,5 +55,27 @@ describe("PinPad", () => {
     render(<PinPad value="" onChange={() => {}} disabled />);
     expect(screen.getByLabelText("PIN", { selector: "input" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Dígito 1" })).toBeDisabled();
+  });
+
+  it("não tem violações de acessibilidade (normal, erro e disabled)", async () => {
+    for (const props of [{}, { error: "PIN incorreto." }, { disabled: true }]) {
+      const { container, unmount } = render(<PinPad value="" onChange={() => {}} {...props} />);
+      expect(await axe(container)).toHaveNoViolations();
+      unmount();
+    }
+  });
+
+  it("erro tem ícone além da cor; disabled distinto sem depender só de cor", () => {
+    const { container, rerender } = render(<PinPad value="" onChange={() => {}} error="Erro X" />);
+    expect(screen.getByRole("alert").querySelector("svg")).not.toBeNull();
+    rerender(<PinPad value="" onChange={() => {}} disabled />);
+    expect(screen.getByRole("button", { name: "Dígito 1" }).className).toMatch(/disabled:border-dashed/);
+    expect(container.querySelector("input")!.className).toMatch(/disabled:border-dashed/);
+  });
+
+  it("não usa cor fora de token e mantém alvos >=44px", () => {
+    const { container } = render(<PinPad value="" onChange={() => {}} />);
+    expect(container.innerHTML).not.toMatch(/#[0-9a-fA-F]{3,6}|neutral-400|(?:red|blue|green|gray|slate|amber)-\d/);
+    for (const b of container.querySelectorAll("button")) expect(b.className).toMatch(/min-h-11 min-w-11/);
   });
 });

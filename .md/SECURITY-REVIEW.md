@@ -5034,3 +5034,49 @@ Gate de entrada: `QA-REPORT.md` Seção 29 Aprovado com ressalvas (QA antes de D
 Achados: nenhum (0 crítico/alto/médio/baixo). Sem débito novo, sem sinalização ao Gestor.
 
 **Veredito (chapéu DevSecOps): Aprovado.** Dupla aprovação concedida ao Lote 4; deploy não executado.
+
+### 1.40 — Auditoria completa (veredito de lote) — "Auth/Onboarding (Redesign v2.0), Lote 5" — 2026-09-18
+
+Gate de entrada: `QA-REPORT.md` Seção 30 aprovada (QA antes de DevSecOps). Escopo: `git diff main...lote5-auth` (FE-RS-16 a FE-RS-22, QA-RS-08).
+
+#### `static-security-analysis` e `security-requirement-validation` (RF-MVP-08)
+
+| Verificação | Resultado |
+|---|---|
+| Alteração em `frontend/src/lib/auth` | Único arquivo: `AuthGate.test.tsx` (2 linhas, só texto esperado "Desbloqueie o app" sem emoji). Zero mudança em `pin`, `lockout`, `webauthn`, `session`, `AuthGate.tsx`. G-21 respeitado. Passa |
+| PIN (hash, comparação, formato) | Lógica intocada; páginas continuam chamando `setPin`/`isValidPinFormat`/verificação existentes |
+| Lockout | `UnlockPage`: mesmas chamadas `getLockoutStatus`/`recordFailedAttempt`/`recordSuccessfulUnlock`; PinPad continua não renderizado quando `locked`; contador com `aria-live` só exibe tempo restante. Sem bypass novo. Passa |
+| Biometria (WebAuthn) | Fluxo automático, botão "Tentar biometria novamente" e fallback silencioso preservados (apenas movidos para dentro de `AuthCard`); segue oculto durante lockout. Passa |
+| Sem bypass | `AuthGate` inalterado; páginas de auth só reestruturadas em layout |
+| PinPad | Só classes CSS e ícone SVG `aria-hidden` na mensagem de erro; `aria-live` continua anunciando contagem de dígitos, não os dígitos; `aria-label` dos botões é "Dígito N" (rótulo estático, não o valor digitado) |
+| Padrões perigosos no diff (`dangerouslySetInnerHTML`, `eval`, `console.*`, `localStorage`/`sessionStorage`, `window.open`) | Zero em código de produção (`innerHTML` aparece só em asserções de teste) |
+| `AuthCard` | Componente puramente apresentacional; `title/description/footer` são nós React (escapados) |
+| Superfície de rede/dados | Nenhuma nova chamada, endpoint, schema, RLS ou Edge Function |
+
+#### `sensitive-data-exposure-check`
+
+PIN, senha e e-mail continuam só em estado local dos componentes/inputs já existentes; não foram incluídos em DOM textual, `aria-*`, logs ou mensagens de erro. Mensagens de erro inalteradas. Testes novos usam fixtures sintéticas, sem credenciais reais. Nenhuma exposição.
+
+#### Dependências
+
+`package.json`/lockfile inalterados. `npm audit --omit=dev`: 0 vulnerabilidades.
+
+#### `compliance-validation` (LGPD) e G-20/G-21
+
+Sem novo dado pessoal, terceiro, cookie ou telemetria. G-20 (sem regressão de guardrails de segurança/UX-SPEC) e G-21 (`lib/auth` só com autorização explícita) atendidos: única alteração em `lib/auth` é texto de teste, sem lógica. Ponto de atenção: `FE-DEBT-06` item 1 (spinner do `AuthGate`) exigirá autorização explícita do usuário antes de tocar `lib/auth`.
+
+#### `finding-severity-classification`
+
+Nenhum achado (0 crítico/alto/médio/baixo). Sem débito de segurança novo; `SEC-DEBT` abertos inalterados. `FE-DEBT-06` (Refatoração Lote-5) já existe, é de QA/UX e não tem componente de segurança; não foi criada tarefa duplicada.
+
+#### `security-report-drafting` — veredito
+
+- Bloqueia deploy: nada. Alta/crítica: nenhuma. Compliance pendente: nenhum.
+- Requisitos operacionais para DevOps: sem alteração.
+- Sinalização ao Gestor: nenhuma.
+
+**Veredito (chapéu DevSecOps) do Lote 5: Aprovado.** Dupla aprovação concedida; deploy não executado.
+
+| Data | Lote / tarefas | Veredito | Alta/crítica | Débitos novos |
+|---|---|---|---|---|
+| 2026-09-18 | "Auth/Onboarding (Redesign v2.0), Lote 5": FE-RS-16..22, QA-RS-08 (Seção 1.40) | **Aprovado** | 0 | Nenhum |

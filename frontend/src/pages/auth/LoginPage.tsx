@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Alert, Button, Input } from "../../components/base";
+import { Alert, AuthCard, AuthLayout, Button, Input } from "../../components/base";
 import { sendMagicLink, sendPasswordResetEmail, signInWithPassword } from "../../lib/auth/session";
 import { ApiError } from "../../lib/api/errors";
 
@@ -55,11 +55,35 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface-alt p-4">
-      <div className="w-full max-w-sm rounded-lg bg-surface p-6 shadow-elevation-md">
-        <h1 className="mb-1 text-xl font-semibold text-neutral-900">Entrar no MyMoney</h1>
-        <p className="mb-6 text-sm text-neutral-500">Organize suas finanças com segurança.</p>
-
+    <AuthLayout>
+      <AuthCard
+        title="Entrar no MyMoney"
+        description="Organize suas finanças com segurança."
+        footer={
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === "password" ? "magic-link" : "password");
+                setError(null);
+                setInfo(null);
+              }}
+              className="min-h-11 text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              {mode === "password" ? "Prefiro entrar com link mágico" : "Prefiro entrar com senha"}
+            </button>
+            {mode === "password" && (
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="min-h-11 text-sm text-neutral-600 hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+              >
+                Esqueci minha senha
+              </button>
+            )}
+          </div>
+        }
+      >
         {error && (
           <div className="mb-4">
             <Alert variant="danger">{error}</Alert>
@@ -88,30 +112,8 @@ export function LoginPage() {
           <Button type="submit" loading={isSubmitting} loadingLabel="Entrando">
             {mode === "password" ? "Entrar" : "Enviar link mágico"}
           </Button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === "password" ? "magic-link" : "password");
-              setError(null);
-              setInfo(null);
-            }}
-            className="min-h-11 text-sm font-medium text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-          >
-            {mode === "password" ? "Prefiro entrar com link mágico" : "Prefiro entrar com senha"}
-          </button>
-
-          {mode === "password" && (
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="min-h-11 text-sm text-neutral-500 hover:underline focus-visible:outline-2 focus-visible:outline-primary"
-            >
-              Esqueci minha senha
-            </button>
-          )}
         </form>
-      </div>
-    </div>
+      </AuthCard>
+    </AuthLayout>
   );
 }
