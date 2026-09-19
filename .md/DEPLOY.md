@@ -2088,6 +2088,25 @@ rodar.
 
 **Ressalva de produção**: a Importação de Extrato está **bloqueada para PRODUÇÃO** até `BE-DEBT-04` `Concluída` (`SEC-DEBT-015`, `SECURITY-REVIEW.md` Seção 1.36). Nenhuma promoção a produção autorizada nesta rodada.
 
+### 9.15 Execução — 2026-09-19 (lote "Orçamento (Redesign v2.0), Lote 6") — STAGING, frontend apenas
+
+**Escopo**: chapéu DevOps, `/deploy` etapa 4. HEAD `8b18aec` (merge do Lote 6; QA Seção 32 aprovado com ressalvas, SECURITY-REVIEW 1.42 aprovado). Working tree limpa.
+
+**Publicado**: mesmo mecanismo de §9.14 (`git archive HEAD frontend` em diretório temporário + mesmo `.vercel/project.json`, `vercel deploy --target=preview --yes`).
+- Deployment: `dpl_5bVeXP7m3nG9osPrrJwJokfaNkg3`, `target: preview`, `READY`, build 26s. URL: `https://objetivo-financeiro-1zp543f9t-leandrosegheto17s-projects.vercel.app`.
+- Alias `objetivo-financeiro-ljs-staging.vercel.app` reatribuído a ele.
+- A CLI não travou desta vez; sem deploys duplicados (`vercel ls` mostra 1 novo deployment).
+- Produção intocada: continua um único Production (`objetivo-financeiro-q5ji7lqiw`); `objetivo-financeiro-ljs.vercel.app` responde `200`. Nenhum `--prod`/promote/alias de produção.
+- Nota: `vercel` não está no PATH; usado `npx vercel` (CLI 54.6.1).
+
+**Rollback**: reatribuir o alias ao deployment anterior `dpl_8TPzeWYtYv59tQHTBo6n6em2t1mk` (`objetivo-financeiro-lf3f3be3u-leandrosegheto17s-projects.vercel.app`, `vercel alias set <url> objetivo-financeiro-ljs-staging.vercel.app`). Não executado.
+
+**Smoke não autenticado**: alias de staging e URL do deployment respondem `302` (SSO Vercel), como esperado. Sem verificação funcional autenticada.
+
+**Dependência de backend**: o Lote 6 não alterou `supabase/` (nenhum commit do lote toca migrations/functions). Nenhuma dependência nova além das pendências já listadas em §9.14. Atualização: desde §9.14 foram mergeadas (lote be-debt, fora do Lote 6) as migrations `20260918100000` (be_debt_04), `20260918110000` (be_debt_02) e `20260918120000` (be_debt_01) e a mudança em `push-dispatch/lib.ts` (BE-DEBT-03); todas NÃO aplicadas/publicadas (testes SQL/deno pendentes de execução). Backend não tocado.
+
+**Lacunas**: sem verificação autenticada/visual do BudgetPage em staging; NFR (Lighthouse etc.) não medido; observabilidade inalterada (§5, sem alerta próprio); rollback não exercitado. Pendências de §9.14 (migrations, Edge Functions, `BE-DEBT-04` para produção) seguem abertas, acrescidas das migrations be-debt acima.
+
 ## 10. Incidentes Pós-Deploy
 
 **Staging**: nenhum incidente registrado nos 8 deploys realizados (§9.2-9.5,
