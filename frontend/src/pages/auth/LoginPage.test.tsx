@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import { axe } from "jest-axe";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "../../lib/api/errors";
@@ -95,5 +96,10 @@ describe("LoginPage — S-AUTH-01 (caracterização, RF-MVP-08)", () => {
     await userEvent.click(screen.getByRole("button", { name: "Esqueci minha senha" }));
     expect(await screen.findByText(/Enviamos um e-mail/)).toBeInTheDocument();
     expect(sendPasswordResetEmail).toHaveBeenCalledWith("a@b.com");
+  });
+
+  it("não tem violações axe", async () => {
+    const { container } = render(<LoginPage />);
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

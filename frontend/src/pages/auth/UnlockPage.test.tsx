@@ -17,6 +17,10 @@ vi.mock("../../lib/auth/AuthContext", () => ({
   useAuth: () => ({ unlock: unlockMock }),
 }));
 
+// Hash do PIN x 5 tentativas é CPU-bound: sob carga da suíte o timeout padrão é insuficiente.
+const LOAD_TIMEOUT = 15_000;
+const TEST_TIMEOUT = 60_000;
+
 const { UnlockPage } = await import("./UnlockPage");
 
 beforeEach(async () => {
@@ -61,13 +65,24 @@ describe("UnlockPage — S-AUTH-03/05 (RF-MVP-08 AC2, DIR-18/G-17)", () => {
 
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
       const input = await screen.findByLabelText("PIN", { selector: "input" });
-      await waitFor(() => expect(input).not.toBeDisabled());
+      await waitFor(() => expect(input).not.toBeDisabled(), { timeout: LOAD_TIMEOUT });
       await userEvent.type(input, "000000");
+      // Sincroniza com o fim da verificação assíncrona (o input não fica desabilitado enquanto
+      // ela roda): sem isso, a próxima digitação corre contra o reset do PIN e a contagem de
+      // tentativas fica não determinística sob carga.
+      if (i < MAX_ATTEMPTS - 1) {
+        const remaining = MAX_ATTEMPTS - 1 - i;
+        await screen.findByText(
+          new RegExp(`PIN incorreto\. ${remaining} tentativas? restantes?`),
+          {},
+          { timeout: LOAD_TIMEOUT },
+        );
+      }
     }
 
-    expect(await screen.findByText(/Muitas tentativas/)).toBeInTheDocument();
+    expect(await screen.findByText(/Muitas tentativas/, {}, { timeout: LOAD_TIMEOUT })).toBeInTheDocument();
     expect(screen.getByText(/^\d{2}:\d{2}$/)).toBeInTheDocument();
     expect(screen.queryByLabelText("PIN", { selector: "input" })).not.toBeInTheDocument();
     expect(unlockMock).not.toHaveBeenCalled();
-  });
+  }, TEST_TIMEOUT);
 });

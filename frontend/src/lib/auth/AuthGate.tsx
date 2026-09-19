@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import { AuthLayout } from "../../components/base";
 import { LoginPage } from "../../pages/auth/LoginPage";
 import { PinSetupPage } from "../../pages/auth/PinSetupPage";
 import { UnlockPage } from "../../pages/auth/UnlockPage";
@@ -16,9 +17,11 @@ export function AuthGate() {
   switch (stage) {
     case "loading":
       return (
-        <div role="status" aria-label="Carregando" className="flex min-h-screen items-center justify-center text-neutral-400">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
-        </div>
+        <AuthLayout>
+          <div role="status" aria-label="Carregando" className="text-primary">
+            <span className="block h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent motion-reduce:animate-none" />
+          </div>
+        </AuthLayout>
       );
     case "signed-out":
       return <LoginPage />;
