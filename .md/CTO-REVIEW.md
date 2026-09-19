@@ -2793,3 +2793,90 @@ pipeline: revisão de qualquer mudança futura em `GUARDRAILS.md` (incluindo a
 condição de acompanhamento sobre `DIR-42` registrada acima), o registro de
 fechamento no Gate 4 de cada lote após o deploy do DevOps, e a futura rodada de
 planejamento do Grupo B quando a calibração estiver pronta.
+
+---
+
+## Gate 4 — Registro de fechamento (Redesign v2.0, Lote 6 — Orçamento, produção) — 2026-09-19
+
+Registro de fechamento, **sem poder de veto** (o deploy já ocorreu). Fontes lidas:
+`DEPLOY.md` §9.15, §9.16, §9.17; `BLOCKERS.md` Bloqueio 026 (Resolvido);
+`QA-REPORT.md` Seção 32; `SECURITY-REVIEW.md` Seção 1.42.
+
+### Fatos do deploy
+
+- Frontend do Lote 6 (main `8b18aec`; docs até `2839b3b`) publicado em produção em
+  2026-09-19. Staging prévio: `dpl_5bVeXP7m3nG9osPrrJwJokfaNkg3` (§9.15).
+- Deployment de produção atual: `dpl_DGVYaMK82tBfXUsruzRSzQ1mjKhi`, alias
+  `objetivo-financeiro-ljs.vercel.app` (§9.17).
+- Rollback registrado: `dpl_HvMayKWbxX5ePndANJAvHApygSx9` (§9.16, build sem env vars
+  Supabase, ou seja, devolve o app ao estado sem backend). O rollback de nível
+  superior anterior é `dpl_3GRgrfBb7qpBq7rNjWA7YzzdGS6v`. Nenhum foi exercitado.
+- Só frontend: nenhuma migration, Edge Function ou flag tocada.
+- Deploy duplicado: em §9.17 um primeiro deploy (`objetivo-financeiro-rj654bl78`,
+  READY) e um segundo equivalente, disparado por engano de fluxo do CLI; o alias
+  aponta para o segundo. Sem impacto funcional, registrado por transparência.
+
+### Validações que precederam o deploy
+
+- QA (Seção 32): **Aprovado com ressalvas** (539 testes PASS, `tsc` e build OK).
+  Ressalva principal: sem artboard de Orçamento, o visual de estouro/alerta é
+  extrapolação e a assinatura do stakeholder está pendente.
+- DevSecOps (Seção 1.42): **Aprovado**. Diff só de frontend, sem superfície de
+  injeção, sem mudança em auth/API/`supabase/`, `npm audit` com 0 vulnerabilidades,
+  sem novo dado pessoal (LGPD).
+
+### Bloqueio 026 (env vars Supabase ausentes em Produção)
+
+Herança de §9.13: produção não embutia `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`,
+logo o app provavelmente não acessava o backend. **Resolvido** em §9.17 (vars copiadas
+de Preview para Production, mesmo project ref legado `xrcxbzrglndetrrhavhc`,
+redeploy). Verificado: bundle com o host e a anon key, `/auth/v1/health` = 200,
+`/rest/v1/` raiz = 401 (esperado). Consistente com a decisão de reuso do Supabase
+legado. Sem `service_role` exposta.
+
+### Lacunas (não invalidam o fechamento, mas seguem abertas)
+
+1. Sem smoke autenticado/funcional nem verificação visual do BudgetPage em produção.
+2. Rollback nunca exercitado (e o rollback registrado desabilita o backend).
+3. Observabilidade só nativa (logs Vercel), sem alerta próprio nem Web Vitals; NFR
+   (Lighthouse) não medido.
+4. Janela de observação de 24h em aberto.
+
+### Débitos herdados
+
+- `FE-DEBT-08` e `FE-DEBT-09` (Refatoração Lote-6).
+- Backend pendente, não aplicado/publicado: migrations `be_f3_09` (`20260915090000`) e
+  `be_debt` (`20260918100000`, `110000`, `120000`) e Edge Functions (`delete-account`,
+  `report-export`, `statement-import`, `receipt-ocr`, `voice-capture`).
+- Importação de Extrato (`SEC-DEBT-015`/`BE-DEBT-04`): sem feature flag de código (a
+  opção está no bundle). O bloqueio é **efetivo, por função ausente**
+  (`statement-import` não publicada), não uma flag desligada. Frágil: publicar a
+  função sem `BE-DEBT-04` Concluída abriria a importação em produção.
+
+### Resultado e veredito de fechamento
+
+**Sucesso com ressalvas.** Sem veto. Não há incidente registrado; o ciclo do Lote 6
+fica formalmente encerrado apenas quando a janela de 24h for concluída e registrada em
+`DEPLOY.md` §10.
+
+### Recomendações objetivas para o próximo passo (não vinculantes)
+
+1. **Smoke autenticado em produção agora**: login real com conta do próprio dono,
+   abrir Orçamento, criar/editar uma categoria de orçamento e conferir estouro/alerta.
+   É a lacuna que mais reduz confiança, pois o Bloqueio 026 acabou de mudar o
+   comportamento de rede em produção.
+2. **Fechar a janela de 24h** e registrar o veredito em `DEPLOY.md` §10.
+3. **Coletar a assinatura do stakeholder** sobre o visual de Orçamento (ressalva do QA).
+4. **Não publicar `statement-import`** antes de `BE-DEBT-04` Concluída. Para não depender
+   de "função ausente", considerar uma flag de código ou um teste que falhe se a função
+   for publicada antes da hora.
+5. **Priorizar o backend pendente** (aplicar migrations `be_f3_09`/`be_debt` e publicar
+   as Edge Functions, com testes SQL/deno) antes de avançar para o Lote 7; hoje o
+   frontend de produção pode depender de contratos que o banco ainda não tem.
+6. **Exercitar um rollback em staging** (alias) para validar o procedimento, e
+   documentar que o rollback para `dpl_HvMay...` remove o backend; preferir
+   `dpl_3GRgr...` só se a versão anterior for aceitável.
+7. **Agendar FE-DEBT-08/09** e um alerta mínimo (uptime ou erro de frontend) antes de
+   acumular novos lotes.
+
+Nenhum bloqueio novo em `BLOCKERS.md`; o Bloqueio 026 permanece Resolvido.
