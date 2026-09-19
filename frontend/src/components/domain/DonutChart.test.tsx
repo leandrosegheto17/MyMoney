@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { axe } from "jest-axe";
 import { describe, expect, it, vi } from "vitest";
 import { DonutChart } from "./DonutChart";
 
@@ -27,5 +28,12 @@ describe("DonutChart — S-DASH-01 (RF-MVP-06, WCAG alternativa a gráfico)", ()
   it("sem dados, mostra mensagem em vez de um gráfico vazio", () => {
     render(<DonutChart slices={[]} />);
     expect(screen.getByText("Sem dados para exibir no período.")).toBeInTheDocument();
+  });
+
+  it("não tem violações axe (gráfico + legenda e tabela alternativa)", async () => {
+    const { container } = render(<DonutChart slices={SLICES} onSliceClick={vi.fn()} />);
+    expect(await axe(container)).toHaveNoViolations();
+    await userEvent.click(screen.getByRole("button", { name: "Ver como tabela" }));
+    expect(await axe(container)).toHaveNoViolations();
   });
 });

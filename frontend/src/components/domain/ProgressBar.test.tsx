@@ -35,4 +35,13 @@ describe("ProgressBar — RF-MVP-07 AC2-4/RN-04 (3 estados, nunca só cor)", () 
     rerender(<ProgressBar label="Casa" pctSpent={50} alertLevel="none" detailText="R$ 500,00 de R$ 1.000,00" detailTextClassName="text-neutral-600" />);
     expect(screen.getByText("R$ 500,00 de R$ 1.000,00").className).toContain("text-neutral-600");
   });
+
+  it("estouro: aria-valuenow limitado a aria-valuemax e aria-valuetext expõe o percentual real (QA-DEBT-010)", () => {
+    render(<ProgressBar label="Lazer" pctSpent={120} alertLevel="exceeded" />);
+    const bar = screen.getByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-valuenow", "100");
+    expect(bar).toHaveAttribute("aria-valuemax", "100");
+    expect(bar).toHaveAttribute("aria-valuetext", "120% do orçamento utilizado");
+    expect(screen.getByText(/120% do teto .estourado./)).toBeInTheDocument();
+  });
 });

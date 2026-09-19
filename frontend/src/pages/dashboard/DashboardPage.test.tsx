@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -75,5 +76,37 @@ describe("DashboardPage — S-DASH-01 (RF-MVP-05/06)", () => {
     renderPage();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/Não foi possível atualizar/);
+  });
+
+  describe("cobertura permanente do Dashboard v2.0 (FE-DEBT-03)", () => {
+    function mockPopulated() {
+      dashboardMocks.getMonthProvision.mockResolvedValue({ current_total_balance_cents: 100000, pending_income_cents: 0, pending_expense_cents: 0, provisioned_balance_cents: 0 });
+      dashboardMocks.getMonthlyCategorySummary.mockResolvedValue([{ category_id: "cat-1", category_name: "Alimentação", kind: "expense", total_cents: 98000 }]);
+      dashboardMocks.getMonthTransactionCount.mockResolvedValue(1);
+    }
+
+    it("não tem violações axe", async () => {
+      mockPopulated();
+      const { container } = renderPage();
+      await screen.findByText("R$ 1.000,00");
+      expect(await axe(container)).toHaveNoViolations();
+    });
+
+    it("trava o grid responsivo do wireframe (UX-SPEC 2.2): Linha 1 lg:grid-cols-5 (3+2), Linha 2 lg:grid-cols-2, KPIs grid-cols-3", async () => {
+      mockPopulated();
+      const { container } = renderPage();
+      await screen.findByText("R$ 1.000,00");
+
+      const row1 = container.querySelector('[class~="lg:grid-cols-5"]') as HTMLElement;
+      expect(row1).toHaveClass("grid", "grid-cols-1");
+      expect(row1.querySelector(':scope > [class~="lg:col-span-3"]')).not.toBeNull();
+      expect(row1.querySelector(':scope > [class~="lg:col-span-2"]')).not.toBeNull();
+
+      const row2 = container.querySelector('[class~="lg:grid-cols-2"]') as HTMLElement;
+      expect(row2).toHaveClass("grid", "grid-cols-1");
+
+      const kpis = screen.getByText("Entradas do mês").closest(".grid") as HTMLElement;
+      expect(kpis).toHaveClass("grid-cols-3");
+    });
   });
 });
