@@ -254,3 +254,35 @@ describe("BudgetPage — acessibilidade e cabeçalho (FE-RS-27)", () => {
     expect(await axe(container)).toHaveNoViolations();
   });
 });
+
+describe("BudgetPage — S-BUD-02 modal e ConfirmationDialog (FE-RS-28)", () => {
+  it("modal de novo orçamento aberto: sem violações axe e foco dentro do diálogo", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([]);
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await userEvent.click(await screen.findByRole("button", { name: "+ Novo orçamento" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(await axe(document.body, { rules: { region: { enabled: false } } })).toHaveNoViolations();
+    expect(dialog.contains(document.activeElement)).toBe(true);
+  });
+
+  it("modal de edição aberto: sem violações axe", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([STATUS_WARNING]);
+    budgetMocks.listBudgets.mockResolvedValue([BUDGET_1]);
+    categoriesMocks.listCategories.mockResolvedValue([CAT_1]);
+    renderPage();
+    await userEvent.click(await screen.findByRole("button", { name: "Editar orçamento de Alimentação" }));
+    await screen.findByRole("heading", { name: "Editar orçamento" });
+    expect(await axe(document.body, { rules: { region: { enabled: false } } })).toHaveNoViolations();
+  });
+
+  it("ConfirmationDialog aberto: sem violações axe", async () => {
+    budgetMocks.getBudgetStatus.mockResolvedValue([STATUS_WARNING]);
+    budgetMocks.listBudgets.mockResolvedValue([BUDGET_1]);
+    renderPage();
+    await userEvent.click(await screen.findByRole("button", { name: "Editar orçamento de Alimentação" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Remover orçamento" }));
+    await screen.findByRole("heading", { name: "Remover orçamento" });
+    expect(await axe(document.body, { rules: { region: { enabled: false } } })).toHaveNoViolations();
+  });
+});

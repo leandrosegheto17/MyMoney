@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { CSSProperties } from "react";
 import { Card } from "../base/Card";
 import { ProgressBar } from "./ProgressBar";
-import { formatCentsToBRL } from "../../lib/currency";
+import { Num } from "../base/Num";
 import type { BudgetAlertLevel } from "../../lib/api/types";
 
 export interface BudgetCardProps {
@@ -85,7 +85,11 @@ export function BudgetCard({ categoryName, spentCents, limitCents, pctSpent, ale
             label={categoryName}
             pctSpent={pctSpent}
             alertLevel={alertLevel}
-            detailText={`${formatCentsToBRL(spentCents)} de ${formatCentsToBRL(limitCents)}`}
+            detailText={
+              <>
+                <Num value={spentCents} format="currency" /> de <Num value={limitCents} format="currency" />
+              </>
+            }
             detailTextClassName={DETAIL_TEXT_CLASS[alertLevel]}
           />
         </div>
