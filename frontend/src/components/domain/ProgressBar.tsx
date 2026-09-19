@@ -50,7 +50,8 @@ export function ProgressBar({ label, pctSpent, alertLevel, detailText, detailTex
       <div
         role="progressbar"
         aria-label={label}
-        aria-valuenow={roundedPct}
+        aria-valuenow={Math.min(100, Math.max(0, roundedPct))}
+        aria-valuetext={roundedPct > 100 ? `${roundedPct}% do orçamento utilizado` : undefined}
         aria-valuemin={0}
         aria-valuemax={100}
         className="h-2 w-full overflow-hidden rounded-full bg-neutral-200"
