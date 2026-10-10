@@ -51,6 +51,7 @@ Testado com objetos descartáveis (já removidos):
 | view                                    | capturada, mas **sem** `security_invoker = true` | escrever a view à mão na migration com `with (security_invoker = true)` |
 | `grant` em view                         | não capturado                                    | escrever à mão                                                          |
 | `grant`/`revoke` em schema (`usage`)    | não capturado                                    | escrever à mão                                                          |
+| `grant execute` em função               | não capturado                                    | escrever à mão                                                          |
 | `alter default privileges`              | não capturado                                    | escrever à mão                                                          |
 
 Toda migration vai dentro de `begin; … commit;`. Depois de gerar, rode `pnpm local:resetar` do zero.
