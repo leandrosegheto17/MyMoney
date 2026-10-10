@@ -50,3 +50,45 @@ APROVADA — 0 críticos/0 não críticos; catálogo: invoker, search_path vazio
 
 ## TP-0013 — DevSecOps — 2026-10-10
 APROVADA — RLS enable+force, auxiliares security definer com search_path vazio e execute só authenticated, anon sem acesso, leitura/escrita cruzada e user_id negados (executado), limite de 2 membros e 1 lar recusados, gitleaks limpo; 0 achados críticos, 0 não críticos.
+
+## RTP-0008 — DevSecOps — 2026-10-10
+RTP-0008 OK em segurança (lint 0 erros, 27 testes verdes, sem segredo/dependência/dado pessoal); contorno por import() com template literal aberto como RTP-0014 (baixo).
+
+## TP-0005 — DevSecOps — 2026-10-10
+OK; 0 achados; diff lido e grep confirma único grant ao anon = api.ping + usage em api (INVOKER, search_path vazio, select 1); sem RTP.
+
+## TP-0014 — DevSecOps — 2026-10-10
+TP-0014 aprovada em segurança (OK): seed 100% fictício, só local, senha com hash bcrypt, sem dependência nova; gitleaks e login real no GoTrue ficaram sem execução por falta de ferramenta.
+
+## TP-0015 — DevSecOps — 2026-10-10
+TP-0015 aprovada em segurança (INVOKER, search_path vazio, anon/public sem execute, sem vazamento do outro membro, registro_invalido sem membro); nenhum achado; reset/pgTAP real pendentes no CI.
+
+## TP-0017 — DevSecOps — 2026-10-10
+TP-0017 OK em segurança; 10 asserções do catálogo passam, lista fechada literal e conforme SDD §7/ADR-012; overload de função definer escapa da regra por nome (baixo, RTP-0013).
+
+## TP-0032 — DevSecOps — 2026-10-10
+TP-0032 aprovada em segurança: sem superfície de segurança, sem import proibido, sem style inline/innerHTML, vitrine fora do build, sem dependência nova, sem achados.
+
+## TP-0034 — DevSecOps — 2026-10-10
+TP-0034 aprovada na segurança: componentes sem dado/rede, sem HTML injetado nem estilo inline, sem dependência nova, bloqueio de envio duplo no Salvando; sem achados.
+
+## TP-0035 — DevSecOps — 2026-10-10
+TP-0035 aprovada em segurança: sem rede/dado persistido, só centavos inteiros, devDependency user-event sem vulnerabilidades, sem achados.
+
+## TP-0039 — DevSecOps — 2026-10-10
+TP-0039 aprovada em segurança (texto puro, sem style inline, sem dependência nova); nenhum achado novo, RTP-0010 do QA segue pendente.
+
+## TP-0043 — DevSecOps — 2026-10-10
+TP-0043 aprovada em segurança (sem HTML cru nem style inline, devDependency user-event sem vulnerabilidade conhecida no audit); sem achados.
+
+## TP-0048 — DevSecOps — 2026-10-10
+TP-0048 aprovada em segurança: RLS enable+force, FK composto e grants verificados em banco descartável (isolamento A/B, anon sem acesso); sem achados.
+
+## TP-0050 — DevSecOps — 2026-10-10
+TP-0050 aprovada em segurança: RLS enable+force, políticas sem `true` com `or` entre parênteses, individual de outro membro invisível/imutável em banco descartável, nada a `anon`/`api`; sem achados acionáveis.
+
+## TP-0061 — DevSecOps — 2026-10-10
+TP-0061 aprovada em segurança, revisão do diff e prova em banco descartável sem achados (INVOKER, search_path vazio, só inteiro, anon sem execute).
+
+## TP-0079 — DevSecOps — 2026-10-10
+TP-0079 aprovada na segurança (sem achados, sem dependência nova, lint G-09 limpo); axe nas telas fica para TP-0089/TP-0103.
