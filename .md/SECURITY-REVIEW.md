@@ -371,3 +371,6 @@ RTP-0031 aprovada na segurança (sem dependência nova, sem relaxar lint, sem se
 
 ## RTP-0049 — DevSecOps — 2026-10-10
 RTP-0049 sem achado de segurança: só arquivo de teste alterado, sem migration/grant/dependência nova nem dado sensível; revisão estática, nada executado.
+
+## RTP-0016 — DevSecOps — 2026-10-10
+RTP-0016 OK em segurança — 22 arquivos só com formatação (conteúdo idêntico), sem mudança de dependência e sem segredo novo (apenas o default local pré-existente de TESTE_DATABASE_URL).

@@ -383,3 +383,6 @@ RTP-0049 aprovada no QA; mês sem dado (hoje+5 anos) fica vazio com app.hoje() e
 
 ## RTP-0016 — QA — 2026-10-10
 RTP-0016 aprovada no QA — prettier --check limpo, tsc e vitest src verdes, 22 arquivos com tokens AST idênticos (só formatação, nenhuma asserção alterada).
+
+## RTP-0050 — QA — 2026-10-10
+RTP-0050 aprovada no QA: lint, tsc e vitest verdes, verificação de aderência falha ao renomear argumento/coluna; 1 achado não crítico (ID de tarefa em comentário) aberto como RTP-0052.
