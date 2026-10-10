@@ -12,8 +12,7 @@
       "p_descricao": "Padaria"
     },
     "exibicao": { "categoria_nome": "Almoço/Alimentação fora", "escopo": "individual", "forma_nome": "Pix Nubank" },
-    "criadoEm": "2026-10-09T08:15:00-03:00",
-    "situacao": "aguardando",
-    "motivo": null
+    "criadoEm": 1791544500000,
+    "situacao": "aguardando"
   }
 ]
