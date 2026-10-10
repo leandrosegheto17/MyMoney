@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20261010.1",
+    "@types/node": "24.19.1",
     "wrangler": "4.149.0"
   }
 }
