@@ -593,3 +593,9 @@ APROVADA — foco via focarPrimeiroErro sem refs/useEffect próprios; vitest 27/
 
 ## RTP-0088 — QA — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; 3 códigos do Auth uniformizados para "E-mail ou senha incorretos.", 47 testes verdes (4 arquivos), convenções OK.
+
+## RTP-0089 — QA — 2026-10-10
+APROVADA — 10/10 testes e prettier limpos, literais substituídos pelas constantes de textosConexao; 0 críticos, 0 não críticos; mensagensErro.ts:20 é texto distinto, sem RTP.
+
+## RTP-0090 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; vitest 37/37, prettier e tsc OK, reformatação de sessao.test.ts sem mudança de comportamento.

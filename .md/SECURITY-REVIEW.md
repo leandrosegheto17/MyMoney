@@ -566,3 +566,9 @@ OK — revisão do diff: senha não vai a log/URL/storage/DOM, focarPrimeiroErro
 
 ## RTP-0088 — DevSecOps — 2026-10-10
 APROVADA — 0 críticos, 1 não crítico (RTP-0090: user_sso_managed/phone_not_confirmed ainda diferenciam a conta); 3 códigos uniformizados, 47 testes executados verdes; timing do servidor não medido.
+
+## RTP-0089 — DevSecOps — 2026-10-10
+APROVADA — revisão do diff (lido, nada executado além do diff): troca de literais por constantes de texto puro, sem impacto de segurança; 0 críticos, 0 não críticos, sem RTP.
+
+## RTP-0090 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; diff lido (sem log do erro bruto, limites de taxa intocados) e vitest erros+sessao 37/37 executado.
