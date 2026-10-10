@@ -26,7 +26,8 @@ export type Lancamento = {
     data_ajustada?: boolean;
   }[];
   pagamento?: {
-    forma: IdNome & { tipo: TipoForma };
+    /** `null` na receita: não há forma de pagamento. */
+    forma: (IdNome & { tipo: TipoForma }) | null;
     conta: IdNome | null;
     /** `YYYY-MM-DD`. */
     data_operacao: string;

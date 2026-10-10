@@ -110,6 +110,8 @@ function compilar(fontes: Map<string, string>): Map<string, string[]> {
 
 const CATEGORIAS_ESCOPO_INVALIDO = 'negativo-escopo-casa';
 const LANCAMENTO_PAGAMENTO_NULO = 'negativo-pagamento-nulo';
+const LANCAMENTO_RECEITA_FORMA_NULA = 'positivo-receita-forma-nula';
+const LANCAMENTO_DESPESA_COM_FORMA = 'positivo-despesa-com-forma';
 
 let resultado: Map<string, string[]>;
 
@@ -137,6 +139,18 @@ beforeAll(() => {
       `export const valor = { ...(${lerJson('lancamento-outro-membro.json')}), pagamento: null } satisfies Lancamento;`,
     ].join('\n'),
   );
+  const pagamentoReceita = `{ forma: null, conta: { id: 'c1', nome: 'Conta' }, data_operacao: '2026-05-10', dia_vencimento_aplicado: null }`;
+  fontes.set(
+    nomeVirtual(LANCAMENTO_RECEITA_FORMA_NULA),
+    [
+      `import type { Lancamento } from '../../src/respostas/lancamento';`,
+      `export const valor = { ...(${lerJson('lancamento-pagador.json')}), tipo: 'receita', pagamento: ${pagamentoReceita} } satisfies Lancamento;`,
+    ].join('\n'),
+  );
+  fontes.set(
+    nomeVirtual(LANCAMENTO_DESPESA_COM_FORMA),
+    fonteDoCaso(r('lancamento-pagador.json', 'lancamento', 'Lancamento')),
+  );
   resultado = compilar(fontes);
 }, 60_000);
 
@@ -147,6 +161,16 @@ describe('respostas do mockup satisfazem os tipos do contrato', () => {
 
   it(`${ERRO} tem message do tipo CodigoErro`, () => {
     expect(resultado.get(nomeVirtual(ERRO))).toEqual([]);
+  });
+});
+
+describe('pagamento.forma do lançamento', () => {
+  it('receita aceita forma null com conta preenchida', () => {
+    expect(resultado.get(nomeVirtual(LANCAMENTO_RECEITA_FORMA_NULA))).toEqual([]);
+  });
+
+  it('despesa com forma objeto continua compilando', () => {
+    expect(resultado.get(nomeVirtual(LANCAMENTO_DESPESA_COM_FORMA))).toEqual([]);
   });
 });
 
