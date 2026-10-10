@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 21:54
+Atualizado: 2026-10-10 21:56
 
-Resumo: Não executada 57 · Em execução 1 · Aprovada 197 · Bloqueada 19 · total 274
+Resumo: Não executada 55 · Em execução 1 · Executada (aguarda teste) 2 · Aprovada 197 · Bloqueada 19 · total 274
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -269,8 +269,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 254 | RTP-0085 | executor | ✔ | FormularioNovaSenha usa focarPrimeiroErro em vez de foco próprio | Refatoração Lote-9 | TP-0046 | Aprovada |
 | 255 | RTP-0086 | executor | ✔ | T14: seta ausente no item 'Instalar o app' | Refatoração Lote-9 | TP-0047 | Não executada |
 | 256 | RTP-0088 | executor | ✔ | T01 Entrar: mensagem uniforme para falhas de login que revelam a conta | Refatoração Lote-9 | TP-0045 | Aprovada |
-| 257 | RTP-0089 | executor | ✔ | RedefinirSenha: usar textosConexao em vez de repetir os textos de conexão | Refatoração Lote-9 | RTP-0084 | Não executada |
-| 258 | RTP-0090 | executor | ✔ | T01 Entrar: uniformizar também user_sso_managed e phone_not_confirmed | Refatoração Lote-9 | RTP-0088 | Não executada |
+| 257 | RTP-0089 | executor | ✔ | RedefinirSenha: usar textosConexao em vez de repetir os textos de conexão | Refatoração Lote-9 | RTP-0084 | Executada (aguarda teste) |
+| 258 | RTP-0090 | executor | ✔ | T01 Entrar: uniformizar também user_sso_managed e phone_not_confirmed | Refatoração Lote-9 | RTP-0088 | Executada (aguarda teste) |
 | 259 | RTP-0087 | executor | ✔ | Comparação visual do cabeçalho com SeletorMes (T02/T04/T06/T09) | Refatoração Lote-20 | TP-0103 | Não executada |
 | 260 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 261 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
