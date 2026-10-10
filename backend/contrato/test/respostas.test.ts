@@ -58,6 +58,9 @@ const ERRO = 'erro-registro-invalido.json';
 const EXCLUIDOS: Record<string, string> = {
   'auth-usuario.json': 'resposta do Supabase Auth, não do schema api',
   'erro-servico.json': 'erro do gateway (503), não do schema api',
+  'ajustar-saldo-simular.json': 'escalar (diferença em centavos) devolvido pela função, sem objeto a tipar',
+  'fila-offline.json': 'formato da fila local do cliente (armazenamento do navegador), não resposta da API',
+  'fila-offline-vazia.json': 'formato da fila local do cliente (armazenamento do navegador), não resposta da API',
 };
 
 const normalizar = (caminho: string) => caminho.replace(/\\/g, '/');

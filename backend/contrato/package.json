@@ -5,12 +5,17 @@
   "type": "module",
   "exports": {
     "./banco": "./src/banco.ts",
-    "./erros": "./src/erros.ts"
+    "./enums": "./src/enums.ts",
+    "./erros": "./src/erros.ts",
+    "./respostas/*": "./src/respostas/*.ts"
   },
   "scripts": {
     "gerar": "node scripts/gerar.mjs",
     "verificar": "node scripts/gerar.mjs --verificar",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.1"
   }
 }
