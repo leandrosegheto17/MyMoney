@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoAnon, comoB, comoSemMembro } from '../src/sessoes';
 
@@ -7,6 +7,8 @@ const CATEGORIA_CONJUNTA = '00000000-0000-4000-8000-000000000401';
 const CATEGORIA_INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000413';
 const PIX_DE_A = '00000000-0000-4000-8000-000000000301';
 const CREDITO_DE_A = '00000000-0000-4000-8000-000000000303';
+
+const criados: string[] = [];
 
 async function lancar(categoria: string, forma: string, parcelas: number): Promise<string> {
   const id = randomUUID();
@@ -21,6 +23,7 @@ async function lancar(categoria: string, forma: string, parcelas: number): Promi
     p_data: '2026-10-15',
   });
   expect(error).toBeNull();
+  criados.push(id);
   return id;
 }
 
@@ -31,6 +34,14 @@ async function detalheDeA(id: string): Promise<string> {
 }
 
 describe('api.editar_lancamento', () => {
+  afterAll(async () => {
+    const a = await comoA();
+    for (const id of criados) {
+      const { error } = await a.rpc('excluir_lancamento', { p_id: id });
+      expect(error).toBeNull();
+    }
+  });
+
   it('B tenta mudar forma e parcelas da conjunta de A: erro, e A relê nada mudado', async () => {
     const id = await lancar(CATEGORIA_CONJUNTA, CREDITO_DE_A, 3);
     const antes = await detalheDeA(id);
@@ -72,8 +83,14 @@ describe('api.editar_lancamento', () => {
     const { error } = await a.rpc('editar_lancamento', { p_id: id, p_valor_total_centavos: 12000 });
     expect(error).toBeNull();
     const { data } = await a.rpc('lancamento', { p_id: id });
-    const l = data as { valor_total_centavos?: number; parcelas: { valor_centavos: number }[] };
+    const l = data as {
+      parcelas: { valor_centavos: number }[];
+      alterado_por: { nome: string } | null;
+      alterado_em: string | null;
+    };
     expect(l.parcelas.reduce((s, p) => s + p.valor_centavos, 0)).toBe(12000);
+    expect(l.alterado_por?.nome).toBe('Leandro');
+    expect(l.alterado_em).not.toBeNull();
   });
 
   it('usuário sem membro recebe registro_invalido', async () => {
