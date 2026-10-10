@@ -16,3 +16,4 @@ backend/supabase/.branches/
 
 # Capturas da comparação visual
 .md/.visual/
+*.tsbuildinfo
