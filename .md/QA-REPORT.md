@@ -380,3 +380,6 @@ RTP-0031 APROVADA no QA (lint 0 erro, tsc ok, 18/18 testes, tipo Database bate c
 
 ## RTP-0049 — QA — 2026-10-10
 RTP-0049 aprovada no QA; mês sem dado (hoje+5 anos) fica vazio com app.hoje() em 2026-10 e 2029-05, mas deriva do relógio do Node e falha se app.hoje() for deslocado a 2030-12 (baixa, aberto RTP-0051).
+
+## RTP-0016 — QA — 2026-10-10
+RTP-0016 aprovada no QA — prettier --check limpo, tsc e vitest src verdes, 22 arquivos com tokens AST idênticos (só formatação, nenhuma asserção alterada).
