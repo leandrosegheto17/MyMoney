@@ -413,3 +413,18 @@ APROVADA em segurança, 0 críticos e 0 não críticos; revisão de leitura mais
 
 ## TP-0037 — DevSecOps — 2026-10-10
 TP-0037 aprovada em DevSecOps: diff lido sem HTML injetável, style inline, storage ou dependência nova; confirma só por clique no botão (foco inicial em Cancelar, véu e Esc inertes), pilha de foco sem vazamento; eslint 0 e 43 vitest passando; 0 achados.
+
+## RTP-0057 — DevSecOps — 2026-10-10
+RTP-0057 aprovada em segurança: diff executado confirma só comentário alterado, sem segredo/URL/dado pessoal nem dependência nova (0 achados).
+
+## RTP-0058 — DevSecOps — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; só o nome do caso mudou (sufixo do id), sessão de usuário, sem segredo/URL/dependência nova e asserções de isolamento intactas (revisão do diff + grep).
+
+## TP-0008 — DevSecOps — 2026-10-10
+TP-0008 aprovada em segurança: 19 testes e shellcheck -x verdes, G-14/falha fechada/sem segredo/sem service_role conferidos, sem dependência nova; 0 críticos, 1 baixo (RTP-0062: validação de host do --db-url contornável por @ na query); ensaio real não verificado.
+
+## TP-0019 — DevSecOps — 2026-10-10
+OK; 0 críticos, 1 não crítico (RTP-0063: senha da CONTRATO_DB_URL pode aparecer no erro do execFileSync e shell no win32); 10 testes verdes, lockfile/CI/banco.ts/erros.ts limpos.
+
+## TP-0109 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico novo (RTP-0064 baixa: host-local.sh passa `?x=@localhost` e `?host=`), RTP-0060 mantida (média); testes 31/31, 19/19, ensaio 7/7 em banco descartável com shim; sem segredos/pull_request_target/dependência nova; CLI real e CI não verificados.
