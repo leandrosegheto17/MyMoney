@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 18:06
+Atualizado: 2026-10-10 18:17
 
-Resumo: Não executada 77 · Em execução 2 · Aprovada 144 · Bloqueada 1 · total 224
+Resumo: Não executada 73 · Em execução 1 · Executada (aguarda teste) 5 · Aprovada 144 · Bloqueada 1 · total 224
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -21,7 +21,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 6 | TP-0006 | executor | ✔ | Worker de keep-alive (@mymoney/keepalive): código | Lote 1 | TP-0001 | Aprovada |
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Aprovada |
 | 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Aprovada |
-| 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Em execução |
+| 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Executada (aguarda teste) |
 | 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Em execução |
 | 11 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | TP-0009 | Não executada |
 | 12 | TP-0011 | executor | ✔ | Primeira migration em produção (schemas, utilitários e ping) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Não executada |
@@ -32,7 +32,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 17 | TP-0016 | executor | ✔ | Pacote @mymoney/testes-api (suíte de isolamento) [BD] | Lote 3 | TP-0014, TP-0015 | Aprovada |
 | 18 | TP-0017 | executor | ✔ | Testes de catálogo da segurança do banco [BD] | Lote 3 | TP-0013 | Aprovada |
 | 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Aprovada |
-| 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Não executada |
+| 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Executada (aguarda teste) |
 | 21 | TP-0020 | executor | ✔ | Tipos das respostas em JSON e das linhas das views | Lote 4 | TP-0019 | Não executada |
 | 22 | TP-0021 | executor | ✔ | Esqueleto @mymoney/web | Lote 4 | TP-0001 | Aprovada |
 | 23 | TP-0022 | executor | ✔ | Regras de fronteira no lint do web | Lote 4 | TP-0021 | Aprovada |
@@ -124,7 +124,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 109 | TP-0106 | executor | ✔ | T05c Excluir e "não existe mais" | Lote 20 | TP-0037, TP-0105 | Não executada |
 | 110 | TP-0107 | executor | ✔ | T22 Instalar o app | Lote 21 | TP-0027, TP-0036, TP-0089 | Não executada |
 | 111 | TP-0108 | executor | ✔ | T23 Envios pendentes | Lote 21 | TP-0036, TP-0037, TP-0078, TP-0084 | Não executada |
-| 112 | TP-0109 | executor | ✔ | CI: ensaio de migration sobre dados e checagem aditiva [BD] | Lote 21 | TP-0018, TP-0088 | Não executada |
+| 112 | TP-0109 | executor | ✔ | CI: ensaio de migration sobre dados e checagem aditiva [BD] | Lote 21 | TP-0018, TP-0088 | Executada (aguarda teste) |
 | 113 | TP-0110 | executor | ✔ | E2E de integração: entrar, primeiro uso, lançar e fila [BD] | Lote 21 | TP-0045, TP-0069, TP-0084, TP-0094, TP-0095, TP-0103, TP-0108 | Não executada |
 | 114 | TP-0111 | executor | ✔ | E2E de integração: privacidade e edição com 2 membros [BD] | Lote 21 | TP-0105, TP-0106, TP-0110 | Não executada |
 | 115 | TP-0112 | executor | ✔ | Cadastro dos 2 usuários em produção [U] | Lote 22 | TP-0029, TP-0110 | Não executada |
@@ -201,13 +201,13 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 186 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Aprovada |
 | 187 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Aprovada |
 | 188 | RTP-0054 | executor | ✔ | Alinhar pode_excluir da categoria ...415 entre seed e categorias.json | Refatoração Lote-10 | TP-0053 | Aprovada |
-| 189 | RTP-0057 | executor | ✔ | Atualizar cabeçalho de 07-orcamento.sql que ficou falso com o orçamento de setembro | Refatoração Lote-10 | RTP-0054 | Não executada |
+| 189 | RTP-0057 | executor | ✔ | Atualizar cabeçalho de 07-orcamento.sql que ficou falso com o orçamento de setembro | Refatoração Lote-10 | RTP-0054 | Executada (aguarda teste) |
 | 190 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Aprovada |
 | 191 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Aprovada |
 | 192 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Aprovada |
 | 193 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Aprovada |
 | 194 | RTP-0029 | executor | ✔ | Casos testes-api de arquivar/excluir conta: usar os ids do seed | Refatoração Lote-11 | TP-0055 | Aprovada |
-| 195 | RTP-0058 | executor | ✔ | Nome único no caso de reenvio de salvar_categoria | Refatoração Lote-11 | RTP-0018 | Não executada |
+| 195 | RTP-0058 | executor | ✔ | Nome único no caso de reenvio de salvar_categoria | Refatoração Lote-11 | RTP-0018 | Executada (aguarda teste) |
 | 196 | RTP-0021 | executor | ✔ | Meta conjunta: impedir que um membro a torne individual ou troque o dono | Refatoração Lote-30 | TP-0144 | Aprovada |
 | 197 | RTP-0027 | executor | ✔ | Teste de API movimentos-meta: B não pode receber id nem nome da conta de A | Refatoração Lote-30 | TP-0147 | Aprovada |
 | 198 | RTP-0038 | executor | ✔ | Formatar movimentos-meta.test.ts (prettier: espaço faltando em ALEATORIO) | Refatoração Lote-30 | RTP-0027 | Aprovada |

@@ -29,9 +29,10 @@ describe('api.salvar_categoria', () => {
 
   it('reenviar a mesma categoria com os mesmos dados mantém uma só linha', async () => {
     const a = await comoA();
+    const id = randomUUID();
     const dados = {
-      p_id: randomUUID(),
-      p_nome: 'Reenvio idêntico',
+      p_id: id,
+      p_nome: `Reenvio ${id.slice(0, 8)}`,
       p_tipo: 'despesa',
       p_escopo: 'individual',
       p_variavel: false,
