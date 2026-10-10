@@ -470,3 +470,39 @@ TP-0025 APROVADA no QA (59/59 testes, tsc e eslint limpos, dependências ok); `p
 
 ## RTP-0060 — QA — 2026-10-10
 APROVADA (rodada 2): bypass `$é$` e variantes de dollar-quote fechados, 62+24 testes e shellcheck ok; 0 críticos, 2 não críticos (RTP-0072 perl que falha em execução aprova, RTP-0073 teste com 417 linhas); RTP-0069/0070 resolvidas.
+
+## RTP-0065 — QA — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; contrato 79 testes e typechecks verdes, tipo aceita forma null conforme aceite.
+
+## RTP-0066 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 25 testes e tsc passando, 429/503/rede propagados e usuário inexistente neutro.
+
+## RTP-0067 — QA — 2026-10-10
+APROVADA — shellcheck -x do CI sai 0 e host-local.test.sh 48/48 verde; 0 achados.
+
+## RTP-0068 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; find cobre operacao+supabase (21 .sh), shellcheck 0.11.0 rc=0, YAML válido.
+
+## RTP-0071 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; lint limpo sem eslint-disable, mascararUrl sem vazamento de senha com @ ou / crus, 79 testes passando.
+
+## RTP-0074 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; migrar.test.sh 30/30 e host-local.test.sh 48/48 verdes, --db-url vazio aborta antes de git/gh/supabase.
+
+## TP-0038 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 21 testes + tsc + eslint verdes, textos/ícones/ordens conforme mockup e exaustividade provada.
+
+## TP-0076 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; 34 testes passando, typecheck/ESLint limpos, cache por usuário e `sair()` preservando a fila confirmados.
+
+## TP-0077 — QA — 2026-10-10
+APROVADA; 0 críticos, 2 não críticos (RTP-0076 401 vira falhou, RTP-0077 formato do fixture); 22/22 testes e typecheck limpos.
+
+## TP-0102 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 58 testes, typecheck e eslint verdes, aceite e convenções conferidos no diff.
+
+## TP-0129 — QA — 2026-10-10
+APROVADA; 0 achados críticos, 0 não críticos; 38 testes e typecheck passando, invalidações e networkMode 'always' verificados.
+
+## TP-0152 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 46 testes passando e tsc limpo, rpc tipada pelo banco.ts.
