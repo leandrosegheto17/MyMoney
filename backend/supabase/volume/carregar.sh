@@ -21,6 +21,7 @@ if [ -z "$DB_URL" ]; then
   exit 1
 fi
 
+# shellcheck source-path=SCRIPTDIR
 # shellcheck source=../../operacao/comum/host-local.sh
 source "$BACKEND/operacao/comum/host-local.sh"
 exigir_host_local "$DB_URL" "o volume" || exit 1
