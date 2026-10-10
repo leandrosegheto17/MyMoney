@@ -1,24 +1,46 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { semViolacoesGraves } from './apoio/acessibilidade';
 
-const mockup = join(process.cwd(), '../../.md/mockup');
-const tokens = readFileSync(join(mockup, 'tokens.css'), 'utf8');
-const base = readFileSync(join(mockup, 'base.css'), 'utf8');
+const DATA = new Date().toISOString().slice(0, 10);
+const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'TP-0039');
 
-const pagina = `<!doctype html><html lang="pt-BR"><head><title>Prova</title></head><body><main>
-<h1>Prova</h1>
-<div class="faixa faixa-aviso" role="status"><span class="texto-faixa">Sem conexão. Os lançamentos ficam guardados no aparelho.</span></div>
-<div class="faixa faixa-aviso" role="status"><span class="texto-faixa">1 lançamento aguardando envio.</span><a href="#v">Ver</a></div>
-<div class="faixa" role="region" aria-label="Instalar o app"><span class="texto-faixa">Instale o MyMoney para lançar mais rápido.</span><button class="botao botao-principal" type="button">Instalar</button></div>
-<div class="faixa" role="status"><span class="texto-faixa">Mostrando dados de 14:32</span></div>
-<div role="status" aria-live="polite"><div class="aviso" style="position:static"><span>Lançamento salvo</span></div><div class="aviso" style="position:static"><span>Guardado no aparelho</span></div></div>
-<div role="alert" aria-live="assertive"><div class="aviso" style="position:static"><span>Não foi possível salvar</span></div></div>
-</main></body></html>`;
+const AVISOS = [
+  { botao: 'Sucesso', texto: 'Lançamento salvo', regiao: 'status', arquivo: 'aviso-sucesso' },
+  { botao: 'Guardado', texto: 'Guardado no aparelho', regiao: 'status', arquivo: 'aviso-guardado' },
+  { botao: 'Erro', texto: 'Não foi possível salvar', regiao: 'alert', arquivo: 'aviso-erro' },
+] as const;
 
-test('faixas e avisos sem violações graves de acessibilidade', async ({ page }) => {
-  await page.setContent(pagina);
-  await page.addStyleTag({ content: `${tokens}\n${base}` });
+async function abrir(page: Page) {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/e2e/vitrine/aviso-faixa.html');
+  await expect(page.getByRole('heading', { name: 'Aviso e Faixa' })).toBeVisible();
+}
+
+test('as 4 faixas reais não têm violações graves e ganham print', async ({ page }) => {
+  await abrir(page);
+  await expect(page.getByRole('status').filter({ hasText: 'Sem conexão' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Mostrando dados de 14:32' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Instalar o app' })).toBeVisible();
   await semViolacoesGraves(page);
+  mkdirSync(PASTA_PRINTS, { recursive: true });
+  await page.screenshot({ path: join(PASTA_PRINTS, 'faixas-390x844.png') });
 });
+
+for (const aviso of AVISOS) {
+  test(`aviso ${aviso.botao.toLowerCase()} real na região ${aviso.regiao}, sem violações graves, com print`, async ({
+    page,
+  }) => {
+    await abrir(page);
+    await page.getByRole('button', { name: aviso.botao }).click();
+    const visivel = page
+      .locator(aviso.regiao === 'alert' ? '[role=alert]' : '[role=status][aria-live=polite]')
+      .getByText(aviso.texto);
+    await expect(visivel).toBeVisible();
+    await semViolacoesGraves(page);
+    mkdirSync(PASTA_PRINTS, { recursive: true });
+    await page.screenshot({ path: join(PASTA_PRINTS, `${aviso.arquivo}-390x844.png`) });
+    await expect(visivel).toBeHidden({ timeout: 6000 });
+  });
+}
