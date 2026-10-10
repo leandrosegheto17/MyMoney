@@ -88,7 +88,12 @@ sql_sem_comentarios() {
 # Imprime o motivo (uma linha por achado) de cada instrução não aditiva do arquivo.
 achados_nao_aditivos() {
   local sql instrucao
-  sql="$(sql_sem_comentarios "$1")"
+  [ -f "$1" ] && [ -r "$1" ] || { echo "arquivo ausente ou ilegível (symlink pendente?): $1" >&2; return 2; }
+  sql="$(sql_sem_comentarios "$1")" || { echo "a varredura do perl falhou em $1" >&2; return 2; }
+  if [ -s "$1" ] && [ -z "$sql" ]; then
+    echo "a varredura do perl não produziu saída para $1" >&2
+    return 2
+  fi
   while IFS= read -r instrucao; do
     if grep -Fq '@@nt@@' <<< "$instrucao"; then
       echo "construção SQL não terminada ou tag mal formada"
@@ -160,7 +165,7 @@ justificativa_vale() {
 }
 
 main() {
-  local base nome arquivo achados justificativa
+  local base nome arquivo achados bruto justificativa
   command -v perl > /dev/null || { echo "ERRO: perl não encontrado no PATH; a checagem aditiva não pode rodar" >&2; exit 2; }
   base="$(resolver_base "${1:-}")"
   echo "Checagem aditiva contra $base"
@@ -177,7 +182,11 @@ main() {
 
   for arquivo in "${novas[@]}"; do
     nome="${arquivo##*/}"
-    achados="$(achados_nao_aditivos "$arquivo" | sort -u | paste -sd, -)"
+    if ! bruto="$(achados_nao_aditivos "$arquivo")"; then
+      reprovar "$nome: não foi possível varrer a migration; reprovada por segurança (falha fechada)."
+      continue
+    fi
+    achados="$(sort -u <<< "$bruto" | paste -sd, -)"
     if [ -z "$achados" ]; then
       echo "ok: $nome é aditiva"
       continue
