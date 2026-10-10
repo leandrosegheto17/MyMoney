@@ -1,14 +1,14 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
-select plan(8);
+select plan(9);
 
 -- Estrutura e privilégios
 select ok(
   (select reloptions from pg_class where oid = 'api.contas'::regclass) @> array['security_invoker=true'],
   'api.contas é security_invoker');
 select columns_are('api', 'contas',
-  array['id', 'nome', 'saldo_inicial_centavos', 'saldo_centavos', 'arquivada'],
+  array['id', 'nome', 'saldo_inicial_centavos', 'saldo_centavos', 'arquivada', 'pode_excluir'],
   'colunas iguais às de contas.json, sem lar_id nem dono_id');
 select table_privs_are('api', 'contas', 'authenticated', array['SELECT'], 'authenticated só lê');
 select table_privs_are('api', 'contas', 'anon', array[]::text[], 'anon não tem nada');
@@ -41,6 +41,10 @@ select ok(
   exists (select 1 from api.contas where id = '00000000-0000-4000-8000-000000000201')
   and exists (select 1 from api.contas where id = '00000000-0000-4000-8000-000000000202'),
   'A vê as duas contas do seed');
+
+select ok(
+  not (select pode_excluir from api.contas where id = '00000000-0000-4000-8000-000000000201'),
+  'conta com lançamento ligado não pode ser excluída');
 
 select testes.como_b();
 select is_empty($$select 1 from api.contas where id in ('00000000-0000-4000-8000-000000000201',
