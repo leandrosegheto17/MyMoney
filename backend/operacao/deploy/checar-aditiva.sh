@@ -41,10 +41,15 @@ resolver_base() {
   printf '%s' "$base"
 }
 
-# Varredura caractere a caractere: comentários (-- até o fim da linha e /* */ aninhável) viram um
-# espaço; literais '...' (com '' e, em E'...', barra invertida), identificadores "..." e blocos
-# $tag$...$tag$ passam intactos, então '--' e '/*' dentro deles não escondem o que vem depois.
+# Varredura caractere a caractere, em bytes: comentários (-- até o fim da linha e /* */ aninhável)
+# viram um espaço; literais '...' (com '' e, em E'...', barra invertida), identificadores "..." e
+# blocos $tag$...$tag$ passam intactos, então '--' e '/*' dentro deles não escondem o que vem depois.
+# A tag segue as regras de identificador do PostgreSQL: letra, sublinhado ou qualquer byte >= 0x80
+# no início; os mesmos mais dígitos depois. Falha fechada: literal, identificador, bloco de comentário
+# ou dollar-quote não terminado e "$tag" mal formada acrescentam o marcador @@nt@@, que reprova.
 read -r -d '' SCRIPT_SEM_COMENTARIOS <<'EOF' || true
+my $ini = qr/[A-Za-z_\x80-\xff]/;
+my $cont = qr/[A-Za-z0-9_\x80-\xff]/;
 my $o = '';
 pos($_) = 0;
 while (pos($_) < length($_)) {
@@ -52,26 +57,27 @@ while (pos($_) < length($_)) {
   elsif (/\G\/\*/gc) {
     my $nivel = 1;
     while ($nivel > 0 && /\G(?:(\/\*)|(\*\/)|.)/gcs) { $nivel += defined $1 ? 1 : defined $2 ? -1 : 0; }
-    $o .= ' ';
+    $o .= $nivel > 0 ? ' @@nt@@; ' : ' ';
   }
   elsif (/\G--[^\n]*/gc) { $o .= ' '; }
   elsif (/\G'/gc) {
-    my $escapa = $o =~ /(?<![A-Za-z0-9_\$])[eE]$/;
-    my $corpo = $escapa ? qr/(?:\\.|''|[^'\\])*'?/s : qr/(?:''|[^'])*'?/s;
+    my $escapa = $o =~ /(?<![A-Za-z0-9_\$\x80-\xff])[eE]$/;
+    my $corpo = $escapa ? qr/((?:\\.|''|[^'\\])*)(')?/s : qr/((?:''|[^'])*)(')?/s;
     /\G$corpo/gc;
-    $o .= "'" . $&;
+    $o .= "'" . $1 . (defined $2 ? "'" : ' @@nt@@; ');
   }
-  elsif (/\G"(?:""|[^"])*"?/gc) { $o .= $&; }
-  elsif (/\G(?<![A-Za-z0-9_\$])\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/gc) {
+  elsif (/\G"((?:""|[^"])*)("?)/gc) { $o .= '"' . $1 . ($2 eq '' ? ' @@nt@@; ' : '"'); }
+  elsif (/\G(?<![A-Za-z0-9_\$\x80-\xff])\$(?:$ini$cont*)?\$/gc) {
     my $tag = $&;
     my $fim = index($_, $tag, pos($_));
     my $ate = $fim < 0 ? length($_) : $fim + length($tag);
-    $o .= $tag . substr($_, pos($_), $ate - pos($_));
+    $o .= $tag . substr($_, pos($_), $ate - pos($_)) . ($fim < 0 ? ' @@nt@@; ' : '');
     pos($_) = $ate;
   }
+  elsif (/\G(?<![A-Za-z0-9_\$\x80-\xff])\$(?=$ini)/gc) { $o .= '$ @@nt@@; '; }
   elsif (/\G./gcs) { $o .= $&; }
 }
-$_ = lc($o); s/\s+/ /g; s/;/;\n/g; print;
+$_ = lc($o); s/[ \t\r\n\f\x0b]+/ /g; s/;/;\n/g; print;
 EOF
 
 # SQL sem comentários, em minúsculas, uma linha por instrução.
@@ -84,6 +90,9 @@ achados_nao_aditivos() {
   local sql instrucao
   sql="$(sql_sem_comentarios "$1")"
   while IFS= read -r instrucao; do
+    if grep -Fq '@@nt@@' <<< "$instrucao"; then
+      echo "construção SQL não terminada ou tag mal formada"
+    fi
     if grep -Eq '(^|[^a-z0-9_])drop([^a-z0-9_]|$)' <<< "$instrucao"; then
       echo "drop"
     fi
@@ -152,6 +161,7 @@ justificativa_vale() {
 
 main() {
   local base nome arquivo achados justificativa
+  command -v perl > /dev/null || { echo "ERRO: perl não encontrado no PATH; a checagem aditiva não pode rodar" >&2; exit 2; }
   base="$(resolver_base "${1:-}")"
   echo "Checagem aditiva contra $base"
 
