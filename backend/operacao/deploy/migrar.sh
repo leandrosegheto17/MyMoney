@@ -8,6 +8,7 @@
 # O alvo é sempre o projeto vinculado (--linked); --db-url existe só para o ensaio
 # contra o Supabase local e recusa qualquer host que não seja 127.0.0.1/localhost.
 # Nenhuma senha ou token é lido ou gravado aqui: a CLI usa o login e o link já feitos.
+# shellcheck source-path=SCRIPTDIR
 set -euo pipefail
 
 # Jobs do workflow ci que precisam estar verdes no commit a aplicar.
