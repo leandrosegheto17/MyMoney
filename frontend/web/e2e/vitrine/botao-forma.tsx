@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Botao } from '../../src/componentes/base/Botao';
 import { BotaoForma } from '../../src/componentes/base/BotaoForma';
 import { SpriteIcones } from '../../src/componentes/base/SpriteIcones';
 import dados from '../../../../.md/mockup/respostas/dados-lancamento.json';
@@ -34,7 +35,7 @@ function Vitrine() {
           <div data-testid="conta">
             <BotaoForma id="conta" rotulo="Conta de destino" opcoes={contas} valor={conta} aoEscolher={setConta} />
           </div>
-          <button type="button">Depois</button>
+          <Botao variante="secundario">Depois</Botao>
         </div>
       </main>
     </>
