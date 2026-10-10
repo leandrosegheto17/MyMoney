@@ -131,3 +131,45 @@ TP-0134 aprovada em segurança: RLS enable+force sem política aberta, individua
 
 ## TP-0144 — DevSecOps — 2026-10-10
 TP-0144 Sec OK: RLS enable+force, FK composto (RN-08) e isolamento da individual (RN-17) conferem por leitura do diff; 1 achado baixo (update de meta conjunta pode mudar escopo/dono) virou RTP-0021.
+
+## RTP-0014 — DevSecOps — 2026-10-10
+RTP-0014 OK na segurança (revisão do diff, só lint e fixtures; 34 testes de lint verdes; sem dependência nem dado sensível; limites de defesa em profundidade anotados).
+
+## RTP-0015 — DevSecOps — 2026-10-10
+RTP-0015 aprovada na segurança; só testes e vitrine estática, sem achados.
+
+## RTP-0017 — DevSecOps — 2026-10-10
+RTP-0017 aprovada na segurança: só seed local mudou, função segue security invoker sem alteração de grant/policy, sem segredo nem dependência nova; sem achados.
+
+## RTP-0019 — DevSecOps — 2026-10-10
+RTP-0019 aprovada na segurança; diff só remove classe CSS morta, sem dependência nem dado sensível, Botao 13/13 verdes, sem achados.
+
+## RTP-0020 — DevSecOps — 2026-10-10
+RTP-0020 OK na segurança; só comentário alterado, lista literal e asserção G-03 inalteradas, sem achados.
+
+## RTP-0021 — DevSecOps — 2026-10-10
+RTP-0021 aprovada na segurança; grant de update por coluna confirmado em banco descartável (escopo, dono_id e lar_id não graváveis por authenticated; anon sem acesso), sem achados.
+
+## TP-0051 — DevSecOps — 2026-10-10
+DevSecOps aprovou TP-0051 (RLS força/enable, sem política true, dados de pagamento só na tabela privada do pagador); 1 achado baixo (FK de categoria não amarra dono/lar) aberto como RTP-0026.
+
+## TP-0056 — DevSecOps — 2026-10-10
+TP-0056 segurança OK por revisão do diff (invoker, search_path vazio, RLS/dono, G-05 com mesmo registro_invalido, sem dependência nova); único ponto é o teste de API com ids fora do seed, já na RTP-0022.
+
+## TP-0058 — DevSecOps — 2026-10-10
+TP-0058 aprovada em segurança (invoker, search_path vazio, grants só authenticated, filtros por dono e G-05 respeitados); nenhum achado novo, RTP-0024 do QA permanece.
+
+## TP-0137 — DevSecOps — 2026-10-10
+TP-0137 OK na segurança (Sec ✔) — invoker, search_path vazio, anon sem execute, G-05 uniforme, escopo/dono da categoria, testados em banco descartável; sem RTP nova (RTP-0023 já cobre a leitura); PostgREST não verificado.
+
+## TP-0145 — DevSecOps — 2026-10-10
+TP-0145 aprovada na segurança: função security invoker com RLS respeitada (B não vê a meta individual de A), anon sem execute, sem achados.
+
+## TP-0147 — DevSecOps — 2026-10-10
+TP-0147 OK em segurança: invoker, grants só authenticated, conta visível só ao autor por RLS + filtro, meta alheia = inexistente; 1 achado baixo de teste (RTP-0027).
+
+## TP-0148 — DevSecOps — 2026-10-10
+TP-0148 aprovada na segurança — security invoker com isolamento por RLS de meta, grants só para authenticated, sem achados e sem dependência nova; stack Supabase real não verificada.
+
+## TP-0149 — DevSecOps — 2026-10-10
+TP-0149 OK na segurança: escopo/dono nunca do cliente, RLS + filtro explícito, G-05/G-03/G-02/G-10 conferidos no diff, sem dependência nova e sem achados.
