@@ -4,8 +4,10 @@
 -- levam `parcial = true`. Contas (não arquivadas) e cartões de crédito são do membro logado, com
 -- `dono_id` explícito além da RLS; o saldo é o atual (até hoje) em qualquer mês navegado. Cartão
 -- arquivado só aparece enquanto ainda tiver valor no mês ou comprometido. Seções ainda sem dono
--- (fixas, previsto a pagar, orçamento, metas, guardado no mês) saem vazias, 0 ou null, na forma
--- final do contrato. Resultado da casa = 0 - total do casal enquanto não houver orçado.
+-- (fixas, previsto a pagar, metas, guardado no mês) saem vazias ou 0, na forma final do contrato.
+-- Orçamento de cada bloco = total de `app.orcado_realizado` + as 3 primeiras linhas (maior
+-- percentual) como destaques; null quando o escopo não tem orçamento. Resultado da casa = orçado
+-- conjunto - total do casal (orçado ausente conta 0).
 -- Sem membro: `registro_invalido`.
 create or replace function api.resumo_mes(p_mes date default null)
 returns jsonb
@@ -20,6 +22,8 @@ declare
   v_fechado boolean;
   v_conjunto jsonb;
   v_individual jsonb;
+  v_orc_conjunto jsonb;
+  v_orc_individual jsonb;
   v_contas jsonb;
   v_credito jsonb;
 begin
@@ -32,6 +36,8 @@ begin
 
   v_conjunto := app.totais_conjunto(v_mes);
   v_individual := app.totais_individuais(v_mes);
+  v_orc_conjunto := app.orcado_realizado(v_mes, 'conjunto');
+  v_orc_individual := app.orcado_realizado(v_mes, 'individual');
 
   select coalesce(jsonb_agg(jsonb_build_object(
            'conta_id', c.id, 'nome', c.nome, 'saldo_centavos', app.saldo_conta(c.id))
@@ -62,15 +68,16 @@ begin
       'previsto_a_pagar_centavos', 0,
       'fixas_total', 0,
       'fixas_pendentes', '[]'::jsonb,
-      'orcamento', null,
+      'orcamento', app.resumo_orcamento(v_orc_conjunto),
       'metas', '[]'::jsonb,
       'resultado', jsonb_build_object(
-        'valor_centavos', 0 - (v_conjunto->>'total_centavos')::bigint,
+        'valor_centavos', coalesce((v_orc_conjunto->'total'->>'orcado_centavos')::bigint, 0)
+                          - (v_conjunto->>'total_centavos')::bigint,
         'parcial', not v_fechado)),
     'individual', (v_individual - 'resultado') || jsonb_build_object(
       'resultado', (v_individual->'resultado') || jsonb_build_object('parcial', not v_fechado),
       'guardado_no_mes_centavos', 0,
-      'orcamento', null,
+      'orcamento', app.resumo_orcamento(v_orc_individual),
       'metas', '[]'::jsonb,
       'contas', v_contas,
       'credito', v_credito));

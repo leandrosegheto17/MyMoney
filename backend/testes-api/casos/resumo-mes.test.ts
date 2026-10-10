@@ -17,12 +17,7 @@ describe('api.resumo_mes', () => {
   it('A recebe o resumo no formato do exemplo', async () => {
     const { data, error } = await (await comoA()).rpc('resumo_mes', { p_mes: mes });
     expect(error).toBeNull();
-    // O orçamento só chega com a tarefa que o implementa; até lá o campo é null nos dois blocos.
-    mesmaForma(data, {
-      ...exemplo,
-      conjunto: { ...exemplo.conjunto, orcamento: null },
-      individual: { ...exemplo.individual, orcamento: null },
-    });
+    mesmaForma(data, exemplo);
   });
 
   it('mês sem dado tem a forma do exemplo vazio', async () => {
@@ -49,19 +44,25 @@ describe('api.resumo_mes', () => {
 
   it('despesa individual de A não altera o bloco individual de B', async () => {
     const antes = await (await comoB()).rpc('resumo_mes', { p_mes: mes });
-    const lanca = await (
-      await comoA()
-    ).rpc('lancar_despesa', {
-      p_id: crypto.randomUUID(),
-      p_valor_centavos: 12345,
-      p_categoria_id: exemplo.individual.por_categoria[0]?.categoria_id,
-      p_forma_id: '00000000-0000-4000-8000-000000000301',
-      p_data: '2026-10-05',
-      p_descricao: 'Isolamento resumo',
-    });
-    expect(lanca.error).toBeNull();
-    const depois = await (await comoB()).rpc('resumo_mes', { p_mes: mes });
-    expect((depois.data as Resumo).individual).toEqual((antes.data as Resumo).individual);
+    const a = await comoA();
+    const id = crypto.randomUUID();
+    try {
+      const lanca = await a.rpc('lancar_despesa', {
+        p_id: id,
+        p_valor_centavos: 12345,
+        p_categoria_id: exemplo.individual.por_categoria[0]?.categoria_id,
+        p_forma_id: '00000000-0000-4000-8000-000000000301',
+        p_data: '2026-10-05',
+        p_descricao: 'Isolamento resumo',
+      });
+      expect(lanca.error).toBeNull();
+      const depois = await (await comoB()).rpc('resumo_mes', { p_mes: mes });
+      expect((depois.data as Resumo).individual).toEqual((antes.data as Resumo).individual);
+    } finally {
+      // Devolve o seed compartilhado ao estado original, mesmo se a asserção falhar.
+      const exclui = await a.rpc('excluir_lancamento', { p_id: id });
+      expect(exclui.error).toBeNull();
+    }
   });
 
   it('usuário sem membro recebe registro_invalido', async () => {

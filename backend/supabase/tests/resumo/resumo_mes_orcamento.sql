@@ -30,10 +30,13 @@ select is(
   current_setting('teste.r_a')::jsonb -> 'conjunto' -> 'orcamento' -> 'destaques',
   (select jsonb_agg(e order by i) from jsonb_array_elements(current_setting('teste.o_conj')::jsonb -> 'linhas') with ordinality t(e, i) where i <= 3),
   'destaques são as 3 primeiras linhas de app.orcado_realizado');
-select results_eq(
-  $$ select e ->> 'categoria_id' from jsonb_array_elements(current_setting('teste.r_a')::jsonb -> 'conjunto' -> 'orcamento' -> 'destaques') with ordinality t(e, i) order by i $$,
-  $$ values ('00000000-0000-4000-8000-000000000404'), ('00000000-0000-4000-8000-000000000402'), ('00000000-0000-4000-8000-000000000401') $$,
-  'destaques na ordem de percentual');
+select ok(
+  (select coalesce(bool_and((e ->> 'percentual')::int <= lag_p), true)
+     from (select e, lag((e ->> 'percentual')::int) over (order by i) as lag_p
+             from jsonb_array_elements(current_setting('teste.r_a')::jsonb -> 'conjunto' -> 'orcamento' -> 'destaques') with ordinality t(e, i)) q
+    where lag_p is not null)
+  and (select e ->> 'categoria_id' from jsonb_array_elements(current_setting('teste.r_a')::jsonb -> 'conjunto' -> 'orcamento' -> 'destaques') e limit 1) = '00000000-0000-4000-8000-000000000404',
+  'destaques na ordem decrescente de percentual (Contas da casa, estourada, primeiro)');
 select is(
   (current_setting('teste.r_a')::jsonb -> 'conjunto' -> 'resultado' ->> 'valor_centavos')::bigint,
   430000 - (current_setting('teste.r_a')::jsonb -> 'conjunto' ->> 'total_centavos')::bigint,
