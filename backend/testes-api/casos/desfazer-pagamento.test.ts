@@ -21,8 +21,11 @@ async function ocorrenciaPendente(): Promise<string> {
   criadas.push(fixa);
   const a = await comoA();
   const criada = await a.rpc('salvar_despesa_fixa', {
-    p_id: fixa, p_descricao: descricao, p_categoria_id: CONJUNTA,
-    p_valor_previsto_centavos: 12345, p_dia_vencimento: 10,
+    p_id: fixa,
+    p_descricao: descricao,
+    p_categoria_id: CONJUNTA,
+    p_valor_previsto_centavos: 12345,
+    p_dia_vencimento: 10,
   });
   expect(criada.error).toBeNull();
   const lista = await a.rpc('ocorrencias_mes', { p_mes: mesAtual() });
@@ -39,7 +42,11 @@ describe('api.desfazer_pagamento', () => {
   it('B não desfaz o pagamento de A e o pagamento continua', async () => {
     const ocorrencia = await ocorrenciaPendente();
     const a = await comoA();
-    const pago = await a.rpc('pagar_ocorrencia', { p_id: randomUUID(), p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
+    const pago = await a.rpc('pagar_ocorrencia', {
+      p_id: randomUUID(),
+      p_ocorrencia_id: ocorrencia,
+      p_forma_id: PIX_DE_A,
+    });
     expect(pago.error).toBeNull();
     await esperarRegistroInvalido((await comoB()).rpc('desfazer_pagamento', { p_ocorrencia_id: ocorrencia }));
     const desfeito = await a.rpc('desfazer_pagamento', { p_ocorrencia_id: ocorrencia });

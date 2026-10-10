@@ -377,3 +377,6 @@ RTP-0048 aprovada no QA: os 3 pgTAP de fixas passam com app.hoje() em 5 datas (2
 
 ## RTP-0031 — QA — 2026-10-10
 RTP-0031 APROVADA no QA (lint 0 erro, tsc ok, 18/18 testes, tipo Database bate com 35 funções e 4 views do schema real, sem any/disable); view `categorias` inexistente no tipo e falta de checagem de aderência viraram RTP-0050.
+
+## RTP-0049 — QA — 2026-10-10
+RTP-0049 aprovada no QA; mês sem dado (hoje+5 anos) fica vazio com app.hoje() em 2026-10 e 2029-05, mas deriva do relógio do Node e falha se app.hoje() for deslocado a 2030-12 (baixa, aberto RTP-0051).

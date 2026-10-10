@@ -11,7 +11,9 @@ const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000522';
 
 async function lancarComoA(categoria: string, forma: string, parcelas = 1): Promise<string> {
   const id = randomUUID();
-  const { error } = await (await comoA()).rpc('lancar_despesa', {
+  const { error } = await (
+    await comoA()
+  ).rpc('lancar_despesa', {
     p_id: id,
     p_valor_centavos: 9000,
     p_categoria_id: categoria,
@@ -32,9 +34,7 @@ describe('api.excluir_lancamento', () => {
   });
 
   it('B não exclui individual de A e ela continua visível para A', async () => {
-    await esperarRegistroInvalido(
-      (await comoB()).rpc('excluir_lancamento', { p_id: INDIVIDUAL_DE_A }),
-    );
+    await esperarRegistroInvalido((await comoB()).rpc('excluir_lancamento', { p_id: INDIVIDUAL_DE_A }));
     const { data, error } = await (await comoA()).rpc('lancamento', { p_id: INDIVIDUAL_DE_A });
     expect(error).toBeNull();
     expect(data).not.toBeNull();
@@ -47,15 +47,11 @@ describe('api.excluir_lancamento', () => {
   });
 
   it('excluir de novo ou id inexistente dá registro_invalido', async () => {
-    await esperarRegistroInvalido(
-      (await comoA()).rpc('excluir_lancamento', { p_id: randomUUID() }),
-    );
+    await esperarRegistroInvalido((await comoA()).rpc('excluir_lancamento', { p_id: randomUUID() }));
   });
 
   it('usuário sem membro recebe registro_invalido', async () => {
-    await esperarRegistroInvalido(
-      (await comoSemMembro()).rpc('excluir_lancamento', { p_id: INDIVIDUAL_DE_A }),
-    );
+    await esperarRegistroInvalido((await comoSemMembro()).rpc('excluir_lancamento', { p_id: INDIVIDUAL_DE_A }));
   });
 
   it('anon não executa', async () => {

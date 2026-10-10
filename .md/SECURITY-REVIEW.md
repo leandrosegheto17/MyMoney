@@ -365,3 +365,6 @@ RTP-0047 Sec OK: funções novas `security invoker`, `search_path` vazio, sem ex
 
 ## RTP-0048 — DevSecOps — 2026-10-10
 RTP-0048 aprovada na segurança: só 3 pgTAP mudaram, sem alteração de função, grant ou seed e sem dado sensível; nenhum achado novo (RTP-0049 já aberto pelo QA).
+
+## RTP-0031 — DevSecOps — 2026-10-10
+RTP-0031 aprovada na segurança (sem dependência nova, sem relaxar lint, sem segredo no tipo; tsc e lint exit 0); nenhum achado novo além do RTP-0050 já aberto pelo QA.

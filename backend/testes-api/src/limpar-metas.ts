@@ -1,8 +1,7 @@
 import pg from 'pg';
 import { garantirHostLocal } from './ambiente';
 
-const URL_BANCO =
-  process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+const URL_BANCO = process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 
 /**
  * Apaga metas criadas por um caso (com movimentos e movimentos de conta), para não poluir o seed

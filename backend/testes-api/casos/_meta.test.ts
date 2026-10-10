@@ -6,8 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { garantirHostLocal } from '../src/ambiente';
 
 const aqui = dirname(fileURLToPath(import.meta.url));
-const URL_BANCO =
-  process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+const URL_BANCO = process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 
 // Recurso `dados_lancamento` -> casos/dados-lancamento.test.ts
 const arquivoDe = (recurso: string) => join(aqui, `${recurso.replaceAll('_', '-')}.test.ts`);

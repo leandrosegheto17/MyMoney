@@ -15,8 +15,6 @@ describe('api.definir_preferida', () => {
   });
 
   it('B não define a forma de A como preferida', async () => {
-    await esperarRegistroInvalido(
-      (await comoB()).rpc('definir_preferida', { p_id: PIX_NUBANK }),
-    );
+    await esperarRegistroInvalido((await comoB()).rpc('definir_preferida', { p_id: PIX_NUBANK }));
   });
 });

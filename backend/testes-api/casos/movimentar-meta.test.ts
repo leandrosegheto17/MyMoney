@@ -23,10 +23,20 @@ describe('api.movimentar_meta', () => {
 
   it('A aporta com conta na compartilhada e a resposta é só o uuid', async () => {
     const a = await comoA();
-    const meta = await a.rpc('salvar_meta', { p_id: META, p_nome: 'Meta do aporte', p_alvo_centavos: 100000, p_escopo: 'conjunto' });
+    const meta = await a.rpc('salvar_meta', {
+      p_id: META,
+      p_nome: 'Meta do aporte',
+      p_alvo_centavos: 100000,
+      p_escopo: 'conjunto',
+    });
     expect(meta.error).toBeNull();
     const r = await a.rpc('movimentar_meta', {
-      p_id: APORTE, p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 30000, p_local: 'Caixinha Nubank', p_conta_id: CONTA_NUBANK_DE_A,
+      p_id: APORTE,
+      p_meta_id: META,
+      p_tipo: 'aporte',
+      p_valor_centavos: 30000,
+      p_local: 'Caixinha Nubank',
+      p_conta_id: CONTA_NUBANK_DE_A,
     });
     expect(r.error).toBeNull();
     expect(r.data).toBe(APORTE);
@@ -35,7 +45,12 @@ describe('api.movimentar_meta', () => {
   it('reenvio devolve o mesmo id sem duplicar', async () => {
     const a = await comoA();
     const r = await a.rpc('movimentar_meta', {
-      p_id: APORTE, p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 30000, p_local: 'Caixinha Nubank', p_conta_id: CONTA_NUBANK_DE_A,
+      p_id: APORTE,
+      p_meta_id: META,
+      p_tipo: 'aporte',
+      p_valor_centavos: 30000,
+      p_local: 'Caixinha Nubank',
+      p_conta_id: CONTA_NUBANK_DE_A,
     });
     expect(r.error).toBeNull();
     expect(r.data).toBe(APORTE);
@@ -55,8 +70,14 @@ describe('api.movimentar_meta', () => {
   });
 
   it('retirada maior que o guardado no local é recusada no campo', async () => {
-    const r = await (await comoA()).rpc('movimentar_meta', {
-      p_id: 'f6b00000-0000-4000-8000-000000000a02', p_meta_id: META, p_tipo: 'retirada', p_valor_centavos: 30001, p_local: 'Caixinha Nubank',
+    const r = await (
+      await comoA()
+    ).rpc('movimentar_meta', {
+      p_id: 'f6b00000-0000-4000-8000-000000000a02',
+      p_meta_id: META,
+      p_tipo: 'retirada',
+      p_valor_centavos: 30001,
+      p_local: 'Caixinha Nubank',
     });
     expect(r.error?.message).toBe('retirada_maior_que_guardado');
   });
@@ -64,29 +85,66 @@ describe('api.movimentar_meta', () => {
   it('B não movimenta a individual de A nem usa a conta de A, com a mesma resposta de id inexistente', async () => {
     const b = await comoB();
     await esperarRegistroInvalido(
-      b.rpc('movimentar_meta', { p_id: 'f6b00000-0000-4000-8000-000000000b01', p_meta_id: INDIVIDUAL_DE_A, p_tipo: 'aporte', p_valor_centavos: 100, p_local: 'Cofre' }),
+      b.rpc('movimentar_meta', {
+        p_id: 'f6b00000-0000-4000-8000-000000000b01',
+        p_meta_id: INDIVIDUAL_DE_A,
+        p_tipo: 'aporte',
+        p_valor_centavos: 100,
+        p_local: 'Cofre',
+      }),
     );
     await esperarRegistroInvalido(
-      b.rpc('movimentar_meta', { p_id: 'f6b00000-0000-4000-8000-000000000b02', p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 100, p_local: 'Cofre', p_conta_id: CONTA_NUBANK_DE_A }),
+      b.rpc('movimentar_meta', {
+        p_id: 'f6b00000-0000-4000-8000-000000000b02',
+        p_meta_id: META,
+        p_tipo: 'aporte',
+        p_valor_centavos: 100,
+        p_local: 'Cofre',
+        p_conta_id: CONTA_NUBANK_DE_A,
+      }),
     );
     await esperarRegistroInvalido(
-      b.rpc('movimentar_meta', { p_id: 'f6b00000-0000-4000-8000-000000000b03', p_meta_id: ALEATORIO, p_tipo: 'aporte', p_valor_centavos: 100, p_local: 'Cofre' }),
+      b.rpc('movimentar_meta', {
+        p_id: 'f6b00000-0000-4000-8000-000000000b03',
+        p_meta_id: ALEATORIO,
+        p_tipo: 'aporte',
+        p_valor_centavos: 100,
+        p_local: 'Cofre',
+      }),
     );
     await esperarRegistroInvalido(
-      b.rpc('movimentar_meta', { p_id: APORTE, p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 30000, p_local: 'Caixinha Nubank' }),
+      b.rpc('movimentar_meta', {
+        p_id: APORTE,
+        p_meta_id: META,
+        p_tipo: 'aporte',
+        p_valor_centavos: 30000,
+        p_local: 'Caixinha Nubank',
+      }),
     );
   });
 
   it('valor zero é recusado', async () => {
-    const r = await (await comoA()).rpc('movimentar_meta', {
-      p_id: 'f6b00000-0000-4000-8000-000000000b04', p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 0, p_local: 'Cofre',
+    const r = await (
+      await comoA()
+    ).rpc('movimentar_meta', {
+      p_id: 'f6b00000-0000-4000-8000-000000000b04',
+      p_meta_id: META,
+      p_tipo: 'aporte',
+      p_valor_centavos: 0,
+      p_local: 'Cofre',
     });
     expect(r.error?.message).toBe('valor_invalido');
   });
 
   it('anon não executa', async () => {
-    const { data, error } = await (await comoAnon()).rpc('movimentar_meta', {
-      p_id: ALEATORIO, p_meta_id: META, p_tipo: 'aporte', p_valor_centavos: 100, p_local: 'Cofre',
+    const { data, error } = await (
+      await comoAnon()
+    ).rpc('movimentar_meta', {
+      p_id: ALEATORIO,
+      p_meta_id: META,
+      p_tipo: 'aporte',
+      p_valor_centavos: 100,
+      p_local: 'Cofre',
     });
     expect(error).not.toBeNull();
     expect(data).toBeNull();

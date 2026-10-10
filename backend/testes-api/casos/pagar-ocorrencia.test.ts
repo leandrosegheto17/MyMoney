@@ -25,8 +25,11 @@ async function ocorrenciaPendente(): Promise<string> {
   const fixaId = randomUUID();
   fixasCriadas.push(fixaId);
   const criada = await a.rpc('salvar_despesa_fixa', {
-    p_id: fixaId, p_descricao: descricao, p_categoria_id: CONJUNTA,
-    p_valor_previsto_centavos: 12345, p_dia_vencimento: 10,
+    p_id: fixaId,
+    p_descricao: descricao,
+    p_categoria_id: CONJUNTA,
+    p_valor_previsto_centavos: 12345,
+    p_dia_vencimento: 10,
   });
   expect(criada.error).toBeNull();
   const lista = await a.rpc('ocorrencias_mes', { p_mes: mesAtual() });
@@ -52,8 +55,11 @@ describe('api.pagar_ocorrencia', () => {
     expect(pago.error).toBeNull();
     const resposta = pago.data as unknown as Record<string, unknown>;
     expect(resposta).toMatchObject({
-      ocorrencia_id: ocorrencia, lancamento_id: id, situacao: 'paga',
-      valor_pago_centavos: 12345, ja_existia: false,
+      ocorrencia_id: ocorrencia,
+      lancamento_id: id,
+      situacao: 'paga',
+      valor_pago_centavos: 12345,
+      ja_existia: false,
     });
     for (const privado of ['forma', 'forma_pagamento_id', 'conta', 'conta_id', 'data_operacao', 'data']) {
       expect(resposta).not.toHaveProperty(privado);
@@ -71,12 +77,18 @@ describe('api.pagar_ocorrencia', () => {
     );
     const id = randomUUID();
     pagamentosCriados.push(id);
-    const pago = await (await comoA()).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
+    const pago = await (
+      await comoA()
+    ).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
     expect(pago.error).toBeNull();
     await esperarRegistroInvalido(
       b.rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_B }),
     );
-    const outra = await b.rpc('pagar_ocorrencia', { p_id: randomUUID(), p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_B });
+    const outra = await b.rpc('pagar_ocorrencia', {
+      p_id: randomUUID(),
+      p_ocorrencia_id: ocorrencia,
+      p_forma_id: PIX_DE_B,
+    });
     expect(outra.error?.message).toContain('ocorrencia_paga');
   });
 
@@ -84,7 +96,9 @@ describe('api.pagar_ocorrencia', () => {
     const ocorrencia = await ocorrenciaPendente();
     const id = randomUUID();
     pagamentosCriados.push(id);
-    const pago = await (await comoA()).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
+    const pago = await (
+      await comoA()
+    ).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
     expect(pago.error).toBeNull();
     const lido = await (await comoB()).rpc('lancamento', { p_id: id });
     expect(lido.error).toBeNull();
@@ -98,7 +112,10 @@ describe('api.pagar_ocorrencia', () => {
     const ocorrencia = await ocorrenciaPendente();
     const a = await comoA();
     const zero = await a.rpc('pagar_ocorrencia', {
-      p_id: randomUUID(), p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A, p_valor_centavos: 0,
+      p_id: randomUUID(),
+      p_ocorrencia_id: ocorrencia,
+      p_forma_id: PIX_DE_A,
+      p_valor_centavos: 0,
     });
     expect(zero.error?.message).toContain('valor_invalido');
     await esperarRegistroInvalido(
@@ -114,8 +131,12 @@ describe('api.pagar_ocorrencia', () => {
   });
 
   it('anon não executa', async () => {
-    const { error } = await (await comoAnon()).rpc('pagar_ocorrencia', {
-      p_id: randomUUID(), p_ocorrencia_id: randomUUID(), p_forma_id: PIX_DE_A,
+    const { error } = await (
+      await comoAnon()
+    ).rpc('pagar_ocorrencia', {
+      p_id: randomUUID(),
+      p_ocorrencia_id: randomUUID(),
+      p_forma_id: PIX_DE_A,
     });
     expect(error).not.toBeNull();
   });

@@ -10,7 +10,11 @@ describe('api.arquivar_categoria', () => {
     const a = await comoA();
     const id = randomUUID();
     const criada = await a.rpc('salvar_categoria', {
-      p_id: id, p_nome: `Arquivar ${id.slice(0, 8)}`, p_tipo: 'despesa', p_escopo: 'conjunto', p_variavel: false,
+      p_id: id,
+      p_nome: `Arquivar ${id.slice(0, 8)}`,
+      p_tipo: 'despesa',
+      p_escopo: 'conjunto',
+      p_variavel: false,
     });
     expect(criada.error).toBeNull();
     expect((await a.rpc('arquivar_categoria', { p_id: id })).error).toBeNull();

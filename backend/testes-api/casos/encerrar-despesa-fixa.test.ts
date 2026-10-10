@@ -11,9 +11,14 @@ const criadas: string[] = [];
 async function criarFixaDeA() {
   const id = randomUUID();
   criadas.push(id);
-  const criada = await (await comoA()).rpc('salvar_despesa_fixa', {
-    p_id: id, p_descricao: 'Condomínio', p_categoria_id: CONJUNTA,
-    p_valor_previsto_centavos: 45000, p_dia_vencimento: 8,
+  const criada = await (
+    await comoA()
+  ).rpc('salvar_despesa_fixa', {
+    p_id: id,
+    p_descricao: 'Condomínio',
+    p_categoria_id: CONJUNTA,
+    p_valor_previsto_centavos: 45000,
+    p_dia_vencimento: 8,
   });
   expect(criada.error).toBeNull();
   return id;

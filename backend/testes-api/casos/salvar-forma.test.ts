@@ -52,7 +52,9 @@ describe('api.salvar_forma', () => {
   });
 
   it('anon falha', async () => {
-    const { error } = await (await comoAnon()).rpc('salvar_forma', {
+    const { error } = await (
+      await comoAnon()
+    ).rpc('salvar_forma', {
       p_id: randomUUID(),
       p_nome: 'Anon',
       p_tipo: 'credito',

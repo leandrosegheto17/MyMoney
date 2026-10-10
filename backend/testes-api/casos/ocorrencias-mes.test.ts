@@ -37,8 +37,14 @@ describe('api.ocorrencias_mes', () => {
     const naoPago = resposta.ocorrencias.find((o) => o.situacao !== 'paga');
     expect(pago?.pagador).not.toBeNull();
     expect(naoPago?.pagador).toBeNull();
-    mesmaForma(pago, exemplo.ocorrencias.find((o) => o.situacao === 'paga'));
-    mesmaForma(naoPago, exemplo.ocorrencias.find((o) => o.situacao !== 'paga'));
+    mesmaForma(
+      pago,
+      exemplo.ocorrencias.find((o) => o.situacao === 'paga'),
+    );
+    mesmaForma(
+      naoPago,
+      exemplo.ocorrencias.find((o) => o.situacao !== 'paga'),
+    );
     expect(resposta.total).toBe(resposta.ocorrencias.length);
     expect(resposta.pagas).toBe(resposta.ocorrencias.filter((o) => o.situacao === 'paga').length);
   });

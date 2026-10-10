@@ -52,7 +52,13 @@ describe('api.metas', () => {
     expect(error).toBeNull();
     const linhas = data as unknown as LinhaMeta[];
     mesmaForma(linhas, metaCarro);
-    expect(linhas[0]).toMatchObject({ guardado_centavos: 0, falta_centavos: 2000000, percentual: 0, prazo: '2028-12', por_local: [] });
+    expect(linhas[0]).toMatchObject({
+      guardado_centavos: 0,
+      falta_centavos: 2000000,
+      percentual: 0,
+      prazo: '2028-12',
+      por_local: [],
+    });
   });
 
   it('B não recebe as individuais de A por lista, id, filtro nem contagem; recebe as compartilhadas com os mesmos números', async () => {

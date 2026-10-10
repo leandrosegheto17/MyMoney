@@ -19,10 +19,21 @@ describe('api.salvar_meta', () => {
 
   it('A cria compartilhada e individual; B vê só a compartilhada', async () => {
     const a = await comoA();
-    const c = await a.rpc('salvar_meta', { p_id: COMPARTILHADA, p_nome: 'Viagem teste', p_alvo_centavos: 100000, p_prazo: '2027-07-20', p_escopo: 'conjunto' });
+    const c = await a.rpc('salvar_meta', {
+      p_id: COMPARTILHADA,
+      p_nome: 'Viagem teste',
+      p_alvo_centavos: 100000,
+      p_prazo: '2027-07-20',
+      p_escopo: 'conjunto',
+    });
     expect(c.error).toBeNull();
     expect(c.data).toBe(COMPARTILHADA);
-    const i = await a.rpc('salvar_meta', { p_id: INDIVIDUAL, p_nome: 'Solo teste', p_alvo_centavos: 50000, p_escopo: 'individual' });
+    const i = await a.rpc('salvar_meta', {
+      p_id: INDIVIDUAL,
+      p_nome: 'Solo teste',
+      p_alvo_centavos: 50000,
+      p_escopo: 'individual',
+    });
     expect(i.error).toBeNull();
 
     const { data, error } = await (await comoB()).from('metas').select('id,guardado_centavos');
@@ -33,19 +44,39 @@ describe('api.salvar_meta', () => {
   });
 
   it('reenvio idêntico devolve o mesmo id', async () => {
-    const r = await (await comoA()).rpc('salvar_meta', { p_id: COMPARTILHADA, p_nome: 'Viagem teste', p_alvo_centavos: 100000, p_prazo: '2027-07-20', p_escopo: 'conjunto' });
+    const r = await (
+      await comoA()
+    ).rpc('salvar_meta', {
+      p_id: COMPARTILHADA,
+      p_nome: 'Viagem teste',
+      p_alvo_centavos: 100000,
+      p_prazo: '2027-07-20',
+      p_escopo: 'conjunto',
+    });
     expect(r.error).toBeNull();
     expect(r.data).toBe(COMPARTILHADA);
   });
 
   it('escopo não muda na edição', async () => {
-    const r = await (await comoA()).rpc('salvar_meta', { p_id: COMPARTILHADA, p_nome: 'Viagem teste', p_alvo_centavos: 100000, p_escopo: 'individual' });
+    const r = await (
+      await comoA()
+    ).rpc('salvar_meta', {
+      p_id: COMPARTILHADA,
+      p_nome: 'Viagem teste',
+      p_alvo_centavos: 100000,
+      p_escopo: 'individual',
+    });
     expect(r.error?.message).toBe('valor_invalido');
   });
 
   it('B tentando criar com o id da individual de A recebe registro_invalido', async () => {
     await esperarRegistroInvalido(
-      (await comoB()).rpc('salvar_meta', { p_id: INDIVIDUAL, p_nome: 'Tomada', p_alvo_centavos: 1, p_escopo: 'individual' }),
+      (await comoB()).rpc('salvar_meta', {
+        p_id: INDIVIDUAL,
+        p_nome: 'Tomada',
+        p_alvo_centavos: 1,
+        p_escopo: 'individual',
+      }),
     );
   });
 
@@ -59,7 +90,9 @@ describe('api.salvar_meta', () => {
   });
 
   it('anon não executa', async () => {
-    const r = await (await comoAnon()).rpc('salvar_meta', { p_id: ALEATORIO, p_nome: 'x', p_alvo_centavos: 1, p_escopo: 'conjunto' });
+    const r = await (
+      await comoAnon()
+    ).rpc('salvar_meta', { p_id: ALEATORIO, p_nome: 'x', p_alvo_centavos: 1, p_escopo: 'conjunto' });
     expect(r.error).not.toBeNull();
   });
 });

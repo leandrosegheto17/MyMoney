@@ -39,15 +39,11 @@ describe('api.lancamento', () => {
   });
 
   it('id inexistente dá o mesmo registro_invalido', async () => {
-    await esperarRegistroInvalido(
-      (await comoB()).rpc('lancamento', { p_id: crypto.randomUUID() }),
-    );
+    await esperarRegistroInvalido((await comoB()).rpc('lancamento', { p_id: crypto.randomUUID() }));
   });
 
   it('usuário sem membro não obtém nada', async () => {
-    await esperarRegistroInvalido(
-      (await comoSemMembro()).rpc('lancamento', { p_id: conjuntaDeA }),
-    );
+    await esperarRegistroInvalido((await comoSemMembro()).rpc('lancamento', { p_id: conjuntaDeA }));
   });
 
   it('anon não executa', async () => {

@@ -1,8 +1,7 @@
 import pg from 'pg';
 import { garantirHostLocal } from './ambiente';
 
-const URL_BANCO =
-  process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+const URL_BANCO = process.env.TESTE_DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 
 /**
  * Apaga despesas fixas criadas por um caso (com as ocorrências), para não poluir o seed

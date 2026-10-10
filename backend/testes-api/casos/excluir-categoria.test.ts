@@ -11,7 +11,11 @@ describe('api.excluir_categoria', () => {
     const a = await comoA();
     const id = randomUUID();
     const criada = await a.rpc('salvar_categoria', {
-      p_id: id, p_nome: `Excluir ${id.slice(0, 8)}`, p_tipo: 'despesa', p_escopo: 'individual', p_variavel: false,
+      p_id: id,
+      p_nome: `Excluir ${id.slice(0, 8)}`,
+      p_tipo: 'despesa',
+      p_escopo: 'individual',
+      p_variavel: false,
     });
     expect(criada.error).toBeNull();
     expect((await a.rpc('excluir_categoria', { p_id: id })).error).toBeNull();

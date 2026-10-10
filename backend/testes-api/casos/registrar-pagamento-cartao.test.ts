@@ -99,7 +99,9 @@ describe('api.registrar_pagamento_cartao', () => {
   });
 
   it('anon não executa', async () => {
-    const { data, error } = await (await comoAnon()).rpc('registrar_pagamento_cartao', {
+    const { data, error } = await (
+      await comoAnon()
+    ).rpc('registrar_pagamento_cartao', {
       p_id: randomUUID(),
       p_forma_id: CARTAO_XP,
       p_conta_id: ITAU,

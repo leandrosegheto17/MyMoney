@@ -22,13 +22,13 @@ describe('api.salvar_conta', () => {
   });
 
   it('B não edita a conta de A', async () => {
-    await esperarRegistroInvalido(
-      (await comoB()).rpc('salvar_conta', { p_id: CONTA_DE_A, p_nome: 'Invadida' }),
-    );
+    await esperarRegistroInvalido((await comoB()).rpc('salvar_conta', { p_id: CONTA_DE_A, p_nome: 'Invadida' }));
   });
 
   it('anon falha', async () => {
-    const { error } = await (await comoAnon()).rpc('salvar_conta', {
+    const { error } = await (
+      await comoAnon()
+    ).rpc('salvar_conta', {
       p_id: randomUUID(),
       p_nome: 'Anon',
     });

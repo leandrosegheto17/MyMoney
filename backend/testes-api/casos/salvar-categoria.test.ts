@@ -30,13 +30,19 @@ describe('api.salvar_categoria', () => {
     expect(atual.error).toBeNull();
     const nome = atual.data?.nome as string;
     const r1 = await b.rpc('salvar_categoria', {
-      p_id: MERCADO_CONJUNTA, p_nome: 'Mercado renomeado', p_tipo: 'despesa',
-      p_escopo: 'conjunto', p_variavel: true,
+      p_id: MERCADO_CONJUNTA,
+      p_nome: 'Mercado renomeado',
+      p_tipo: 'despesa',
+      p_escopo: 'conjunto',
+      p_variavel: true,
     });
     expect(r1.error).toBeNull();
     const r2 = await b.rpc('salvar_categoria', {
-      p_id: MERCADO_CONJUNTA, p_nome: nome, p_tipo: 'despesa',
-      p_escopo: 'conjunto', p_variavel: true,
+      p_id: MERCADO_CONJUNTA,
+      p_nome: nome,
+      p_tipo: 'despesa',
+      p_escopo: 'conjunto',
+      p_variavel: true,
     });
     expect(r2.error).toBeNull();
   });
@@ -44,7 +50,10 @@ describe('api.salvar_categoria', () => {
   it('B não edita a individual de A', async () => {
     await esperarRegistroInvalido(
       (await comoB()).rpc('salvar_categoria', {
-        p_id: INDIVIDUAL_DE_A, p_nome: 'Invadida', p_tipo: 'despesa', p_escopo: 'individual',
+        p_id: INDIVIDUAL_DE_A,
+        p_nome: 'Invadida',
+        p_tipo: 'despesa',
+        p_escopo: 'individual',
       }),
     );
   });
@@ -52,14 +61,22 @@ describe('api.salvar_categoria', () => {
   it('B não cria com o id da individual de A', async () => {
     await esperarRegistroInvalido(
       (await comoB()).rpc('salvar_categoria', {
-        p_id: INDIVIDUAL_DE_A, p_nome: 'Outra', p_tipo: 'despesa', p_escopo: 'individual',
+        p_id: INDIVIDUAL_DE_A,
+        p_nome: 'Outra',
+        p_tipo: 'despesa',
+        p_escopo: 'individual',
       }),
     );
   });
 
   it('anon falha', async () => {
-    const { error } = await (await comoAnon()).rpc('salvar_categoria', {
-      p_id: randomUUID(), p_nome: 'Anon', p_tipo: 'despesa', p_escopo: 'conjunto',
+    const { error } = await (
+      await comoAnon()
+    ).rpc('salvar_categoria', {
+      p_id: randomUUID(),
+      p_nome: 'Anon',
+      p_tipo: 'despesa',
+      p_escopo: 'conjunto',
     });
     expect(error).not.toBeNull();
   });
