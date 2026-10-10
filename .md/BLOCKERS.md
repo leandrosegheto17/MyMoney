@@ -62,3 +62,57 @@
 - Impacto se não resolvido: TP-0070 não pode ser executada; provável o mesmo problema em outras telas de lote 14 (TP-0071..0075)
 - Sugestão: Incluir TP-0047 em Dep do TP-0070 (e das demais telas que usam esses componentes)
 - Status: Em aberto
+
+## Bloqueio 008 — 2026-10-10 (BK-0008)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0071
+- Descrição: TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem e não estão na Dep; relacionado ao BK-0007
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045 e TP-0047 em Dep do TP-0071
+- Status: Em aberto
+
+## Bloqueio 009 — 2026-10-10 (BK-0009)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0155
+- Descrição: TP-0155 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 010 — 2026-10-10 (BK-0010)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0075
+- Descrição: TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 011 — 2026-10-10 (BK-0011)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0073
+- Descrição: TP-0073 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 012 — 2026-10-10 (BK-0012)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0072
+- Descrição: TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 013 — 2026-10-10 (BK-0013)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0131
+- Descrição: TP-0131 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
