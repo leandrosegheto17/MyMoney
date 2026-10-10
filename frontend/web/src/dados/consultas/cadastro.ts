@@ -2,7 +2,7 @@ import { obterCliente } from '../cliente';
 import { extrair, type ErroDados } from '../erros';
 import { ehUuid } from '../uuid';
 
-export type TabelaCadastro = 'contas' | 'formas_pagamento' | 'categorias' | 'despesas_fixas';
+export type TabelaCadastro = 'contas' | 'formas_pagamento' | 'categorias' | 'despesas_fixas' | 'metas';
 
 /** "Não existe" e "não é seu" dão a mesma resposta: a tela não distingue. */
 const REGISTRO_INVALIDO: ErroDados = { tipo: 'regra', codigo: 'registro_invalido' };
