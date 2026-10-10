@@ -28,7 +28,7 @@ const NOMES_SO_DADOS = PACOTES_SO_DADOS.map((n) => n.replaceAll('/', '\\/')).joi
 const MSG_IMPORT_DINAMICO = 'import()/require() desses pacotes só em dados/ (SDD §2)';
 
 // Escrita encadeada direto em .from(...), ou o construtor da tabela guardado numa variável
-// (`Array.from` fica de fora). Escrita em construtor guardado depois de `.select()` etc. não é detectável por selector.
+// (`X.from` com objeto de inicial maiúscula — `Array`, `Uint8Array`, `Buffer`, `Observable` — fica de fora; o cliente supabase é minúsculo). Escrita em construtor guardado depois de `.select()` etc. não é detectável por selector.
 const SELECTORES_ESCRITA = [
   {
     selector:
@@ -37,7 +37,7 @@ const SELECTORES_ESCRITA = [
   },
   {
     selector:
-      ":matches(VariableDeclarator, AssignmentExpression) > CallExpression[callee.property.name='from'][callee.object.name!='Array']",
+      ":matches(VariableDeclarator, AssignmentExpression) > CallExpression[callee.property.name='from']:not([callee.object.name=/^[A-Z]/])",
     message: MSG_BUILDER,
   },
 ];

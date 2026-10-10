@@ -19,7 +19,13 @@ describe('fronteiras: import dinâmico e escrita via variável', () => {
     expect(erros.map((m) => m.ruleId)).toContain('no-restricted-syntax');
   });
 
-  it.each(['dados/permitidoImportDinamico.ts', 'formatacao/permitidoArrayFrom.ts'])(
+  it.each([
+    'dados/permitidoImportDinamico.ts',
+    'formatacao/permitidoArrayFrom.ts',
+    'componentes/permitidoUint8ArrayFrom.ts',
+    'componentes/permitidoBufferFrom.ts',
+    'componentes/permitidoObservableFrom.ts',
+  ])(
     'permitido sem erro: %s',
     (arquivo) => {
       expect(mensagensDe(arquivo)).toEqual([]);
