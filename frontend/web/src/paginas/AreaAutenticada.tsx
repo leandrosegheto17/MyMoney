@@ -2,6 +2,7 @@ import { Navigate, Outlet, useNavigate, useSearchParams } from 'react-router';
 import { EstruturaApp } from '../componentes/EstruturaApp';
 import { lerMesDaUrl } from '../formatacao/mes';
 import { useContexto } from '../ganchos/useContexto';
+import { useEnvioAutomatico } from '../ganchos/useEnvioAutomatico';
 import { useInicializarMembro } from '../ganchos/useInicializarMembro';
 import { useSessao } from '../ganchos/useSessao';
 import { useHandleDaRota, useTituloDaPagina } from '../ganchos/useTituloDaPagina';
@@ -24,6 +25,7 @@ function Estrutura() {
 export function AreaAutenticada() {
   const { carregando, sessao } = useSessao();
   useInicializarMembro(sessao?.user.id);
+  useEnvioAutomatico();
   if (carregando) return null;
   if (!sessao) return <Navigate to="/entrar" replace />;
   return <Estrutura />;

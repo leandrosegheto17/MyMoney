@@ -54,7 +54,10 @@ beforeEach(() => {
   ordem.length = 0;
   estado.itens = [];
   estado.ouvintes = [];
-  garantirSessaoValida.mockResolvedValue('valida');
+  garantirSessaoValida.mockImplementation(async () => {
+    ordem.push('garantirSessaoValida');
+    return 'valida';
+  });
 });
 
 afterEach(() => {

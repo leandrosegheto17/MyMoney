@@ -13,6 +13,54 @@ export async function obterSessao(): Promise<Session | null> {
   return data.session;
 }
 
+export type SituacaoSessao = 'valida' | 'rede' | 'revogada' | 'sem-sessao';
+
+const MARGEM_RENOVACAO_S = 60;
+/** O supabase-js repete a renovação com espera crescente; sem rede, a rodada não fica presa nisso. */
+const PRAZO_RENOVACAO_MS = 3000;
+
+function situacaoDoErro(erro: unknown): SituacaoSessao {
+  const traduzido = traduzirErro(erro);
+  if (traduzido.tipo === 'rede' || traduzido.tipo === 'indisponivel') return 'rede';
+  const status = (erro as { status?: number } | null)?.status;
+  return status === 400 || status === 401 || status === 403 ? 'revogada' : 'rede';
+}
+
+/**
+ * Renova o token se faltar menos de 60 s para expirar, antes de qualquer envio da fila.
+ * Nunca apaga a sessão guardada: rede fora do ar e revogação só são informadas; passado o
+ * prazo de renovação, conta como rede.
+ */
+export async function garantirSessaoValida(): Promise<SituacaoSessao> {
+  let prazo: ReturnType<typeof setTimeout> | undefined;
+  const esgotado = new Promise<SituacaoSessao>((resolver) => {
+    prazo = setTimeout(() => resolver('rede'), PRAZO_RENOVACAO_MS);
+  });
+  try {
+    return await Promise.race([verificarSessao(), esgotado]);
+  } finally {
+    clearTimeout(prazo);
+  }
+}
+
+async function verificarSessao(): Promise<SituacaoSessao> {
+  const doModo = sessaoDoModo();
+  if (doModo !== undefined) return doModo ? 'valida' : 'sem-sessao';
+  const auth = obterCliente().auth;
+  try {
+    const { data, error } = await auth.getSession();
+    if (error) return situacaoDoErro(error);
+    if (!data.session) return 'sem-sessao';
+    const restante = (data.session.expires_at ?? 0) - Date.now() / 1000;
+    if (restante >= MARGEM_RENOVACAO_S) return 'valida';
+    const renovada = await auth.refreshSession();
+    if (renovada.error) return situacaoDoErro(renovada.error);
+    return renovada.data.session ? 'valida' : 'sem-sessao';
+  } catch (e) {
+    return situacaoDoErro(e);
+  }
+}
+
 /** Em modo de comparação visual nenhuma operação de sessão chega ao Auth. */
 const semRede = () => sessaoDoModo() !== undefined;
 
