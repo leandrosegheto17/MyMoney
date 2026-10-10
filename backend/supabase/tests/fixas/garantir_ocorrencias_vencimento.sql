@@ -4,6 +4,10 @@ create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
 select plan(10);
 
+-- app.hoje() fixado: a janela de geração (±12 meses) cobre abril de 2026 a fevereiro de 2028.
+create or replace function app.hoje(p_instante timestamptz default now()) returns date
+language sql stable set search_path = '' as $$ select date '2027-03-01' $$;
+
 select testes.preparar_lar();
 
 -- Cadastros de teste criados na transação (como postgres).
