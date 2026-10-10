@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import exemplo from '../../../.md/mockup/respostas/movimentos-meta.json';
 import { esperarRegistroInvalido } from '../src/esperar';
+import { apagarMetas } from '../src/limpar-metas';
 import { mesmaForma } from '../src/mesma-forma';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
@@ -16,6 +17,10 @@ interface Linha {
 }
 
 describe('api.movimentar_meta', () => {
+  // A meta criada aqui é visível a A: sai ao fim para não quebrar a contagem de metas.test.ts.
+  beforeAll(() => apagarMetas([META]));
+  afterAll(() => apagarMetas([META]));
+
   it('A aporta com conta na compartilhada e a resposta é só o uuid', async () => {
     const a = await comoA();
     const meta = await a.rpc('salvar_meta', { p_id: META, p_nome: 'Meta do aporte', p_alvo_centavos: 100000, p_escopo: 'conjunto' });

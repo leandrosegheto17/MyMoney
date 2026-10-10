@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
+import { apagarMetas } from '../src/limpar-metas';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
 const COMPARTILHADA = 'f6a00000-0000-4000-8000-000000000001';
@@ -12,6 +13,10 @@ interface LinhaMeta {
 }
 
 describe('api.salvar_meta', () => {
+  // As metas criadas aqui saem ao fim para não quebrar a contagem de metas.test.ts.
+  beforeAll(() => apagarMetas([COMPARTILHADA, INDIVIDUAL]));
+  afterAll(() => apagarMetas([COMPARTILHADA, INDIVIDUAL]));
+
   it('A cria compartilhada e individual; B vê só a compartilhada', async () => {
     const a = await comoA();
     const c = await a.rpc('salvar_meta', { p_id: COMPARTILHADA, p_nome: 'Viagem teste', p_alvo_centavos: 100000, p_prazo: '2027-07-20', p_escopo: 'conjunto' });
