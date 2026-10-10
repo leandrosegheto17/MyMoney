@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { mapaRotas } from './mapaRotas';
@@ -23,7 +24,11 @@ function carregandoSessao() {
 
 function navegar(rota: string) {
   const router = createMemoryRouter(mapaRotas, { initialEntries: [rota] });
-  const resultado = render(<RouterProvider router={router} />);
+  const resultado = render(
+    <QueryClientProvider client={new QueryClient()}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
   return { router, ...resultado };
 }
 

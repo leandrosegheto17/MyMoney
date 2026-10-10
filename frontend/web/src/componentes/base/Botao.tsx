@@ -9,10 +9,12 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'className'>
   icone?: NomeIcone;
   tipo?: 'button' | 'submit' | 'reset';
   salvando?: boolean;
+  /** Texto durante `salvando`. */
+  rotuloOcupado?: string;
   ref?: Ref<HTMLButtonElement>;
 };
 
-export function Botao({ variante, bloco, icone, tipo = 'button', salvando, onClick, children, ref, ...resto }: Props) {
+export function Botao({ variante, bloco, icone, tipo = 'button', salvando, rotuloOcupado = 'Salvando…', onClick, children, ref, ...resto }: Props) {
   const classes = [estilo.botao, estilo[variante], bloco ? estilo.bloco : null].filter(Boolean).join(' ');
 
   // aria-disabled em vez de disabled: o foco fica no botão; o clique é barrado aqui para impedir envio duplo.
@@ -36,7 +38,7 @@ export function Botao({ variante, bloco, icone, tipo = 'button', salvando, onCli
       {salvando ? (
         <>
           <Icone nome="recarregar" className={giro.giro} />
-          Salvando…
+          {rotuloOcupado}
         </>
       ) : (
         <>

@@ -1,4 +1,5 @@
 import { Navigate, Outlet } from 'react-router';
+import { RegiaoAvisos } from '../componentes/base/RegiaoAvisos';
 import { useSessao } from '../ganchos/useSessao';
 import { useTituloDaPagina } from '../ganchos/useTituloDaPagina';
 
@@ -8,5 +9,9 @@ export function AreaPublica({ redirecionaComSessao = false }: { redirecionaComSe
   useTituloDaPagina();
   if (carregando) return null;
   if (redirecionaComSessao && sessao) return <Navigate to="/" replace />;
-  return <Outlet />;
+  return (
+    <RegiaoAvisos>
+      <Outlet />
+    </RegiaoAvisos>
+  );
 }

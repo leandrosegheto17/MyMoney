@@ -19,7 +19,13 @@ const comMes = { comMes: true };
 export const mapaRotas: RouteObject[] = [
   {
     element: <AreaPublica redirecionaComSessao />,
-    children: [pagina('/entrar', 'Entrar')],
+    children: [
+      {
+        path: '/entrar',
+        lazy: () => import('./paginas/Entrar').then((m) => ({ Component: m.Entrar })),
+        handle: { titulo: 'Entrar' } satisfies HandleRota,
+      },
+    ],
   },
   {
     element: <AreaPublica />,
