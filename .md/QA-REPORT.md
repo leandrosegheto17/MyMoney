@@ -332,3 +332,21 @@ TP-0124 APROVADA no QA: pgTAP 15/15 e 27/27 e resposta idêntica ao mockup; 1 ac
 
 ## TP-0139 — QA — 2026-10-10
 TP-0139 APROVADA no QA (pgTAP de orçamento 17/17, mesmaForma ok nos dois JSON); 1 achado não crítico: RTP-0043 (pgTAP de TP-0087 desatualizado, 2 casos falham).
+
+## RTP-0040 — QA — 2026-10-10
+RTP-0040 aprovada no QA — afterAll com apagarFixas confirmado (seed 7 após 2 execuções, em banco descartável com shim); vitest/API real não rodou por falta de Supabase local.
+
+## RTP-0041 — QA — 2026-10-10
+RTP-0041 aprovada no QA: analyze ao fim da carga confirmado, resumo_mes p50 ~115 ms e p95 < 150 ms logo após a carga, resumo_mes/orcamento/fixas coerentes (28/17/25 ok); não verificados Supabase CLI real, pgTAP real e carregar.test.sh.
+
+## RTP-0042 — QA — 2026-10-10
+RTP-0042 aprovada no QA: typecheck de testes-api passa e a asserção não foi enfraquecida; resumo_mes (28), resumo_mes_orcamento (17) e resumo_fixas (25) passam juntos e coerentes em banco descartável com shim de pgTAP; execução do caso via Supabase não verificável aqui.
+
+## RTP-0043 — QA — 2026-10-10
+RTP-0043 aprovada no QA: resumo_mes (28), resumo_mes_orcamento (17) e resumo_fixas (25) passam juntos e coerentes em banco descartável com shim de pgTAP; sem achados.
+
+## TP-0125 — QA — 2026-10-10
+TP-0125 aprovada no QA (pgTAP 34/34, regressão e TP-0127 coerentes); achado médio de limpeza do caso testes-api aberto como RTP-0044.
+
+## TP-0127 — QA — 2026-10-10
+TP-0127 aprovada no QA: 25/25 em resumo_fixas e resumo_mes/orcamento coerentes (28 e 17 ok), forma do contrato preservada; não verificados pgTAP real, db diff, contrato:gerar e testes-api via PostgREST.
