@@ -293,3 +293,42 @@ TP-0136 aprovada no QA: pgTAP (29) e equivalente SQL do testes-api verdes, `mesm
 
 ## TP-0158 — QA — 2026-10-10
 TP-0158 aprovada no QA (pgTAP e aceite ok no banco descartável); 1 achado não crítico (erro de tipo TS2532 no caso testes-api) aberto como RTP-0037.
+
+## RTP-0023 — QA — 2026-10-10
+RTP-0023 aprovada no QA: caso de `definir_orcamento` confere via `orcamento_mes` que B vê o conjunto (7000) e não a individual de A (reproduzido por SQL em banco descartável); Vitest com API local real não verificado por falta de ambiente.
+
+## RTP-0030 — QA — 2026-10-10
+RTP-0030 aprovada no QA: função comum `app.totais_por_categoria` usada pelas duas funções, pgTAP 22/25/10 verdes (shim), saída idêntica antes e depois em volume de 2 anos, sem achados.
+
+## RTP-0033 — QA — 2026-10-10
+RTP-0033 aprovada no QA — ids do seed em ajustar-saldo.test.ts conferidos por equivalência SQL em banco descartável (A simula/ajusta/repete, B e inexistente recebem registro_invalido); vitest contra a API real não verificável no ambiente.
+
+## RTP-0034 — QA — 2026-10-10
+RTP-0034 aprovada no QA: despesa do caso de isolamento é apagada em finally e o seed volta idêntico (provado em SQL, 2 execuções); vitest real não executado por falta de API Supabase.
+
+## RTP-0035 — QA — 2026-10-10
+RTP-0035 aprovada no QA — limpeza do afterAll e asserção do editor confirmadas (seed idêntico após 2 execuções, em banco descartável com shim; vitest/API real não rodou por falta de Supabase local).
+
+## RTP-0036 — QA — 2026-10-10
+RTP-0036 aprovada no QA — limpeza do afterAll e asserção 9900 confirmadas (seed 7 após 2 execuções, em banco descartável com shim; vitest/API real não rodou por falta de Supabase local).
+
+## RTP-0037 — QA — 2026-10-10
+RTP-0037 aprovada no QA: erro TS2532 corrigido sem `!`/`as`, comportamento inalterado; typecheck do pacote ainda falha só em ocorrencias-mes (RTP-0042); caso contra API não executável aqui.
+
+## RTP-0038 — QA — 2026-10-10
+RTP-0038 aprovada no QA: prettier --check passa, diff de uma linha sem alterar asserções, sem novos erros de tsc.
+
+## RTP-0039 — QA — 2026-10-10
+RTP-0039 aprovada no QA: teto de 100000000000 centavos validado em despesa, receita, editar e check da tabela; 16/16 asserções e regressões ok em banco descartável, sem achados.
+
+## TP-0088 — QA — 2026-10-10
+TP-0088 aprovada no QA: 5.969 parcelas, resumo_mes p50 ~105 ms (p95 ~115-175) e lancamentos_mes ~13 ms contra o limite de 500 ms, índice de parcela usado; RTP-0041 (falta analyze após a carga, p95 passa de 500 ms antes do autoanalyze).
+
+## TP-0123 — QA — 2026-10-10
+TP-0123 aprovada no QA (pgTAP 23/23 em banco descartável; testes-api e contrato não executáveis aqui); 1 achado não crítico: RTP-0040 (limpeza do caso de API).
+
+## TP-0124 — QA — 2026-10-10
+TP-0124 APROVADA no QA: pgTAP 15/15 e 27/27 e resposta idêntica ao mockup; 1 achado baixo (erro de tipo no teste testes-api) aberto como RTP-0042.
+
+## TP-0139 — QA — 2026-10-10
+TP-0139 APROVADA no QA (pgTAP de orçamento 17/17, mesmaForma ok nos dois JSON); 1 achado não crítico: RTP-0043 (pgTAP de TP-0087 desatualizado, 2 casos falham).
