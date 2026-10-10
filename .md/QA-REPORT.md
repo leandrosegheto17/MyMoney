@@ -47,3 +47,15 @@ APROVADA (Rodada 2) — tokens.css idêntico ao mockup e ignorado pelo Prettier;
 
 ## TP-0027 — QA — 2026-10-10
 APROVADA (rodada 2) — QA-1 corrigido (tokens.css `#10141A`); vitest 15/15, e2e PWA 2/2, format/lint limpos; 0 críticos, 0 não críticos.
+
+## RTP-0003 — QA — 2026-10-10
+APROVADA, 0 achados; prova do Docker limpo (parar sem backup, subir, resetar) repetida: REST api 200, signup 422 signup_disabled, GraphQL só api.
+
+## RTP-0007 — QA — 2026-10-10
+RTP-0007 APROVADA; erros.test.ts novo prova os 4 RangeError, cobertura de linhas v8 medida de centavos/mes/moeda/data = 100% (com data.lancamentos para formatarDataCurta); 0 achados; falhas restantes da pasta são de módulos de tarefas futuras, fora do aceite.
+
+## TP-0004 — QA — 2026-10-10
+APROVADA — 0 críticos/0 não críticos; reset com migrations reais ok (ordem vs TP-0013 sem conflito), 43 pgTAP verdes, migration idêntica aos schemas.
+
+## TP-0013 — QA — 2026-10-10
+APROVADA — reset do zero + pgTAP acesso (estrutura/limites/auxiliares/visibilidade) e 00-privilegios verdes; 0 achados críticos, 0 não críticos (seed.sql é do TP-0014).
