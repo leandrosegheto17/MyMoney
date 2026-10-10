@@ -31,18 +31,6 @@ as $$
            coalesce((select sum(valor_centavos) from minha where variavel), 0)::bigint
              + coalesce((select sum(valor_centavos) from indiv where variavel), 0)::bigint as variaveis,
            coalesce((select sum(valor_centavos) from mes where tipo = 'receita'), 0)::bigint as receitas
-  ),
-  cat_indiv as (
-    select categoria_id, categoria_nome, variavel, sum(valor_centavos)::bigint as total
-      from indiv
-     group by categoria_id, categoria_nome, variavel
-    having sum(valor_centavos) > 0
-  ),
-  cat_minha as (
-    select categoria_id, categoria_nome, variavel, sum(valor_centavos)::bigint as total
-      from minha
-     group by categoria_id, categoria_nome, variavel
-    having sum(valor_centavos) > 0
   )
   select jsonb_build_object(
     'minha_parte_conjunto_centavos', s.minha_parte,
@@ -51,18 +39,8 @@ as $$
     'total_variaveis_centavos', s.variaveis,
     'receitas_centavos', s.receitas,
     'resultado', jsonb_build_object('valor_centavos', s.receitas - (s.minha_parte + s.individual)),
-    'por_categoria', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'categoria_id', c.categoria_id, 'nome', c.categoria_nome,
-               'variavel', c.variavel, 'total_centavos', c.total)
-             order by c.total desc, c.categoria_nome)
-        from cat_indiv c), '[]'::jsonb),
-    'minha_parte_por_categoria', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'categoria_id', c.categoria_id, 'nome', c.categoria_nome,
-               'variavel', c.variavel, 'total_centavos', c.total)
-             order by c.total desc, c.categoria_nome)
-        from cat_minha c), '[]'::jsonb)
+    'por_categoria', app.totais_por_categoria((select coalesce(jsonb_agg(to_jsonb(i)), '[]'::jsonb) from indiv i)),
+    'minha_parte_por_categoria', app.totais_por_categoria((select coalesce(jsonb_agg(to_jsonb(m)), '[]'::jsonb) from minha m))
   )
   from soma s;
 $$;

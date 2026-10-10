@@ -22,12 +22,6 @@ as $$
            coalesce(sum(valor_centavos) filter (where variavel), 0)::bigint as variaveis
       from conj
   ),
-  por_cat as (
-    select categoria_id, categoria_nome, variavel, sum(valor_centavos)::bigint as total
-      from conj
-     group by categoria_id, categoria_nome, variavel
-    having sum(valor_centavos) > 0
-  ),
   membros as (
     select m.id, m.nome,
            coalesce((select sum(c.valor_centavos) from conj c where c.dono_id = m.id), 0)::bigint as valor,
@@ -48,12 +42,7 @@ as $$
   select jsonb_build_object(
     'total_centavos', t.geral,
     'total_variaveis_centavos', t.variaveis,
-    'por_categoria', coalesce((
-      select jsonb_agg(jsonb_build_object(
-               'categoria_id', pc.categoria_id, 'nome', pc.categoria_nome,
-               'variavel', pc.variavel, 'total_centavos', pc.total)
-             order by pc.total desc, pc.categoria_nome)
-        from por_cat pc), '[]'::jsonb),
+    'por_categoria', app.totais_por_categoria((select coalesce(jsonb_agg(to_jsonb(c)), '[]'::jsonb) from conj c)),
     'pago_por_membro', coalesce((
       select jsonb_agg(jsonb_build_object(
                'membro_id', p.id, 'nome', p.nome,
