@@ -350,3 +350,18 @@ TP-0125 aprovada no QA (pgTAP 34/34, regressão e TP-0127 coerentes); achado mé
 
 ## TP-0127 — QA — 2026-10-10
 TP-0127 aprovada no QA: 25/25 em resumo_fixas e resumo_mes/orcamento coerentes (28 e 17 ok), forma do contrato preservada; não verificados pgTAP real, db diff, contrato:gerar e testes-api via PostgREST.
+
+## RTP-0044 — QA — 2026-10-10
+RTP-0044 aprovada no QA; limpeza do caso pagar-ocorrencia comprovada em banco descartável (seed e totais inalterados em 2 rodadas), suíte vitest contra a API real não executável neste ambiente.
+
+## RTP-0045 — QA — 2026-10-10
+RTP-0045 aprovada no QA; janela ±12 meses atendida e 5 pgTAP do resumo verdes juntos; achado baixo aberto como RTP-0048 (testes com datas fixas); pgTAP real e Vitest não executados (sem stack).
+
+## TP-0126 — QA — 2026-10-10
+TP-0126 aprovada no QA (pgTAP 28/28, estorno de saldo/total/cartão provado); contorno de RN-06/I-20 por excluir/editar_lancamento confirmado e aberto como RTP-0046 (decisão do Coordenador).
+
+## TP-0128 — QA — 2026-10-10
+TP-0128 aprovada no QA (pgTAP 24/24 e 17/17 em shim); regra de data do cartão para a fixa (10/11 vs 10/10 literal) aguarda confirmação do Coordenador.
+
+## TP-0151 — QA — 2026-10-10
+TP-0151 aprovada no QA (metas, guardado no mês, RN-16c e isolamento ok no banco descartável; testes-api/contrato não verificados); 1 achado baixo aberto como RTP-0047.
