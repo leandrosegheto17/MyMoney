@@ -125,3 +125,57 @@
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0031 na Dep do TP-0081 ou reescrever o TP-0081 para criar componentes/base/folgaTeclado.ts; definir onde ficam os casos de formaInicial
 - Status: Em aberto
+
+## Bloqueio 015 — 2026-10-10 (BK-0015)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0089
+- Descrição: TP-0089 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 016 — 2026-10-10 (BK-0016)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0105
+- Descrição: TP-0105 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 017 — 2026-10-10 (BK-0017)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0101
+- Descrição: TP-0101 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 018 — 2026-10-10 (BK-0018)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0154
+- Descrição: TP-0154 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 019 — 2026-10-10 (BK-0019)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0074
+- Descrição: TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
+
+## Bloqueio 020 — 2026-10-10 (BK-0020)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0130
+- Descrição: TP-0130 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
+- Status: Em aberto
