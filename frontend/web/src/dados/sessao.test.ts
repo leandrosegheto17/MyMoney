@@ -119,6 +119,27 @@ describe('pedirRedefinicao', () => {
     });
     await expect(pedirRedefinicao('leandro@exemplo.com')).rejects.toEqual({ tipo: 'rede' });
   });
+
+  it('indisponibilidade (503) não é escondida', async () => {
+    const { pedirRedefinicao } = await carregar(({ url }) =>
+      url.pathname.endsWith('/auth/v1/recover') ? json({ msg: 'Service unavailable' }, 503) : undefined,
+    );
+    await expect(pedirRedefinicao('leandro@exemplo.com')).rejects.toEqual({ tipo: 'indisponivel' });
+  });
+
+  it.each([
+    ['status 429', { code: 429, msg: 'Too many requests' }],
+    [
+      'over_email_send_rate_limit',
+      { code: 429, error_code: 'over_email_send_rate_limit', msg: 'email rate limit exceeded' },
+    ],
+  ])('limite de taxa (%s) não é escondido', async (_nome, corpo) => {
+    const { pedirRedefinicao } = await carregar(({ url }) =>
+      url.pathname.endsWith('/auth/v1/recover') ? json(corpo, 429) : undefined,
+    );
+    const erro = await pedirRedefinicao('leandro@exemplo.com').catch((e: unknown) => e);
+    expect(erro).toEqual({ tipo: 'indisponivel' });
+  });
 });
 
 describe('salvarNovaSenha', () => {

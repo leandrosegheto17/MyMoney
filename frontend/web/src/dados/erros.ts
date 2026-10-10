@@ -21,14 +21,18 @@ function ehCodigo(valor: unknown): valor is CodigoErro {
 
 function porStatus(status: unknown): ErroDados | undefined {
   if (status === 0) return { tipo: 'rede' };
-  if (typeof status === 'number' && status >= 500) return { tipo: 'indisponivel' };
+  if (typeof status === 'number' && (status >= 500 || status === 429)) return { tipo: 'indisponivel' };
   return undefined;
 }
+
+const LIMITES_DE_TAXA_AUTH = ['over_email_send_rate_limit', 'over_request_rate_limit', 'over_sms_send_rate_limit'];
 
 function traduzirAuth(e: { name: string; status?: number; code?: string }): ErroDados {
   if (e.name === 'AuthRetryableFetchError' && e.status === 0) return { tipo: 'rede' };
   const codigo = e.code ? CODIGOS_AUTH[e.code] : undefined;
   if (codigo) return { tipo: 'regra', codigo };
+  // Limite de taxa não tem código no contrato: a tela o trata como indisponibilidade momentânea.
+  if (e.code && LIMITES_DE_TAXA_AUTH.includes(e.code)) return { tipo: 'indisponivel' };
   // Sem sessão de recuperação, salvar a nova senha significa link já consumido ou vencido.
   if (e.name === 'AuthSessionMissingError') return { tipo: 'regra', codigo: 'link_expirado' };
   return porStatus(e.status) ?? { tipo: 'desconhecido' };

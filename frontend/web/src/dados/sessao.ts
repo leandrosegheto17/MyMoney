@@ -41,7 +41,10 @@ export async function sairDeTodos(): Promise<void> {
   await apagarCache();
 }
 
-/** Resultado neutro: "usuário não existe" não muda a resposta; rede e indisponibilidade sim. */
+/**
+ * Resultado neutro: "usuário não existe" não muda a resposta (sem enumeração de e-mails);
+ * rede, indisponibilidade e limite de taxa (traduzido como indisponível) são propagados.
+ */
 export async function pedirRedefinicao(email: string): Promise<void> {
   if (semRede()) return;
   const { error } = await obterCliente().auth.resetPasswordForEmail(email, {

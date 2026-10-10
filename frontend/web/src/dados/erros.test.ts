@@ -19,6 +19,14 @@ describe('traduzirErro', () => {
     });
   });
 
+  it.each([
+    ['status 429', new AuthApiError('Too many requests', 429, undefined)],
+    ['over_email_send_rate_limit', new AuthApiError('x', 429, 'over_email_send_rate_limit')],
+    ['over_request_rate_limit', new AuthApiError('x', 429, 'over_request_rate_limit')],
+  ])('limite de taxa do Auth (%s) é indisponível', (_nome, e) => {
+    expect(traduzirErro(e)).toEqual({ tipo: 'indisponivel' });
+  });
+
   it('erro de regra do PostgREST vira o código do contrato', () => {
     expect(traduzirErro(lerResposta('erro-registro-invalido.json'))).toEqual({
       tipo: 'regra',
