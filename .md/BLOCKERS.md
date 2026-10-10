@@ -116,3 +116,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
 - Status: Em aberto
+
+## Bloqueio 014 — 2026-10-10 (BK-0014)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0081
+- Descrição: TP-0081 move folgaTeclado.ts e remove a página EnsaioTeclado, criados pelo TP-0031 (Pendente, fora da Dep); useFormularioLancar.test.ts exige formaInicial.ts, que o plano atribui ao TP-0083
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0031 na Dep do TP-0081 ou reescrever o TP-0081 para criar componentes/base/folgaTeclado.ts; definir onde ficam os casos de formaInicial
+- Status: Em aberto
