@@ -188,3 +188,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045 na Dep do TP-0090
 - Status: Em aberto
+
+## Bloqueio 022 — 2026-10-10 (BK-0022)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0141
+- Descrição: TP-0141 usa Segmentado.tsx (TP-0081), ResumoOrcamento.tsx (TP-0090), formatacao/links.ts + LinhasValores.tsx (TP-0089) e filtrosLancamentos.ts (TP-0104), que não existem e não estão na Dep; TP-0081/0089/0090 estão bloqueadas; UX pendente (seção 'Sem orçamento', escopo Eu, textos de aviso)
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0081, TP-0089, TP-0090 e TP-0104 na Dep do TP-0141 e resolver as pendências de UX
+- Status: Em aberto
