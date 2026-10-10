@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 18:03
+Atualizado: 2026-10-10 18:06
 
-Resumo: Não executada 77 · Em execução 2 · Testada (aguarda segurança) 6 · Aprovada 138 · Bloqueada 1 · total 224
+Resumo: Não executada 77 · Em execução 2 · Aprovada 144 · Bloqueada 1 · total 224
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -31,7 +31,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 16 | TP-0015 | executor | ✔ | api.contexto() [BD] | Lote 3 | TP-0004, TP-0013 | Aprovada |
 | 17 | TP-0016 | executor | ✔ | Pacote @mymoney/testes-api (suíte de isolamento) [BD] | Lote 3 | TP-0014, TP-0015 | Aprovada |
 | 18 | TP-0017 | executor | ✔ | Testes de catálogo da segurança do banco [BD] | Lote 3 | TP-0013 | Aprovada |
-| 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Testada (aguarda segurança) |
+| 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Aprovada |
 | 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Não executada |
 | 21 | TP-0020 | executor | ✔ | Tipos das respostas em JSON e das linhas das views | Lote 4 | TP-0019 | Não executada |
 | 22 | TP-0021 | executor | ✔ | Esqueleto @mymoney/web | Lote 4 | TP-0001 | Aprovada |
@@ -52,7 +52,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 37 | TP-0035 | executor | ✔ | CampoValor (centavos) | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 38 | BK-0002 | coordenador | ✔ | Folha.test.tsx:199 (pré-escrito) exige queryByLabelText('Valor') nulo com o campo no DOM; | — | — | Aprovada |
 | 39 | TP-0036 | executor | ✔ | Folha (bottom sheet e diálogo no PC) | Lote 7 | BK-0002, TP-0023 | Aprovada |
-| 40 | TP-0037 | executor | ✔ | DialogoConfirmacao | Lote 7 | TP-0036 | Testada (aguarda segurança) |
+| 40 | TP-0037 | executor | ✔ | DialogoConfirmacao | Lote 7 | TP-0036 | Aprovada |
 | 41 | TP-0038 | executor | ✔ | rotulos/ | Lote 8 | TP-0020, TP-0021 | Não executada |
 | 42 | TP-0039 | executor | ✔ | Aviso (toast) e Faixa | Lote 8 | TP-0023 | Aprovada |
 | 43 | TP-0040 | executor | ✔ | EstadoVazio, EstadoErro, Esqueleto e leitura com cache | Lote 8 | TP-0023, TP-0039 | Aprovada |
@@ -179,8 +179,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 164 | RTP-0002 | executor | ✔ | README do backend: --no-backup do local:parar | Refatoração Lote-1 | TP-0002 | Aprovada |
 | 165 | RTP-0003 | executor | ✔ | Prova do Docker limpo de local:subir/local:resetar | Refatoração Lote-1 | TP-0003 | Aprovada |
 | 166 | RTP-0004 | executor | ✔ | Keepalive: typecheck cobrir o arquivo de teste | Refatoração Lote-1 | TP-0006 | Aprovada |
-| 167 | RTP-0053 | executor | ✔ | Tirar ID de tarefa dos nomes de pasta de prints em frontend/web/e2e | Refatoração Lote-1 | TP-0007 | Testada (aguarda segurança) |
-| 168 | RTP-0055 | executor | ✔ | Fixar por SHA as ações de terceiros do ci.yml | Refatoração Lote-1 | TP-0007 | Testada (aguarda segurança) |
+| 167 | RTP-0053 | executor | ✔ | Tirar ID de tarefa dos nomes de pasta de prints em frontend/web/e2e | Refatoração Lote-1 | TP-0007 | Aprovada |
+| 168 | RTP-0055 | executor | ✔ | Fixar por SHA as ações de terceiros do ci.yml | Refatoração Lote-1 | TP-0007 | Aprovada |
 | 169 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
 | 170 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
 | 171 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Aprovada |
@@ -200,9 +200,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 185 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Aprovada |
 | 186 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Aprovada |
 | 187 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Aprovada |
-| 188 | RTP-0054 | executor | ✔ | Alinhar pode_excluir da categoria ...415 entre seed e categorias.json | Refatoração Lote-10 | TP-0053 | Testada (aguarda segurança) |
+| 188 | RTP-0054 | executor | ✔ | Alinhar pode_excluir da categoria ...415 entre seed e categorias.json | Refatoração Lote-10 | TP-0053 | Aprovada |
 | 189 | RTP-0057 | executor | ✔ | Atualizar cabeçalho de 07-orcamento.sql que ficou falso com o orçamento de setembro | Refatoração Lote-10 | RTP-0054 | Não executada |
-| 190 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Testada (aguarda segurança) |
+| 190 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Aprovada |
 | 191 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Aprovada |
 | 192 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Aprovada |
 | 193 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Aprovada |

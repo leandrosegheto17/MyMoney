@@ -395,3 +395,21 @@ APROVADA; 0 críticos, 0 não críticos; security_invoker, só SELECT a authenti
 
 ## TP-0138 — DevSecOps — 2026-10-10
 OK — 0 críticos, 0 não críticos; invoker, search_path vazio, execute só authenticated, isolamento A/B, G-05, idempotência sem sobrescrita e sem dependência nova confirmados por sondas executadas em banco descartável (PostgREST/pgTAP real não executados).
+
+## RTP-0018 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos de segurança; diff lido (sem service_role/segredo/URL/dependência nova, isolamento G-05 de B mantido), nada executado além da leitura.
+
+## RTP-0053 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff só troca nome de pasta de prints (literal constante, sem path traversal), sem dependência, segredo, URL ou mudança de superfície.
+
+## RTP-0054 — DevSecOps — 2026-10-10
+OK; 0 críticos, 0 não críticos; seed ...0715 herda lar/escopo/dono da categoria ...0415 de A (sem vínculo cruzado), dado fictício local, teste sem service_role/credencial, sem dependência nova (revisão de leitura, sem execução).
+
+## RTP-0055 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; 3 SHAs (checkout, setup-node, pnpm via `^{}`) confirmados por `git ls-remote` nos repositórios oficiais, 5 `uses:` de terceiros fixadas, passos e permissions inalterados.
+
+## TP-0018 — DevSecOps — 2026-10-10
+APROVADA em segurança, 0 críticos e 0 não críticos; revisão de leitura mais parse YAML e greps executados (permissions mínimas, SHAs fixados, sem secrets, anon mascarada, CLI do lockfile, sem dependência nova); SHAs no upstream e execução real dos jobs não verificados.
+
+## TP-0037 — DevSecOps — 2026-10-10
+TP-0037 aprovada em DevSecOps: diff lido sem HTML injetável, style inline, storage ou dependência nova; confirma só por clique no botão (foco inicial em Cancelar, véu e Esc inertes), pilha de foco sem vazamento; eslint 0 e 43 vitest passando; 0 achados.
