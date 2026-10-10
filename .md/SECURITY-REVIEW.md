@@ -173,3 +173,63 @@ TP-0148 aprovada na segurança — security invoker com isolamento por RLS de me
 
 ## TP-0149 — DevSecOps — 2026-10-10
 TP-0149 OK na segurança: escopo/dono nunca do cliente, RLS + filtro explícito, G-05/G-03/G-02/G-10 conferidos no diff, sem dependência nova e sem achados.
+
+## RTP-0025 — DevSecOps — 2026-10-10
+RTP-0025 OK no DevSecOps (diff só move tipo e documenta disable; eslint 0 erro; `any` residual já em RTP-0031).
+
+## TP-0055 — DevSecOps — 2026-10-10
+TP-0055 OK na segurança: security invoker, search_path vazio, grants só authenticated, isolamento por dono_id sem oráculo de em_uso; sem achado novo (RTP-0029 do QA segue aberta).
+
+## TP-0057 — DevSecOps — 2026-10-10
+Sec OK; invoker, search_path vazio, grants só authenticated e filtro por dono confirmados por revisão do diff; único achado baixo já coberto por RTP-0028.
+
+## TP-0060 — DevSecOps — 2026-10-10
+TP-0060 aprovada em segurança (revisão do diff: invoker, search_path vazio, grants só authenticated, filtro de dono antes do FK sem vazamento de existência/uso, migration aditiva); sem achado nem RTP.
+
+## TP-0062 — DevSecOps — 2026-10-10
+TP-0062 APROVADA em segurança: função invoker com search_path vazio, RLS forçada nas 3 tabelas, erros uniformes (G-05), idempotência (G-17), anon sem execute e resposta sem dado alheio; sem achados nem RTP.
+
+## TP-0063 — DevSecOps — 2026-10-10
+TP-0063 aprovada em segurança (Sec ✔): função INVOKER com search_path vazio, contagem e padrões filtrados explicitamente pelo membro, anon sem execute; sem achados.
+
+## TP-0064 — DevSecOps — 2026-10-10
+TP-0064 aprovada em segurança: função security invoker, search_path vazio, RLS preservada (outra conta devolve null), sem execute para anon; revisão do diff, sem achados.
+
+## TP-0067 — DevSecOps — 2026-10-10
+TP-0067 OK em segurança — invoker, search_path vazio, RLS de dono, null/null sem oráculo, anon sem execute; sem achados; pgTAP real não verificado.
+
+## TP-0085 — DevSecOps — 2026-10-10
+TP-0085 aprovada na segurança: filtro explícito conjunto/despesa, invoker com search_path vazio, anon sem execute, sem valor_total, sem achados.
+
+## TP-0086 — DevSecOps — 2026-10-10
+TP-0086 aprovada na segurança (RN-16e com dono_id explícito, invoker, sem anon, sem valor_total); sem achados novos, duplicação já em RTP-0030; pgTAP/CLI reais não verificados.
+
+## TP-0096 — DevSecOps — 2026-10-10
+TP-0096 aprovada em segurança; INVOKER/search_path vazio/RLS/grants corretos, sem vazamento por total, contagem ou filtro de forma; nenhum achado e nenhuma RTP.
+
+## TP-0097 — DevSecOps — 2026-10-10
+TP-0097 aprovada na segurança (Sec ✔): INVOKER, search_path vazio, anon sem execute, pagamento/data_ajustada omitidos para o outro membro com dono_id além da RLS, registro_invalido uniforme; sem achados nem RTP.
+
+## TP-0098 — DevSecOps — 2026-10-10
+TP-0098 aprovada em segurança (revisão do diff): matriz RN-06/RN-07 correta, G-05/G-03 atendidos, sem achados nem RTP; pgTAP real e catalogo.sql completo não verificados por falta de ferramenta.
+
+## TP-0100 — DevSecOps — 2026-10-10
+TP-0100 OK na segurança: função INVOKER com search_path vazio, filtro explícito + RLS, mesma mensagem para alheia/inexistente, anon sem execute, sem dependência nova; sem achados.
+
+## TP-0115 — DevSecOps — 2026-10-10
+TP-0115 OK em segurança: invoker/search_path vazio, anon sem execute, isolamento por dono e erro uniforme registro_invalido, escopo individual fixo; sem achado alto/crítico nem RTP.
+
+## TP-0117 — DevSecOps — 2026-10-10
+TP-0117 aprovada em segurança por revisão do diff (INVOKER, search_path vazio, filtro de dono/lar/crédito, resposta uniforme, anon sem execute, migration aditiva), sem achados; execução real do catálogo/pgTAP/vitest não verificada por falta de ambiente.
+
+## TP-0119 — DevSecOps — 2026-10-10
+TP-0119 aprovada em segurança: RLS enable+force por lar, grants mínimos, sem campo privado, seed fictício; sem achados relevantes.
+
+## TP-0135 — DevSecOps — 2026-10-10
+TP-0135 aprovada em segurança: filtro de dono explícito, só parcelas via parcelas_mes, invoker com search_path vazio, sem achados; pgTAP real e db diff não verificados.
+
+## TP-0146 — DevSecOps — 2026-10-10
+TP-0146 aprovada em segurança: view `api.metas` com security_invoker, RLS efetiva, sem vazamento de metas individuais nem de dono, somente leitura; sem achados.
+
+## TP-0150 — DevSecOps — 2026-10-10
+TP-0150 aprovada em segurança (RN-08/G-05/G-02/G-03/G-10 conferidos por leitura do diff e paridade schema x migration; sem dependência nova nem dado pessoal novo; sem achado alto/crítico; pgTAP real e testes-api não executáveis aqui).

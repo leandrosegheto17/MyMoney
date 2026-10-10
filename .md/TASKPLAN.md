@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 13:48
+Atualizado: 2026-10-10 13:52
 
-Resumo: Não executada 112 · Em execução 1 · Testada (aguarda segurança) 20 · Aprovada 59 · Bloqueada 6 · total 198
+Resumo: Não executada 112 · Em execução 1 · Aprovada 79 · Bloqueada 6 · total 198
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -71,19 +71,19 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 56 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Não executada |
 | 57 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | BK-0005, TP-0016, TP-0050 | Bloqueada |
 | 58 | TP-0054 | executor | ✔ | api.salvar_conta [BD] | Lote 11 | TP-0048 | Aprovada |
-| 59 | TP-0055 | executor | ✔ | api.arquivar_conta e api.excluir_conta [BD] | Lote 11 | TP-0048, TP-0049, TP-0051 | Testada (aguarda segurança) |
+| 59 | TP-0055 | executor | ✔ | api.arquivar_conta e api.excluir_conta [BD] | Lote 11 | TP-0048, TP-0049, TP-0051 | Aprovada |
 | 60 | TP-0056 | executor | ✔ | api.salvar_forma [BD] | Lote 11 | TP-0049 | Aprovada |
-| 61 | TP-0057 | executor | ✔ | api.arquivar_forma e api.excluir_forma [BD] | Lote 11 | TP-0049, TP-0051 | Testada (aguarda segurança) |
+| 61 | TP-0057 | executor | ✔ | api.arquivar_forma e api.excluir_forma [BD] | Lote 11 | TP-0049, TP-0051 | Aprovada |
 | 62 | TP-0058 | executor | ✔ | api.definir_preferida [BD] | Lote 11 | TP-0049 | Aprovada |
 | 63 | TP-0059 | executor | ✔ | api.salvar_categoria [BD] | Lote 11 | TP-0050 | Aprovada |
-| 64 | TP-0060 | executor | ✔ | api.arquivar_categoria e api.excluir_categoria [BD] | Lote 11 | TP-0050, TP-0051 | Testada (aguarda segurança) |
+| 64 | TP-0060 | executor | ✔ | api.arquivar_categoria e api.excluir_categoria [BD] | Lote 11 | TP-0050, TP-0051 | Aprovada |
 | 65 | TP-0061 | executor | ✔ | Regra app.gerar_parcelas [BD] | Lote 12 | TP-0004 | Aprovada |
-| 66 | TP-0062 | executor | ✔ | api.lancar_despesa [BD] | Lote 12 | TP-0051, TP-0061 | Testada (aguarda segurança) |
-| 67 | TP-0063 | executor | ✔ | api.dados_lancamento [BD] | Lote 12 | TP-0051 | Testada (aguarda segurança) |
-| 68 | TP-0064 | executor | ✔ | Regra app.saldo_conta [BD] | Lote 13 | TP-0048, TP-0049, TP-0051 | Testada (aguarda segurança) |
+| 66 | TP-0062 | executor | ✔ | api.lancar_despesa [BD] | Lote 12 | TP-0051, TP-0061 | Aprovada |
+| 67 | TP-0063 | executor | ✔ | api.dados_lancamento [BD] | Lote 12 | TP-0051 | Aprovada |
+| 68 | TP-0064 | executor | ✔ | Regra app.saldo_conta [BD] | Lote 13 | TP-0048, TP-0049, TP-0051 | Aprovada |
 | 69 | TP-0065 | executor | ✔ | View api.contas (com saldo) [BD] | Lote 13 | TP-0064 | Não executada |
 | 70 | TP-0066 | executor | ✔ | api.ajustar_saldo [BD] | Lote 13 | TP-0064 | Não executada |
-| 71 | TP-0067 | executor | ✔ | Regra app.gasto_cartao (compras) [BD] | Lote 13 | TP-0049, TP-0051 | Testada (aguarda segurança) |
+| 71 | TP-0067 | executor | ✔ | Regra app.gasto_cartao (compras) [BD] | Lote 13 | TP-0049, TP-0051 | Aprovada |
 | 72 | TP-0068 | executor | ✔ | View api.formas_pagamento [BD] | Lote 13 | TP-0067 | Não executada |
 | 73 | TP-0069 | executor | ✔ | Dados dos cadastros (consultas, comandos e primeiro uso) | Lote 14 | TP-0025, TP-0052, TP-0053, TP-0054, TP-0055, TP-0056, TP-0057, TP-0058, TP-0059, TP-0060, TP-0065, TP-0066, TP-0068 | Não executada |
 | 74 | TP-0070 | executor | ✔ | T15 Contas | Lote 14 | TP-0040, TP-0069 | Não executada |
@@ -102,8 +102,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 87 | TP-0082 | executor | ✔ | T03b Grade de categorias | Lote 16 | TP-0042, TP-0043, TP-0081 | Não executada |
 | 88 | TP-0083 | executor | ✔ | T03c Forma, parcelas e "Mais detalhes" | Lote 16 | TP-0034, TP-0043, TP-0080, TP-0081 | Não executada |
 | 89 | TP-0084 | executor | ✔ | T03d Confirmar, avisos, fila e estados | Lote 16 | TP-0039, TP-0077, TP-0078, TP-0082, TP-0083 | Não executada |
-| 90 | TP-0085 | executor | ✔ | Regra app.totais_conjunto(mes) [BD] | Lote 17 | TP-0051 | Testada (aguarda segurança) |
-| 91 | TP-0086 | executor | ✔ | Regra app.totais_individuais(mes) [BD] | Lote 17 | TP-0051 | Testada (aguarda segurança) |
+| 90 | TP-0085 | executor | ✔ | Regra app.totais_conjunto(mes) [BD] | Lote 17 | TP-0051 | Aprovada |
+| 91 | TP-0086 | executor | ✔ | Regra app.totais_individuais(mes) [BD] | Lote 17 | TP-0051 | Aprovada |
 | 92 | TP-0087 | executor | ✔ | api.resumo_mes(mes) [BD] | Lote 17 | TP-0064, TP-0067, TP-0085, TP-0086 | Não executada |
 | 93 | TP-0088 | executor | ✔ | Seed de volume de 2 anos e medição do desempenho [BD] | Lote 17 | TP-0087 | Não executada |
 | 94 | TP-0089 | executor | ✔ | T02a Estrutura, estados, cabeçalho e faixas | Lote 18 | TP-0025, TP-0033, TP-0039, TP-0040, TP-0041, TP-0079, TP-0087 | Não executada |
@@ -113,11 +113,11 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 98 | TP-0093 | executor | ✔ | T02d Eu: meu total, receitas e resultado, por categoria | Lote 18 | TP-0044, TP-0089 | Não executada |
 | 99 | TP-0094 | executor | ✔ | T02e Eu: orçamento, contas, cartões e metas; Início completo | Lote 18 | TP-0090, TP-0091, TP-0092, TP-0093 | Não executada |
 | 100 | TP-0095 | executor | ✔ | T02f Primeiros passos e mês vazio | Lote 18 | TP-0089 | Não executada |
-| 101 | TP-0096 | executor | ✔ | api.lancamentos_mes [BD] | Lote 19 | TP-0051 | Testada (aguarda segurança) |
-| 102 | TP-0097 | executor | ✔ | api.lancamento(id) [BD] | Lote 19 | TP-0051 | Testada (aguarda segurança) |
-| 103 | TP-0098 | executor | ✔ | Regra app.permissoes_edicao [BD] | Lote 19 | TP-0051 | Testada (aguarda segurança) |
+| 101 | TP-0096 | executor | ✔ | api.lancamentos_mes [BD] | Lote 19 | TP-0051 | Aprovada |
+| 102 | TP-0097 | executor | ✔ | api.lancamento(id) [BD] | Lote 19 | TP-0051 | Aprovada |
+| 103 | TP-0098 | executor | ✔ | Regra app.permissoes_edicao [BD] | Lote 19 | TP-0051 | Aprovada |
 | 104 | TP-0099 | executor | ✔ | api.editar_lancamento (SECURITY DEFINER) [BD] | Lote 19 | TP-0061, TP-0098 | Não executada |
-| 105 | TP-0100 | executor | ✔ | api.excluir_lancamento [BD] | Lote 19 | TP-0051 | Testada (aguarda segurança) |
+| 105 | TP-0100 | executor | ✔ | api.excluir_lancamento [BD] | Lote 19 | TP-0051 | Aprovada |
 | 106 | TP-0101 | executor | ✔ | LinhaLancamento | Lote 20 | TP-0024, TP-0042 | Não executada |
 | 107 | TP-0102 | executor | ✔ | Dados de lançamentos (lista, detalhe, editar e excluir) | Lote 20 | TP-0025, TP-0096, TP-0097, TP-0099, TP-0100 | Não executada |
 | 108 | TP-0103 | executor | ✔ | T04a Lista do mês | Lote 20 | TP-0040, TP-0041, TP-0079, TP-0101, TP-0102 | Não executada |
@@ -132,11 +132,11 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 117 | TP-0112 | executor | ✔ | Cadastro dos 2 usuários em produção [U] | Lote 22 | TP-0029, TP-0110 | Não executada |
 | 118 | TP-0113 | executor | ✔ | Verificação do keep-alive antes do uso diário [U] | Lote 22 | TP-0012 | Não executada |
 | 119 | TP-0114 | executor | ✔ | Roteiro de fricção e desempenho nos aparelhos reais [U] | Lote 22 | TP-0107, TP-0112 | Não executada |
-| 120 | TP-0115 | executor | ✔ | api.lancar_receita [BD] | Lote 23 | TP-0051 | Testada (aguarda segurança) |
+| 120 | TP-0115 | executor | ✔ | api.lancar_receita [BD] | Lote 23 | TP-0051 | Aprovada |
 | 121 | TP-0116 | executor | ✔ | T03e Modo Receita | Lote 23 | TP-0076, TP-0084, TP-0115 | Não executada |
-| 122 | TP-0117 | executor | ✔ | api.alterar_data_parcela [BD] | Lote 24 | TP-0051 | Testada (aguarda segurança) |
+| 122 | TP-0117 | executor | ✔ | api.alterar_data_parcela [BD] | Lote 24 | TP-0051 | Aprovada |
 | 123 | TP-0118 | executor | ✔ | T05b Lista de parcelas e "Alterar data" | Lote 24 | TP-0042, TP-0105, TP-0117 | Não executada |
-| 124 | TP-0119 | executor | ✔ | Tabelas app.despesa_fixa e app.ocorrencia_fixa [BD] | Lote 25 | TP-0050, TP-0051 | Testada (aguarda segurança) |
+| 124 | TP-0119 | executor | ✔ | Tabelas app.despesa_fixa e app.ocorrencia_fixa [BD] | Lote 25 | TP-0050, TP-0051 | Aprovada |
 | 125 | TP-0120 | executor | ✔ | Regra app.garantir_ocorrencias(mes) [BD] | Lote 25 | TP-0004, TP-0119 | Não executada |
 | 126 | TP-0121 | executor | ✔ | View api.despesas_fixas [BD] | Lote 25 | TP-0119 | Não executada |
 | 127 | TP-0122 | executor | ✔ | api.salvar_despesa_fixa [BD] | Lote 25 | TP-0119 | Não executada |
@@ -152,7 +152,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 137 | TP-0132 | executor | ✔ | T08 Marcar fixa como paga | Lote 27 | TP-0035, TP-0036, TP-0080, TP-0130 | Não executada |
 | 138 | TP-0133 | executor | ✔ | E2E de integração: ciclo da despesa fixa [BD] | Lote 27 | TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | Não executada |
 | 139 | TP-0134 | executor | ✔ | Tabela app.orcamento [BD] | Lote 28 | TP-0050 | Aprovada |
-| 140 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Testada (aguarda segurança) |
+| 140 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Aprovada |
 | 141 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Não executada |
 | 142 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Aprovada |
 | 143 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Não executada |
@@ -164,11 +164,11 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 149 | TP-0143 | executor | ✔ | E2E de integração: orçamento [BD] | Lote 29 | TP-0139, TP-0141, TP-0142 | Não executada |
 | 150 | TP-0144 | executor | ✔ | Tabelas app.meta e app.movimento_meta [BD] | Lote 30 | TP-0013, TP-0048 | Aprovada |
 | 151 | TP-0145 | executor | ✔ | Regra app.progresso_meta [BD] | Lote 30 | TP-0144 | Aprovada |
-| 152 | TP-0146 | executor | ✔ | View api.metas [BD] | Lote 30 | TP-0145 | Testada (aguarda segurança) |
+| 152 | TP-0146 | executor | ✔ | View api.metas [BD] | Lote 30 | TP-0145 | Aprovada |
 | 153 | TP-0147 | executor | ✔ | api.movimentos_meta(meta_id) [BD] | Lote 30 | TP-0144 | Aprovada |
 | 154 | TP-0148 | executor | ✔ | api.locais_guardados() [BD] | Lote 30 | TP-0144 | Aprovada |
 | 155 | TP-0149 | executor | ✔ | api.salvar_meta [BD] | Lote 31 | TP-0144 | Aprovada |
-| 156 | TP-0150 | executor | ✔ | api.movimentar_meta [BD] | Lote 31 | TP-0144, TP-0145 | Testada (aguarda segurança) |
+| 156 | TP-0150 | executor | ✔ | api.movimentar_meta [BD] | Lote 31 | TP-0144, TP-0145 | Aprovada |
 | 157 | TP-0151 | executor | ✔ | resumo_mes: seção de metas e guardado no mês [BD] | Lote 31 | TP-0087, TP-0145 | Não executada |
 | 158 | TP-0152 | executor | ✔ | Dados das metas | Lote 32 | TP-0025, TP-0146, TP-0147, TP-0148, TP-0149, TP-0150 | Não executada |
 | 159 | TP-0153 | executor | ✔ | T10 Metas | Lote 32 | TP-0040, TP-0044, TP-0152 | Não executada |
@@ -187,7 +187,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 172 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Aprovada |
 | 173 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Aprovada |
 | 174 | RTP-0014 | executor | ✔ | Lint de fronteira: cobrir import() com template literal e .from() por colchetes | Refatoração Lote-4 | RTP-0008 | Aprovada |
-| 175 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Testada (aguarda segurança) |
+| 175 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Aprovada |
 | 176 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Não executada |
 | 177 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 178 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
