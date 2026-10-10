@@ -21,7 +21,9 @@ async function saldoItau(): Promise<number> {
   const linhas = data as unknown as LinhaConta[];
   expect(linhas).toHaveLength(1);
   mesmaForma(linhas, contas);
-  return linhas[0].saldo_centavos;
+  const [linha] = linhas;
+  if (linha === undefined) throw new Error('conta Itaú ausente');
+  return linha.saldo_centavos;
 }
 
 describe('api.registrar_pagamento_cartao', () => {
