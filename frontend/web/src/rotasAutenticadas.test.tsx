@@ -73,7 +73,7 @@ describe('guarda da área autenticada', () => {
     const { router } = navegar('/xyz');
     expect(await screen.findByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/xyz');
-    expect(screen.getByRole('link', { name: /início/i })).toHaveAttribute('href', '/');
+    expect(within(screen.getByRole('main')).getByRole('link', { name: /início/i })).toHaveAttribute('href', '/');
     await waitFor(() => expect(document.title).toBe('Página não encontrada · MyMoney'));
   });
 });

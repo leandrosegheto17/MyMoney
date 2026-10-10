@@ -1,15 +1,14 @@
-import type { RouteObject } from 'react-router';
+import { Outlet, type RouteObject } from 'react-router';
 import { SpriteIcones } from './componentes/base/SpriteIcones';
-import { Provisoria } from './paginas/Provisoria';
+import { mapaRotas } from './mapaRotas';
 
-export const rotas: RouteObject[] = [
-  {
-    path: '/',
-    element: (
-      <>
-        <SpriteIcones />
-        <Provisoria />
-      </>
-    ),
-  },
-];
+function Raiz() {
+  return (
+    <>
+      <SpriteIcones />
+      <Outlet />
+    </>
+  );
+}
+
+export const rotas: RouteObject[] = [{ element: <Raiz />, children: mapaRotas }];
