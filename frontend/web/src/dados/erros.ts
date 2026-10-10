@@ -57,6 +57,17 @@ export function traduzirErro(e: unknown, status?: number): ErroDados {
   return { tipo: 'desconhecido' };
 }
 
+/** Códigos do Auth que, ao entrar, revelariam se a conta existe, está banida ou não confirmou o e-mail. */
+const CODIGOS_AUTH_QUE_REVELAM_CONTA = ['email_not_confirmed', 'user_banned', 'user_not_found'];
+
+/** Como `traduzirErro`, mas falhas que distinguiriam a conta caem na mesma resposta de credenciais erradas. */
+export function traduzirErroDeEntrada(e: unknown): ErroDados {
+  if (isAuthError(e) && e.code && CODIGOS_AUTH_QUE_REVELAM_CONTA.includes(e.code)) {
+    return { tipo: 'regra', codigo: 'credenciais_invalidas' };
+  }
+  return traduzirErro(e);
+}
+
 /** Resultado de `rpc()`/`select()` do supabase-js: devolve o dado ou lança o `ErroDados`. */
 export function extrair<T>(resposta: { data: T | null; error: unknown; status: number }): T {
   if (resposta.error) throw traduzirErro(resposta.error, resposta.status);

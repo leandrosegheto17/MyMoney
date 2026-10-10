@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { obterCliente } from './cliente';
-import { traduzirErro } from './erros';
+import { traduzirErro, traduzirErroDeEntrada } from './erros';
 import { apagarCache } from './local/cacheDadosLancamento';
 import { sessaoDoModo } from './modoComparacao';
 
@@ -71,7 +71,7 @@ function conferir(error: unknown): void {
 export async function entrar(email: string, senha: string): Promise<void> {
   if (semRede()) return;
   const { error } = await obterCliente().auth.signInWithPassword({ email, password: senha });
-  conferir(error);
+  if (error) throw traduzirErroDeEntrada(error);
 }
 
 /** Encerra só esta sessão (ADR-008 §3). */

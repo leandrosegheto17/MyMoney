@@ -1,7 +1,7 @@
 import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
 import { describe, expect, it } from 'vitest';
 import { lerResposta } from '../../test/apoio/fetchSimulado';
-import { traduzirErro } from './erros';
+import { traduzirErro, traduzirErroDeEntrada } from './erros';
 
 describe('traduzirErro', () => {
   it('TypeError do fetch é erro de rede', () => {
@@ -53,6 +53,20 @@ describe('traduzirErro', () => {
   it('credenciais inválidas do Auth viram credenciais_invalidas', () => {
     const e = new AuthApiError('Invalid login credentials', 400, 'invalid_credentials');
     expect(traduzirErro(e)).toEqual({ tipo: 'regra', codigo: 'credenciais_invalidas' });
+  });
+
+  it.each(['email_not_confirmed', 'user_banned', 'user_not_found'])(
+    'traduzirErroDeEntrada: %s vira credenciais_invalidas; traduzirErro segue desconhecido',
+    (codigo) => {
+      const e = new AuthApiError(codigo, 400, codigo);
+      expect(traduzirErroDeEntrada(e)).toEqual({ tipo: 'regra', codigo: 'credenciais_invalidas' });
+      expect(traduzirErro(e)).toEqual({ tipo: 'desconhecido' });
+    },
+  );
+
+  it('traduzirErroDeEntrada mantém rede e indisponibilidade', () => {
+    expect(traduzirErroDeEntrada(new TypeError('x'))).toEqual({ tipo: 'rede' });
+    expect(traduzirErroDeEntrada(new AuthApiError('x', 500, undefined))).toEqual({ tipo: 'indisponivel' });
   });
 
   it('senha fraca do Auth vira senha_fraca', () => {
