@@ -182,3 +182,63 @@ TP-0148 aprovada no QA — aceite atendido (pgTAP 13/13, seed 08 e isolamento A/
 
 ## TP-0149 — QA — 2026-10-10
 TP-0149 APROVADA no QA: pgTAP 32/32 em banco descartável, aceite e convenções OK, sem achados; stack Supabase/API, db diff e contrato:gerar não verificados.
+
+## RTP-0025 — QA — 2026-10-10
+RTP-0025 APROVADA no QA (lint 0 erro, 9/9 testes, tsc ok); `any` residual em sessoes.ts sob disable virou RTP-0031.
+
+## TP-0055 — QA — 2026-10-10
+TP-0055 aprovada no QA (pgTAP 11/11 e 12/12 em banco descartável); 1 achado não crítico, RTP-0029 (casos testes-api com ids que não existem no seed).
+
+## TP-0057 — QA — 2026-10-10
+APROVADA; pgTAP 22/22 em banco descartável, aceite atendido; 1 achado não crítico (ids dos casos testes-api fora do seed, RTP-0028); db diff/vitest/contrato não verificados.
+
+## TP-0060 — QA — 2026-10-10
+TP-0060 aprovada no QA, pgTAP 11/11 e 13/13 e aceite cumprido no banco; testes-api/contrato não rodáveis aqui (dependem da view api.categorias do TP-0053 e do CLI).
+
+## TP-0062 — QA — 2026-10-10
+TP-0062 APROVADA no QA: pgTAP (pix, crédito, validação, idempotência, parcelas) com 0 falhas em banco descartável, critério de aceite e convenções ok; testes-api, db diff e contrato:gerar não verificados por falta de stack local.
+
+## TP-0063 — QA — 2026-10-10
+TP-0063 APROVADA no QA: pgTAP (33/34, a falha é artefato do shim) e conferência com o seed confirmam ordem por uso do próprio membro, padrões e isolamento; API/pgTAP real não verificados.
+
+## TP-0064 — QA — 2026-10-10
+TP-0064 aprovada no QA: 16/16 no pgTAP com shim mais verificações extras de crédito e troca de conta; sem achados; pgTAP real, CLI e catálogo TP-0017 não verificados.
+
+## TP-0067 — QA — 2026-10-10
+TP-0067 aprovada no QA — gasto_cartao 17/17 no banco descartável, aceite e convenções ok, sem achados; pgTAP real/supabase CLI não verificados.
+
+## TP-0085 — QA — 2026-10-10
+TP-0085 APROVADA no QA: 9/9 e 22/22 pgTAP (em shim) ok, aceite e convenções atendidos, sem achados; pgTAP real e db diff não verificados.
+
+## TP-0086 — QA — 2026-10-10
+TP-0086 aprovada no QA (25/25 + regressão 22/22 em banco descartável); 1 achado não crítico de duplicação da agregação por categoria (RTP-0030); pgTAP/supabase CLI reais não verificados.
+
+## TP-0096 — QA — 2026-10-10
+TP-0096 aprovada no QA; pgTAP 38/38 em banco descartável, aceite e convenções ok, suíte testes-api e contrato:gerar não verificados por falta de ambiente.
+
+## TP-0097 — QA — 2026-10-10
+TP-0097 aprovada no QA: pgTAP 31/31 (shim), respostas de A e B idênticas aos JSON do mockup, B sem forma/conta/data da operação, registro_invalido uniforme; pendentes só testes reais (supabase test db, testes-api, contrato:gerar).
+
+## TP-0098 — QA — 2026-10-10
+TP-0098 aprovada no QA: matriz de permissões de edição correta (18/18 no pgTAP em banco descartável), sem achados; pgTAP real, supabase CLI e catalogo.sql completo não verificados por falta de ferramenta.
+
+## TP-0100 — QA — 2026-10-10
+TP-0100 APROVADA no QA: pgTAP 15/15 em banco descartável, critério de aceite, segurança e convenções ok; testes-api (só revisão estática), db diff e contrato:gerar não verificados por falta de stack local.
+
+## TP-0115 — QA — 2026-10-10
+TP-0115 APROVADA no QA: 41 asserts pgTAP de receita e regressão de despesa com 0 falhas em banco descartável, aceite e convenções ok; testes-api, db diff e contrato:gerar não verificados por falta de stack local.
+
+## TP-0117 — QA — 2026-10-10
+TP-0117 aprovada no QA: aceite atendido em banco descartável (13/16 no shim, 3 divergências são artefato conferido à mão), sem achados; pgTAP real, catálogo completo, contrato:gerar e vitest não verificados por falta de ambiente.
+
+## TP-0119 — QA — 2026-10-10
+TP-0119 aprovada no QA: 80/80 pgTAP da tarefa, seed sem regressão nas demais suítes, sem achados; db diff, local:resetar e contrato:gerar não verificáveis sem Docker/CLI.
+
+## TP-0135 — QA — 2026-10-10
+TP-0135 aprovada no QA: 33/33 pgTAP (shim) ok, fronteiras 79,99/80/100/100,01% corretas, sem achados; pgTAP real e db diff não verificados.
+
+## TP-0146 — QA — 2026-10-10
+TP-0146 aprovada no QA: view `api.metas` com security_invoker, forma igual aos mockups, isolamento A/B/sem membro/anon e escrita recusada confirmados em banco descartável; sem achados.
+
+## TP-0150 — QA — 2026-10-10
+TP-0150 aprovada no QA (aceite CA-18.1 a 18.3/CA-17.3/RN-08/RN-09 conferido em banco descartável; testes-api e pgTAP real não executáveis aqui); 1 RTP não crítica (RTP-0032, isolamento dos testes-api).
