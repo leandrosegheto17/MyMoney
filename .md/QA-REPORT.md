@@ -524,3 +524,33 @@ APROVADA; 0 críticos, 0 não críticos; 13 arquivos/106 testes passando, tsc e 
 
 ## TP-0140 — QA — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; 35 testes passando, tsc e eslint limpos, aceite do orçamento (consulta, definir/remover, copiar, invalidação) conferido no diff.
+
+## RTP-0075 — QA — 2026-10-10
+APROVADA — env mínimo ao filho provado por teste com executor injetado (35/35 passando); 0 críticos, 0 não críticos; execução contra banco real pendente (G-06).
+
+## RTP-0076 — QA — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; vitest 32/32 e tsc limpo, 401/JWT para a rodada sem marcar `falhou` nem `motivo`.
+
+## RTP-0077 — QA — 2026-10-10
+APROVADA — JSON do mockup alinhado a ItemFila (criadoEm ms, sem motivo null) com teste de fixture; vitest 1/1 e tsc limpos; 0 achados.
+
+## RTP-0078 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 18 testes passando e tsc limpo, `lerCache` apaga só o store do cache para outro usuário e a fila é preservada.
+
+## TP-0026 — QA — 2026-10-10
+DEVOLVIDA (rodada 2) — 1 crítico (teste de bundle falha por falso positivo: literal 'sem-sessao' agora é valor legítimo de SituacaoSessao em sessao.ts; bundle real está limpo do modo), 0 não críticos.
+
+## TP-0041 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0079: falta spec Playwright 44 px/axe e comparação visual, sem tela que use o componente); 43 testes vitest, tsc e eslint limpos, markup/CSS iguais ao mockup.
+
+## TP-0042 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0080: testes das variantes extras); 17 testes Selo verdes, CSS fiel ao mockup; axe e comparação visual não rodados (sem tela consumidora).
+
+## TP-0044 — QA — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; 23 testes e tsc OK, diff conforme aceite e convenções; axe e comparação visual pendentes (dependem das telas TP-0089).
+
+## TP-0078 — QA — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; 26 testes passando (gatilhos, sessão, isolamento por dono), tsc limpo, convenções ok.
+
+## TP-0080 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0081: botão "Depois" da vitrine reprova axe e quebra 2 testes do spec); vitest 10/10, 44 px e teclado ok, axe do componente limpo; sem comparação visual com mockup.
