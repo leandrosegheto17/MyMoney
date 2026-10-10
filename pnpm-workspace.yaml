@@ -8,6 +8,7 @@ allowBuilds:
   supabase: true
   esbuild: true
   workerd: true
+  unrs-resolver: set this to true or false
 
 minimumReleaseAgeExclude:
   - '@cloudflare/workers-types@5.20261010.1'

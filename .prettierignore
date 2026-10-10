@@ -6,3 +6,5 @@ coverage
 backend/supabase/
 **/src/banco.ts
 pnpm-lock.yaml
+test-results/
+playwright-report/
