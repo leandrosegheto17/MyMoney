@@ -34,7 +34,7 @@ insert into app.categoria (id, lar_id, tipo, escopo, dono_id, nome, variavel, ar
 -- A: 3 em Mercado (conjunta), 1 em Transporte (individual)
 select pg_temp.lancar(('e6300000-0000-4000-8000-00000000010' || n)::uuid, testes.membro_a(), 'despesa', 'conjunto',
   '00000000-0000-4000-8000-000000000401', '00000000-0000-4000-8000-000000000301',
-  '00000000-0000-4000-8000-000000000201', '2026-10-0' || n, 1000)
+  '00000000-0000-4000-8000-000000000201', ('2026-10-0' || n)::date, 1000)
 from generate_series(1, 3) n;
 select pg_temp.lancar('e6300000-0000-4000-8000-000000000109', testes.membro_a(), 'despesa', 'individual',
   '00000000-0000-4000-8000-000000000413', '00000000-0000-4000-8000-000000000301',
