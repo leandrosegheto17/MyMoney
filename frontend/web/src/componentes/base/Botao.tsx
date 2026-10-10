@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, MouseEvent, Ref } from 'react';
 import { Icone, type NomeIcone } from './Icone';
 import estilo from './Botao.module.css';
+import giro from './Giro.module.css';
 
 type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'className'> & {
   variante: 'principal' | 'secundario' | 'perigo' | 'texto';
@@ -36,7 +37,7 @@ export function Botao({ variante, bloco, icone, tipo = 'button', salvando, onCli
     >
       {salvando ? (
         <>
-          <Icone nome="recarregar" />
+          <Icone nome="recarregar" className={giro.giro} />
           Salvando…
         </>
       ) : (

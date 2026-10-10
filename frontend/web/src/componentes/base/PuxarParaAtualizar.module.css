@@ -23,21 +23,11 @@
 }
 
 .giro {
-  animation: girar 1s linear infinite;
-}
-
-@keyframes girar {
-  to {
-    transform: rotate(360deg);
-  }
+  composes: giro from './Giro.module.css';
 }
 
 @media (prefers-reduced-motion: reduce) {
   .indicador {
     transition: none;
-  }
-
-  .giro {
-    animation: none;
   }
 }
