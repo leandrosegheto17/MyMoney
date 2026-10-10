@@ -53,3 +53,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Executar TP-0135 e TP-0136 e acrescentá-las à Dep de TP-0138
 - Status: Resolvido (2026-10-10): Lacuna de dependência: TP-0135 e TP-0136 já aprovadas; Dep da TP-0138 ajustada (confirmado pelo usuário)
+
+## Bloqueio 007 — 2026-10-10 (BK-0007)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0070
+- Descrição: TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, mas o TP-0047 não está na Dep do TP-0070: adicionar a dependência ou mover a criação dos três arquivos para o TP-0070
+- Impacto se não resolvido: TP-0070 não pode ser executada; provável o mesmo problema em outras telas de lote 14 (TP-0071..0075)
+- Sugestão: Incluir TP-0047 em Dep do TP-0070 (e das demais telas que usam esses componentes)
+- Status: Em aberto
