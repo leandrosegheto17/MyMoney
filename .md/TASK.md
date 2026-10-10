@@ -182,7 +182,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | TP-0031 | Lote 6 | Página de ensaio do teclado (descartável) | Mobile | RT-02; R-UX-01; ADR-006 | Rota `/ensaio-teclado`, fora da navegação e sem dado: folha montada e oculta; botão "+" mostra a folha e chama `focus()` no `input inputmode=numeric` no mesmo handler síncrono; botão fixo acima do teclado por `visualViewport`; contador de tentativas na tela; publicada na produção da Vercel | 3h | TP-0027, TP-0029 | — | Pendente |
-| SPK-0001 | Lote 6 | Spike: teclado numérico no "+" no iPhone 17 e no Moto Edge 60 | Coordenador + usuário | RT-02; R-UX-01; ADR-006; CTO ressalva 1 | Roteiro da Seção 2 executado nos 2 aparelhos, nos modos instalado e navegador, 10 tentativas por cenário; resultado por cenário e decisão gravados em `## Resolução` do `SPK-0001` e na Seção 6; se falhar, `BK` aberto com as alternativas da Seção 2 antes de qualquer tarefa da T03 | 1 dia (timebox) | TP-0031 | — | Pendente |
+| SPK-0001 | Lote 6 | Spike: teclado numérico no "+" no iPhone 17 e no Moto Edge 60 | Coordenador + usuário | RT-02; R-UX-01; ADR-006; CTO ressalva 1 | Roteiro da Seção 2 executado nos 2 aparelhos, nos modos instalado e navegador, 10 tentativas por cenário; resultado por cenário e decisão gravados em `## Resolução` do `SPK-0001` e na Seção 6; se falhar, `BK` aberto com as alternativas da Seção 2 antes de qualquer tarefa da T03 | 1 dia (timebox) | TP-0031 | — | Concluída — aprovado provisoriamente por decisão do usuário em 2026-10-10, sem teste em aparelho (ver D-15) |
 
 ### Lote 7 — Componentes compartilhados: estrutura e formulários
 
@@ -557,6 +557,7 @@ o usuário decidir; as de **detalhe** foram decididas aqui. Nenhuma lacuna estru
 | D-12 | Detalhe | Saldo atual soma operações com data até hoje (São Paulo); operação com data futura não entra no saldo atual | TP-0064 | Decidida |
 | D-13 | Detalhe | `app.hoje()` e `app.dia_no_mes()` nascem numa tarefa própria (lógica de 3+ consumidores) | TP-0004 | Decidida |
 | D-14 | Detalhe | Na T02, "Marcar paga" leva a `/fixas?mes=&pagar=` (folha sobre a T06), uma das duas opções do UX-SPEC §1 ("sobre T06 ou T02") | TP-0092 | Decidida |
+| D-15 | Detalhe | **SPK-0001 aprovado provisoriamente.** O usuário decidiu em 2026-10-10 seguir como se o teclado numérico abrisse no "+" (folha montada e oculta, `focus()` no mesmo handler síncrono), sem o teste nos aparelhos. O spike não foi executado: se o iPhone 17 ou o Moto Edge 60 falhar depois, abre-se um `BK` com as alternativas (a), (b) e (c) da Seção 2 e o TP-0081 e seus dependentes são refeitos. Recomenda-se rodar o TP-0031 e o roteiro antes do Lote 16 | TP-0081 a TP-0084, TP-0108, TP-0110 a TP-0112, TP-0114, TP-0116 | Decidida (provisória) |
 
 ### Inconsistências de documentação encontradas (sem impacto nas tarefas)
 
