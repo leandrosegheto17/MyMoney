@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 21:22
+Atualizado: 2026-10-10 21:23
 
-Resumo: Não executada 57 · Em execução 2 · Testada (aguarda segurança) 2 · Aprovada 187 · Bloqueada 18 · total 266
+Resumo: Não executada 57 · Em execução 2 · Aprovada 189 · Bloqueada 18 · total 266
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -204,8 +204,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 189 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 190 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
 | 191 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
-| 192 | RTP-0079 | executor | ✔ | SeletorMes: spec Playwright (alvos 44 px, axe) e comparação visual | Refatoração Lote-8 | TP-0041 | Testada (aguarda segurança) |
-| 193 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Testada (aguarda segurança) |
+| 192 | RTP-0079 | executor | ✔ | SeletorMes: spec Playwright (alvos 44 px, axe) e comparação visual | Refatoração Lote-8 | TP-0041 | Aprovada |
+| 193 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Aprovada |
 | 194 | RTP-0082 | executor | ✔ | SeletorMes: título da vitrine e comparação visual do cabeçalho | Refatoração Lote-8 | RTP-0079 | Não executada |
 | 195 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
 | 196 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |

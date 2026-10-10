@@ -533,3 +533,12 @@ APROVADA, 0 críticos/0 não críticos; esvaziamento só com sessão válida, na
 
 ## TP-0080 — DevSecOps — 2026-10-10
 APROVADA; 0 críticos, 0 não críticos; diff lido e grep executado (sem HTML bruto, style inline, import de dados/ nem dependência nova); superfície de segurança nula.
+
+## RTP-0079 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; revisão do diff de 3 arquivos de teste/vitrine sem dado sensível, rede ou dependência nova (nada executado).
+
+## RTP-0080 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff só de testes, sem dependência nem superfície de segurança (revisão por leitura, nada executado).
+
+## TP-0026 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 1 não crítico (RTP-0083: trava só em mode=production); bundle de produção real limpo do modo (grep), teste de build 2/2, build com a variável falha, sem dependência nova.
