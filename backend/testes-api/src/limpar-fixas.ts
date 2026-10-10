@@ -25,3 +25,19 @@ export async function apagarFixas(ids: string[]): Promise<void> {
     await cliente.end();
   }
 }
+
+/**
+ * Apaga lançamentos criados por um caso (a cascata leva parcelas e dados de pagamento; a
+ * ocorrência paga por eles volta a pendente). Mesma conexão local e guarda de `apagarFixas`.
+ * Chamar antes de `apagarFixas`. Idempotente: ids inexistentes são ignorados.
+ */
+export async function apagarLancamentos(ids: string[]): Promise<void> {
+  garantirHostLocal(URL_BANCO);
+  const cliente = new pg.Client({ connectionString: URL_BANCO });
+  await cliente.connect();
+  try {
+    await cliente.query('delete from app.lancamento where id = any($1::uuid[])', [ids]);
+  } finally {
+    await cliente.end();
+  }
+}

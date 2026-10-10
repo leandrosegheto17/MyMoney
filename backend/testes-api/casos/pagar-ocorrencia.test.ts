@@ -1,11 +1,15 @@
 import { randomUUID } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
+import { apagarFixas, apagarLancamentos } from '../src/limpar-fixas';
 import { comoA, comoAnon, comoB, comoSemMembro } from '../src/sessoes';
 
 const CONJUNTA = '00000000-0000-4000-8000-000000000401';
 const PIX_DE_A = '00000000-0000-4000-8000-000000000301';
 const PIX_DE_B = '00000000-0000-4000-8000-000000000311';
+
+const fixasCriadas: string[] = [];
+const pagamentosCriados: string[] = [];
 
 type Sessao = Awaited<ReturnType<typeof comoA>>;
 
@@ -18,8 +22,10 @@ function mesAtual(): string {
 async function ocorrenciaPendente(): Promise<string> {
   const descricao = `Fixa ${randomUUID()}`;
   const a = await comoA();
+  const fixaId = randomUUID();
+  fixasCriadas.push(fixaId);
   const criada = await a.rpc('salvar_despesa_fixa', {
-    p_id: randomUUID(), p_descricao: descricao, p_categoria_id: CONJUNTA,
+    p_id: fixaId, p_descricao: descricao, p_categoria_id: CONJUNTA,
     p_valor_previsto_centavos: 12345, p_dia_vencimento: 10,
   });
   expect(criada.error).toBeNull();
@@ -32,9 +38,15 @@ async function ocorrenciaPendente(): Promise<string> {
 }
 
 describe('api.pagar_ocorrencia', () => {
+  afterAll(async () => {
+    await apagarLancamentos(pagamentosCriados);
+    await apagarFixas(fixasCriadas);
+  });
+
   it('A paga, a ocorrência vira paga e o reenvio devolve ja_existia', async () => {
     const ocorrencia = await ocorrenciaPendente();
     const id = randomUUID();
+    pagamentosCriados.push(id);
     const a = await comoA();
     const pago = await a.rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
     expect(pago.error).toBeNull();
@@ -58,6 +70,7 @@ describe('api.pagar_ocorrencia', () => {
       b.rpc('pagar_ocorrencia', { p_id: randomUUID(), p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A }),
     );
     const id = randomUUID();
+    pagamentosCriados.push(id);
     const pago = await (await comoA()).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
     expect(pago.error).toBeNull();
     await esperarRegistroInvalido(
@@ -70,6 +83,7 @@ describe('api.pagar_ocorrencia', () => {
   it('B relê o lançamento do pagamento de A sem forma, conta nem data da operação', async () => {
     const ocorrencia = await ocorrenciaPendente();
     const id = randomUUID();
+    pagamentosCriados.push(id);
     const pago = await (await comoA()).rpc('pagar_ocorrencia', { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A });
     expect(pago.error).toBeNull();
     const lido = await (await comoB()).rpc('lancamento', { p_id: id });
