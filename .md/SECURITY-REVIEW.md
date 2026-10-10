@@ -455,3 +455,54 @@ OK; 0 críticos, 0 não críticos; só tipos, privacidade do pagador preservada 
 
 ## TP-0025 — DevSecOps — 2026-10-10
 TP-0025 APROVADA em segurança (59/59 testes, eslint e audit limpos, só anon via lerAmbiente, cliente interno, erros sem vazamento, redefinição neutra); sem achado novo, RTP-0066 já cobre o limite de taxa.
+
+## RTP-0065 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; diff só de tipo e teste, sem superfície de segurança nem dependência alterada (revisão de leitura, nada executado).
+
+## RTP-0066 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; neutralidade de usuário inexistente preservada (G-05), sem texto do servidor na tela, 25 testes passando.
+
+## RTP-0067 — DevSecOps — 2026-10-10
+APROVADA — diff de 1 linha (diretiva shellcheck), sem mudança de superfície nem dependência; 0 achados.
+
+## RTP-0068 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff de 1 linha no find do shellcheck, sem mudança de superfície, sem dependências.
+
+## RTP-0071 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; mascararUrl sem vazamento de senha com @ // ? # crus (executado) e validação G-06 preservada (lido).
+
+## RTP-0072 — DevSecOps — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; falha do perl agora reprova (falha fechada), teste novo 10/10 reexecutado, sem dependência nova.
+
+## RTP-0073 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff só de testes/CI/README, 6 suítes verdes (62+10), script G-12 intacto, CI passa a rodar o falha-fechada.
+
+## RTP-0074 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff lido e migrar.test.sh 30/30 e host-local.test.sh 48/48 executados, --db-url vazio/repetido não cai em --linked.
+
+## TP-0033 — DevSecOps — 2026-10-10
+APROVADA, 0 críticos e 0 não críticos; guarda não renderiza nada em "carregando", sem open redirect nem token no título, sem import de dados/ na página, lint e 74 testes passam (executados).
+
+## TP-0038 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff só de constantes com `import type` do contrato, sem dependência nova, eslint limpo.
+
+## TP-0069 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; escrita só por rpc, G-05 uniforme, sem console/dado cru, sem dependência nova, eslint limpo; sem RTP.
+
+## TP-0076 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 1 não crítico (baixo, RTP-0078: cache de outro usuário persiste até sobrescrita); audit de dependências limpo, cache por usuário e fila preservada confirmados por leitura.
+
+## TP-0077 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 novos não críticos (RTP-0076 e RTP-0077 do QA seguem); dono vindo da sessão, remoção só pós-sucesso/descarte confirmado, 22/22 testes.
+
+## TP-0102 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff revisado (rpc-only, G-05 uniforme, sem console, sem dependência nova), nenhuma RTP.
+
+## TP-0129 — DevSecOps — 2026-10-10
+APROVADA; 0 achados críticos, 0 não críticos; diff lido (rpc-only, G-05/G-17 ok, sem dependência nova), 28 testes executados passando.
+
+## TP-0140 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; diff lido (escrita só por rpc, uuid inválido sem requisição, sem escopo/dono no definir, sem fila, sem dependência nova); vitest 22 passando e eslint limpo executados.
+
+## TP-0152 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; escrita só por rpc tipada, sem conta alheia/console/dependência nova (revisão de diff + grep executado).
