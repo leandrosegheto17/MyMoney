@@ -10,10 +10,12 @@ interface Props {
   desabilitado?: boolean;
   /** Só a grade mostra o ícone de marcado; na linha vale a borda de 2 px + fundo. */
   comIcone: boolean;
+  /** Rádio que recebe o aria-invalid do grupo com erro (alvo do foco). */
+  invalido?: boolean;
   aoMudar: (valor: string) => void;
 }
 
-export function ChipOpcao({ nome, valor, conteudo, marcado, desabilitado, comIcone, aoMudar }: Props) {
+export function ChipOpcao({ nome, valor, conteudo, marcado, desabilitado, comIcone, invalido, aoMudar }: Props) {
   return (
     <label className={estilos.chip}>
       <input
@@ -22,6 +24,7 @@ export function ChipOpcao({ nome, valor, conteudo, marcado, desabilitado, comIco
         value={valor}
         checked={marcado}
         disabled={desabilitado}
+        aria-invalid={invalido ? true : undefined}
         onChange={() => aoMudar(valor)}
       />
       <span className={estilos['chip-nome']}>{conteudo}</span>

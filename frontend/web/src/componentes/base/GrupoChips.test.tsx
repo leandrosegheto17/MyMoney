@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import { focarPrimeiroErro } from './focarPrimeiroErro';
 import { GrupoChips } from './GrupoChips';
 
 type Opcao = { valor: string; conteudo: string; desabilitada?: boolean };
@@ -111,6 +112,28 @@ describe('GrupoChips', () => {
     expect(grupo).toHaveAccessibleDescription('Escolha uma categoria');
     const id = grupo.getAttribute('aria-describedby') ?? '';
     expect(document.getElementById(id.split(' ')[0])).toHaveTextContent('Escolha uma categoria');
+  });
+
+  it('com erro, focarPrimeiroErro foca o rádio marcado', () => {
+    const { container } = render(
+      <Controlado opcoes={categorias} inicial="mercado" aoMudar={vi.fn()} erro="Escolha uma categoria" />,
+    );
+
+    expect(focarPrimeiroErro(container)).toBe(true);
+    expect(screen.getByRole('radio', { name: 'Mercado' })).toHaveFocus();
+  });
+
+  it('com erro e nenhum marcado, focarPrimeiroErro foca o primeiro rádio', () => {
+    const { container } = render(<Controlado opcoes={categorias} aoMudar={vi.fn()} erro="Escolha uma categoria" />);
+
+    expect(focarPrimeiroErro(container)).toBe(true);
+    expect(screen.getByRole('radio', { name: 'Almoço/Alimentação fora' })).toHaveFocus();
+  });
+
+  it('sem erro, focarPrimeiroErro não acha nada no grupo', () => {
+    const { container } = render(<Controlado opcoes={categorias} aoMudar={vi.fn()} />);
+
+    expect(focarPrimeiroErro(container)).toBe(false);
   });
 
   it('sem erro, o grupo não tem descrição', () => {

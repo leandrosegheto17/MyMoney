@@ -1,21 +1,11 @@
 .campo {
-  display: grid;
-  gap: var(--espaco-1);
-  margin: 0;
-  padding: 0;
-  border: 0;
-  min-width: 0;
+  composes: campo from './Campo.module.css';
 }
 .rotulo {
-  padding: 0;
-  margin-bottom: var(--espaco-1);
-  font-weight: var(--peso-semi);
+  composes: rotulo from './Campo.module.css';
 }
 .campo-erro {
-  margin: 0;
-  font-size: var(--tam-pequeno);
-  color: var(--cor-estourado);
-  font-weight: var(--peso-semi);
+  composes: campo-erro from './Campo.module.css';
 }
 .chips {
   display: grid;

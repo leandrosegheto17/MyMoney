@@ -20,13 +20,9 @@ interface Props {
 
 export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, erro }: Props) {
   const idErro = useId();
+  const alvo = opcoes.find((o) => o.valor === valor && !o.desabilitada) ?? opcoes.find((o) => !o.desabilitada);
   return (
-    <fieldset
-      role="radiogroup"
-      className={estilos.campo}
-      aria-describedby={erro ? idErro : undefined}
-      aria-invalid={erro ? true : undefined}
-    >
+    <fieldset role="radiogroup" className={estilos.campo} aria-describedby={erro ? idErro : undefined}>
       <legend className={estilos.rotulo}>{rotulo}</legend>
       <div className={variante === 'grade' ? estilos.chips : estilos['chips-linha']}>
         {opcoes.map((o) => (
@@ -38,6 +34,7 @@ export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, err
             marcado={o.valor === valor}
             desabilitado={o.desabilitada}
             comIcone={variante === 'grade'}
+            invalido={Boolean(erro) && o === alvo}
             aoMudar={aoMudar}
           />
         ))}
