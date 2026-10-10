@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 14:08
+Atualizado: 2026-10-10 14:26
 
-Resumo: Não executada 95 · Em execução 1 · Executada (aguarda teste) 17 · Aprovada 79 · Bloqueada 6 · total 198
+Resumo: Não executada 101 · Em execução 1 · Testada (aguarda segurança) 17 · Aprovada 79 · Bloqueada 6 · total 204
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -81,10 +81,10 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 66 | TP-0062 | executor | ✔ | api.lancar_despesa [BD] | Lote 12 | TP-0051, TP-0061 | Aprovada |
 | 67 | TP-0063 | executor | ✔ | api.dados_lancamento [BD] | Lote 12 | TP-0051 | Aprovada |
 | 68 | TP-0064 | executor | ✔ | Regra app.saldo_conta [BD] | Lote 13 | TP-0048, TP-0049, TP-0051 | Aprovada |
-| 69 | TP-0065 | executor | ✔ | View api.contas (com saldo) [BD] | Lote 13 | TP-0064 | Executada (aguarda teste) |
-| 70 | TP-0066 | executor | ✔ | api.ajustar_saldo [BD] | Lote 13 | TP-0064 | Executada (aguarda teste) |
+| 69 | TP-0065 | executor | ✔ | View api.contas (com saldo) [BD] | Lote 13 | TP-0064 | Testada (aguarda segurança) |
+| 70 | TP-0066 | executor | ✔ | api.ajustar_saldo [BD] | Lote 13 | TP-0064 | Testada (aguarda segurança) |
 | 71 | TP-0067 | executor | ✔ | Regra app.gasto_cartao (compras) [BD] | Lote 13 | TP-0049, TP-0051 | Aprovada |
-| 72 | TP-0068 | executor | ✔ | View api.formas_pagamento [BD] | Lote 13 | TP-0067 | Executada (aguarda teste) |
+| 72 | TP-0068 | executor | ✔ | View api.formas_pagamento [BD] | Lote 13 | TP-0067 | Testada (aguarda segurança) |
 | 73 | TP-0069 | executor | ✔ | Dados dos cadastros (consultas, comandos e primeiro uso) | Lote 14 | TP-0025, TP-0052, TP-0053, TP-0054, TP-0055, TP-0056, TP-0057, TP-0058, TP-0059, TP-0060, TP-0065, TP-0066, TP-0068 | Não executada |
 | 74 | TP-0070 | executor | ✔ | T15 Contas | Lote 14 | TP-0040, TP-0069 | Não executada |
 | 75 | TP-0071 | executor | ✔ | T16 Conta | Lote 14 | TP-0034, TP-0035, TP-0037, TP-0039, TP-0069 | Não executada |
@@ -104,7 +104,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 89 | TP-0084 | executor | ✔ | T03d Confirmar, avisos, fila e estados | Lote 16 | TP-0039, TP-0077, TP-0078, TP-0082, TP-0083 | Não executada |
 | 90 | TP-0085 | executor | ✔ | Regra app.totais_conjunto(mes) [BD] | Lote 17 | TP-0051 | Aprovada |
 | 91 | TP-0086 | executor | ✔ | Regra app.totais_individuais(mes) [BD] | Lote 17 | TP-0051 | Aprovada |
-| 92 | TP-0087 | executor | ✔ | api.resumo_mes(mes) [BD] | Lote 17 | TP-0064, TP-0067, TP-0085, TP-0086 | Executada (aguarda teste) |
+| 92 | TP-0087 | executor | ✔ | api.resumo_mes(mes) [BD] | Lote 17 | TP-0064, TP-0067, TP-0085, TP-0086 | Testada (aguarda segurança) |
 | 93 | TP-0088 | executor | ✔ | Seed de volume de 2 anos e medição do desempenho [BD] | Lote 17 | TP-0087 | Não executada |
 | 94 | TP-0089 | executor | ✔ | T02a Estrutura, estados, cabeçalho e faixas | Lote 18 | TP-0025, TP-0033, TP-0039, TP-0040, TP-0041, TP-0079, TP-0087 | Não executada |
 | 95 | TP-0090 | executor | ✔ | Componentes ResumoOrcamento e MetaCompacta | Lote 18 | TP-0044 | Não executada |
@@ -116,7 +116,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 101 | TP-0096 | executor | ✔ | api.lancamentos_mes [BD] | Lote 19 | TP-0051 | Aprovada |
 | 102 | TP-0097 | executor | ✔ | api.lancamento(id) [BD] | Lote 19 | TP-0051 | Aprovada |
 | 103 | TP-0098 | executor | ✔ | Regra app.permissoes_edicao [BD] | Lote 19 | TP-0051 | Aprovada |
-| 104 | TP-0099 | executor | ✔ | api.editar_lancamento (SECURITY DEFINER) [BD] | Lote 19 | TP-0061, TP-0098 | Executada (aguarda teste) |
+| 104 | TP-0099 | executor | ✔ | api.editar_lancamento (SECURITY DEFINER) [BD] | Lote 19 | TP-0061, TP-0098 | Testada (aguarda segurança) |
 | 105 | TP-0100 | executor | ✔ | api.excluir_lancamento [BD] | Lote 19 | TP-0051 | Aprovada |
 | 106 | TP-0101 | executor | ✔ | LinhaLancamento | Lote 20 | TP-0024, TP-0042 | Não executada |
 | 107 | TP-0102 | executor | ✔ | Dados de lançamentos (lista, detalhe, editar e excluir) | Lote 20 | TP-0025, TP-0096, TP-0097, TP-0099, TP-0100 | Não executada |
@@ -137,9 +137,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 122 | TP-0117 | executor | ✔ | api.alterar_data_parcela [BD] | Lote 24 | TP-0051 | Aprovada |
 | 123 | TP-0118 | executor | ✔ | T05b Lista de parcelas e "Alterar data" | Lote 24 | TP-0042, TP-0105, TP-0117 | Não executada |
 | 124 | TP-0119 | executor | ✔ | Tabelas app.despesa_fixa e app.ocorrencia_fixa [BD] | Lote 25 | TP-0050, TP-0051 | Aprovada |
-| 125 | TP-0120 | executor | ✔ | Regra app.garantir_ocorrencias(mes) [BD] | Lote 25 | TP-0004, TP-0119 | Executada (aguarda teste) |
-| 126 | TP-0121 | executor | ✔ | View api.despesas_fixas [BD] | Lote 25 | TP-0119 | Executada (aguarda teste) |
-| 127 | TP-0122 | executor | ✔ | api.salvar_despesa_fixa [BD] | Lote 25 | TP-0119 | Executada (aguarda teste) |
+| 125 | TP-0120 | executor | ✔ | Regra app.garantir_ocorrencias(mes) [BD] | Lote 25 | TP-0004, TP-0119 | Testada (aguarda segurança) |
+| 126 | TP-0121 | executor | ✔ | View api.despesas_fixas [BD] | Lote 25 | TP-0119 | Testada (aguarda segurança) |
+| 127 | TP-0122 | executor | ✔ | api.salvar_despesa_fixa [BD] | Lote 25 | TP-0119 | Testada (aguarda segurança) |
 | 128 | TP-0123 | executor | ✔ | api.encerrar_despesa_fixa [BD] | Lote 25 | TP-0119, TP-0120 | Não executada |
 | 129 | TP-0124 | executor | ✔ | api.ocorrencias_mes(mes) [BD] | Lote 25 | TP-0120 | Não executada |
 | 130 | TP-0125 | executor | ✔ | api.pagar_ocorrencia [BD] | Lote 26 | TP-0051, TP-0124 | Não executada |
@@ -153,7 +153,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 138 | TP-0133 | executor | ✔ | E2E de integração: ciclo da despesa fixa [BD] | Lote 27 | TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | Não executada |
 | 139 | TP-0134 | executor | ✔ | Tabela app.orcamento [BD] | Lote 28 | TP-0050 | Aprovada |
 | 140 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Aprovada |
-| 141 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Executada (aguarda teste) |
+| 141 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Testada (aguarda segurança) |
 | 142 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Aprovada |
 | 143 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Não executada |
 | 144 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | BK-0006, TP-0134 | Bloqueada |
@@ -176,7 +176,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 161 | TP-0155 | executor | ✔ | T12 Nova ou editar meta | Lote 32 | TP-0034, TP-0035, TP-0152 | Não executada |
 | 162 | TP-0156 | executor | ✔ | T13 Aporte ou retirada | Lote 32 | TP-0034, TP-0035, TP-0036, TP-0043, TP-0154 | Não executada |
 | 163 | TP-0157 | executor | ✔ | E2E de integração: metas [BD] | Lote 32 | TP-0151, TP-0153, TP-0154, TP-0155, TP-0156 | Não executada |
-| 164 | TP-0158 | executor | ✔ | api.registrar_pagamento_cartao [BD] | Lote 33 | TP-0048, TP-0049, TP-0064 | Executada (aguarda teste) |
+| 164 | TP-0158 | executor | ✔ | api.registrar_pagamento_cartao [BD] | Lote 33 | TP-0048, TP-0049, TP-0064 | Testada (aguarda segurança) |
 | 165 | TP-0159 | executor | ✔ | T21 Registrar pagamento do cartão | Lote 33 | TP-0035, TP-0036, TP-0073, TP-0158 | Não executada |
 | 166 | RTP-0001 | executor | ✔ | Prettier passa a checar os testes (remover exclusão em .prettierignore) | Refatoração Lote-1 | TP-0001 | Aprovada |
 | 167 | RTP-0002 | executor | ✔ | README do backend: --no-backup do local:parar | Refatoração Lote-1 | TP-0002 | Aprovada |
@@ -198,16 +198,22 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 183 | RTP-0016 | executor | ✔ | testes-api: formatar com Prettier os arquivos de casos | Refatoração Lote-3 | TP-0016 | Não executada |
 | 184 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Aprovada |
 | 185 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Aprovada |
-| 186 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Executada (aguarda teste) |
+| 186 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Testada (aguarda segurança) |
 | 187 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Não executada |
-| 188 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Executada (aguarda teste) |
-| 189 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Executada (aguarda teste) |
-| 190 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Executada (aguarda teste) |
-| 191 | RTP-0029 | executor | ✔ | Casos testes-api de arquivar/excluir conta: usar os ids do seed | Refatoração Lote-11 | TP-0055 | Executada (aguarda teste) |
+| 188 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Testada (aguarda segurança) |
+| 189 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Testada (aguarda segurança) |
+| 190 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Testada (aguarda segurança) |
+| 191 | RTP-0029 | executor | ✔ | Casos testes-api de arquivar/excluir conta: usar os ids do seed | Refatoração Lote-11 | TP-0055 | Testada (aguarda segurança) |
 | 192 | RTP-0021 | executor | ✔ | Meta conjunta: impedir que um membro a torne individual ou troque o dono | Refatoração Lote-30 | TP-0144 | Aprovada |
-| 193 | RTP-0027 | executor | ✔ | Teste de API movimentos-meta: B não pode receber id nem nome da conta de A | Refatoração Lote-30 | TP-0147 | Executada (aguarda teste) |
-| 194 | RTP-0023 | executor | ✔ | Caso testes-api de definir_orcamento: conferir efeito via orcamento_mes | Refatoração Lote-28 | TP-0136 | Não executada |
-| 195 | RTP-0030 | executor | ✔ | Extrair a agregação por categoria comum a totais_conjunto e totais_individuais | Refatoração Lote-17 | TP-0086 | Não executada |
-| 196 | RTP-0032 | executor | ✔ | Casos testes-api que criam metas poluem o seed compartilhado e deixam metas.test.ts dep... | Refatoração Lote 31 | TP-0150 | Executada (aguarda teste) |
-| 197 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
-| 198 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
+| 193 | RTP-0027 | executor | ✔ | Teste de API movimentos-meta: B não pode receber id nem nome da conta de A | Refatoração Lote-30 | TP-0147 | Testada (aguarda segurança) |
+| 194 | RTP-0038 | executor | ✔ | Formatar movimentos-meta.test.ts (prettier: espaço faltando em ALEATORIO) | Refatoração Lote-30 | RTP-0027 | Não executada |
+| 195 | RTP-0023 | executor | ✔ | Caso testes-api de definir_orcamento: conferir efeito via orcamento_mes | Refatoração Lote-28 | TP-0136 | Não executada |
+| 196 | RTP-0030 | executor | ✔ | Extrair a agregação por categoria comum a totais_conjunto e totais_individuais | Refatoração Lote-17 | TP-0086 | Não executada |
+| 197 | RTP-0034 | executor | ✔ | Caso testes-api de resumo-mes: despesa de isolamento fica no seed compartilhado | Refatoração Lote-17 | TP-0087 | Não executada |
+| 198 | RTP-0032 | executor | ✔ | Casos testes-api que criam metas poluem o seed compartilhado e deixam metas.test.ts dep... | Refatoração Lote 31 | TP-0150 | Testada (aguarda segurança) |
+| 199 | RTP-0033 | executor | ✔ | Caso testes-api de ajustar_saldo: usar os ids do seed | Refatoração Lote-13 | TP-0066 | Não executada |
+| 200 | RTP-0035 | executor | ✔ | Caso testes-api de editar-lancamento: limpar o que cria e provar o editor | Refatoração Lote-19 | TP-0099 | Não executada |
+| 201 | RTP-0036 | executor | ✔ | Caso testes-api de salvar-despesa-fixa: limpar o que cria e provar a edição | Refatoração Lote-25 | TP-0122 | Não executada |
+| 202 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Não executada |
+| 203 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 204 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |

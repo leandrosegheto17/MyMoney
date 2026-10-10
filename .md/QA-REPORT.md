@@ -242,3 +242,54 @@ TP-0146 aprovada no QA: view `api.metas` com security_invoker, forma igual aos m
 
 ## TP-0150 — QA — 2026-10-10
 TP-0150 aprovada no QA (aceite CA-18.1 a 18.3/CA-17.3/RN-08/RN-09 conferido em banco descartável; testes-api e pgTAP real não executáveis aqui); 1 RTP não crítica (RTP-0032, isolamento dos testes-api).
+
+## RTP-0022 — QA — 2026-10-10
+RTP-0022 aprovada no QA — ids do seed corretos; A cria Pix e B recebe registro_invalido com dados existentes (validado em Postgres descartável; vitest não executável sem Supabase).
+
+## RTP-0024 — QA — 2026-10-10
+RTP-0024 aprovada no QA; ids do seed provados por SQL em banco descartável (A troca/volta, B recebe registro_invalido); vitest via API local não executado (sem Supabase CLI/Docker).
+
+## RTP-0026 — QA — 2026-10-10
+RTP-0026 APROVADA no QA; restricoes.sql 20/20 em banco descartável, sem regressão frente à linha de base; pgTAP real e supabase test db não verificados.
+
+## RTP-0027 — QA — 2026-10-10
+RTP-0027 aprovada no QA; o caso de B busca nome e ids das contas de A (validado em banco descartável, API real não verificável); achado baixo de prettier aberto como RTP-0038.
+
+## RTP-0028 — QA — 2026-10-10
+RTP-0028 aprovada no QA; ids do seed confirmados em banco descartável (A recebe em_uso, B registro_invalido), mutante morto; suíte via API não executável aqui.
+
+## RTP-0029 — QA — 2026-10-10
+RTP-0029 aprovada no QA; casos B/A de arquivar/excluir conta usam o id do seed e passam em SQL equivalente (vitest/stack não verificado por falta de Supabase local).
+
+## RTP-0032 — QA — 2026-10-10
+RTP-0032 aprovada no QA; a limpeza de metas restaura o seed (6/12/9, saldo -612000, A vê 5 metas) em banco descartável. A suíte completa e o shuffle não rodaram por falta de Supabase local.
+
+## TP-0065 — QA — 2026-10-10
+TP-0065 aprovada no QA; view api.contas (security_invoker, saldo de app.saldo_conta, só leitura, isolamento A/B) validada em banco descartável; vitest/PostgREST e contrato:gerar não verificáveis neste ambiente.
+
+## TP-0066 — QA — 2026-10-10
+TP-0066 aprovada no QA; pgTAP ok em banco descartável, 1 achado não crítico (ids do caso testes-api fora do seed, RTP-0033); testes-api e contrato não executáveis aqui.
+
+## TP-0068 — QA — 2026-10-10
+TP-0068 aprovada no QA: view `api.formas_pagamento` passa no pgTAP 13/13 e na emulação dos casos de API (isolamento, somente leitura, formato do mockup), sem achados; PostgREST, contrato e catálogo não verificados por falta de CLI.
+
+## TP-0087 — QA — 2026-10-10
+TP-0087 aprovada no QA (pgTAP 28/28 e 2/2 em banco descartável, isolamento A/B e formas conferidos); 1 achado baixo aberto como RTP-0034; vitest/CLI/contrato não verificados.
+
+## TP-0099 — QA — 2026-10-10
+TP-0099 APROVADA no QA (pgTAP editar_* 66/66, regressão lancar_despesa e catálogo DEFINER verdes em banco descartável com shim; testes-api e CLI Supabase não verificáveis); 1 achado não crítico aberto como RTP-0035.
+
+## TP-0120 — QA — 2026-10-10
+TP-0120 APROVADA no QA: 57/57 asserts pgTAP (shim) passam, aceite CA-11.1/11.2 e idempotência atendidos, sem achados.
+
+## TP-0121 — QA — 2026-10-10
+TP-0121 aprovada no QA: view api.despesas_fixas com security_invoker, só leitura, forma idêntica ao contrato e isolamento do lar validados em banco descartável; suíte testes-api/pgTAP reais e contrato:gerar pendentes de Supabase local.
+
+## TP-0122 — QA — 2026-10-10
+TP-0122 APROVADA no QA (pgTAP 30/30 e cenários da API reproduzidos em banco descartável); 1 achado não crítico (RTP-0036: testes-api deixa lixo e não prova a edição de B); sem pgTAP/CLI/API local reais.
+
+## TP-0136 — QA — 2026-10-10
+TP-0136 aprovada no QA: pgTAP (29) e equivalente SQL do testes-api verdes, `mesmaForma` OK nos dois exemplos, isolamento A/B e anon conferidos; não verificados pgTAP real, `contrato:gerar` e vitest contra a API local.
+
+## TP-0158 — QA — 2026-10-10
+TP-0158 aprovada no QA (pgTAP e aceite ok no banco descartável); 1 achado não crítico (erro de tipo TS2532 no caso testes-api) aberto como RTP-0037.
