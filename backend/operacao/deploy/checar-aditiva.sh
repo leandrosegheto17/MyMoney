@@ -41,9 +41,42 @@ resolver_base() {
   printf '%s' "$base"
 }
 
-# SQL sem comentários (-- até o fim da linha e /* */), em minúsculas, uma linha por instrução.
+# Varredura caractere a caractere: comentários (-- até o fim da linha e /* */ aninhável) viram um
+# espaço; literais '...' (com '' e, em E'...', barra invertida), identificadores "..." e blocos
+# $tag$...$tag$ passam intactos, então '--' e '/*' dentro deles não escondem o que vem depois.
+read -r -d '' SCRIPT_SEM_COMENTARIOS <<'EOF' || true
+my $o = '';
+pos($_) = 0;
+while (pos($_) < length($_)) {
+  if (/\G[^'"\/\-\$]+/gc) { $o .= $&; }
+  elsif (/\G\/\*/gc) {
+    my $nivel = 1;
+    while ($nivel > 0 && /\G(?:(\/\*)|(\*\/)|.)/gcs) { $nivel += defined $1 ? 1 : defined $2 ? -1 : 0; }
+    $o .= ' ';
+  }
+  elsif (/\G--[^\n]*/gc) { $o .= ' '; }
+  elsif (/\G'/gc) {
+    my $escapa = $o =~ /(?<![A-Za-z0-9_\$])[eE]$/;
+    my $corpo = $escapa ? qr/(?:\\.|''|[^'\\])*'?/s : qr/(?:''|[^'])*'?/s;
+    /\G$corpo/gc;
+    $o .= "'" . $&;
+  }
+  elsif (/\G"(?:""|[^"])*"?/gc) { $o .= $&; }
+  elsif (/\G(?<![A-Za-z0-9_\$])\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/gc) {
+    my $tag = $&;
+    my $fim = index($_, $tag, pos($_));
+    my $ate = $fim < 0 ? length($_) : $fim + length($tag);
+    $o .= $tag . substr($_, pos($_), $ate - pos($_));
+    pos($_) = $ate;
+  }
+  elsif (/\G./gcs) { $o .= $&; }
+}
+$_ = lc($o); s/\s+/ /g; s/;/;\n/g; print;
+EOF
+
+# SQL sem comentários, em minúsculas, uma linha por instrução.
 sql_sem_comentarios() {
-  perl -0777 -ne 's{/\*.*?\*/}{ }gs; s{--[^\n]*}{ }g; $_ = lc; s/\s+/ /g; s/;/;\n/g; print' -- "$1"
+  perl -0777 -ne "$SCRIPT_SEM_COMENTARIOS" -- "$1"
 }
 
 # Imprime o motivo (uma linha por achado) de cada instrução não aditiva do arquivo.
