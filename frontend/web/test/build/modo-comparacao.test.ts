@@ -58,7 +58,8 @@ describe('build de produção e modo de comparação', () => {
   it('sem a variável, o bundle não contém o código do modo', async () => {
     const saida = pastaTemporaria();
     await construir(saida);
-    const proibidos = ['sessao-falsa', 'sem-sessao', 'comparacao.invalid', '0000000000a1'];
+    // 'sem-sessao' é valor legítimo de SituacaoSessao; só marcadores exclusivos do modo entram aqui.
+    const proibidos = ['sessao-falsa', 'comparacao.invalid', '0000000000a1'];
     const achados = arquivos(saida).flatMap((arquivo) => {
       const texto = readFileSync(arquivo, 'latin1');
       return proibidos.filter((p) => texto.includes(p)).map((p) => `${arquivo}: ${p}`);
