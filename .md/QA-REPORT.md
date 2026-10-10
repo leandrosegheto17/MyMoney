@@ -101,3 +101,42 @@ TP-0061 aprovada no QA, 25/25 asserções do plano ok em banco descartável com 
 
 ## TP-0079 — QA — 2026-10-10
 TP-0079 aprovada no QA (11/11 testes verdes, aceite atendido); 1 achado não crítico (keyframes girar duplicado) -> RTP-0011; visual/Playwright não aplicáveis ainda.
+
+## RTP-0009 — QA — 2026-10-10
+RTP-0009 aprovada no QA, foco do erro no rádio e composes do Campo.module.css atendidos, 58 testes verdes, visual não aplicável.
+
+## RTP-0010 — QA — 2026-10-10
+RTP-0010 aprovada no QA, 4/4 testes e axe sem violação grave, prints conferidos, sem achados.
+
+## RTP-0011 — QA — 2026-10-10
+RTP-0011 aprovada no QA; giro unificado em Giro.module.css, 22 testes verdes, achado baixo aberto como RTP-0019.
+
+## RTP-0012 — QA — 2026-10-10
+RTP-0012 aprovada no QA; testes de lint 30/30 verdes, falsos positivos de X.from() eliminados e detecção de RTP-0008 preservada (pnpm lint global falha só por erros alheios).
+
+## RTP-0013 — QA — 2026-10-10
+RTP-0013 APROVADA no QA: regra de security definer por assinatura verificada (overload vermelho, 2 auxiliares verdes, catalogo.sql 10/10 com shim de pgTAP); 1 achado baixo (comentário cita "Lote 19") aberto como RTP-0020.
+
+## TP-0016 — QA — 2026-10-10
+TP-0016 aprovada no QA (18 unitários e meta-teste verdes em banco descartável, incluindo prova de falha); integração com login real não verificável aqui; 1 achado baixo -> RTP-0016 (Prettier).
+
+## TP-0040 — QA — 2026-10-10
+TP-0040 aprovada no QA, 41 testes verdes, aceite atendido; falta teste unitário de Esqueleto/EstadoVazio/LinhaVazia e axe (RTP-0015, baixa).
+
+## TP-0049 — QA — 2026-10-10
+TP-0049 APROVADA no QA; pgTAP (shim) 26/26 + 7/7 e regressões 16/16, 19/19, 10/10 passam; sem RTP; local:resetar, supabase CLI e pgTAP real não verificados.
+
+## TP-0052 — QA — 2026-10-10
+TP-0052 APROVADA no QA: pgTAP 19/19 e cenários extras (rename/arquivo/exclusão não recriam, B isolado, anon negado) ok; 1 achado baixo (lista duplicada no seed) em RTP-0017.
+
+## TP-0054 — QA — 2026-10-10
+TP-0054 aprovada no QA; pgTAP 19/19 em banco descartável, aceite e segurança conferidos, sem achados; contrato/testes-api/catalogo pendentes de CI.
+
+## TP-0059 — QA — 2026-10-10
+TP-0059 aprovada no QA (pgTAP 30/30 em banco descartável); 1 achado baixo aberto como RTP-0018 (caso testes-api sem mesmaForma/dependente da view TP-0053); testes-api e contrato não verificáveis no ambiente.
+
+## TP-0134 — QA — 2026-10-10
+TP-0134 aprovada no QA: tabela app.orcamento com restrições, unicidade, RLS e seed validados (pgTAP shim 29/29); pendente só conferência em CI com Docker.
+
+## TP-0144 — QA — 2026-10-10
+TP-0144 APROVADA no QA: RLS, checks, FK composto e seed 08 conferem com o aceite (banco descartável com shim); pgTAP real, local:resetar e contrato:gerar não verificáveis neste ambiente.

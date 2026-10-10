@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 12:35
+Atualizado: 2026-10-10 12:43
 
-Resumo: Não executada 128 · Em execução 1 · Executada (aguarda teste) 13 · Aprovada 32 · Bloqueada 4 · total 178
+Resumo: Não executada 134 · Em execução 1 · Testada (aguarda segurança) 13 · Aprovada 32 · Bloqueada 4 · total 184
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -29,7 +29,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 14 | TP-0013 | executor | ✔ | Tabelas app.lar e app.membro, RLS e app.membro_atual()/app.lar_atual() [BD] | Lote 3 | TP-0003 | Aprovada |
 | 15 | TP-0014 | executor | ✔ | Seeds locais de acesso [BD] | Lote 3 | TP-0013 | Aprovada |
 | 16 | TP-0015 | executor | ✔ | api.contexto() [BD] | Lote 3 | TP-0004, TP-0013 | Aprovada |
-| 17 | TP-0016 | executor | ✔ | Pacote @mymoney/testes-api (suíte de isolamento) [BD] | Lote 3 | TP-0014, TP-0015 | Executada (aguarda teste) |
+| 17 | TP-0016 | executor | ✔ | Pacote @mymoney/testes-api (suíte de isolamento) [BD] | Lote 3 | TP-0014, TP-0015 | Testada (aguarda segurança) |
 | 18 | TP-0017 | executor | ✔ | Testes de catálogo da segurança do banco [BD] | Lote 3 | TP-0013 | Aprovada |
 | 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Não executada |
 | 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Não executada |
@@ -55,7 +55,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 40 | TP-0037 | executor | ✔ | DialogoConfirmacao | Lote 7 | TP-0036 | Não executada |
 | 41 | TP-0038 | executor | ✔ | rotulos/ | Lote 8 | TP-0020, TP-0021 | Não executada |
 | 42 | TP-0039 | executor | ✔ | Aviso (toast) e Faixa | Lote 8 | TP-0023 | Aprovada |
-| 43 | TP-0040 | executor | ✔ | EstadoVazio, EstadoErro, Esqueleto e leitura com cache | Lote 8 | TP-0023, TP-0039 | Executada (aguarda teste) |
+| 43 | TP-0040 | executor | ✔ | EstadoVazio, EstadoErro, Esqueleto e leitura com cache | Lote 8 | TP-0023, TP-0039 | Testada (aguarda segurança) |
 | 44 | TP-0041 | executor | ✔ | SeletorMes | Lote 8 | TP-0024, TP-0033 | Não executada |
 | 45 | TP-0042 | executor | ✔ | SeloEscopo e SeloSituacao | Lote 8 | TP-0038 | Não executada |
 | 46 | TP-0043 | executor | ✔ | ChipOpcao e GrupoChips | Lote 8 | TP-0023 | Aprovada |
@@ -64,17 +64,17 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Não executada |
 | 50 | TP-0047 | executor | ✔ | T14 Ajustes | Lote 9 | TP-0026, TP-0033, TP-0037, TP-0039 | Não executada |
 | 51 | TP-0048 | executor | ✔ | Tabelas app.conta e app.movimento_conta [BD] | Lote 10 | TP-0013 | Aprovada |
-| 52 | TP-0049 | executor | ✔ | Tabela app.forma_pagamento [BD] | Lote 10 | TP-0048 | Executada (aguarda teste) |
+| 52 | TP-0049 | executor | ✔ | Tabela app.forma_pagamento [BD] | Lote 10 | TP-0048 | Testada (aguarda segurança) |
 | 53 | TP-0050 | executor | ✔ | Tabela app.categoria [BD] | Lote 10 | TP-0013 | Aprovada |
 | 54 | TP-0051 | executor | ✔ | Tabelas app.lancamento, app.lancamento_pagamento e app.parcela [BD] | Lote 10 | TP-0048, TP-0049, TP-0050 | Não executada |
-| 55 | TP-0052 | executor | ✔ | api.inicializar_membro() [BD] | Lote 10 | TP-0050 | Executada (aguarda teste) |
+| 55 | TP-0052 | executor | ✔ | api.inicializar_membro() [BD] | Lote 10 | TP-0050 | Testada (aguarda segurança) |
 | 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050 | Não executada |
-| 57 | TP-0054 | executor | ✔ | api.salvar_conta [BD] | Lote 11 | TP-0048 | Executada (aguarda teste) |
+| 57 | TP-0054 | executor | ✔ | api.salvar_conta [BD] | Lote 11 | TP-0048 | Testada (aguarda segurança) |
 | 58 | TP-0055 | executor | ✔ | api.arquivar_conta e api.excluir_conta [BD] | Lote 11 | TP-0048, TP-0049, TP-0051 | Não executada |
 | 59 | TP-0056 | executor | ✔ | api.salvar_forma [BD] | Lote 11 | TP-0049 | Não executada |
 | 60 | TP-0057 | executor | ✔ | api.arquivar_forma e api.excluir_forma [BD] | Lote 11 | TP-0049, TP-0051 | Não executada |
 | 61 | TP-0058 | executor | ✔ | api.definir_preferida [BD] | Lote 11 | TP-0049 | Não executada |
-| 62 | TP-0059 | executor | ✔ | api.salvar_categoria [BD] | Lote 11 | TP-0050 | Executada (aguarda teste) |
+| 62 | TP-0059 | executor | ✔ | api.salvar_categoria [BD] | Lote 11 | TP-0050 | Testada (aguarda segurança) |
 | 63 | TP-0060 | executor | ✔ | api.arquivar_categoria e api.excluir_categoria [BD] | Lote 11 | TP-0050, TP-0051 | Não executada |
 | 64 | TP-0061 | executor | ✔ | Regra app.gerar_parcelas [BD] | Lote 12 | TP-0004 | Aprovada |
 | 65 | TP-0062 | executor | ✔ | api.lancar_despesa [BD] | Lote 12 | TP-0051, TP-0061 | Não executada |
@@ -150,7 +150,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 135 | TP-0131 | executor | ✔ | T07 Modelo de despesa fixa | Lote 27 | TP-0034, TP-0035, TP-0037, TP-0129 | Não executada |
 | 136 | TP-0132 | executor | ✔ | T08 Marcar fixa como paga | Lote 27 | TP-0035, TP-0036, TP-0080, TP-0130 | Não executada |
 | 137 | TP-0133 | executor | ✔ | E2E de integração: ciclo da despesa fixa [BD] | Lote 27 | TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | Não executada |
-| 138 | TP-0134 | executor | ✔ | Tabela app.orcamento [BD] | Lote 28 | TP-0050 | Executada (aguarda teste) |
+| 138 | TP-0134 | executor | ✔ | Tabela app.orcamento [BD] | Lote 28 | TP-0050 | Testada (aguarda segurança) |
 | 139 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Não executada |
 | 140 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Não executada |
 | 141 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Não executada |
@@ -160,7 +160,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 145 | TP-0141 | executor | ✔ | T09a Orçamento do mês | Lote 29 | TP-0040, TP-0041, TP-0044, TP-0140 | Não executada |
 | 146 | TP-0142 | executor | ✔ | T09b Folha de valor do orçamento | Lote 29 | TP-0035, TP-0036, TP-0141 | Não executada |
 | 147 | TP-0143 | executor | ✔ | E2E de integração: orçamento [BD] | Lote 29 | TP-0139, TP-0141, TP-0142 | Não executada |
-| 148 | TP-0144 | executor | ✔ | Tabelas app.meta e app.movimento_meta [BD] | Lote 30 | TP-0013, TP-0048 | Executada (aguarda teste) |
+| 148 | TP-0144 | executor | ✔ | Tabelas app.meta e app.movimento_meta [BD] | Lote 30 | TP-0013, TP-0048 | Testada (aguarda segurança) |
 | 149 | TP-0145 | executor | ✔ | Regra app.progresso_meta [BD] | Lote 30 | TP-0144 | Não executada |
 | 150 | TP-0146 | executor | ✔ | View api.metas [BD] | Lote 30 | TP-0145 | Não executada |
 | 151 | TP-0147 | executor | ✔ | api.movimentos_meta(meta_id) [BD] | Lote 30 | TP-0144 | Não executada |
@@ -183,11 +183,17 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 168 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
 | 169 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
 | 170 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Aprovada |
-| 171 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Executada (aguarda teste) |
+| 171 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Testada (aguarda segurança) |
 | 172 | RTP-0014 | executor | ✔ | Lint de fronteira: cobrir import() com template literal e .from() por colchetes | Refatoração Lote-4 | RTP-0008 | Não executada |
-| 173 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Executada (aguarda teste) |
-| 174 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Executada (aguarda teste) |
-| 175 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Executada (aguarda teste) |
-| 176 | RTP-0013 | executor | ✔ | Catálogo: lista fechada de security definer por assinatura | Refatoração Lote-3 | TP-0017 | Executada (aguarda teste) |
-| 177 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
-| 178 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
+| 173 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Testada (aguarda segurança) |
+| 174 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Testada (aguarda segurança) |
+| 175 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Não executada |
+| 176 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Testada (aguarda segurança) |
+| 177 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Não executada |
+| 178 | RTP-0013 | executor | ✔ | Catálogo: lista fechada de security definer por assinatura | Refatoração Lote-3 | TP-0017 | Testada (aguarda segurança) |
+| 179 | RTP-0016 | executor | ✔ | testes-api: formatar com Prettier os arquivos de casos | Refatoração Lote-3 | TP-0016 | Não executada |
+| 180 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Não executada |
+| 181 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Não executada |
+| 182 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Não executada |
+| 183 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 184 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
