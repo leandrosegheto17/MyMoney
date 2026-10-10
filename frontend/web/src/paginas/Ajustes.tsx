@@ -54,7 +54,7 @@ export function Ajustes({ instalado, aoInstalar }: Props) {
           <ItemLink icone="relogio" rotulo="Despesas fixas" para="/fixas" />
         </GrupoMenu>
         <GrupoMenu titulo="Aplicativo">
-          {instalado ? null : <ItemLink icone="adicionar" rotulo="Instalar o app" aoClicar={aoInstalar} />}
+          {instalado ? null : <ItemLink icone="adicionar" rotulo="Instalar o app" seta aoClicar={aoInstalar} />}
           <ItemValor rotulo="Versão" valor={__VERSAO_APP__} />
         </GrupoMenu>
         <GrupoMenu titulo="Sessão">

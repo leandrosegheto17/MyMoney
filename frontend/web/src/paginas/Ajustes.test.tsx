@@ -111,6 +111,15 @@ describe('T14 Ajustes', () => {
     expect(aoInstalar).toHaveBeenCalledTimes(1);
   });
 
+  it('"Instalar o app" mostra a seta e as ações de sessão não', () => {
+    montar({ instalado: false });
+
+    const instalar = screen.getByRole('button', { name: /Instalar o app/ });
+    expect(instalar.querySelector('svg:not([aria-hidden="false"])')).not.toBeNull();
+    expect(instalar.querySelectorAll('svg')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: /Sair deste aparelho/ }).querySelectorAll('svg')).toHaveLength(1);
+  });
+
   it('"Instalar o app" some quando já instalado', () => {
     montar({ instalado: true });
 

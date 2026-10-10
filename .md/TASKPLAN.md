@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 23:54
+Atualizado: 2026-10-10 23:55
 
-Resumo: Não executada 56 · Em execução 2 · Testada (aguarda segurança) 1 · Aprovada 217 · Bloqueada 1 · total 277
+Resumo: Não executada 56 · Em execução 2 · Aprovada 218 · Bloqueada 1 · total 277
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -62,7 +62,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 47 | TP-0044 | executor | ✔ | BarraProgresso, ValorDestaque e CartaoResumo | Lote 8 | TP-0038 | Aprovada |
 | 48 | TP-0045 | executor | ✔ | T01 Entrar | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Aprovada |
 | 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Aprovada |
-| 50 | TP-0160 | executor | ✔ | dados/sessao: "Sair de todos" revoga no servidor antes de remover a sessão local | Lote 9 | TP-0025 | Testada (aguarda segurança) |
+| 50 | TP-0160 | executor | ✔ | dados/sessao: "Sair de todos" revoga no servidor antes de remover a sessão local | Lote 9 | TP-0025 | Aprovada |
 | 51 | TP-0047 | executor | ✔ | T14 Ajustes | Lote 9 | TP-0026, TP-0033, TP-0037, TP-0039, TP-0160 | Não executada |
 | 52 | TP-0048 | executor | ✔ | Tabelas app.conta e app.movimento_conta [BD] | Lote 10 | TP-0013 | Aprovada |
 | 53 | TP-0049 | executor | ✔ | Tabela app.forma_pagamento [BD] | Lote 10 | TP-0048 | Aprovada |

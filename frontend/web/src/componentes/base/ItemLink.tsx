@@ -9,10 +9,12 @@ type Props = {
   contagem?: number;
   /** Cor de ação destrutiva (via classe). */
   destrutivo?: boolean;
+  /** Mostra a seta também no item de ação (o link sempre a mostra). */
+  seta?: boolean;
 } & ({ para: string; aoClicar?: never } | { aoClicar: () => void; para?: never });
 
 /** Item de `ul.lista`: link de navegação (`para`, com seta) ou botão (`aoClicar`). */
-export function ItemLink({ icone, rotulo, contagem, destrutivo, para, aoClicar }: Props) {
+export function ItemLink({ icone, rotulo, contagem, destrutivo, seta, para, aoClicar }: Props) {
   const classe = destrutivo ? `${estilo.link} ${estilo.perigo}` : estilo.link;
   const titulo = (
     <span className={estilo.titulo}>
@@ -25,6 +27,11 @@ export function ItemLink({ icone, rotulo, contagem, destrutivo, para, aoClicar }
       <li>
         <button type="button" className={classe} onClick={aoClicar}>
           {titulo}
+          {seta ? (
+            <span className={estilo.sub}>
+              <Icone nome="dir" className={estilo.seta} />
+            </span>
+          ) : null}
         </button>
       </li>
     );

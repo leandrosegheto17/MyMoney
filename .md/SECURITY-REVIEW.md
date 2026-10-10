@@ -572,3 +572,6 @@ APROVADA — revisão do diff (lido, nada executado além do diff): troca de lit
 
 ## RTP-0090 — DevSecOps — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; diff lido (sem log do erro bruto, limites de taxa intocados) e vitest erros+sessao 37/37 executado.
+
+## TP-0160 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; sem service_role e sem log de token, revogação global chamada antes de limpar a sessão local, rede/5xx preservam sessão e cache; vitest sessao 39/39.
