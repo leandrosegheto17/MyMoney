@@ -38,6 +38,17 @@ describe('cacheDadosLancamento', () => {
     expect(await lerCache(B)).toBeUndefined();
   });
 
+  it('leitura por outro usuário apaga o registro do primeiro e preserva a fila', async () => {
+    const { salvarCache, lerCache } = await carregar();
+    const armazemFila = createStore('mymoney-fila', 'itens');
+    await set('item-1', { id: 'item-1', dono: A }, armazemFila);
+    await salvarCache(A, lerResposta('dados-lancamento.json') as never);
+
+    expect(await lerCache(B)).toBeUndefined();
+    expect(await lerCache(A)).toBeUndefined();
+    expect(await get('item-1', armazemFila)).toEqual({ id: 'item-1', dono: A });
+  });
+
   it('sem nada salvo devolve undefined', async () => {
     const { lerCache } = await carregar();
     expect(await lerCache(A)).toBeUndefined();

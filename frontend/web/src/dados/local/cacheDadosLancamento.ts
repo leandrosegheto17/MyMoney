@@ -1,4 +1,4 @@
-import { clear, createStore, get, set } from 'idb-keyval';
+import { clear, createStore, del, get, set } from 'idb-keyval';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 
 /** Banco próprio: a fila de envio mora em outro banco e nunca é tocada por este cache. */
@@ -14,10 +14,17 @@ export async function salvarCache(usuarioId: string, dados: DadosLancamento): Pr
   await set(CHAVE, registro, armazem);
 }
 
-/** Só devolve se o cache for do mesmo usuário: outro membro no aparelho nunca vê o do primeiro. */
+/**
+ * Só devolve se o cache for do mesmo usuário. Registro de outro usuário é apagado (só este
+ * armazém), para que os dados do primeiro não fiquem em disco quando a sessão acabou sem sair().
+ */
 export async function lerCache(usuarioId: string): Promise<CacheDadosLancamento | undefined> {
   const registro = await get<Registro>(CHAVE, armazem);
-  if (registro?.usuarioId !== usuarioId) return undefined;
+  if (!registro) return undefined;
+  if (registro.usuarioId !== usuarioId) {
+    await del(CHAVE, armazem);
+    return undefined;
+  }
   return { dados: registro.dados, salvoEm: registro.salvoEm };
 }
 
