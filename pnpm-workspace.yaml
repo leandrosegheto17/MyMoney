@@ -1,0 +1,10 @@
+packages:
+  - backend/contrato
+  - backend/testes-api
+  - backend/operacao/*
+  - frontend/web
+
+allowBuilds:
+  supabase: true
+  esbuild: true
+  workerd: true

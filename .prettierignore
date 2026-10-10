@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.md/
+.claude/
+backend/supabase/
+**/src/banco.ts
+pnpm-lock.yaml
+
+# testes escritos antes da base de formatação (largura de linha mista)
+**/*.test.*
+**/*.test-d.ts

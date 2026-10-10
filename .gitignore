@@ -1,0 +1,18 @@
+node_modules/
+dist/
+coverage/
+
+# Segredos e cache locais
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+*.dump
+
+# CLI do Supabase
+backend/supabase/.temp/
+backend/supabase/.branches/
+
+# Capturas da comparação visual
+.md/.visual/
