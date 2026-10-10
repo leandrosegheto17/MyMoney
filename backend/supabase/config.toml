@@ -19,7 +19,13 @@ major_version = 17
 
 [db.migrations]
 enabled = true
-schema_paths = []
+schema_paths = [
+  "./schemas/app/schema.sql",
+  "./schemas/api/schema.sql",
+  "./schemas/privilegios_padrao.sql",
+  "./schemas/app/**/*.sql",
+  "./schemas/api/**/*.sql",
+]
 
 [db.seed]
 enabled = true
