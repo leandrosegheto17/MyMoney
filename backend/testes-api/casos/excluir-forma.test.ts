@@ -4,7 +4,7 @@ import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
 // Usada pela "Geladeira nova" do seed de lançamentos.
-const FORMA_EM_USO = 'e1000000-0000-4000-8000-000000000303';
+const FORMA_EM_USO = '00000000-0000-4000-8000-000000000303';
 
 describe('api.excluir_forma', () => {
   it('A exclui uma forma criada por ele', async () => {

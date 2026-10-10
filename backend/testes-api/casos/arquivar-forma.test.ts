@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
-const FORMA_DE_A = 'e1000000-0000-4000-8000-000000000303';
+const FORMA_DE_A = '00000000-0000-4000-8000-000000000303';
 
 describe('api.arquivar_forma', () => {
   it('A arquiva uma forma criada por ele, duas vezes sem erro', async () => {
