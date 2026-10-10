@@ -17,7 +17,9 @@ create table app.categoria (
   -- nulls not distinct: conjuntas têm dono_id nulo e, sem isso, nunca colidiriam.
   constraint categoria_unica unique nulls not distinct (lar_id, tipo, escopo, dono_id, nome),
   -- Alvo do FK composto do lançamento: garante tipo e escopo da categoria (RN-01).
-  constraint categoria_id_tipo_escopo unique (id, tipo, escopo)
+  constraint categoria_id_tipo_escopo unique (id, tipo, escopo),
+  -- Alvo do FK composto do orçamento individual: o dono do orçamento é o da categoria.
+  constraint categoria_id_dono unique (id, dono_id)
 );
 
 alter table app.categoria enable row level security;
