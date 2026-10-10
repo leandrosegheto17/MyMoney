@@ -8,6 +8,20 @@ export type Database = {
     Tables: { [_ in never]: never };
     // Insert/Update permissivos: as views são somente leitura e os casos provam que a escrita é negada.
     Views: {
+      categorias: {
+        Row: {
+          id: string;
+          nome: string;
+          tipo: string;
+          escopo: string;
+          variavel: boolean | null;
+          arquivada: boolean;
+          pode_excluir: boolean;
+        };
+        Insert: Partial<Record<string, unknown>>;
+        Update: Partial<Record<string, unknown>>;
+        Relationships: [];
+      };
       contas: {
         Row: {
           id: string;
