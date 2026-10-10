@@ -1,0 +1,52 @@
+-- Metas fictícias do mockup (ids ...0901-...0905) e uma individual de Ana (...0911) com
+-- local exclusivo, para o teste de isolamento. Depende dos seeds de acesso e de contas.
+-- Sem JWT no seed: lar_id, dono_id e autor_id vão explícitos.
+insert into app.meta (id, lar_id, dono_id, nome, alvo_centavos, prazo, escopo, atingida_em)
+select v.id::uuid, m.lar_id, m.id, v.nome, v.alvo, v.prazo::date, v.escopo, v.atingida::date
+from (values
+  ('00000000-0000-4000-8000-000000000901', '00000000-0000-4000-8000-000000000101', 'Reserva de emergência', 3000000, null, 'conjunto', null),
+  ('00000000-0000-4000-8000-000000000902', '00000000-0000-4000-8000-000000000101', 'Viagem Nordeste', 1200000, '2027-07-01', 'conjunto', null),
+  ('00000000-0000-4000-8000-000000000903', '00000000-0000-4000-8000-000000000101', 'Notebook novo', 600000, null, 'individual', null),
+  ('00000000-0000-4000-8000-000000000904', '00000000-0000-4000-8000-000000000101', 'Curso de inglês', 180000, null, 'individual', '2026-05-20'),
+  ('00000000-0000-4000-8000-000000000905', '00000000-0000-4000-8000-000000000101', 'Carro novo', 2000000, '2028-12-01', 'individual', null),
+  ('00000000-0000-4000-8000-000000000911', '00000000-0000-4000-8000-000000000102', 'Reforma da Ana', 300000, null, 'individual', null)
+) as v(id, dono, nome, alvo, prazo, escopo, atingida)
+join app.membro m on m.id = v.dono::uuid;
+
+-- 0b01-0b07: os movimentos da meta 902 de movimentos-meta.json; 0b08 em diante: o resto,
+-- todos antes de 2026-10-01 e só com os locais Caixinha Nubank e CDB Banco Inter.
+insert into app.movimento_meta (id, lar_id, meta_id, tipo, valor_centavos, data, local, autor_id)
+select v.id::uuid, m.lar_id, v.meta::uuid, v.tipo, v.valor, v.data::date, v.local, m.id
+from (values
+  ('00000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-000000000902', 'aporte', 300000, '2026-07-05', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b02', '00000000-0000-4000-8000-000000000902', 'retirada', 30000, '2026-07-12', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000102'),
+  ('00000000-0000-4000-8000-000000000b03', '00000000-0000-4000-8000-000000000902', 'aporte', 50000, '2026-08-05', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b04', '00000000-0000-4000-8000-000000000902', 'aporte', 130000, '2026-08-15', 'CDB Banco Inter', '00000000-0000-4000-8000-000000000102'),
+  ('00000000-0000-4000-8000-000000000b05', '00000000-0000-4000-8000-000000000902', 'aporte', 50000, '2026-09-05', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b06', '00000000-0000-4000-8000-000000000902', 'aporte', 70000, '2026-09-20', 'CDB Banco Inter', '00000000-0000-4000-8000-000000000102'),
+  ('00000000-0000-4000-8000-000000000b07', '00000000-0000-4000-8000-000000000902', 'aporte', 50000, '2026-10-05', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b08', '00000000-0000-4000-8000-000000000901', 'aporte', 1000000, '2026-03-10', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b09', '00000000-0000-4000-8000-000000000901', 'aporte', 850000, '2026-04-10', 'CDB Banco Inter', '00000000-0000-4000-8000-000000000102'),
+  ('00000000-0000-4000-8000-000000000b0a', '00000000-0000-4000-8000-000000000903', 'aporte', 240000, '2026-06-15', 'Caixinha Nubank', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b0b', '00000000-0000-4000-8000-000000000904', 'aporte', 180000, '2026-05-20', 'CDB Banco Inter', '00000000-0000-4000-8000-000000000101'),
+  ('00000000-0000-4000-8000-000000000b11', '00000000-0000-4000-8000-000000000911', 'aporte', 100000, '2026-09-10', 'Poupança Ana', '00000000-0000-4000-8000-000000000102')
+) as v(id, meta, tipo, valor, data, local, autor)
+join app.membro m on m.id = v.autor::uuid;
+
+-- A conta de origem dos movimentos da 902: Nubank para os de Leandro, a conta de Ana para
+-- os dela. Aporte tira da conta (saida); retirada devolve (entrada).
+insert into app.movimento_conta (id, lar_id, dono_id, conta_id, tipo, sentido, valor_centavos, data, movimento_meta_id)
+select v.id::uuid, c.lar_id, c.dono_id, c.id, mm.tipo,
+       case mm.tipo when 'aporte' then 'saida' else 'entrada' end,
+       mm.valor_centavos, mm.data, mm.id
+from (values
+  ('00000000-0000-4000-8000-000000000c01', '00000000-0000-4000-8000-000000000b01', '00000000-0000-4000-8000-000000000201'),
+  ('00000000-0000-4000-8000-000000000c02', '00000000-0000-4000-8000-000000000b02', '00000000-0000-4000-8000-000000000211'),
+  ('00000000-0000-4000-8000-000000000c03', '00000000-0000-4000-8000-000000000b03', '00000000-0000-4000-8000-000000000201'),
+  ('00000000-0000-4000-8000-000000000c04', '00000000-0000-4000-8000-000000000b04', '00000000-0000-4000-8000-000000000211'),
+  ('00000000-0000-4000-8000-000000000c05', '00000000-0000-4000-8000-000000000b05', '00000000-0000-4000-8000-000000000201'),
+  ('00000000-0000-4000-8000-000000000c06', '00000000-0000-4000-8000-000000000b06', '00000000-0000-4000-8000-000000000211'),
+  ('00000000-0000-4000-8000-000000000c07', '00000000-0000-4000-8000-000000000b07', '00000000-0000-4000-8000-000000000201')
+) as v(id, movimento, conta)
+join app.movimento_meta mm on mm.id = v.movimento::uuid
+join app.conta c on c.id = v.conta::uuid;
