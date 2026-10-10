@@ -58,7 +58,9 @@ describe('api.ocorrencias_mes', () => {
 
   it('B não recebe forma, conta nem data de pagamento da fixa paga por A', async () => {
     const resposta = await ocorrencias(await comoB(), mes);
-    const chavesDoExemplo = Object.keys(exemplo.ocorrencias[0]).sort();
+    const primeiro = exemplo.ocorrencias[0];
+    expect(primeiro).toBeDefined();
+    const chavesDoExemplo = Object.keys(primeiro as object).sort();
     for (const item of resposta.ocorrencias) expect(Object.keys(item).sort()).toEqual(chavesDoExemplo);
     const texto = JSON.stringify(resposta);
     for (const proibido of ['forma', 'conta', 'data_operacao']) expect(texto).not.toContain(`"${proibido}`);
