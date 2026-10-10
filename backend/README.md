@@ -24,6 +24,7 @@ Copie `.env.example` para `.env` e preencha `SUPABASE_ANON_KEY` com o valor de
 - `supabase/tests/`: testes SQL (pgTAP); rodam com `pnpm exec supabase test db --workdir backend`.
 - `supabase/seeds/*.sql`: dados de desenvolvimento, aplicados no `db reset`.
 - `supabase/verificacoes/`: conferência do `config.toml` contra o painel (`pnpm test:config`).
+- `supabase/volume/`: seed opcional de volume (2 anos) e medição de desempenho; fora do `db reset`.
 
 ## Seeds de acesso
 
@@ -81,6 +82,13 @@ nasce sem `execute` para `public` e `anon` e **com** `execute` para `authenticat
 seguintes não repetem o `grant`. `anon` não tem `usage` em `app`; em `api` só ganha `usage` com o
 `api.ping`. Grants de tabela são decididos junto do modelo de dados.
 
+### Funções da API que escrevem (`volatile`)
+
+`api.ocorrencias_mes` (e, quando existir, `api.resumo_mes`, que lista as fixas pendentes) garante
+as ocorrências do mês antes de ler e por isso é `volatile`. O PostgREST só roda função `volatile`
+por POST (a transação do GET é somente leitura): o cliente chama por `rpc` (POST), o padrão do
+supabase-js, e nunca por GET.
+
 ## Suíte de isolamento da API
 
 ```sh
@@ -101,3 +109,51 @@ mesmos dados devolve o mesmo id e não duplica. Padrão (invoker, `search_path =
    `begin … exception when unique_violation then raise exception 'registro_invalido'; end`.
    Id que existe mas pertence ao outro membro dá o mesmo erro de "não existe".
 4. Devolve `p_id`. Dono e lar nunca vêm de parâmetro.
+
+## Seed de volume e desempenho
+
+`supabase/volume/` guarda a carga de 2 anos (RNF-03). Fica fora de `supabase/seeds/` para não entrar
+no `db reset` nem no CI; só roda no Supabase local (`carregar.sh` recusa host que não seja
+`localhost`/`127.0.0.1`). Usa `psql` da máquina ou, na falta dele, o do container do banco.
+
+```sh
+pnpm local:resetar   # banco limpo com os seeds padrão
+pnpm local:volume    # ~6.000 parcelas, idempotente (ids = md5('volume-...'))
+pnpm local:medir     # mediana de resumo_mes e lancamentos_mes + planos (auto_explain)
+```
+
+- `volume-2-anos.sql`: 24 meses até o mês de `app.hoje()`, 56 despesas por membro por mês
+  (~80% Pix/Débito, ~20% Crédito em 2 a 12x, conjuntas e individuais, categorias variáveis e
+  fixas) e 1 receita mensal por membro, tudo por `api.lancar_despesa`/`api.lancar_receita` como
+  o próprio membro. Cria para Ana um Débito (`…0312`) e um Crédito (`…0313`, dia 15). Falha se o
+  total de `app.parcela` sair de 5.500 a 6.500.
+- `medir.sql`: 1 aquecimento + 5 execuções por consulta, mediana em ms (meta < 500 ms), e planos
+  de dentro das funções; sem permissão para `LOAD 'auto_explain'`, mostra o `explain analyze` da
+  seleção de `app.parcelas_mes`.
+- `testes/carregar.test.sh`: trava de host do `carregar.sh` (`bash backend/supabase/volume/testes/carregar.test.sh`).
+
+### Resultado (2026-10-10)
+
+Postgres 16.15 local (4 vCPU Xeon 2,8 GHz, 15 GB), schema das migrations e seeds 00 a 08 com
+`auth` simulado (sem Docker nem Supabase CLI), como Leandro. 5.969 parcelas: Leandro 1.476
+conjuntas e 1.496 individuais; Ana 1.483 e 1.514.
+
+| Consulta | Mediana (5 execuções) |
+|---|---|
+| `resumo_mes` (mês corrente) | 365 ms |
+| `resumo_mes` (+3 meses, com crédito futuro) | 311 ms |
+| `lancamentos_mes` (mês corrente) | 52 ms |
+| `lancamentos_mes` (+3 meses) | 25 ms |
+
+Plano de `app.parcelas_mes` dentro do resumo (auto_explain):
+
+```text
+->  Bitmap Heap Scan on parcela p  (actual time=0.212..5.795 rows=195 loops=1)
+      ->  Bitmap Index Scan on parcela_lar_id_data_idx  (actual rows=997 loops=1)
+            Index Cond: ((lar_id = app.lar_atual()) AND (data >= app.inicio_mes($1)))
+```
+
+Ponto de atenção: o maior custo do `resumo_mes` não é a seleção do mês, e sim `app.saldo_conta`
+(~100 a 130 ms por conta), que relê `parcela_lar_id_data_idx` por lançamento. A margem para os 500 ms
+é de cerca de 27%; se a medição no Supabase local passar disso, registrar e escalar ao Coordenador
+(SDD §6, dívida de materialização) em vez de criar índice sem medir.
