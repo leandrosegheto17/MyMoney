@@ -140,3 +140,45 @@ TP-0134 aprovada no QA: tabela app.orcamento com restrições, unicidade, RLS e 
 
 ## TP-0144 — QA — 2026-10-10
 TP-0144 APROVADA no QA: RLS, checks, FK composto e seed 08 conferem com o aceite (banco descartável com shim); pgTAP real, local:resetar e contrato:gerar não verificáveis neste ambiente.
+
+## RTP-0014 — QA — 2026-10-10
+RTP-0014 aprovada no QA (34 testes de lint verdes, fixtures novas falham e negativos seguem limpos); lint global vermelho por 2 erros alheios, aberta RTP-0025.
+
+## RTP-0015 — QA — 2026-10-10
+RTP-0015 aprovada no QA; 15 testes unitários e axe e2e passam, sem achados.
+
+## RTP-0017 — QA — 2026-10-10
+RTP-0017 aprovada no QA: seed de categorias sem lista duplicada, 21 categorias com ids idênticos aos anteriores (verificado em banco descartável), 24/24 verificações; pgTAP 19/19 e local:resetar não executáveis no ambiente.
+
+## RTP-0019 — QA — 2026-10-10
+RTP-0019 aprovada no QA; classe morta removida, Botao 13/13 verdes, tsc/eslint limpos, sem achados.
+
+## RTP-0020 — QA — 2026-10-10
+RTP-0020 aprovada no QA; comentário sem citação de lote, lógica da asserção inalterada, sem achados.
+
+## RTP-0021 — QA — 2026-10-10
+RTP-0021 aprovada no QA; update por coluna impede B de mudar escopo/dono/lar da conjunta (26/26 no shim), sem achados.
+
+## TP-0051 — QA — 2026-10-10
+QA aprovou TP-0051 (tabelas lancamento, lancamento_pagamento e parcela): 58 asserções pgTAP e ataques de RLS ok em banco descartável; sem achados; pgTAP real, db reset e contrato:gerar pendentes de CI.
+
+## TP-0056 — QA — 2026-10-10
+TP-0056 aprovada no QA (pgTAP 34/34 em banco descartável, aceite atendido); 1 achado não crítico no caso testes-api (ids fora do seed) aberto como RTP-0022.
+
+## TP-0058 — QA — 2026-10-10
+TP-0058 aprovada no QA (pgTAP 15/15 em banco descartável, aceite atendido); 1 achado não crítico em RTP-0024 (ids do caso testes-api não existem no seed).
+
+## TP-0137 — QA — 2026-10-10
+TP-0137 APROVADA no QA — pgTAP 25/25 em banco descartável, aceite atendido; RTP-0023 (asserção via orcamento_mes no testes-api, após TP-0136); CLI/Docker/testes-api não verificados.
+
+## TP-0145 — QA — 2026-10-10
+TP-0145 aprovada no QA, 20/20 pgTAP (shim) ok em banco descartável, sem achados.
+
+## TP-0147 — QA — 2026-10-10
+TP-0147 aprovada no QA: 14/14 pgTAP (shim) e resposta idêntica ao JSON de exemplo; testes-api e CLI Supabase não executados no ambiente.
+
+## TP-0148 — QA — 2026-10-10
+TP-0148 aprovada no QA — aceite atendido (pgTAP 13/13, seed 08 e isolamento A/B verificados no banco descartável), sem achados; stack Supabase/PostgREST/pgTAP real não verificados.
+
+## TP-0149 — QA — 2026-10-10
+TP-0149 APROVADA no QA: pgTAP 32/32 em banco descartável, aceite e convenções OK, sem achados; stack Supabase/API, db diff e contrato:gerar não verificados.
