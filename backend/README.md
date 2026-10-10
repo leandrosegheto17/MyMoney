@@ -80,3 +80,24 @@ Aplicados para o papel `postgres` (o que roda as migrations): função nova em `
 nasce sem `execute` para `public` e `anon` e **com** `execute` para `authenticated`; as funções
 seguintes não repetem o `grant`. `anon` não tem `usage` em `app`; em `api` só ganha `usage` com o
 `api.ping`. Grants de tabela são decididos junto do modelo de dados.
+
+## Suíte de isolamento da API
+
+```sh
+pnpm local:resetar
+pnpm --filter @mymoney/testes-api test
+```
+
+Detalhes em `testes-api/README.md`.
+
+## Funções de escrita (salvar idempotente pelo id do cliente)
+
+O cliente gera o `uuid` do registro e chama `api.salvar_*(p_id, …)`; o reenvio com o mesmo id e os
+mesmos dados devolve o mesmo id e não duplica. Padrão (invoker, `search_path = ''`):
+
+1. `v_membro := app.membro_atual()`; nulo vira `registro_invalido`. Id ou nome vazio vira `valor_invalido`.
+2. `update … where id = p_id and dono_id = v_membro` (a RLS já filtra).
+3. `if not found`: `insert` com `id = p_id` (dono e lar pelos defaults) dentro de
+   `begin … exception when unique_violation then raise exception 'registro_invalido'; end`.
+   Id que existe mas pertence ao outro membro dá o mesmo erro de "não existe".
+4. Devolve `p_id`. Dono e lar nunca vêm de parâmetro.

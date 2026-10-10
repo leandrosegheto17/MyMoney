@@ -1,0 +1,17 @@
+{
+  "name": "@mymoney/testes-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@supabase/supabase-js": "2.117.3",
+    "@types/node": "24.19.1",
+    "@types/pg": "8.23.1",
+    "pg": "8.23.1",
+    "vitest": "5.0.3"
+  }
+}
