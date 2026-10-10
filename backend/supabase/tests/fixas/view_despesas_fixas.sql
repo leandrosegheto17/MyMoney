@@ -52,7 +52,7 @@ select testes.como_b();
 select is((select count(*)::int from api.despesas_fixas), 2, 'B vê os mesmos 2 modelos');
 select throws_ok(
   $$update api.despesas_fixas set valor_previsto_centavos = 1 where id = '00000000-0000-4000-8000-00000000d701'$$,
-  '42501', null, 'escrita pela view é recusada');
+  '55000', null, 'escrita pela view é recusada (view com join não é atualizável)');
 
 select testes.como_sem_membro();
 select is((select count(*)::int from api.despesas_fixas), 0, 'sem membro: a view volta vazia');
