@@ -28,17 +28,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: pnpm (versão do packageManager)
-        uses: pnpm/action-setup@v4
-
-      - name: Node com cache pnpm
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Instalar dependências
-        run: pnpm install --frozen-lockfile
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
 
       - name: Lint
         run: pnpm lint
@@ -108,3 +99,54 @@ jobs:
             echo "$achados"
             exit 1
           fi
+
+  banco:
+    name: banco
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Testes pgTAP
+        run: pnpm exec supabase test db --workdir backend
+
+      - name: Lint do banco
+        run: pnpm exec supabase db lint --workdir backend --level error
+
+  isolamento:
+    name: isolamento
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Variáveis da suíte (só URL e chave anon locais)
+        run: |
+          grep -E '^(TESTE_[A-Z_]+|SUPABASE_URL)=' backend/.env.example >> "$GITHUB_ENV"
+          anon=$(pnpm exec supabase status --workdir backend -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          test -n "$anon"
+          echo "::add-mask::$anon"
+          echo "SUPABASE_ANON_KEY=$anon" >> "$GITHUB_ENV"
+
+      - name: Suíte de isolamento da API
+        run: pnpm --filter @mymoney/testes-api test

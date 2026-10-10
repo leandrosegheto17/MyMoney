@@ -98,6 +98,25 @@ pnpm --filter @mymoney/testes-api test
 
 Detalhes em `testes-api/README.md`.
 
+## CI do banco
+
+Dois jobs em `.github/workflows/ci.yml`, em push e PR, independentes do job `base`. Ambos usam a
+Supabase CLI do lockfile e sobem o Supabase local com `pnpm local:ci` (`supabase start` sem os
+serviços não usados, seguido de `db reset`); só as chaves locais descartáveis são usadas.
+
+- `banco`: `pnpm local:ci`, `supabase test db` (pgTAP) e `supabase db lint --level error`.
+- `isolamento`: `pnpm local:ci` e `pnpm --filter @mymoney/testes-api test`, com `SUPABASE_URL` e
+  `TESTE_*` de `.env.example` e `SUPABASE_ANON_KEY` lida de `supabase status -o env`.
+
+Localmente (Docker em execução):
+
+```sh
+pnpm local:ci
+pnpm exec supabase test db --workdir backend
+pnpm exec supabase db lint --workdir backend --level error
+pnpm --filter @mymoney/testes-api test   # com o .env preenchido
+```
+
 ## Funções de escrita (salvar idempotente pelo id do cliente)
 
 O cliente gera o `uuid` do registro e chama `api.salvar_*(p_id, …)`; o reenvio com o mesmo id e os

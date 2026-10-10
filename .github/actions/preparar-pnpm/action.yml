@@ -1,0 +1,18 @@
+name: Preparar pnpm
+description: pnpm na versão do packageManager, Node 24 com cache pnpm e dependências do lockfile.
+
+runs:
+  using: composite
+  steps:
+    - name: pnpm (versão do packageManager)
+      uses: pnpm/action-setup@v4
+
+    - name: Node com cache pnpm
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: pnpm
+
+    - name: Instalar dependências
+      shell: bash
+      run: pnpm install --frozen-lockfile
