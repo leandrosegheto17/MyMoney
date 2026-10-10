@@ -64,6 +64,15 @@ describe('Botao', () => {
       expect(screen.queryByText('Salvar')).toBeNull();
     });
 
+    it('não aplica classe "salvando" (estado expresso por aria-disabled)', () => {
+      render(
+        <Botao variante="principal" salvando>
+          Salvar
+        </Botao>,
+      );
+      expect(screen.getByRole('button', { name: 'Salvando…' }).className).not.toMatch(/salvando|undefined/);
+    });
+
     it('continua focável (não usa disabled)', () => {
       render(
         <Botao variante="principal" salvando>

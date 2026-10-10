@@ -13,9 +13,7 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type' | 'className'>
 };
 
 export function Botao({ variante, bloco, icone, tipo = 'button', salvando, onClick, children, ref, ...resto }: Props) {
-  const classes = [estilo.botao, estilo[variante], bloco ? estilo.bloco : null, salvando ? estilo.salvando : null]
-    .filter(Boolean)
-    .join(' ');
+  const classes = [estilo.botao, estilo[variante], bloco ? estilo.bloco : null].filter(Boolean).join(' ');
 
   // aria-disabled em vez de disabled: o foco fica no botão; o clique é barrado aqui para impedir envio duplo.
   function aoClicar(e: MouseEvent<HTMLButtonElement>) {
