@@ -38,7 +38,7 @@ select is((select count(*)::int from api.metas
   0, 'B não vê as individuais de A');
 select throws_ok(
   $$update api.metas set nome = 'x' where id = '00000000-0000-4000-8000-000000000902'$$,
-  '42501', null, 'a view não aceita escrita');
+  '55000', null, 'a view não aceita escrita (não atualizável: junta app.progresso_meta)');
 
 select testes.como_postgres();
 
