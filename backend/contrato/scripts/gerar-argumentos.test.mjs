@@ -122,6 +122,19 @@ describe('gerar', () => {
     }
   });
 
+  it('o filho recebe env mínimo, sem segredos arbitrários, em --db-url e --local', () => {
+    const base = { PATH: '/bin', HOME: '/h', HTTPS_PROXY: 'http://p', SEGREDO_X: 'x', SUPABASE_ACCESS_TOKEN: 't' };
+    for (const env of [{ ...base, CONTRATO_DB_URL: URL_COM_SENHA }, base]) {
+      let recebido;
+      const executar = (comando, args, opcoes) => {
+        recebido = opcoes.env;
+        return 'saida\n';
+      };
+      expect(gerar(env, executar)).toBe('saida\n');
+      expect(recebido).toEqual({ PATH: '/bin', HOME: '/h', HTTPS_PROXY: 'http://p' });
+    }
+  });
+
   it('URL não local nem chega a executar o comando', () => {
     const executar = () => {
       throw new Error('não deveria executar');

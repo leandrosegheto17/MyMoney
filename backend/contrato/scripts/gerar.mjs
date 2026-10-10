@@ -69,12 +69,28 @@ export function argumentosGerador(env = {}) {
   return [...base, '--db-url', url];
 }
 
+// O filho recebe só o necessário para achar o node e sair pela rede/proxy; tokens e a própria
+// CONTRATO_DB_URL (já em argv) não são herdados. `gen types --local/--db-url` dispensa SUPABASE_*.
+const VARIAVEIS_DO_FILHO = [
+  'PATH', 'Path', 'HOME', 'USERPROFILE', 'SystemRoot', 'TEMP', 'TMP', 'TMPDIR',
+  'HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY', 'http_proxy', 'https_proxy', 'no_proxy',
+];
+
+export function ambienteDoFilho(env) {
+  const filho = {};
+  for (const nome of VARIAVEIS_DO_FILHO) {
+    if (env[nome] !== undefined) filho[nome] = env[nome];
+  }
+  return filho;
+}
+
 export function gerar(env = process.env, executar = execFileSync) {
   const args = [SUPABASE_JS, ...argumentosGerador(env)];
   try {
     // Sem shell em nenhuma plataforma; node direto: `pnpm exec` pode sujar o stdout.
     const saida = executar(process.execPath, args, {
       cwd: RAIZ,
+      env: ambienteDoFilho(env),
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: 64 * 1024 * 1024,
