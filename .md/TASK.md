@@ -570,6 +570,12 @@ tarefa passa disso). Status inicial `Pendente`.
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0047 | Refatoração Lote-31 | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Backend | CA-13.2; achado de QA de TP-0151 (CONVENCOES-DE-CODIGO 1) | O JSON de item de meta (meta_id, nome, alvo, guardado, falta, percentual, prazo 'YYYY-MM', mensal necessário, atingida) é montado em um único lugar (função app.* ou coluna de app.progresso_meta) e usado por api.resumo_mes (conjunto e individual) e api.metas; sem to_char(prazo) repetido; resumo_metas.sql, resumo_mes.sql e o pgTAP/mesmaForma de metas seguem verdes e o JSON de resumo_mes é idêntico ao anterior | 1h | TP-0151 | [BD] exclusivo | backend/supabase/schemas/api/funcoes/resumo_mes.sql, backend/supabase/schemas/api/views/metas.sql, schemas/app/funcoes, migration nova | pgTAP | Concluída · QA ✔ · Sec ✔ |
 
+### Refatoração Lote-2
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0056 | Lote 2 | shellcheck: variável SAIDA sem uso em migrar-job-migration.test.sh (SC2034) | Backend (operação) | QA de TP-0008; passo shellcheck do CI | shellcheck backend/operacao/deploy/testes/migrar-job-migration.test.sh sai com 0 (remover ou usar SAIDA); migrar-job-migration.test.sh segue verde | 0.5h | TP-0008 | - | backend/operacao/deploy/testes/migrar-job-migration.test.sh | bash backend/operacao/deploy/testes/migrar-job-migration.test.sh | Pendente |
+
+
 
 
 
