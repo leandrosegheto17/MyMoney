@@ -8,3 +8,4 @@ backend/supabase/
 pnpm-lock.yaml
 test-results/
 playwright-report/
+frontend/web/src/estilo/tokens.css
