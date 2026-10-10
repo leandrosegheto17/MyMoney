@@ -374,3 +374,6 @@ RTP-0049 sem achado de segurança: só arquivo de teste alterado, sem migration/
 
 ## RTP-0016 — DevSecOps — 2026-10-10
 RTP-0016 OK em segurança — 22 arquivos só com formatação (conteúdo idêntico), sem mudança de dependência e sem segredo novo (apenas o default local pré-existente de TESTE_DATABASE_URL).
+
+## RTP-0050 — DevSecOps — 2026-10-10
+RTP-0050 aprovada na segurança: verificação só lê o catálogo, com trava de host local, SQL constante somente leitura, sem credencial nova nem dependência nova.

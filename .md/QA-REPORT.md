@@ -386,3 +386,6 @@ RTP-0016 aprovada no QA — prettier --check limpo, tsc e vitest src verdes, 22 
 
 ## RTP-0050 — QA — 2026-10-10
 RTP-0050 aprovada no QA: lint, tsc e vitest verdes, verificação de aderência falha ao renomear argumento/coluna; 1 achado não crítico (ID de tarefa em comentário) aberto como RTP-0052.
+
+## RTP-0051 — QA — 2026-10-10
+RTP-0051 aprovada no QA; mês sem dado derivado de api.contexto().hoje + 5 anos devolve fixas_total 0 com app.hoje() em 2026-10-12, 2029-05-03 e 2030-12-31, sem achados.
