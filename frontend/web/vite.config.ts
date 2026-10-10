@@ -21,13 +21,13 @@ const manterImportMetaUrlDosTestes = {
   },
 };
 
-// O modo de comparação visual é só do script `visual`: o build de produção recusa a variável.
+// O modo de comparação visual é só do script `visual` (servidor de desenvolvimento): qualquer `vite build`, em qualquer mode, recusa a variável.
 const travaDoModoDeComparacao = {
   name: 'trava-do-modo-de-comparacao',
   config(_: unknown, { command, mode }: { command: string; mode: string }) {
-    if (command !== 'build' || mode !== 'production') return;
+    if (command !== 'build') return;
     if (loadEnv(mode, new URL('.', import.meta.url).pathname, 'VITE_').VITE_MODO_COMPARACAO !== undefined) {
-      throw new Error('VITE_MODO_COMPARACAO não pode estar definida no build de produção (é só para o script visual)');
+      throw new Error('VITE_MODO_COMPARACAO não pode estar definida em nenhum build (é só para o script visual)');
     }
   },
 };

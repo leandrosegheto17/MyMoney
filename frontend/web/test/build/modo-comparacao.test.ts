@@ -15,11 +15,11 @@ function pastaTemporaria(): string {
   return p;
 }
 
-function construir(outDir: string) {
+function construir(outDir: string, mode = 'production') {
   return build({
     root: RAIZ_WEB,
     configFile: join(RAIZ_WEB, 'vite.config.ts'),
-    mode: 'production',
+    mode,
     logLevel: 'silent',
     build: { outDir, emptyOutDir: true },
   });
@@ -53,6 +53,11 @@ describe('build de produção e modo de comparação', () => {
   it('falha se VITE_MODO_COMPARACAO estiver definida', async () => {
     process.env.VITE_MODO_COMPARACAO = 'sessao-falsa';
     await expect(construir(pastaTemporaria())).rejects.toThrow(/VITE_MODO_COMPARACAO/);
+  }, 120_000);
+
+  it('falha também em build com mode development', async () => {
+    process.env.VITE_MODO_COMPARACAO = 'sessao-falsa';
+    await expect(construir(pastaTemporaria(), 'development')).rejects.toThrow(/VITE_MODO_COMPARACAO/);
   }, 120_000);
 
   it('sem a variável, o bundle não contém o código do modo', async () => {
