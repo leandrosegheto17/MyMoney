@@ -16,6 +16,10 @@ insert into app.categoria (id, lar_id, tipo, escopo, dono_id, nome, variavel) va
 insert into app.lancamento (id, lar_id, dono_id, tipo, escopo, categoria_id, valor_total_centavos, num_parcelas)
 values ('e1000000-0000-4000-8000-000000000501', (select id from app.lar), testes.membro_a(), 'despesa', 'conjunto',
         'e1000000-0000-4000-8000-000000000401', 30000, 1);
+-- Segundo lançamento de A, ainda sem parte privada (o 23505 do primeiro vem da PK)
+insert into app.lancamento (id, lar_id, dono_id, tipo, escopo, categoria_id, valor_total_centavos, num_parcelas)
+values ('e1000000-0000-4000-8000-000000000502', (select id from app.lar), testes.membro_a(), 'despesa', 'conjunto',
+        'e1000000-0000-4000-8000-000000000401', 10000, 1);
 insert into app.lancamento_pagamento (lancamento_id, lar_id, dono_id, forma_pagamento_id, conta_id, data_operacao)
 values ('e1000000-0000-4000-8000-000000000501', (select id from app.lar), testes.membro_a(),
         'e1000000-0000-4000-8000-000000000301', 'e1000000-0000-4000-8000-000000000201', '2026-10-05');
@@ -47,7 +51,7 @@ select results_eq(
   $$values (0)$$, 'B não vê nenhuma linha de lancamento_pagamento de A');
 select throws_ok(
   $$insert into app.lancamento_pagamento (lancamento_id, forma_pagamento_id, conta_id, data_operacao)
-    values ('e1000000-0000-4000-8000-000000000501', 'e1000000-0000-4000-8000-000000000311',
+    values ('e1000000-0000-4000-8000-000000000502', 'e1000000-0000-4000-8000-000000000311',
             'e1000000-0000-4000-8000-000000000211', '2026-10-05')$$,
   '23503', null, 'B não cria parte privada no lançamento de A (FK composto)');
 select throws_ok(
