@@ -392,3 +392,15 @@ RTP-0051 aprovada no QA; mês sem dado derivado de api.contexto().hoje + 5 anos 
 
 ## RTP-0052 — QA — 2026-10-10
 APROVADA; 0 críticos, 0 não críticos; só o comentário mudou, sem ID de tarefa em testes-api/src, tsc/prettier/lint verdes.
+
+## TP-0007 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0053: 5 IDs TP-00xx em frontend/web/e2e acusados pelo grep do CI, correto); greps locais ok, actionlint/gitleaks ausentes e prova no GitHub pendentes.
+
+## TP-0036 — QA — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; vitest 27/27, Playwright 8/8, visual da casca confere com o mockup, mudança do BK-0002 é de 1 linha e não enfraquece a prova do campo oculto.
+
+## TP-0053 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0054: `...415` seed true x categorias.json false); view de 7 colunas, security_invoker, só SELECT, isolamento A/B e `pode_excluir` = `excluir_categoria` em 100% das categorias do seed, pgTAP 10/10 e regressão ok em banco descartável (PostgREST/vitest não verificados).
+
+## TP-0138 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; pgTAP (shim) copiar_orcamento 24/24 e regressão de orcamento/* verde, isolamento A/B, G-05, anon sem execute e search_path confirmados; vitest/contrato:gerar não verificados (sem API/Docker).

@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 17:29
+Atualizado: 2026-10-10 17:36
 
-Resumo: Não executada 78 · Em execução 1 · Executada (aguarda teste) 4 · Aprovada 134 · Bloqueada 1 · total 218
+Resumo: Não executada 80 · Em execução 1 · Testada (aguarda segurança) 4 · Aprovada 134 · Bloqueada 1 · total 220
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -20,7 +20,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 5 | TP-0005 | executor | ✔ | Função api.ping() [BD] | Lote 1 | TP-0003 | Aprovada |
 | 6 | TP-0006 | executor | ✔ | Worker de keep-alive (@mymoney/keepalive): código | Lote 1 | TP-0001 | Aprovada |
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Aprovada |
-| 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Executada (aguarda teste) |
+| 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Testada (aguarda segurança) |
 | 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Não executada |
 | 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Em execução |
 | 11 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | TP-0009 | Não executada |
@@ -51,7 +51,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 36 | TP-0034 | executor | ✔ | Campos de formulário e botão | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 37 | TP-0035 | executor | ✔ | CampoValor (centavos) | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 38 | BK-0002 | coordenador | ✔ | Folha.test.tsx:199 (pré-escrito) exige queryByLabelText('Valor') nulo com o campo no DOM; | — | — | Aprovada |
-| 39 | TP-0036 | executor | ✔ | Folha (bottom sheet e diálogo no PC) | Lote 7 | BK-0002, TP-0023 | Executada (aguarda teste) |
+| 39 | TP-0036 | executor | ✔ | Folha (bottom sheet e diálogo no PC) | Lote 7 | BK-0002, TP-0023 | Testada (aguarda segurança) |
 | 40 | TP-0037 | executor | ✔ | DialogoConfirmacao | Lote 7 | TP-0036 | Não executada |
 | 41 | TP-0038 | executor | ✔ | rotulos/ | Lote 8 | TP-0020, TP-0021 | Não executada |
 | 42 | TP-0039 | executor | ✔ | Aviso (toast) e Faixa | Lote 8 | TP-0023 | Aprovada |
@@ -68,7 +68,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 53 | TP-0050 | executor | ✔ | Tabela app.categoria [BD] | Lote 10 | TP-0013 | Aprovada |
 | 54 | TP-0051 | executor | ✔ | Tabelas app.lancamento, app.lancamento_pagamento e app.parcela [BD] | Lote 10 | TP-0048, TP-0049, TP-0050 | Aprovada |
 | 55 | TP-0052 | executor | ✔ | api.inicializar_membro() [BD] | Lote 10 | TP-0050 | Aprovada |
-| 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050, TP-0051 | Executada (aguarda teste) |
+| 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050, TP-0051 | Testada (aguarda segurança) |
 | 57 | TP-0054 | executor | ✔ | api.salvar_conta [BD] | Lote 11 | TP-0048 | Aprovada |
 | 58 | TP-0055 | executor | ✔ | api.arquivar_conta e api.excluir_conta [BD] | Lote 11 | TP-0048, TP-0049, TP-0051 | Aprovada |
 | 59 | TP-0056 | executor | ✔ | api.salvar_forma [BD] | Lote 11 | TP-0049 | Aprovada |
@@ -153,7 +153,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 138 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Aprovada |
 | 139 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Aprovada |
 | 140 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Aprovada |
-| 141 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | TP-0134, TP-0135, TP-0136 | Executada (aguarda teste) |
+| 141 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | TP-0134, TP-0135, TP-0136 | Testada (aguarda segurança) |
 | 142 | TP-0139 | executor | ✔ | resumo_mes: seção de orçamento e resultado da casa [BD] | Lote 28 | TP-0087, TP-0135 | Aprovada |
 | 143 | TP-0140 | executor | ✔ | Dados do orçamento | Lote 29 | TP-0025, TP-0136, TP-0137, TP-0138 | Não executada |
 | 144 | TP-0141 | executor | ✔ | T09a Orçamento do mês | Lote 29 | TP-0040, TP-0041, TP-0044, TP-0140 | Não executada |
@@ -179,55 +179,57 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 164 | RTP-0002 | executor | ✔ | README do backend: --no-backup do local:parar | Refatoração Lote-1 | TP-0002 | Aprovada |
 | 165 | RTP-0003 | executor | ✔ | Prova do Docker limpo de local:subir/local:resetar | Refatoração Lote-1 | TP-0003 | Aprovada |
 | 166 | RTP-0004 | executor | ✔ | Keepalive: typecheck cobrir o arquivo de teste | Refatoração Lote-1 | TP-0006 | Aprovada |
-| 167 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
-| 168 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
-| 169 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Aprovada |
-| 170 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Aprovada |
-| 171 | RTP-0014 | executor | ✔ | Lint de fronteira: cobrir import() com template literal e .from() por colchetes | Refatoração Lote-4 | RTP-0008 | Aprovada |
-| 172 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Aprovada |
-| 173 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Aprovada |
-| 174 | RTP-0050 | executor | ✔ | Remover view api.categorias inexistente de tipos-api.ts e checar aderência do tipo ao s... | Refatoração Lote-4 | RTP-0031 | Aprovada |
-| 175 | RTP-0052 | executor | ✔ | Tirar ID de tarefa do comentário de categorias-pendente.ts | Refatoração Lote-4 | RTP-0050 | Aprovada |
-| 176 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
-| 177 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
-| 178 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
-| 179 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
-| 180 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |
-| 181 | RTP-0013 | executor | ✔ | Catálogo: lista fechada de security definer por assinatura | Refatoração Lote-3 | TP-0017 | Aprovada |
-| 182 | RTP-0016 | executor | ✔ | testes-api: formatar com Prettier os arquivos de casos | Refatoração Lote-3 | TP-0016 | Aprovada |
-| 183 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Aprovada |
-| 184 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Aprovada |
-| 185 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Aprovada |
-| 186 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Não executada |
-| 187 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Aprovada |
-| 188 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Aprovada |
-| 189 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Aprovada |
-| 190 | RTP-0029 | executor | ✔ | Casos testes-api de arquivar/excluir conta: usar os ids do seed | Refatoração Lote-11 | TP-0055 | Aprovada |
-| 191 | RTP-0021 | executor | ✔ | Meta conjunta: impedir que um membro a torne individual ou troque o dono | Refatoração Lote-30 | TP-0144 | Aprovada |
-| 192 | RTP-0027 | executor | ✔ | Teste de API movimentos-meta: B não pode receber id nem nome da conta de A | Refatoração Lote-30 | TP-0147 | Aprovada |
-| 193 | RTP-0038 | executor | ✔ | Formatar movimentos-meta.test.ts (prettier: espaço faltando em ALEATORIO) | Refatoração Lote-30 | RTP-0027 | Aprovada |
-| 194 | RTP-0023 | executor | ✔ | Caso testes-api de definir_orcamento: conferir efeito via orcamento_mes | Refatoração Lote-28 | TP-0136 | Aprovada |
-| 195 | RTP-0043 | executor | ✔ | Atualizar o pgTAP de resumo_mes que ainda espera orcamento nulo | Refatoração Lote-28 | TP-0139 | Aprovada |
-| 196 | RTP-0030 | executor | ✔ | Extrair a agregação por categoria comum a totais_conjunto e totais_individuais | Refatoração Lote-17 | TP-0086 | Aprovada |
-| 197 | RTP-0034 | executor | ✔ | Caso testes-api de resumo-mes: despesa de isolamento fica no seed compartilhado | Refatoração Lote-17 | TP-0087 | Aprovada |
-| 198 | RTP-0041 | executor | ✔ | Volume de 2 anos: rodar ANALYZE ao fim da carga para medir com estatísticas | Refatoração Lote-17 | TP-0088 | Aprovada |
-| 199 | RTP-0032 | executor | ✔ | Casos testes-api que criam metas poluem o seed compartilhado e deixam metas.test.ts dep... | Refatoração Lote 31 | TP-0150 | Aprovada |
-| 200 | RTP-0033 | executor | ✔ | Caso testes-api de ajustar_saldo: usar os ids do seed | Refatoração Lote-13 | TP-0066 | Aprovada |
-| 201 | RTP-0035 | executor | ✔ | Caso testes-api de editar-lancamento: limpar o que cria e provar o editor | Refatoração Lote-19 | TP-0099 | Aprovada |
-| 202 | RTP-0039 | executor | ✔ | Limitar o valor máximo de lançamento (editar e lançar) contra estouro de bigint | Refatoração Lote-19 | TP-0099 | Aprovada |
-| 203 | RTP-0036 | executor | ✔ | Caso testes-api de salvar-despesa-fixa: limpar o que cria e provar a edição | Refatoração Lote-25 | TP-0122 | Aprovada |
-| 204 | RTP-0040 | executor | ✔ | Caso testes-api de encerrar-despesa-fixa: apagar as fixas que cria | Refatoração Lote-25 | RTP-0036, TP-0123 | Aprovada |
-| 205 | RTP-0042 | executor | ✔ | Caso testes-api de ocorrencias-mes: corrigir erro de tipo (typecheck) | Refatoração Lote-25 | TP-0124 | Aprovada |
-| 206 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Aprovada |
-| 207 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Aprovada |
-| 208 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Aprovada |
-| 209 | RTP-0046 | executor | ✔ | Lançamento ligado a ocorrência de fixa: só o pagador altera ou exclui (RN-06, I-20) | Refatoração Lote-26 | TP-0126 | Aprovada |
-| 210 | RTP-0048 | executor | ✔ | pgTAP e Vitest de ocorrências: fixar app.hoje() ou datas relativas, para a janela de ±1... | Refatoração Lote-26 | RTP-0045 | Aprovada |
-| 211 | RTP-0049 | executor | ✔ | Vitest resumo-mes e ocorrencias-mes: derivar os meses do mês corrente, sem datas literais | Refatoração Lote-26 | RTP-0048 | Aprovada |
-| 212 | RTP-0051 | executor | ✔ | Vitest resumo-mes: derivar mesSemDado de api.contexto().hoje, não do relógio do Node | Refatoração Lote-26 | RTP-0049 | Aprovada |
-| 213 | RTP-0047 | executor | ✔ | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Refatoração Lote-31 | TP-0151 | Aprovada |
-| 214 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
-| 215 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
-| 216 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
-| 217 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
-| 218 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
+| 167 | RTP-0053 | executor | ✔ | Tirar ID de tarefa dos nomes de pasta de prints em frontend/web/e2e | Refatoração Lote-1 | TP-0007 | Não executada |
+| 168 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
+| 169 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
+| 170 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Aprovada |
+| 171 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Aprovada |
+| 172 | RTP-0014 | executor | ✔ | Lint de fronteira: cobrir import() com template literal e .from() por colchetes | Refatoração Lote-4 | RTP-0008 | Aprovada |
+| 173 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Aprovada |
+| 174 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Aprovada |
+| 175 | RTP-0050 | executor | ✔ | Remover view api.categorias inexistente de tipos-api.ts e checar aderência do tipo ao s... | Refatoração Lote-4 | RTP-0031 | Aprovada |
+| 176 | RTP-0052 | executor | ✔ | Tirar ID de tarefa do comentário de categorias-pendente.ts | Refatoração Lote-4 | RTP-0050 | Aprovada |
+| 177 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
+| 178 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
+| 179 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
+| 180 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
+| 181 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |
+| 182 | RTP-0013 | executor | ✔ | Catálogo: lista fechada de security definer por assinatura | Refatoração Lote-3 | TP-0017 | Aprovada |
+| 183 | RTP-0016 | executor | ✔ | testes-api: formatar com Prettier os arquivos de casos | Refatoração Lote-3 | TP-0016 | Aprovada |
+| 184 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Aprovada |
+| 185 | RTP-0017 | executor | ✔ | Seed de categorias: eliminar a lista duplicada de api.inicializar_membro() | Refatoração Lote-10 | TP-0052 | Aprovada |
+| 186 | RTP-0026 | executor | ✔ | FK de lancamento.categoria_id sem checar dono nem lar da categoria individual | Refatoração Lote-10 | TP-0051 | Aprovada |
+| 187 | RTP-0054 | executor | ✔ | Alinhar pode_excluir da categoria ...415 entre seed e categorias.json | Refatoração Lote-10 | TP-0053 | Não executada |
+| 188 | RTP-0018 | executor | ✔ | Caso testes-api de salvar_categoria: mesmaForma e leitura pela view | Refatoração Lote-11 | TP-0053, TP-0059 | Não executada |
+| 189 | RTP-0022 | executor | ✔ | Caso testes-api de salvar_forma: usar os ids do seed | Refatoração Lote-11 | TP-0056 | Aprovada |
+| 190 | RTP-0024 | executor | ✔ | Caso testes-api de definir_preferida: usar ids do seed | Refatoração Lote-11 | TP-0058 | Aprovada |
+| 191 | RTP-0028 | executor | ✔ | Casos testes-api de arquivar/excluir forma: usar os ids do seed | Refatoração Lote-11 | TP-0057 | Aprovada |
+| 192 | RTP-0029 | executor | ✔ | Casos testes-api de arquivar/excluir conta: usar os ids do seed | Refatoração Lote-11 | TP-0055 | Aprovada |
+| 193 | RTP-0021 | executor | ✔ | Meta conjunta: impedir que um membro a torne individual ou troque o dono | Refatoração Lote-30 | TP-0144 | Aprovada |
+| 194 | RTP-0027 | executor | ✔ | Teste de API movimentos-meta: B não pode receber id nem nome da conta de A | Refatoração Lote-30 | TP-0147 | Aprovada |
+| 195 | RTP-0038 | executor | ✔ | Formatar movimentos-meta.test.ts (prettier: espaço faltando em ALEATORIO) | Refatoração Lote-30 | RTP-0027 | Aprovada |
+| 196 | RTP-0023 | executor | ✔ | Caso testes-api de definir_orcamento: conferir efeito via orcamento_mes | Refatoração Lote-28 | TP-0136 | Aprovada |
+| 197 | RTP-0043 | executor | ✔ | Atualizar o pgTAP de resumo_mes que ainda espera orcamento nulo | Refatoração Lote-28 | TP-0139 | Aprovada |
+| 198 | RTP-0030 | executor | ✔ | Extrair a agregação por categoria comum a totais_conjunto e totais_individuais | Refatoração Lote-17 | TP-0086 | Aprovada |
+| 199 | RTP-0034 | executor | ✔ | Caso testes-api de resumo-mes: despesa de isolamento fica no seed compartilhado | Refatoração Lote-17 | TP-0087 | Aprovada |
+| 200 | RTP-0041 | executor | ✔ | Volume de 2 anos: rodar ANALYZE ao fim da carga para medir com estatísticas | Refatoração Lote-17 | TP-0088 | Aprovada |
+| 201 | RTP-0032 | executor | ✔ | Casos testes-api que criam metas poluem o seed compartilhado e deixam metas.test.ts dep... | Refatoração Lote 31 | TP-0150 | Aprovada |
+| 202 | RTP-0033 | executor | ✔ | Caso testes-api de ajustar_saldo: usar os ids do seed | Refatoração Lote-13 | TP-0066 | Aprovada |
+| 203 | RTP-0035 | executor | ✔ | Caso testes-api de editar-lancamento: limpar o que cria e provar o editor | Refatoração Lote-19 | TP-0099 | Aprovada |
+| 204 | RTP-0039 | executor | ✔ | Limitar o valor máximo de lançamento (editar e lançar) contra estouro de bigint | Refatoração Lote-19 | TP-0099 | Aprovada |
+| 205 | RTP-0036 | executor | ✔ | Caso testes-api de salvar-despesa-fixa: limpar o que cria e provar a edição | Refatoração Lote-25 | TP-0122 | Aprovada |
+| 206 | RTP-0040 | executor | ✔ | Caso testes-api de encerrar-despesa-fixa: apagar as fixas que cria | Refatoração Lote-25 | RTP-0036, TP-0123 | Aprovada |
+| 207 | RTP-0042 | executor | ✔ | Caso testes-api de ocorrencias-mes: corrigir erro de tipo (typecheck) | Refatoração Lote-25 | TP-0124 | Aprovada |
+| 208 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Aprovada |
+| 209 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Aprovada |
+| 210 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Aprovada |
+| 211 | RTP-0046 | executor | ✔ | Lançamento ligado a ocorrência de fixa: só o pagador altera ou exclui (RN-06, I-20) | Refatoração Lote-26 | TP-0126 | Aprovada |
+| 212 | RTP-0048 | executor | ✔ | pgTAP e Vitest de ocorrências: fixar app.hoje() ou datas relativas, para a janela de ±1... | Refatoração Lote-26 | RTP-0045 | Aprovada |
+| 213 | RTP-0049 | executor | ✔ | Vitest resumo-mes e ocorrencias-mes: derivar os meses do mês corrente, sem datas literais | Refatoração Lote-26 | RTP-0048 | Aprovada |
+| 214 | RTP-0051 | executor | ✔ | Vitest resumo-mes: derivar mesSemDado de api.contexto().hoje, não do relógio do Node | Refatoração Lote-26 | RTP-0049 | Aprovada |
+| 215 | RTP-0047 | executor | ✔ | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Refatoração Lote-31 | TP-0151 | Aprovada |
+| 216 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
+| 217 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
+| 218 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
+| 219 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 220 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
