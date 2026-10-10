@@ -341,3 +341,18 @@ TP-0125 aprovada em segurança (invoker/search_path/grants preservados, DEFINER 
 
 ## TP-0127 — DevSecOps — 2026-10-10
 TP-0127 aprovada na segurança (INVOKER, search_path vazio, escrita só no lar, anon sem execute, sem dado privado); achado baixo de escrita sem janela de meses aberto como RTP-0045.
+
+## RTP-0044 — DevSecOps — 2026-10-10
+RTP-0044 sem achados de segurança; limpeza de teste só em host local, SQL parametrizado, sem dependência nova.
+
+## RTP-0045 — DevSecOps — 2026-10-10
+RTP-0045 aprovada em segurança; janela ±12 meses fecha o abuso de escrita, função segue security invoker e sem acesso anon, sem achados novos (revisão do diff, sem execução de stack).
+
+## TP-0126 — DevSecOps — 2026-10-10
+TP-0126 aprovada em segurança (só o pagador, G-02/03/05 ok, invoker); contorno de RN-06/I-20 por editar/excluir_lancamento segue na RTP-0046, sem RTP nova.
+
+## TP-0128 — DevSecOps — 2026-10-10
+TP-0128 aprovada em segurança (revisão do diff: filtro por forma/RLS do pagador, invoker, search_path vazio, assinatura intacta); sem achados, sem RTP.
+
+## TP-0151 — DevSecOps — 2026-10-10
+TP-0151 aprovada em segurança (metas individuais isoladas por filtro explícito mais RLS, guardado_no_mes só do autor, funções invoker sem execute para anon); sem achado novo, RTP-0047 (manutenção) já aberta.

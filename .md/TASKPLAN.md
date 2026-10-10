@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 15:19
+Atualizado: 2026-10-10 15:20
 
-Resumo: Não executada 87 · Em execução 1 · Testada (aguarda segurança) 5 · Aprovada 115 · Bloqueada 6 · total 214
+Resumo: Não executada 87 · Em execução 1 · Aprovada 120 · Bloqueada 6 · total 214
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -143,9 +143,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 128 | TP-0123 | executor | ✔ | api.encerrar_despesa_fixa [BD] | Lote 25 | TP-0119, TP-0120 | Aprovada |
 | 129 | TP-0124 | executor | ✔ | api.ocorrencias_mes(mes) [BD] | Lote 25 | TP-0120 | Aprovada |
 | 130 | TP-0125 | executor | ✔ | api.pagar_ocorrencia [BD] | Lote 26 | TP-0051, TP-0124 | Aprovada |
-| 131 | TP-0126 | executor | ✔ | api.desfazer_pagamento [BD] | Lote 26 | TP-0125 | Testada (aguarda segurança) |
+| 131 | TP-0126 | executor | ✔ | api.desfazer_pagamento [BD] | Lote 26 | TP-0125 | Aprovada |
 | 132 | TP-0127 | executor | ✔ | resumo_mes: seção de fixas [BD] | Lote 26 | TP-0087, TP-0124 | Aprovada |
-| 133 | TP-0128 | executor | ✔ | app.gasto_cartao: fixa paga no crédito [BD] | Lote 26 | TP-0067, TP-0125 | Testada (aguarda segurança) |
+| 133 | TP-0128 | executor | ✔ | app.gasto_cartao: fixa paga no crédito [BD] | Lote 26 | TP-0067, TP-0125 | Aprovada |
 | 134 | TP-0129 | executor | ✔ | Dados das fixas | Lote 27 | TP-0025, TP-0121, TP-0122, TP-0123, TP-0124, TP-0125, TP-0126 | Não executada |
 | 135 | TP-0130 | executor | ✔ | T06 Despesas fixas do mês | Lote 27 | TP-0037, TP-0040, TP-0041, TP-0042, TP-0129 | Não executada |
 | 136 | TP-0131 | executor | ✔ | T07 Modelo de despesa fixa | Lote 27 | TP-0034, TP-0035, TP-0037, TP-0129 | Não executada |
@@ -169,7 +169,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 154 | TP-0148 | executor | ✔ | api.locais_guardados() [BD] | Lote 30 | TP-0144 | Aprovada |
 | 155 | TP-0149 | executor | ✔ | api.salvar_meta [BD] | Lote 31 | TP-0144 | Aprovada |
 | 156 | TP-0150 | executor | ✔ | api.movimentar_meta [BD] | Lote 31 | TP-0144, TP-0145 | Aprovada |
-| 157 | TP-0151 | executor | ✔ | resumo_mes: seção de metas e guardado no mês [BD] | Lote 31 | TP-0087, TP-0145 | Testada (aguarda segurança) |
+| 157 | TP-0151 | executor | ✔ | resumo_mes: seção de metas e guardado no mês [BD] | Lote 31 | TP-0087, TP-0145 | Aprovada |
 | 158 | TP-0152 | executor | ✔ | Dados das metas | Lote 32 | TP-0025, TP-0146, TP-0147, TP-0148, TP-0149, TP-0150 | Não executada |
 | 159 | TP-0153 | executor | ✔ | T10 Metas | Lote 32 | TP-0040, TP-0044, TP-0152 | Não executada |
 | 160 | TP-0154 | executor | ✔ | T11 Detalhe da meta | Lote 32 | TP-0040, TP-0044, TP-0152 | Não executada |
@@ -220,8 +220,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 205 | RTP-0040 | executor | ✔ | Caso testes-api de encerrar-despesa-fixa: apagar as fixas que cria | Refatoração Lote-25 | RTP-0036, TP-0123 | Aprovada |
 | 206 | RTP-0042 | executor | ✔ | Caso testes-api de ocorrencias-mes: corrigir erro de tipo (typecheck) | Refatoração Lote-25 | TP-0124 | Aprovada |
 | 207 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Aprovada |
-| 208 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Testada (aguarda segurança) |
-| 209 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Testada (aguarda segurança) |
+| 208 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Aprovada |
+| 209 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Aprovada |
 | 210 | RTP-0046 | executor | ✔ | Lançamento ligado a ocorrência de fixa: só o pagador altera ou exclui (RN-06, I-20) | Refatoração Lote-26 | TP-0126 | Não executada |
 | 211 | RTP-0048 | executor | ✔ | pgTAP e Vitest de ocorrências: fixar app.hoje() ou datas relativas, para a janela de ±1... | Refatoração Lote-26 | RTP-0045 | Não executada |
 | 212 | RTP-0047 | executor | ✔ | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Refatoração Lote-31 | TP-0151 | Não executada |
