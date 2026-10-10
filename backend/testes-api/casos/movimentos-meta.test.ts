@@ -9,7 +9,9 @@ const COMPARTILHADA = '00000000-0000-4000-8000-000000000902';
 const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000903';
 const SEM_MOVIMENTOS = '00000000-0000-4000-8000-000000000905';
 const INDIVIDUAL_DE_ANA = '00000000-0000-4000-8000-000000000911';
-const ALEATORIO = '0f0f0f0f-0000-4000-8000-000000000000';
+const CONTA_NUBANK_DE_A = '00000000-0000-4000-8000-000000000201';
+const CONTA_ITAU_DE_A = '00000000-0000-4000-8000-000000000202';
+const ALEATORIO ='0f0f0f0f-0000-4000-8000-000000000000';
 
 interface Linha {
   id: string;
@@ -45,8 +47,11 @@ describe('api.movimentos_meta', () => {
       expect(l.autor.sou_eu).toBe(l.autor.nome === 'Ana');
       if (l.autor.nome === 'Leandro') expect(l).not.toHaveProperty('conta');
     }
-    expect(JSON.stringify(data)).not.toContain('Nubank"}');
-    expect(JSON.stringify(data)).not.toContain('"conta":{"nome":"Nubank"');
+    // "local" é texto livre do movimento ("Caixinha Nubank") e é legítimo; some só ele da busca.
+    const semLocal = JSON.stringify(data, (chave, valor: unknown) => (chave === 'local' ? undefined : valor));
+    for (const alheio of ['Nubank', 'Itaú', CONTA_NUBANK_DE_A, CONTA_ITAU_DE_A]) {
+      expect(semLocal).not.toContain(alheio);
+    }
   });
 
   it('meta sem movimentos devolve lista vazia', async () => {
