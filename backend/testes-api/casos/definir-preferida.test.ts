@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
-const PIX_NUBANK = 'e1000000-0000-4000-8000-000000000301';
-const OUTRA_FORMA = 'e1000000-0000-4000-8000-000000000302';
+const PIX_NUBANK = '00000000-0000-4000-8000-000000000301';
+const OUTRA_FORMA = '00000000-0000-4000-8000-000000000302';
 
 describe('api.definir_preferida', () => {
   it('A troca a preferida e volta para a original', async () => {

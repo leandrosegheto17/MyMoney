@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
-const CONTA_DE_A = 'e1000000-0000-4000-8000-000000000201';
-const FORMA_DE_A = 'e1000000-0000-4000-8000-000000000303';
+const CONTA_DE_A = '00000000-0000-4000-8000-000000000201';
+const FORMA_DE_A = '00000000-0000-4000-8000-000000000303';
 
 describe('api.salvar_forma', () => {
   it('A cria Pix com conta e Crédito sem conta', async () => {
