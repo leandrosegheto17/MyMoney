@@ -7,7 +7,7 @@ dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuá
 
 Atualizado: 2026-10-10 15:47
 
-Resumo: Não executada 82 · Em execução 1 · Testada (aguarda segurança) 1 · Aprovada 128 · Bloqueada 6 · total 218
+Resumo: Não executada 82 · Em execução 1 · Aprovada 129 · Bloqueada 6 · total 218
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -190,7 +190,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 175 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Aprovada |
 | 176 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Aprovada |
 | 177 | RTP-0050 | executor | ✔ | Remover view api.categorias inexistente de tipos-api.ts e checar aderência do tipo ao s... | Refatoração Lote-4 | RTP-0031 | Aprovada |
-| 178 | RTP-0052 | executor | ✔ | Tirar ID de tarefa do comentário de categorias-pendente.ts | Refatoração Lote-4 | RTP-0050 | Testada (aguarda segurança) |
+| 178 | RTP-0052 | executor | ✔ | Tirar ID de tarefa do comentário de categorias-pendente.ts | Refatoração Lote-4 | RTP-0050 | Aprovada |
 | 179 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 180 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
 | 181 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |

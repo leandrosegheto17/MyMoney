@@ -380,3 +380,6 @@ RTP-0050 aprovada na segurança: verificação só lê o catálogo, com trava de
 
 ## RTP-0051 — DevSecOps — 2026-10-10
 RTP-0051 aprovada em segurança; só o arquivo de teste mudou, sem dependência/segredo novo e com o caso na sessão do usuário (sem service_role).
+
+## RTP-0052 — DevSecOps — 2026-10-10
+RTP-0052 aprovada em segurança; só um comentário mudou, sem dependência, segredo, migration ou grant novos.
