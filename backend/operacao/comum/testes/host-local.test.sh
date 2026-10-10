@@ -2,6 +2,7 @@
 # Testes da trava de host (comum/host-local.sh): só localhost, 127.0.0.1 e ::1 passam,
 # inclusive contra URLs que tentam esconder o host real na senha, na query ou no formato.
 # Uso: bash backend/operacao/comum/testes/host-local.test.sh
+# shellcheck source-path=SCRIPTDIR
 set -u
 
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
