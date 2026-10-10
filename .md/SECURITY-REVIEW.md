@@ -323,3 +323,21 @@ TP-0124 OK na segurança: sem leitura de pagamento privado, invoker, search_path
 
 ## TP-0139 — DevSecOps — 2026-10-10
 TP-0139 OK em segurança (isolamento individual por dono_id explícito, invoker/search_path vazio, anon sem execute, só aditivo); sem achado novo, RTP-0043 (teste TP-0087) segue aberta.
+
+## RTP-0040 — DevSecOps — 2026-10-10
+RTP-0040 aprovada na segurança — diff só de teste, limpeza reaproveita apagarFixas (host local garantido, SQL parametrizado), sem achados.
+
+## RTP-0041 — DevSecOps — 2026-10-10
+RTP-0041 aprovada em segurança: apenas `analyze` e uma linha de README, sem impacto em dado, privilégio ou dependência; nenhum achado.
+
+## RTP-0042 — DevSecOps — 2026-10-10
+RTP-0042 aprovada em segurança: diff só de tipo em teste, sem mudança de superfície, sem segredo nem dependência nova e isolamento entre usuários preservado.
+
+## RTP-0043 — DevSecOps — 2026-10-10
+RTP-0043 aprovada em segurança: diff só de asserções de teste, sem segredo, dependência ou dado pessoal; sem achados.
+
+## TP-0125 — DevSecOps — 2026-10-10
+TP-0125 aprovada em segurança (invoker/search_path/grants preservados, DEFINER intacta, forma_do_membro sem vazamento, resposta sem campos privados); nenhum achado novo.
+
+## TP-0127 — DevSecOps — 2026-10-10
+TP-0127 aprovada na segurança (INVOKER, search_path vazio, escrita só no lar, anon sem execute, sem dado privado); achado baixo de escrita sem janela de meses aberto como RTP-0045.
