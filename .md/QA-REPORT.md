@@ -599,3 +599,9 @@ APROVADA — 10/10 testes e prettier limpos, literais substituídos pelas consta
 
 ## RTP-0090 — QA — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; vitest 37/37, prettier e tsc OK, reformatação de sessao.test.ts sem mudança de comportamento.
+
+## TP-0090 — QA — 2026-10-10
+DEVOLVIDA — 1 crítico (barra de MetaCompacta invisível: span sem display:block), 2 não críticos (RTP-0091 ordem barra/valores, RTP-0092 ícone do LinkMais); vitest 19/19, tsc e eslint OK, axe da vitrine sem violações.
+
+## TP-0160 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; vitest sessao 39/39, tsc e eslint limpos; revoga no servidor antes de remover a sessão local, rede/5xx preservam sessão e cache, 401/403/404 limpam, sem service_role.
