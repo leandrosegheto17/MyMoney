@@ -54,7 +54,7 @@ select is_empty(
        and not (
          -- app.*: por assinatura (um overload com argumentos não passa)
          p.oid::regprocedure::text in ('app.membro_atual()', 'app.lar_atual()')
-         -- api.editar_lancamento: por nome até o Lote 19 definir a assinatura; ao nascer, fixar aqui
+         -- api.editar_lancamento: por nome enquanto a função não existe; ao criá-la, fixar a assinatura aqui
          or n.nspname || '.' || p.proname = 'api.editar_lancamento'
        )
      order by 1 $$,
