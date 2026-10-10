@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Despesas fixas · Outubro de 2026 · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-esq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-dir" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+</svg>
+
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <div class="conteudo conteudo-estreito">
+    <header class="cabecalho cabecalho-pagina">
+      <a class="icone-botao" href="inicio--sucesso.html" aria-label="Voltar para Início"><svg class="icone" aria-hidden="true"><use href="#i-esq"/></svg></a>
+      <h1 class="titulo-pagina">Despesas fixas</h1>
+      <span></span>
+    </header>
+
+    <main>
+      <div class="seletor-mes">
+        <button class="icone-botao" type="button" aria-label="Mês anterior: setembro de 2026"><svg class="icone" aria-hidden="true"><use href="#i-esq"/></svg></button>
+        <span class="mes-atual">Outubro de 2026</span>
+        <button class="icone-botao" type="button" aria-label="Próximo mês: novembro de 2026"><svg class="icone" aria-hidden="true"><use href="#i-dir"/></svg></button>
+      </div>
+
+      <section class="cartao" aria-labelledby="t-ocorrencias">
+        <h2 class="cartao-titulo" id="t-ocorrencias" style="color:var(--cor-texto)">Pagas: 4 de 7 <span class="item-sub">Previsto a pagar <span class="valor">R$ 1.540,00</span></span></h2>
+        <ul class="lista">
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Internet</span><span class="item-sub">Contas da casa · venceu 05/10</span></div>
+            <span class="valor">R$ 119,90</span>
+            <span><span class="selo selo-atrasada"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Atrasada</span></span>
+            <a class="botao botao-secundario" href="pagar-fixa--sucesso.html" aria-label="Marcar como paga: Internet">Marcar como paga</a>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Aluguel</span><span class="item-sub">Moradia · vence 10/10</span></div>
+            <span class="valor">R$ 1.200,00</span>
+            <span><span class="selo selo-pendente"><svg class="icone" aria-hidden="true"><use href="#i-relogio"/></svg>Pendente</span></span>
+            <a class="botao botao-secundario" href="pagar-fixa--sucesso.html" aria-label="Marcar como paga: Aluguel">Marcar como paga</a>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Condomínio</span><span class="item-sub">Moradia · vence 15/10</span></div>
+            <span class="valor">R$ 220,10</span>
+            <span><span class="selo selo-pendente"><svg class="icone" aria-hidden="true"><use href="#i-relogio"/></svg>Pendente</span></span>
+            <a class="botao botao-secundario" href="pagar-fixa--sucesso.html" aria-label="Marcar como paga: Condomínio">Marcar como paga</a>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Luz</span><span class="item-sub">Contas da casa · vence 08/10</span></div>
+            <span class="valor">R$ 187,40</span>
+            <span><span class="selo selo-paga"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Paga por Ana</span></span>
+            <span></span>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Água</span><span class="item-sub">Contas da casa · vence 07/10</span></div>
+            <span class="valor">R$ 95,10</span>
+            <span><span class="selo selo-paga"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Paga por você</span></span>
+            <button class="botao botao-texto" type="button" aria-label="Desfazer pagamento: Água">Desfazer pagamento</button>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Gás</span><span class="item-sub">Contas da casa · vence 06/10</span></div>
+            <span class="valor">R$ 50,00</span>
+            <span><span class="selo selo-paga"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Paga por Ana</span></span>
+            <span></span>
+          </li>
+          <li class="item-fixa">
+            <div class="item-info"><span class="item-titulo">Diarista</span><span class="item-sub">Outros da casa · vence 04/10</span></div>
+            <span class="valor">R$ 100,00</span>
+            <span><span class="selo selo-paga"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Paga por Ana</span></span>
+            <span></span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="menu-grupo" aria-labelledby="t-modelos">
+        <h2 id="t-modelos">Modelos</h2>
+        <ul class="lista menu-lista">
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Aluguel</span><span class="item-sub">Moradia · dia 10</span></span><span class="valor">R$ 1.200,00</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Condomínio</span><span class="item-sub">Moradia · dia 15</span></span><span class="valor">R$ 220,10</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Luz</span><span class="item-sub">Contas da casa · dia 8</span></span><span class="valor">R$ 180,00</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Internet</span><span class="item-sub">Contas da casa · dia 5</span></span><span class="valor">R$ 119,90</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Diarista</span><span class="item-sub">Outros da casa · dia 4</span></span><span class="valor">R$ 100,00</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Água</span><span class="item-sub">Contas da casa · dia 7</span></span><span class="valor">R$ 90,00</span></a></li>
+          <li><a class="item-link" href="fixa--sucesso.html"><span class="item-info"><span class="item-titulo">Gás</span><span class="item-sub">Contas da casa · dia 6</span></span><span class="valor">R$ 50,00</span></a></li>
+        </ul>
+        <a class="botao botao-secundario" href="fixa--sucesso.html" style="margin-top:var(--espaco-3)"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Nova despesa fixa</a>
+      </section>
+    </main>
+  </div>
+
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

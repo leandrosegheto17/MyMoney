@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Metas · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-pessoa" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+</svg>
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+  <div class="conteudo">
+    <header class="cabecalho">
+      <h1 class="titulo-pagina">Metas</h1>
+      <div class="cabecalho-acoes"><a class="botao botao-secundario" href="meta-form--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Nova meta</a></div>
+    </header>
+    <main>
+      <section class="bloco bloco-casa" aria-labelledby="t-casa">
+        <h2 class="bloco-titulo" id="t-casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Da casa</h2>
+        <div class="grade grade-2">
+          <a class="cartao meta-link" href="meta--sucesso.html">
+            <span class="orc-topo"><span class="item-titulo">Reserva de emergência</span><span class="valor">62%</span></span>
+            <span class="barra barra-casa" role="progressbar" aria-label="Reserva de emergência" aria-valuenow="62" aria-valuemin="0" aria-valuemax="100" style="display:block"><span style="--p:62%"></span></span>
+            <span class="orc-topo item-sub" style="margin-top:var(--espaco-2)"><span class="valor">Guardado R$ 18.500,00 de R$ 30.000,00</span></span>
+            <span class="valor" style="display:block;margin-top:var(--espaco-1)">Faltam R$ 11.500,00</span>
+            <span class="item-sub">Sem prazo</span>
+          </a>
+          <a class="cartao meta-link" href="meta--sucesso.html">
+            <span class="orc-topo"><span class="item-titulo">Viagem Nordeste</span><span class="valor">52%</span></span>
+            <span class="barra barra-casa" role="progressbar" aria-label="Viagem Nordeste" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100" style="display:block"><span style="--p:52%"></span></span>
+            <span class="orc-topo item-sub" style="margin-top:var(--espaco-2)"><span class="valor">Guardado R$ 6.200,00 de R$ 12.000,00</span></span>
+            <span class="valor" style="display:block;margin-top:var(--espaco-1)">Faltam R$ 5.800,00</span>
+            <span class="item-sub">Até jul/2027 · R$ 644,45 por mês</span>
+          </a>
+        </div>
+      </section>
+      <section class="bloco bloco-eu" aria-labelledby="t-eu">
+        <h2 class="bloco-titulo" id="t-eu"><svg class="icone" aria-hidden="true"><use href="#i-pessoa"/></svg>Minhas</h2>
+        <div class="grade grade-2">
+          <a class="cartao meta-link" href="meta--sucesso.html">
+            <span class="orc-topo"><span class="item-titulo">Notebook novo</span><span class="valor">40%</span></span>
+            <span class="barra barra-eu" role="progressbar" aria-label="Notebook novo" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="display:block"><span style="--p:40%"></span></span>
+            <span class="orc-topo item-sub" style="margin-top:var(--espaco-2)"><span class="valor">Guardado R$ 2.400,00 de R$ 6.000,00</span></span>
+            <span class="valor" style="display:block;margin-top:var(--espaco-1)">Faltam R$ 3.600,00</span>
+            <span class="item-sub">Sem prazo</span>
+          </a>
+          <a class="cartao meta-link" href="meta--sucesso.html">
+            <span class="orc-topo"><span class="item-titulo">Curso de inglês</span><span class="selo selo-dentro"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Atingida</span></span>
+            <span class="barra barra-dentro" role="progressbar" aria-label="Curso de inglês" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="display:block"><span style="--p:100%"></span></span>
+            <span class="orc-topo item-sub" style="margin-top:var(--espaco-2)"><span class="valor">Guardado R$ 1.800,00 de R$ 1.800,00</span></span>
+            <span class="valor" style="display:block;margin-top:var(--espaco-1)">Faltam R$ 0,00</span>
+            <span class="item-sub">100%</span>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

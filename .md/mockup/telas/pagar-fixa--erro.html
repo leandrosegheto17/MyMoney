@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR" class="com-folha">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Marcar como paga: Internet · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<!-- Padrão de erro de escrita fora do Lançar (ADR-007): avisa e mantém os dados.
+     Vale igual para T13 (sem rede), T21, T07, T12, T16, T18, T20, T09 e edição em T05. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-baixo" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-offline" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M8.5 8.6A6 6 0 0 0 6 9a4.5 4.5 0 0 0 1 9h10"/><path d="M12.2 6.2A6 6 0 0 1 17.5 10a4 4 0 0 1 2.4 6.6"/></symbol>
+</svg>
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+  <div class="conteudo" aria-hidden="true"></div>
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+<div class="veu" aria-hidden="true"></div>
+<section class="folha" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+  <div class="folha-alca" aria-hidden="true"></div>
+  <div class="folha-topo">
+    <h2 id="folha-titulo">Marcar como paga</h2>
+    <a class="icone-botao" href="fixas--sucesso.html" aria-label="Fechar"><svg class="icone" aria-hidden="true"><use href="#i-fechar"/></svg></a>
+  </div>
+  <form class="folha-corpo" id="form-pagar">
+    <p class="aviso-erro-topo" role="alert"><svg class="icone" aria-hidden="true"><use href="#i-offline"/></svg>Sem conexão. O pagamento não foi registrado. Seus dados continuam aqui: tente de novo quando a rede voltar.</p>
+    <p class="item-sub"><span class="item-titulo" style="color:var(--cor-texto)">Internet</span>· Contas da casa · venceu 05/10</p>
+    <div class="campo">
+      <span class="rotulo" id="forma-rotulo">Forma de pagamento</span>
+      <button type="button" class="botao-forma" aria-labelledby="forma-rotulo forma-atual" aria-haspopup="listbox"><span id="forma-atual">Débito Itaú <span class="tipo">· Débito</span></span><svg class="icone" aria-hidden="true"><use href="#i-baixo"/></svg></button>
+    </div>
+    <div class="campo campo-valor"><label for="valor">Valor pago</label><input id="valor" class="entrada" inputmode="numeric" value="R$ 124,90"><p class="campo-ajuda">Previsto: R$ 119,90</p></div>
+    <div class="campo"><label for="data">Data do pagamento</label><input id="data" class="entrada" type="date" value="2026-10-09"></div>
+  </form>
+  <div class="folha-rodape"><button class="botao botao-principal" type="submit" form="form-pagar">Tentar de novo</button></div>
+</section>
+</body>
+</html>

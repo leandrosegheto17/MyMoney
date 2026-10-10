@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Redefinir senha · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+</svg>
+<main class="tela-entrar">
+  <form class="cartao cartao-entrar" aria-labelledby="titulo">
+    <p class="logo"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>MyMoney</p>
+    <h1 id="titulo" class="titulo-pagina">Nova senha</h1>
+    <div class="campo">
+      <label for="senha">Nova senha</label>
+      <input id="senha" class="entrada" type="password" autocomplete="new-password" value="••••••••" aria-invalid="true" aria-describedby="senha-erro">
+      <p class="campo-erro" id="senha-erro"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Use pelo menos 12 caracteres.</p>
+    </div>
+    <div class="campo">
+      <label for="confirma">Repita a nova senha</label>
+      <input id="confirma" class="entrada" type="password" autocomplete="new-password" value="•••••••••" aria-invalid="true" aria-describedby="confirma-erro">
+      <p class="campo-erro" id="confirma-erro"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>As senhas não conferem.</p>
+    </div>
+    <button class="botao botao-principal botao-bloco" type="submit">Salvar senha</button>
+    <a class="link-mais" href="entrar--sucesso.html" style="justify-self:center">Voltar para Entrar</a>
+  </form>
+</main>
+</body>
+</html>

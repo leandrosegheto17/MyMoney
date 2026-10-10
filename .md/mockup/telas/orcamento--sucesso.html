@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Orçamento da casa · Outubro de 2026 · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-envio" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 9a4.5 4.5 0 0 0 1 9z"/><path d="M12 16v-5M9.5 13.5 12 11l2.5 2.5"/></symbol>
+  <symbol id="i-esq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-dir" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-aviso" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+</svg>
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+  <div class="conteudo">
+    <header class="cabecalho">
+      <div class="seletor-mes">
+        <button class="icone-botao" type="button" aria-label="Mês anterior: setembro de 2026"><svg class="icone" aria-hidden="true"><use href="#i-esq"/></svg></button>
+        <h1 class="mes-atual"><span class="visualmente-oculto">Orçamento de </span>Outubro de 2026</h1>
+        <button class="icone-botao" type="button" aria-label="Próximo mês: novembro de 2026"><svg class="icone" aria-hidden="true"><use href="#i-dir"/></svg></button>
+      </div>
+      <div class="cabecalho-acoes">
+        <a class="icone-botao" href="envios--sucesso.html" aria-label="Envios pendentes: 1"><svg class="icone" aria-hidden="true"><use href="#i-envio"/></svg><span class="contador" aria-hidden="true">1</span></a>
+        <a class="icone-botao" href="ajustes--sucesso.html" aria-label="Ajustes"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg></a>
+      </div>
+    </header>
+    <main>
+      <fieldset class="segmentado" style="margin:0 0 var(--espaco-3);padding:0">
+        <legend class="visualmente-oculto">Escopo do orçamento</legend>
+        <label><input type="radio" name="escopo" value="casa" checked>Casa</label>
+        <label><input type="radio" name="escopo" value="eu">Eu</label>
+      </fieldset>
+
+      <div class="grade grade-2">
+        <section class="cartao cartao-total" aria-labelledby="t-total" style="border-top:var(--borda-destaque-cartao) solid var(--cor-casa)">
+          <h2 class="cartao-titulo" id="t-total" style="color:var(--cor-texto)">Orçamento da casa <span class="selo selo-dentro"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Dentro</span></h2>
+          <div class="orc-topo"><span class="valor">R$ 2.418,70 de R$ 4.300,00</span><span class="valor">56%</span></div>
+          <div class="barra barra-dentro" role="progressbar" aria-label="Orçamento da casa" aria-valuenow="56" aria-valuemin="0" aria-valuemax="100"><span style="--p:56%"></span></div>
+          <dl class="linhas">
+            <div><dt>Resultado da casa <span class="rotulo-parcial">parcial</span></dt><dd class="valor">R$ 1.881,30</dd></div>
+          </dl>
+        </section>
+
+        <section class="cartao" aria-labelledby="t-cats">
+          <h2 class="cartao-titulo" id="t-cats">Por categoria</h2>
+          <div class="orc-linha" style="border-top:0"><a class="orc-linha-link" href="orcamento-valor--sucesso.html" aria-label="Editar orçamento de Contas da casa: R$ 332,50 de R$ 300,00, 111%, estourado">
+            <span class="orc-topo"><span class="item-titulo">Contas da casa</span><span class="selo selo-estourado"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Estourado</span></span>
+            <span class="orc-topo item-sub"><span class="valor">R$ 332,50 de R$ 300,00</span><span class="valor">111%</span></span>
+            <span class="barra barra-estourado" style="display:block"><span style="--p:100%"></span></span></a></div>
+          <div class="orc-linha"><a class="orc-linha-link" href="orcamento-valor--sucesso.html" aria-label="Editar orçamento de Delivery/iFood do casal: R$ 368,00 de R$ 400,00, 92%, atenção">
+            <span class="orc-topo"><span class="item-titulo">Delivery/iFood do casal</span><span class="selo selo-atencao"><svg class="icone" aria-hidden="true"><use href="#i-aviso"/></svg>Atenção</span></span>
+            <span class="orc-topo item-sub"><span class="valor">R$ 368,00 de R$ 400,00</span><span class="valor">92%</span></span>
+            <span class="barra barra-atencao" style="display:block"><span style="--p:92%"></span></span></a></div>
+          <div class="orc-linha"><a class="orc-linha-link" href="orcamento-valor--sucesso.html" aria-label="Editar orçamento de Mercado: R$ 768,20 de R$ 1.000,00, 77%, dentro">
+            <span class="orc-topo"><span class="item-titulo">Mercado</span><span class="selo selo-dentro"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Dentro</span></span>
+            <span class="orc-topo item-sub"><span class="valor">R$ 768,20 de R$ 1.000,00</span><span class="valor">77%</span></span>
+            <span class="barra barra-dentro" style="display:block"><span style="--p:77%"></span></span></a></div>
+          <div class="orc-linha"><a class="orc-linha-link" href="orcamento-valor--sucesso.html" aria-label="Editar orçamento de Outros da casa: R$ 100,00 de R$ 200,00, 50%, dentro">
+            <span class="orc-topo"><span class="item-titulo">Outros da casa</span><span class="selo selo-dentro"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Dentro</span></span>
+            <span class="orc-topo item-sub"><span class="valor">R$ 100,00 de R$ 200,00</span><span class="valor">50%</span></span>
+            <span class="barra barra-dentro" style="display:block"><span style="--p:50%"></span></span></a></div>
+          <div class="orc-linha"><a class="orc-linha-link" href="orcamento-valor--sucesso.html" aria-label="Editar orçamento de Moradia: R$ 850,00 de R$ 2.400,00, 35%, dentro">
+            <span class="orc-topo"><span class="item-titulo">Moradia</span><span class="selo selo-dentro"><svg class="icone" aria-hidden="true"><use href="#i-ok"/></svg>Dentro</span></span>
+            <span class="orc-topo item-sub"><span class="valor">R$ 850,00 de R$ 2.400,00</span><span class="valor">35%</span></span>
+            <span class="barra barra-dentro" style="display:block"><span style="--p:35%"></span></span></a></div>
+        </section>
+      </div>
+      <p class="estado-linha">Todas as categorias de despesa da casa têm orçamento em outubro.</p>
+    </main>
+  </div>
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

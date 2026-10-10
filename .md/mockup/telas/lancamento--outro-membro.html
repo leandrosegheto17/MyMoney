@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Geladeira nova (2/3) · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<!-- Visão da Ana (não pagou) sobre a despesa conjunta paga por Leandro: forma, conta, data da compra
+     e edição de parcelas NÃO existem na interface (RN-04, RN-06, UX-SPEC R-UX-05). -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-esq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-lixo" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-aviso" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></symbol>
+</svg>
+
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+
+  <div class="conteudo conteudo-estreito">
+    <header class="cabecalho cabecalho-pagina">
+      <a class="icone-botao" href="lancamentos--sucesso.html" aria-label="Voltar para Lançamentos"><svg class="icone" aria-hidden="true"><use href="#i-esq"/></svg></a>
+      <h1 class="titulo-pagina">Lançamento</h1>
+      <span></span>
+    </header>
+
+    <main>
+      <section class="cartao resumo-detalhe" aria-label="Resumo">
+        <p class="item-titulo">Geladeira nova (2/3)</p>
+        <div class="linha-destaque"><p class="valor-destaque">R$ 650,00</p><span class="rotulo-parcial">parcela 2 de 3</span></div>
+        <p class="item-sub"><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Casa</span>· Moradia · Pago por Leandro</p>
+        <p class="item-sub">Alterado por último por você em 02/10</p>
+      </section>
+
+      <form class="formulario">
+        <div class="campo campo-valor"><label for="valor-total">Valor total da compra</label><input id="valor-total" class="entrada" inputmode="numeric" value="R$ 1.950,00"></div>
+        <div class="campo"><label for="categoria">Categoria</label>
+          <select id="categoria" class="entrada"><option selected>Moradia · Casa</option><option>Mercado · Casa</option><option>Delivery/iFood do casal · Casa</option><option>Contas da casa · Casa</option><option>Outros da casa · Casa</option></select>
+        </div>
+        <div class="campo"><label for="descricao">Descrição</label><input id="descricao" class="entrada" type="text" value="Geladeira nova"></div>
+        <p class="nota"><svg class="icone" aria-hidden="true" style="vertical-align:-0.25em"><use href="#i-aviso"/></svg> Forma de pagamento e parcelas: só quem pagou pode alterar.</p>
+
+        <section class="cartao" aria-labelledby="t-parcelas">
+          <h2 class="cartao-titulo" id="t-parcelas">Parcelas</h2>
+          <ul class="lista parcelas">
+            <li><span class="valor texto-2">1/3</span><span class="valor">10/09/2026</span><span class="valor">R$ 650,00</span></li>
+            <li><span class="valor texto-2">2/3</span><span class="valor">10/10/2026</span><span class="valor">R$ 650,00</span></li>
+            <li><span class="valor texto-2">3/3</span><span class="valor">17/11/2026</span><span class="valor">R$ 650,00</span></li>
+          </ul>
+        </section>
+
+        <div class="acoes-formulario">
+          <button class="botao botao-principal" type="submit">Salvar alterações</button>
+          <a class="botao botao-perigo" href="lancamento--excluir.html"><svg class="icone" aria-hidden="true"><use href="#i-lixo"/></svg>Excluir</a>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

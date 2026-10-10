@@ -1,0 +1,443 @@
+<title>Mockup do MyMoney</title>
+<style>
+  :root {
+    --g-fundo: #F2F4F7;
+    --g-superficie: #FFFFFF;
+    --g-texto: #1C2430;
+    --g-texto-2: #475467;
+    --g-borda: #D0D5DD;
+    --g-link: #1D4F91;
+    --g-destaque-fundo: #FFF4D6;
+    --g-destaque-texto: #6B4A00;
+    --g-ok: #1E7A3C;
+    --g-foco: #1D4F91;
+    --g-moldura: #98A2B3;
+    --g-moldura-fundo: #10141A;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --g-fundo: #0B0E12;
+      --g-superficie: #161B22;
+      --g-texto: #E8ECF1;
+      --g-texto-2: #A3ADBA;
+      --g-borda: #2E3744;
+      --g-link: #5CC8E8;
+      --g-destaque-fundo: #33270A;
+      --g-destaque-texto: #FBBF24;
+      --g-ok: #4ADE80;
+      --g-foco: #5CC8E8;
+      --g-moldura: #6B7685;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --g-fundo: #0B0E12;
+    --g-superficie: #161B22;
+    --g-texto: #E8ECF1;
+    --g-texto-2: #A3ADBA;
+    --g-borda: #2E3744;
+    --g-link: #5CC8E8;
+    --g-destaque-fundo: #33270A;
+    --g-destaque-texto: #FBBF24;
+    --g-ok: #4ADE80;
+    --g-foco: #5CC8E8;
+    --g-moldura: #6B7685;
+    color-scheme: dark;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--g-fundo); color: var(--g-texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5; }
+  a { color: var(--g-link); }
+  :focus-visible { outline: 3px solid var(--g-foco); outline-offset: 2px; }
+  .g-pagina { max-width: 1560px; margin: 0 auto; padding: 24px 16px 48px; }
+  @media (min-width: 900px) { .g-pagina { padding: 32px 32px 64px; } }
+  h1 { font-size: 26px; margin: 0 0 8px; }
+  h2 { font-size: 20px; margin: 32px 0 8px; }
+  h3 { font-size: 17px; margin: 0; }
+  p { margin: 0 0 8px; max-width: 980px; }
+  .g-texto-2 { color: var(--g-texto-2); }
+  .g-caixa { background: var(--g-superficie); border: 1px solid var(--g-borda); border-radius: 12px; padding: 16px; margin-top: 16px; }
+  .g-destaque { background: var(--g-destaque-fundo); color: var(--g-destaque-texto); border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
+  .g-indice { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 12px 0 0; list-style: none; }
+  .g-indice a { display: inline-block; padding: 6px 12px; border: 1px solid var(--g-borda); border-radius: 999px; background: var(--g-superficie); text-decoration: none; min-height: 32px; }
+  .g-tela { background: var(--g-superficie); border: 1px solid var(--g-borda); border-radius: 12px; padding: 16px; margin-top: 20px; }
+  .g-req { font-size: 14px; color: var(--g-texto-2); margin: 4px 0 12px; }
+  .g-estado { border-top: 1px solid var(--g-borda); padding-top: 12px; margin-top: 12px; }
+  .g-estado-topo { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; margin-bottom: 8px; font-size: 14px; }
+  .g-estado-topo strong { font-size: 15px; }
+  .g-selo { display: inline-block; padding: 0 8px; border-radius: 999px; border: 1px solid var(--g-borda); font-size: 12px; }
+  .g-quadros { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+  .g-rolagem { max-width: 100%; overflow-x: auto; }
+  .g-moldura { position: relative; overflow: hidden; border: 1px solid var(--g-moldura); border-radius: 10px; background: var(--g-moldura-fundo); }
+  .g-moldura iframe { border: 0; display: block; transform-origin: 0 0; }
+  .g-celular { width: 196px; height: 423px; }
+  .g-celular iframe { width: 390px; height: 844px; transform: scale(0.5); }
+  .g-pc { width: 577px; height: 361px; }
+  .g-pc iframe { width: 1440px; height: 900px; transform: scale(0.4); }
+  .g-legenda { font-size: 12px; color: var(--g-texto-2); margin-top: 4px; }
+  table { border-collapse: collapse; font-size: 14px; min-width: 640px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--g-borda); vertical-align: top; }
+  th { font-weight: 600; }
+  td.g-num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .g-amostra { display: inline-block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--g-moldura); vertical-align: -3px; margin-right: 4px; }
+  .g-ok { color: var(--g-ok); font-weight: 600; }
+  ul.g-lista { margin: 8px 0 0; padding-left: 20px; }
+  ul.g-lista li { margin-bottom: 4px; }
+</style>
+
+<div class="g-pagina">
+  <header>
+    <h1>Mockup do MyMoney · direção C (Noturna e densa)</h1>
+    <p class="g-texto-2">Etapa B3 do Loop B · 2026-10-09 · direção escolhida pelo stakeholder sem mistura. As direções da B2 ficam em <a href="https://claude.ai/artifact/TaJ5cRu5fJqMn8WQ6NY71C">direcoes/</a> só como histórico, e não são referência de implementação.</p>
+    <div class="g-destaque">
+      <strong>Regra de precedência:</strong> para aparência (cor, tipografia, espaçamento, disposição) vale este mockup; para comportamento, dados e acessibilidade vale o UX-SPEC.md. Um conflito entre os dois é defeito do planejamento e se corrige antes da aprovação, nunca pelo Executor.
+    </div>
+    <div class="g-caixa">
+      <h2 style="margin-top:0">O que mudou em relação à direção C da B2</h2>
+      <ul class="g-lista">
+        <li><strong>Legibilidade no celular:</strong> texto base 16 px (era 14), texto secundário 14 px (era 12), título de cartão 16 px, valor em destaque 32 px. O campo de valor do Lançar usa 44 px em Plex Mono. Chips de categoria em 3 colunas × 3 linhas (8 mais usadas + "Outras…"), com nome em 2 linhas e altura mínima de 64 px. Todo alvo de toque tem 44 px ou mais. No PC a densidade da C continua (texto 14 px, valor em destaque 28 px).</li>
+        <li><strong>Mantido:</strong> cores (grafite, âmbar = Casa, ciano = Eu), IBM Plex Sans + Plex Mono nos valores, cantos de 6 px, linha colorida no topo dos cartões e títulos de bloco em caixa alta.</li>
+        <li><strong>Tema:</strong> o MVP é só escuro. Não há tema claro derivado (UX-SPEC §3).</li>
+        <li><strong>Fontes:</strong> auto-hospedadas em <a href="fontes/LEIA-ME.md">fontes/</a> (OFL). Os <code>.woff2</code> foram gerados por <code>node .md/mockup/fontes/baixar-fontes.mjs</code> em 2026-10-09. O Google Fonts fica só como segunda opção, com a mesma família.</li>
+      </ul>
+    </div>
+    <nav aria-label="Telas">
+      <ul class="g-indice">
+        <li><a href="#T01">T01 Entrar</a></li><li><a href="#T02">T02 Início</a></li><li><a href="#T03">T03 Lançar</a></li><li><a href="#T04">T04 Lançamentos</a></li><li><a href="#T05">T05 Detalhe</a></li><li><a href="#T06">T06 Fixas</a></li><li><a href="#T07">T07 Modelo de fixa</a></li><li><a href="#T08">T08 Marcar paga</a></li><li><a href="#T09">T09 Orçamento</a></li><li><a href="#T10">T10 Metas</a></li><li><a href="#T11">T11 Meta</a></li><li><a href="#T12">T12 Editar meta</a></li><li><a href="#T13">T13 Aporte/Retirada</a></li><li><a href="#T14">T14 Ajustes</a></li><li><a href="#T15">T15–T16 Contas</a></li><li><a href="#T17">T17–T18 Formas</a></li><li><a href="#T19">T19–T20 Categorias</a></li><li><a href="#T21">T21 Pagto cartão</a></li><li><a href="#T22">T22 Instalar</a></li><li><a href="#T23">T23 Envios</a></li><li><a href="#padroes">Padrões</a></li><li><a href="#manual">Conferência manual</a></li><li><a href="#checklist">Tela × requisito</a></li><li><a href="#contraste">Contraste</a></li>
+      </ul>
+    </nav>
+    <p class="g-legenda">Cada estado aparece no celular (390 × 844, a 50%) e no PC (1440 × 900, a 40%). "abrir" mostra a página no tamanho da janela. <span class="g-selo">auto</span> = comparado pelo <code>comparar-visual.mjs</code> (telas.json); <span class="g-selo">manual</span> = estado após interação, conferido à mão.</p>
+  </header>
+
+  <main>
+    <section class="g-tela" id="T01" aria-labelledby="h-T01">
+      <h3 id="h-T01">T01 Entrar · T01b Redefinir senha</h3>
+      <p class="g-req">RF-01 (CA-01.1, CA-01.2: sem cadastro público) · RNF-06 · RNF-10</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Entrar · sucesso (formulário)</strong><span class="g-selo">auto</span><a href="telas/entrar--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T01 sucesso, celular" src="telas/entrar--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T01 sucesso, PC" src="telas/entrar--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Entrar · carregando</strong><span class="g-selo">manual</span><a href="telas/entrar--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T01 carregando, celular" src="telas/entrar--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T01 carregando, PC" src="telas/entrar--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Entrar · erro</strong><span class="g-selo">manual</span><a href="telas/entrar--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T01 erro, celular" src="telas/entrar--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T01 erro, PC" src="telas/entrar--erro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Redefinir senha · sucesso</strong><span class="g-selo">auto</span><a href="telas/redefinir-senha--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T01b sucesso, celular" src="telas/redefinir-senha--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T01b sucesso, PC" src="telas/redefinir-senha--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Redefinir senha · erro</strong><span class="g-selo">manual</span><a href="telas/redefinir-senha--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T01b erro, celular" src="telas/redefinir-senha--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T01b erro, PC" src="telas/redefinir-senha--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T02" aria-labelledby="h-T02">
+      <h3 id="h-T02">T02 Início (resumo do mês)</h3>
+      <p class="g-req">RF-13 (CA-13.1 a 13.5), RF-14, RF-16, CA-11.3 (atrasada), CA-15.3, CA-17.2/17.3, CA-02.2, CA-03.3, RN-16a a 16e · F6 (primeiro uso) · RNF-02 (indicador de pendentes)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/inicio--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T02 sucesso, celular" src="telas/inicio--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T02 sucesso, PC" src="telas/inicio--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (primeiro uso)</strong><span class="g-selo">auto</span><a href="telas/inicio--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T02 vazio, celular" src="telas/inicio--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T02 vazio, PC" src="telas/inicio--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/inicio--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T02 carregando, celular" src="telas/inicio--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T02 carregando, PC" src="telas/inicio--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (servidor indisponível)</strong><span class="g-selo">auto</span><a href="telas/inicio--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T02 erro, celular" src="telas/inicio--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T02 erro, PC" src="telas/inicio--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T03" aria-labelledby="h-T03">
+      <h3 id="h-T03">T03 Lançar (folha)</h3>
+      <p class="g-req">RF-05 (CA-05.1 a 05.10), RF-06 (CA-06.1, CA-05.6, CA-05.7: data da 1ª parcela), RF-07, RN-19, RNF-01 (3 toques), RNF-02 (fila offline)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>inicial (ao abrir pelo "+")</strong><span class="g-selo">auto</span><a href="telas/lancar--inicial.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 inicial, celular" src="telas/lancar--inicial.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 inicial, PC" src="telas/lancar--inicial.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>preenchido (crédito em 3x)</strong><span class="g-selo">manual</span><a href="telas/lancar--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 preenchido, celular" src="telas/lancar--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 preenchido, PC" src="telas/lancar--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (lançado, pronto para o próximo)</strong><span class="g-selo">manual</span><a href="telas/lancar--confirmado.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 confirmado, celular" src="telas/lancar--confirmado.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 confirmado, PC" src="telas/lancar--confirmado.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sem rede (guardado no aparelho)</strong><span class="g-selo">manual</span><a href="telas/lancar--guardado.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 guardado, celular" src="telas/lancar--guardado.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 guardado, PC" src="telas/lancar--guardado.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>receita</strong><span class="g-selo">manual</span><a href="telas/lancar--receita.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 receita, celular" src="telas/lancar--receita.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 receita, PC" src="telas/lancar--receita.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (sem forma de pagamento)</strong><span class="g-selo">auto</span><a href="telas/lancar--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 vazio, celular" src="telas/lancar--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 vazio, PC" src="telas/lancar--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando (lançando…)</strong><span class="g-selo">manual</span><a href="telas/lancar--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 carregando, celular" src="telas/lancar--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 carregando, PC" src="telas/lancar--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (validação)</strong><span class="g-selo">manual</span><a href="telas/lancar--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T03 erro, celular" src="telas/lancar--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T03 erro, PC" src="telas/lancar--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T04" aria-labelledby="h-T04">
+      <h3 id="h-T04">T04 Lançamentos do mês</h3>
+      <p class="g-req">RF-09 (CA-09.1, 09.2: total filtrado), CA-06.3 (k/N), RN-04 (pago por), F5/M1 (filtro Eu + variável)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/lancamentos--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T04 sucesso, celular" src="telas/lancamentos--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T04 sucesso, PC" src="telas/lancamentos--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (com filtros)</strong><span class="g-selo">auto</span><a href="telas/lancamentos--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T04 vazio, celular" src="telas/lancamentos--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T04 vazio, PC" src="telas/lancamentos--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/lancamentos--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T04 carregando, celular" src="telas/lancamentos--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T04 carregando, PC" src="telas/lancamentos--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro</strong><span class="g-selo">auto</span><a href="telas/lancamentos--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T04 erro, celular" src="telas/lancamentos--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T04 erro, PC" src="telas/lancamentos--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T05" aria-labelledby="h-T05">
+      <h3 id="h-T05">T05 Detalhe e edição do lançamento</h3>
+      <p class="g-req">RF-08 (CA-08.1 a 08.6, CA-08.5 ajuste de data, CA-08.5a/I-21, CA-08.5b), RN-04, RN-06, RN-07, R-UX-05 (campos privados removidos para o outro membro)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (visão do pagador)</strong><span class="g-selo">auto</span><a href="telas/lancamento--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 pagador, celular" src="telas/lancamento--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 pagador, PC" src="telas/lancamento--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (visão do outro membro)</strong><span class="g-selo">auto</span><a href="telas/lancamento--outro-membro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 outro membro, celular" src="telas/lancamento--outro-membro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 outro membro, PC" src="telas/lancamento--outro-membro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>diálogo de descarte (I-21)</strong><span class="g-selo">manual</span><a href="telas/lancamento--descarte.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 descarte, celular" src="telas/lancamento--descarte.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 descarte, PC" src="telas/lancamento--descarte.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>diálogo de exclusão (CA-08.6)</strong><span class="g-selo">manual</span><a href="telas/lancamento--excluir.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 excluir, celular" src="telas/lancamento--excluir.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 excluir, PC" src="telas/lancamento--excluir.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/lancamento--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 carregando, celular" src="telas/lancamento--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 carregando, PC" src="telas/lancamento--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (não existe mais)</strong><span class="g-selo">auto</span><a href="telas/lancamento--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T05 erro, celular" src="telas/lancamento--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T05 erro, PC" src="telas/lancamento--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T06" aria-labelledby="h-T06">
+      <h3 id="h-T06">T06 Despesas fixas do mês</h3>
+      <p class="g-req">RF-10, RF-11 (CA-11.1 a 11.3), RF-12 (CA-12.3: desfazer só pelo pagador), R-UX-12 (o outro vê o vencimento)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/fixas--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T06 sucesso, celular" src="telas/fixas--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T06 sucesso, PC" src="telas/fixas--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio</strong><span class="g-selo">auto</span><a href="telas/fixas--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T06 vazio, celular" src="telas/fixas--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T06 vazio, PC" src="telas/fixas--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/fixas--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T06 carregando, celular" src="telas/fixas--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T06 carregando, PC" src="telas/fixas--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro</strong><span class="g-selo">auto</span><a href="telas/fixas--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T06 erro, celular" src="telas/fixas--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T06 erro, PC" src="telas/fixas--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T07" aria-labelledby="h-T07">
+      <h3 id="h-T07">T07 Modelo de despesa fixa</h3>
+      <p class="g-req">RF-10 (CA-10.1, 10.2: encerrar), CA-11.2 (último dia do mês)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/fixa--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T07 sucesso, celular" src="telas/fixa--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T07 sucesso, PC" src="telas/fixa--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (validação)</strong><span class="g-selo">manual</span><a href="telas/fixa--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T07 erro, celular" src="telas/fixa--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T07 erro, PC" src="telas/fixa--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T08" aria-labelledby="h-T08">
+      <h3 id="h-T08">T08 Marcar fixa como paga (folha)</h3>
+      <p class="g-req">RF-12 (CA-12.1, 12.2, 12.2a / I-20), RN-15</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/pagar-fixa--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T08 sucesso, celular" src="telas/pagar-fixa--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T08 sucesso, PC" src="telas/pagar-fixa--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (sem forma)</strong><span class="g-selo">auto</span><a href="telas/pagar-fixa--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T08 vazio, celular" src="telas/pagar-fixa--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T08 vazio, PC" src="telas/pagar-fixa--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (sem rede: avisa e mantém)</strong><span class="g-selo">manual</span><a href="telas/pagar-fixa--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T08 erro, celular" src="telas/pagar-fixa--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T08 erro, PC" src="telas/pagar-fixa--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T09" aria-labelledby="h-T09">
+      <h3 id="h-T09">T09 Orçamento do mês</h3>
+      <p class="g-req">RF-15 (CA-15.1 a 15.4: copiar mês anterior), RF-16 (resultado)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/orcamento--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T09 sucesso, celular" src="telas/orcamento--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T09 sucesso, PC" src="telas/orcamento--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (copiar de outubro)</strong><span class="g-selo">auto</span><a href="telas/orcamento--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T09 vazio, celular" src="telas/orcamento--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T09 vazio, PC" src="telas/orcamento--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/orcamento--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T09 carregando, celular" src="telas/orcamento--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T09 carregando, PC" src="telas/orcamento--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro</strong><span class="g-selo">auto</span><a href="telas/orcamento--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T09 erro, celular" src="telas/orcamento--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T09 erro, PC" src="telas/orcamento--erro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>editar valor (folha)</strong><span class="g-selo">auto</span><a href="telas/orcamento-valor--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T09 editar valor, celular" src="telas/orcamento-valor--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T09 editar valor, PC" src="telas/orcamento-valor--sucesso.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T10" aria-labelledby="h-T10">
+      <h3 id="h-T10">T10 Metas</h3>
+      <p class="g-req">RF-17 (CA-17.2 quanto falta, CA-17.3 atingida, CA-17.4 visibilidade)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/metas--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T10 sucesso, celular" src="telas/metas--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T10 sucesso, PC" src="telas/metas--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio</strong><span class="g-selo">auto</span><a href="telas/metas--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T10 vazio, celular" src="telas/metas--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T10 vazio, PC" src="telas/metas--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/metas--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T10 carregando, celular" src="telas/metas--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T10 carregando, PC" src="telas/metas--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro</strong><span class="g-selo">auto</span><a href="telas/metas--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T10 erro, celular" src="telas/metas--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T10 erro, PC" src="telas/metas--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T11" aria-labelledby="h-T11">
+      <h3 id="h-T11">T11 Detalhe da meta</h3>
+      <p class="g-req">RF-17 (CA-17.2: guardado por local, mensal necessário), RF-18 (histórico), RN-08 (conta só nas próprias linhas)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/meta--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T11 sucesso, celular" src="telas/meta--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T11 sucesso, PC" src="telas/meta--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (sem aportes)</strong><span class="g-selo">auto</span><a href="telas/meta--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T11 vazio, celular" src="telas/meta--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T11 vazio, PC" src="telas/meta--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>carregando</strong><span class="g-selo">auto</span><a href="telas/meta--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T11 carregando, celular" src="telas/meta--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T11 carregando, PC" src="telas/meta--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (não existe mais)</strong><span class="g-selo">auto</span><a href="telas/meta--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T11 erro, celular" src="telas/meta--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T11 erro, PC" src="telas/meta--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T12" aria-labelledby="h-T12">
+      <h3 id="h-T12">T12 Nova ou editar meta</h3>
+      <p class="g-req">RF-17 (CA-17.1), R-UX-06 (escopo fixo depois de criado)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (editar)</strong><span class="g-selo">auto</span><a href="telas/meta-form--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T12 sucesso, celular" src="telas/meta-form--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T12 sucesso, PC" src="telas/meta-form--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (nova meta, validação)</strong><span class="g-selo">manual</span><a href="telas/meta-form--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T12 erro, celular" src="telas/meta-form--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T12 erro, PC" src="telas/meta-form--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T13" aria-labelledby="h-T13">
+      <h3 id="h-T13">T13 Aporte ou retirada (folha)</h3>
+      <p class="g-req">RF-18 (CA-18.1 local com sugestão, CA-18.2, CA-18.3 retirada maior que o guardado), RN-09</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (aporte)</strong><span class="g-selo">auto</span><a href="telas/movimentar-meta--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T13 aporte, celular" src="telas/movimentar-meta--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T13 aporte, PC" src="telas/movimentar-meta--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>retirada</strong><span class="g-selo">auto</span><a href="telas/movimentar-meta--retirada.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T13 retirada, celular" src="telas/movimentar-meta--retirada.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T13 retirada, PC" src="telas/movimentar-meta--retirada.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (nada para retirar)</strong><span class="g-selo">auto</span><a href="telas/movimentar-meta--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T13 vazio, celular" src="telas/movimentar-meta--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T13 vazio, PC" src="telas/movimentar-meta--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (CA-18.3)</strong><span class="g-selo">manual</span><a href="telas/movimentar-meta--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T13 erro, celular" src="telas/movimentar-meta--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T13 erro, PC" src="telas/movimentar-meta--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T14" aria-labelledby="h-T14">
+      <h3 id="h-T14">T14 Ajustes</h3>
+      <p class="g-req">CA-01.4 (sair), RNF-06 (sair de todos), RF-20 (instalar), acesso aos cadastros</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/ajustes--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T14 sucesso, celular" src="telas/ajustes--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T14 sucesso, PC" src="telas/ajustes--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>diálogo: sair de todos</strong><span class="g-selo">manual</span><a href="telas/ajustes--sair-todos.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T14 sair de todos, celular" src="telas/ajustes--sair-todos.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T14 sair de todos, PC" src="telas/ajustes--sair-todos.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T15" aria-labelledby="h-T15">
+      <h3 id="h-T15">T15 Contas · T16 Conta</h3>
+      <p class="g-req">RF-02 (CA-02.1 a 02.5: saldo, ajuste de saldo, arquivar, exclusão em uso)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T15 sucesso</strong><span class="g-selo">auto</span><a href="telas/contas--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T15 sucesso, celular" src="telas/contas--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T15 sucesso, PC" src="telas/contas--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T15 vazio</strong><span class="g-selo">auto</span><a href="telas/contas--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T15 vazio, celular" src="telas/contas--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T15 vazio, PC" src="telas/contas--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T15 carregando</strong><span class="g-selo">auto</span><a href="telas/contas--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T15 carregando, celular" src="telas/contas--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T15 carregando, PC" src="telas/contas--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T15 erro</strong><span class="g-selo">auto</span><a href="telas/contas--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T15 erro, celular" src="telas/contas--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T15 erro, PC" src="telas/contas--erro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T16 sucesso (com ajuste de saldo)</strong><span class="g-selo">auto</span><a href="telas/conta--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T16 sucesso, celular" src="telas/conta--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T16 sucesso, PC" src="telas/conta--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T16 erro (exclusão em uso)</strong><span class="g-selo">manual</span><a href="telas/conta--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T16 erro, celular" src="telas/conta--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T16 erro, PC" src="telas/conta--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T17" aria-labelledby="h-T17">
+      <h3 id="h-T17">T17 Formas de pagamento · T18 Forma</h3>
+      <p class="g-req">RF-03 (CA-03.1 a 03.5: dia de vencimento obrigatório, I-19, gasto no mês e futuro, preferida), R-UX-06 (tipo fixo)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T17 sucesso</strong><span class="g-selo">auto</span><a href="telas/formas--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T17 sucesso, celular" src="telas/formas--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T17 sucesso, PC" src="telas/formas--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T17 vazio</strong><span class="g-selo">auto</span><a href="telas/formas--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T17 vazio, celular" src="telas/formas--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T17 vazio, PC" src="telas/formas--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T17 carregando</strong><span class="g-selo">auto</span><a href="telas/formas--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T17 carregando, celular" src="telas/formas--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T17 carregando, PC" src="telas/formas--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T17 erro</strong><span class="g-selo">auto</span><a href="telas/formas--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T17 erro, celular" src="telas/formas--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T17 erro, PC" src="telas/formas--erro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T18 sucesso (cartão)</strong><span class="g-selo">auto</span><a href="telas/forma--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T18 sucesso, celular" src="telas/forma--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T18 sucesso, PC" src="telas/forma--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T18 erro (crédito sem vencimento)</strong><span class="g-selo">manual</span><a href="telas/forma--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T18 erro, celular" src="telas/forma--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T18 erro, PC" src="telas/forma--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T19" aria-labelledby="h-T19">
+      <h3 id="h-T19">T19 Categorias · T20 Categoria</h3>
+      <p class="g-req">RF-04 (CA-04.1 a 04.5: tipo, escopo, variável, privacidade das individuais), R-UX-06</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T19 sucesso</strong><span class="g-selo">auto</span><a href="telas/categorias--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T19 sucesso, celular" src="telas/categorias--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T19 sucesso, PC" src="telas/categorias--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T19 vazio</strong><span class="g-selo">auto</span><a href="telas/categorias--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T19 vazio, celular" src="telas/categorias--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T19 vazio, PC" src="telas/categorias--vazio.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T19 carregando</strong><span class="g-selo">auto</span><a href="telas/categorias--carregando.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T19 carregando, celular" src="telas/categorias--carregando.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T19 carregando, PC" src="telas/categorias--carregando.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T19 erro</strong><span class="g-selo">auto</span><a href="telas/categorias--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T19 erro, celular" src="telas/categorias--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T19 erro, PC" src="telas/categorias--erro.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T20 sucesso</strong><span class="g-selo">auto</span><a href="telas/categoria--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T20 sucesso, celular" src="telas/categoria--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T20 sucesso, PC" src="telas/categoria--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>T20 erro (nome repetido)</strong><span class="g-selo">manual</span><a href="telas/categoria--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T20 erro, celular" src="telas/categoria--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T20 erro, PC" src="telas/categoria--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T21" aria-labelledby="h-T21">
+      <h3 id="h-T21">T21 Pagamento do cartão (folha, Could)</h3>
+      <p class="g-req">RF-19 (CA-19.1, 19.2: não entra em total)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso</strong><span class="g-selo">auto</span><a href="telas/pagamento-cartao--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T21 sucesso, celular" src="telas/pagamento-cartao--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T21 sucesso, PC" src="telas/pagamento-cartao--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>vazio (sem conta)</strong><span class="g-selo">auto</span><a href="telas/pagamento-cartao--vazio.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T21 vazio, celular" src="telas/pagamento-cartao--vazio.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T21 vazio, PC" src="telas/pagamento-cartao--vazio.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T22" aria-labelledby="h-T22">
+      <h3 id="h-T22">T22 Instalar o app</h3>
+      <p class="g-req">RF-20 (CA-20.1, 20.2), R-UX-09</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>iPhone (passos)</strong><span class="g-selo">manual</span><a href="telas/instalar--ios.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T22 iOS, celular" src="telas/instalar--ios.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T22 iOS, PC" src="telas/instalar--ios.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>Android (faixa com "Instalar")</strong><span class="g-selo">manual</span><a href="telas/instalar--android.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T22 Android, celular" src="telas/instalar--android.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T22 Android, PC" src="telas/instalar--android.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="T23" aria-labelledby="h-T23">
+      <h3 id="h-T23">T23 Envios pendentes (folha)</h3>
+      <p class="g-req">RNF-02, ADR-007 (nada some sem ação do membro)</p>
+      <div class="g-estado"><div class="g-estado-topo"><strong>sucesso (aguardando envio)</strong><span class="g-selo">manual</span><a href="telas/envios--sucesso.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T23 sucesso, celular" src="telas/envios--sucesso.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T23 sucesso, PC" src="telas/envios--sucesso.html"></iframe></div></div></div></div>
+      <div class="g-estado"><div class="g-estado-topo"><strong>erro (falha por item)</strong><span class="g-selo">manual</span><a href="telas/envios--erro.html">abrir</a></div>
+        <div class="g-quadros"><div class="g-moldura g-celular"><iframe loading="lazy" title="T23 erro, celular" src="telas/envios--erro.html"></iframe></div><div class="g-rolagem"><div class="g-moldura g-pc"><iframe loading="lazy" title="T23 erro, PC" src="telas/envios--erro.html"></iframe></div></div></div></div>
+    </section>
+
+    <section class="g-tela" id="padroes" aria-labelledby="h-padroes">
+      <h3 id="h-padroes">Padrões comuns (valem para várias telas)</h3>
+      <ul class="g-lista">
+        <li><strong>Salvando (todo formulário e folha):</strong> botão principal com ícone girando + "Salvando…" (ou "Confirmando…", "Registrando…", "Enviando…"), <code>aria-disabled</code>, campos visíveis. <a href="telas/formulario--salvando.html">formulario--salvando</a> (aplicado à T16). Vale para T01b, T07, T08, T09 (folha), T12, T13, T16, T18, T20, T21 e T23. T01 e T03 têm página própria.</li>
+        <li><strong>Erro de escrita fora do Lançar:</strong> avisa no topo e mantém os dados (ADR-007). <a href="telas/pagar-fixa--erro.html">pagar-fixa--erro</a>. Vale igual para receita, edição, fixas, orçamento, metas e cadastros.</li>
+        <li><strong>Exclusão em uso:</strong> mensagem + "Arquivar". <a href="telas/conta--erro.html">conta--erro</a>. Vale igual para forma (CA-03.5) e categoria (CA-04.5).</li>
+        <li><strong>Lista com erro de rede:</strong> estado de erro com "Tentar de novo" (T04, T06, T09, T10, T15, T17, T19). Com cache disponível, o app mostra o cache + a faixa "Mostrando dados de {hora}" (UX-SPEC §4).</li>
+        <li><strong>Folhas e diálogos:</strong> <code>html.com-folha</code> trava a rolagem. No PC, a folha vira diálogo centralizado de 480 px.</li>
+      </ul>
+    </section>
+
+    <section class="g-tela" id="manual" aria-labelledby="h-manual">
+      <h3 id="h-manual">Conferência manual (fora do telas.json)</h3>
+      <p>Estados que só existem depois de uma interação (o script de comparação só navega por rota): lancar--sucesso, lancar--confirmado, lancar--guardado, lancar--receita, lancar--carregando, lancar--erro, lancamento--descarte, lancamento--excluir, fixa--erro, pagar-fixa--erro, meta-form--erro, movimentar-meta--erro, ajustes--sair-todos, conta--erro, forma--erro, categoria--erro, instalar--ios, instalar--android, envios--sucesso, envios--erro, entrar--carregando, entrar--erro, redefinir-senha--erro, formulario--salvando (24 páginas). O Validador confere esses estados com Playwright, executando a interação antes da captura, ou à mão.</p>
+      <p class="g-texto-2">T01 e T01b exigem o modo de comparação do app sem sessão (a definir no Loop C).</p>
+    </section>
+
+    <section class="g-tela" id="checklist" aria-labelledby="h-checklist">
+      <h3 id="h-checklist">Checklist tela × requisito</h3>
+      <div class="g-rolagem">
+        <table>
+          <thead><tr><th>Tela</th><th>Requisitos visíveis no mockup</th><th>Estados</th><th>Ok</th></tr></thead>
+          <tbody>
+            <tr><td>T01/T01b</td><td>RF-01 (sem "criar conta", erro genérico), senha ≥ 12</td><td>sucesso, carregando, erro</td><td class="g-ok">✓</td></tr>
+            <tr><td>T02</td><td>RF-13 (Casa em cima, Eu embaixo, todos os itens de CA-13.2/13.3), RF-14, RF-16 (parcial), CA-11.3, CA-15.3 (3 situações), CA-17.3 (atingida), CA-02.2, CA-03.3, RNF-02, F6</td><td>sucesso, vazio, carregando, erro</td><td class="g-ok">✓</td></tr>
+            <tr><td>T03</td><td>CA-05.1 a 05.10 (foco no valor, 8 mais usadas com selo Casa/Eu, forma em 2 toques, parcelas, "1ª parcela em 10/11", validação), RF-07, RNF-02</td><td>inicial, preenchido, sucesso, guardado, receita, vazio, carregando, erro</td><td class="g-ok">✓</td></tr>
+            <tr><td>T04</td><td>CA-09.1/09.2 (filtros + total filtrado), "(k/N)", fila fora do total</td><td>sucesso, vazio, carregando, erro</td><td class="g-ok">✓</td></tr>
+            <tr><td>T05</td><td>CA-08.1 a 08.6, data ajustada, I-21, visão do outro membro sem forma/conta/data da compra</td><td>sucesso ×2, descarte, excluir, carregando, erro</td><td class="g-ok">✓</td></tr>
+            <tr><td>T06/T07/T08</td><td>RF-10 a RF-12, atrasada primeiro, "Paga por", desfazer só pelo pagador, I-20</td><td>todos da §4</td><td class="g-ok">✓</td></tr>
+            <tr><td>T09</td><td>CA-15.1 a 15.4, resultado da casa</td><td>sucesso, vazio, carregando, erro, editar</td><td class="g-ok">✓</td></tr>
+            <tr><td>T10 a T13</td><td>RF-17, RF-18, RN-08 (conta só do autor), RN-09 (local livre), CA-18.3</td><td>todos da §4</td><td class="g-ok">✓</td></tr>
+            <tr><td>T14 a T21</td><td>RF-02, RF-03, RF-04, RF-19, CA-01.4, RNF-06, exclusão em uso</td><td>todos da §4 (carregando de formulário pelo padrão)</td><td class="g-ok">✓</td></tr>
+            <tr><td>T22/T23</td><td>RF-20, RNF-02</td><td>iOS, Android; sucesso, erro</td><td class="g-ok">✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="g-tela" id="contraste" aria-labelledby="h-contraste">
+      <h3 id="h-contraste">Contraste (tokens.css, WCAG 2.1 AA: texto ≥ 4,5:1; gráfico e contorno ≥ 3:1)</h3>
+      <div class="g-rolagem">
+        <table>
+          <thead><tr><th>Par (frente / fundo)</th><th>Uso</th><th>Razão</th><th>Mínimo</th></tr></thead>
+          <tbody>
+            <tr><td><span class="g-amostra" style="background:#E8ECF1"></span>#E8ECF1 / #1A2029</td><td>Texto em cartão</td><td class="g-num">13,8:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#E8ECF1"></span>#E8ECF1 / #10141A</td><td>Texto no fundo, campo de valor</td><td class="g-num">15,6:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#E8ECF1"></span>#E8ECF1 / #222934</td><td>Texto em folha e diálogo</td><td class="g-num">12,3:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#A3ADBA"></span>#A3ADBA / #1A2029 · #10141A · #222934</td><td>Texto secundário, rótulos da barra</td><td class="g-num">7,2 · 8,1 · 6,4</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#A3ADBA"></span>#A3ADBA / #252C37</td><td>Selo Pendente, nota, faixa neutra</td><td class="g-num">6,2:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#F5B841"></span>#F5B841 / #10141A · #1A2029</td><td>Título Casa, item ativo, marca</td><td class="g-num">10,4 · 9,2</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#F5B841"></span>#10141A / #F5B841</td><td>Botão principal, "+", contador, segmentado ativo</td><td class="g-num">10,4:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#F5B841"></span>#F5B841 / #252C37</td><td>Item ativo do trilho (PC)</td><td class="g-num">7,9:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#5CC8E8"></span>#5CC8E8 / #1A2029 · #10141A · #222934</td><td>Links, botão secundário, título Eu, foco</td><td class="g-num">8,5 · 9,6 · 7,6</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#5CC8E8"></span>#5CC8E8 / #10303A</td><td>Selo "data ajustada"</td><td class="g-num">7,4:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#E8ECF1"></span>#E8ECF1 / #10303A</td><td>Chip selecionado e filtro ativo (sempre com ícone de marcado)</td><td class="g-num">12,1:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#4ADE80"></span>#4ADE80 / #12301F · #1A2029</td><td>Selos Dentro, Paga e Atingida; receita</td><td class="g-num">8,5 · 8,4</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#FBBF24"></span>#FBBF24 / #33270A</td><td>Selos Atenção e "aguardando envio", faixa de aviso</td><td class="g-num">8,8:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#F87171"></span>#F87171 / #3A1618</td><td>Selos Estourado e Atrasada, erro no topo</td><td class="g-num">5,8:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#F87171"></span>#F87171 / #10141A · #1A2029 · #222934</td><td>Erro de campo, botão Excluir</td><td class="g-num">6,7 · 5,9 · 5,3</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#E8ECF1"></span>#10141A / #E8ECF1</td><td>Aviso (toast) invertido</td><td class="g-num">15,6:1</td><td class="g-ok">4,5 ✓</td></tr>
+            <tr><td>Barras sobre a trilha #2E3744</td><td>Âmbar / ciano / verde / amarelo / vermelho</td><td class="g-num">6,8 / 6,3 / 7,0 / 7,3 / 4,4</td><td class="g-ok">3 ✓</td></tr>
+            <tr><td><span class="g-amostra" style="background:#6B7685"></span>#6B7685 / #10141A · #1A2029 · #222934</td><td>Contorno de campo, chip e botão secundário</td><td class="g-num">4,0 · 3,6 · 3,2</td><td class="g-ok">3 ✓</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="g-legenda">Razões calculadas pela luminância relativa da WCAG 2.1 sobre os valores de tokens.css. As cores não mudam entre celular e PC: só tamanhos e espaços mudam. O celular usa texto de 16 px, abaixo do qual nenhum texto informativo vai (exceto rótulos da barra inferior e o contador, com 12 px e contraste ≥ 7,2:1).</p>
+    </section>
+  </main>
+</div>

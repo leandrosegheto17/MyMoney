@@ -4,6 +4,21 @@ Log de governança do Gestor (chapéu CTO). Uma seção por gate ou parecer ad h
 
 ---
 
+## GUARDRAILS.md — Versão inicial (guardrails-governance, Loop C do /definir) — 2026-10-09
+
+- **Escopo:** só a governança do `GUARDRAILS.md` (PIPELINE-CONVENTIONS §5). Não é parecer sobre o SDD.md nem sobre o
+  TASK.md, que o stakeholder já aprovou.
+- **Achados:**
+  - As 20 regras têm origem rastreável e checagem automática.
+  - A lista fechada de `SECURITY DEFINER` (G-03) bate com o SDD §7 e o ADR-012.
+  - As ressalvas 3, 6 e 7 do Gate 1 estão cobertas (G-01 a G-06, G-14, G-15).
+  - Lacunas encontradas: a G-12 aceitava justificativa livre para migration não aditiva, o que seria uma autoexceção;
+    não havia regra para desligar uma checagem; e o passo de grep da G-11 não tem tarefa dona.
+- **Veredito:** **Aprovado com ressalvas.** O documento entra em vigor com os ajustes e as ressalvas R1 a R3 que
+  estão no Log de Alterações do `GUARDRAILS.md`. Os três ajustes no TASK.md cabem ao Coordenador.
+
+---
+
 ## Gate 1 — Adendo (rodada 2 do Loop A) — 2026-10-09
 
 **Motivo:** o stakeholder respondeu às 8 perguntas, acrescentou escopo antes de o PRD fechar

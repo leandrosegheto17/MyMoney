@@ -1,0 +1,3 @@
+[
+  { "id": "00000000-0000-4000-8000-000000000701", "descricao": "Aluguel", "categoria_id": "00000000-0000-4000-8000-000000000403", "categoria": "Moradia", "valor_previsto_centavos": 120000, "dia_vencimento": 10, "encerrada_em": null }
+]

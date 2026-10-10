@@ -1,0 +1,3 @@
+[
+  { "id": "00000000-0000-4000-8000-000000000303", "nome": "Cartão de crédito XP", "tipo": "credito", "conta": { "id": "00000000-0000-4000-8000-000000000202", "nome": "Itaú" }, "dia_vencimento": 10, "preferida": false, "arquivada": false, "pode_excluir": false, "gasto_mes_centavos": 128460, "comprometido_futuro_centavos": 215000 }
+]

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Viagem Nordeste · Metas · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-esq" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-editar" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/></symbol>
+</svg>
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--inicial.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+  <div class="conteudo">
+    <header class="cabecalho cabecalho-pagina">
+      <a class="icone-botao" href="metas--sucesso.html" aria-label="Voltar para Metas"><svg class="icone" aria-hidden="true"><use href="#i-esq"/></svg></a>
+      <h1 class="titulo-pagina">Viagem Nordeste</h1>
+      <a class="icone-botao" href="meta-form--sucesso.html" aria-label="Editar meta"><svg class="icone" aria-hidden="true"><use href="#i-editar"/></svg></a>
+    </header>
+    <main>
+      <p class="item-sub" style="margin-bottom:var(--espaco-3)"><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Meta da casa</span>· visível aos dois</p>
+      <div class="grade grade-2">
+        <section class="cartao cartao-total" aria-labelledby="t-resumo" style="border-top:var(--borda-destaque-cartao) solid var(--cor-casa)">
+          <h2 class="cartao-titulo" id="t-resumo" style="color:var(--cor-texto)">Faltam</h2>
+          <div class="linha-destaque"><p class="valor-destaque">R$ 5.800,00</p><span class="rotulo-parcial">52%</span></div>
+          <div class="barra barra-casa" role="progressbar" aria-label="Viagem Nordeste" aria-valuenow="52" aria-valuemin="0" aria-valuemax="100"><span style="--p:52%"></span></div>
+          <dl class="linhas">
+            <div><dt>Guardado</dt><dd class="valor">R$ 6.200,00</dd></div>
+            <div><dt>Alvo</dt><dd class="valor">R$ 12.000,00</dd></div>
+            <div><dt>Prazo</dt><dd>jul/2027</dd></div>
+            <div><dt>Necessário por mês</dt><dd class="valor">R$ 644,45</dd></div>
+          </dl>
+          <div class="acoes-formulario">
+            <a class="botao botao-principal" href="movimentar-meta--sucesso.html">Aportar</a>
+            <a class="botao botao-secundario" href="movimentar-meta--retirada.html">Retirar</a>
+          </div>
+        </section>
+        <section class="cartao" aria-labelledby="t-onde">
+          <h2 class="cartao-titulo" id="t-onde">Onde está guardado</h2>
+          <ul class="lista">
+            <li><span class="item-titulo">Caixinha Nubank</span><span class="valor">R$ 4.200,00</span></li>
+            <li><span class="item-titulo">CDB Banco Inter</span><span class="valor">R$ 2.000,00</span></li>
+          </ul>
+        </section>
+      </div>
+      <section class="cartao" style="margin-top:var(--espaco-3)" aria-labelledby="t-hist">
+        <h2 class="cartao-titulo" id="t-hist">Histórico</h2>
+        <ul class="lista">
+          <li><span class="item-info"><span class="item-titulo">Aporte · Leandro</span><span class="item-sub"><span class="valor">05/10/2026</span> · Caixinha Nubank · da conta Nubank</span></span><span class="valor valor-receita">+ R$ 500,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Aporte · Ana</span><span class="item-sub"><span class="valor">20/09/2026</span> · CDB Banco Inter</span></span><span class="valor valor-receita">+ R$ 700,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Aporte · Leandro</span><span class="item-sub"><span class="valor">05/09/2026</span> · Caixinha Nubank · da conta Nubank</span></span><span class="valor valor-receita">+ R$ 500,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Aporte · Ana</span><span class="item-sub"><span class="valor">15/08/2026</span> · CDB Banco Inter</span></span><span class="valor valor-receita">+ R$ 1.300,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Aporte · Leandro</span><span class="item-sub"><span class="valor">05/08/2026</span> · Caixinha Nubank · da conta Nubank</span></span><span class="valor valor-receita">+ R$ 500,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Retirada · Ana</span><span class="item-sub"><span class="valor">12/07/2026</span> · Caixinha Nubank</span></span><span class="valor">− R$ 300,00</span></li>
+          <li><span class="item-info"><span class="item-titulo">Aporte · Leandro</span><span class="item-sub"><span class="valor">05/07/2026</span> · Caixinha Nubank · da conta Nubank</span></span><span class="valor valor-receita">+ R$ 3.000,00</span></li>
+        </ul>
+        <p class="campo-ajuda" style="margin-top:var(--espaco-2)">A conta de origem ou destino aparece só nos seus movimentos.</p>
+      </section>
+    </main>
+  </div>
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--inicial.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+/* Direção B — Colorida e amigável. Nunito; fundo creme, cada bloco é um painel colorido
+   (coral = Casa, violeta = Eu) com cartões brancos arredondados. Contraste na galeria. */
+:root {
+  --fonte-texto: "Nunito", system-ui, sans-serif;
+  --fonte-numero: "Nunito", system-ui, sans-serif;
+
+  --cor-fundo: #FFF8F0;
+  --cor-superficie: #FFFFFF;
+  --cor-trilho: #FFFFFF;
+  --cor-trilho-ativo: #F1EBFF;
+  --cor-texto: #2B1E3F;
+  --cor-texto-2: #5E5470;
+  --cor-borda: #F1E6DA;          /* decorativa */
+  --cor-contorno: #8C8299;       /* contorno de controle, >= 3:1 */
+  --cor-marca: #C2410C;
+
+  --cor-primaria: #C2410C;       /* botão Lançar */
+  --cor-sobre-primaria: #FFFFFF;
+  --cor-acao: #6D28D9;           /* links e botões secundários */
+  --cor-nav-ativo: #6D28D9;
+  --cor-foco: #6D28D9;
+
+  --cor-casa: #C2410C;
+  --cor-casa-fundo: #FFEFE5;
+  --cor-eu: #6D28D9;
+  --cor-eu-fundo: #F1EBFF;
+
+  --cor-dentro: #166534;   --cor-dentro-fundo: #DCFCE7;
+  --cor-atencao: #92400E;  --cor-atencao-fundo: #FEF3C7;
+  --cor-estourado: #B91C1C; --cor-estourado-fundo: #FEE2E2;
+  --cor-neutro-fundo: #F3EEF8;
+  --cor-trilha: #EADFD3;
+
+  --tam-texto: 16px;
+  --tam-pequeno: 13px;
+  --tam-titulo-cartao: 16px;
+  --tam-titulo-bloco: 22px;
+  --tam-destaque: 34px;
+  --peso-destaque: 800;
+
+  --espaco-1: 4px; --espaco-2: 8px; --espaco-3: 14px; --espaco-4: 18px; --espaco-5: 24px; --espaco-6: 32px;
+  --raio-cartao: 20px;
+  --raio-controle: 14px;
+  --raio-lancar: 20px;
+  --altura-barra: 10px;
+  --sombra-cartao: 0 4px 14px rgba(43, 30, 63, 0.08);
+  --sombra-lancar: 0 6px 16px rgba(194, 65, 12, 0.35);
+}
+
+/* Acabamento próprio: o bloco vira um painel colorido. */
+.bloco { padding: var(--espaco-4); border-radius: 28px; }
+.bloco-casa { background: var(--cor-casa-fundo); }
+.bloco-eu { background: var(--cor-eu-fundo); }
+.cartao { border-color: transparent; }
+.cartao h3 { font-weight: 800; }
+.selo { padding: 3px 10px; }
+.botao-secundario { border-width: 2px; }
+@media (max-width: 599px) {
+  .bloco { margin-left: calc(-1 * var(--espaco-2)); margin-right: calc(-1 * var(--espaco-2)); padding: var(--espaco-3); }
+}

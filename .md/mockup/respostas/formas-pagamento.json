@@ -1,0 +1,5 @@
+[
+  { "id": "00000000-0000-4000-8000-000000000301", "nome": "Pix Nubank", "tipo": "pix", "conta": { "id": "00000000-0000-4000-8000-000000000201", "nome": "Nubank" }, "dia_vencimento": null, "preferida": true, "arquivada": false, "pode_excluir": false, "gasto_mes_centavos": null, "comprometido_futuro_centavos": null },
+  { "id": "00000000-0000-4000-8000-000000000302", "nome": "Débito Itaú", "tipo": "debito", "conta": { "id": "00000000-0000-4000-8000-000000000202", "nome": "Itaú" }, "dia_vencimento": null, "preferida": false, "arquivada": false, "pode_excluir": false, "gasto_mes_centavos": null, "comprometido_futuro_centavos": null },
+  { "id": "00000000-0000-4000-8000-000000000303", "nome": "Cartão de crédito XP", "tipo": "credito", "conta": { "id": "00000000-0000-4000-8000-000000000202", "nome": "Itaú" }, "dia_vencimento": 10, "preferida": false, "arquivada": false, "pode_excluir": false, "gasto_mes_centavos": 128460, "comprometido_futuro_centavos": 215000 }
+]

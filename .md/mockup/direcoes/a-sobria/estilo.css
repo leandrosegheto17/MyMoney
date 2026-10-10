@@ -1,0 +1,51 @@
+/* Direção A — Clara e sóbria. Inter; fundo cinza muito claro, cartões brancos com borda fina,
+   azul como cor de ação, verde-petróleo para a Casa. Contraste calculado na galeria. */
+:root {
+  --fonte-texto: "Inter", system-ui, sans-serif;
+  --fonte-numero: "Inter", system-ui, sans-serif;
+
+  --cor-fundo: #F5F7FA;
+  --cor-superficie: #FFFFFF;
+  --cor-trilho: #FFFFFF;
+  --cor-trilho-ativo: #EAF1FB;
+  --cor-texto: #1C2430;
+  --cor-texto-2: #55606E;
+  --cor-borda: #E3E8EE;          /* decorativa */
+  --cor-contorno: #8A94A3;       /* contorno de controle, >= 3:1 */
+  --cor-marca: #1C2430;
+
+  --cor-primaria: #2060B3;
+  --cor-sobre-primaria: #FFFFFF;
+  --cor-acao: #2060B3;
+  --cor-nav-ativo: #2060B3;
+  --cor-foco: #2060B3;
+
+  --cor-casa: #0F6B5C;
+  --cor-eu: #2060B3;
+
+  --cor-dentro: #1E7A3C;   --cor-dentro-fundo: #E6F4EA;
+  --cor-atencao: #8A5A00;  --cor-atencao-fundo: #FDF3E1;
+  --cor-estourado: #B42318; --cor-estourado-fundo: #FCE8E6;
+  --cor-neutro-fundo: #EEF1F5;
+  --cor-trilha: #DDE2E8;
+
+  --tam-texto: 15px;
+  --tam-pequeno: 13px;
+  --tam-titulo-cartao: 15px;
+  --tam-titulo-bloco: 20px;
+  --tam-destaque: 32px;
+  --peso-destaque: 700;
+
+  --espaco-1: 4px; --espaco-2: 8px; --espaco-3: 12px; --espaco-4: 16px; --espaco-5: 24px; --espaco-6: 32px;
+  --raio-cartao: 12px;
+  --raio-controle: 8px;
+  --raio-lancar: 50%;
+  --altura-barra: 8px;
+  --sombra-cartao: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --sombra-lancar: 0 4px 12px rgba(32, 96, 179, 0.35);
+}
+
+/* Acabamento próprio: título de bloco com filete à esquerda, valores tabulares discretos. */
+.bloco-titulo { padding-left: 10px; border-left: 4px solid currentColor; }
+.cartao h3 { color: var(--cor-texto-2); text-transform: none; }
+.cartao-total h3 { color: var(--cor-texto); }

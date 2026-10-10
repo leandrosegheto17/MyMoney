@@ -1,0 +1,53 @@
+/* Direção C — Noturna e densa. IBM Plex Sans + Plex Mono nos valores; fundo grafite,
+   âmbar = Casa, ciano = Eu; mais informação por tela. Contraste na galeria. */
+:root {
+  --fonte-texto: "IBM Plex Sans", system-ui, sans-serif;
+  --fonte-numero: "IBM Plex Mono", ui-monospace, monospace;
+
+  --cor-fundo: #10141A;
+  --cor-superficie: #1A2029;
+  --cor-trilho: #1A2029;
+  --cor-trilho-ativo: #252C37;
+  --cor-texto: #E8ECF1;
+  --cor-texto-2: #A3ADBA;
+  --cor-borda: #2A323E;          /* decorativa */
+  --cor-contorno: #6B7685;       /* contorno de controle, >= 3:1 */
+  --cor-marca: #F5B841;
+
+  --cor-primaria: #F5B841;       /* botão Lançar (texto escuro) */
+  --cor-sobre-primaria: #10141A;
+  --cor-acao: #5CC8E8;
+  --cor-nav-ativo: #F5B841;
+  --cor-foco: #5CC8E8;
+
+  --cor-casa: #F5B841;
+  --cor-eu: #5CC8E8;
+
+  --cor-dentro: #4ADE80;   --cor-dentro-fundo: #12301F;
+  --cor-atencao: #FBBF24;  --cor-atencao-fundo: #33270A;
+  --cor-estourado: #F87171; --cor-estourado-fundo: #3A1618;
+  --cor-neutro-fundo: #252C37;
+  --cor-trilha: #2E3744;
+
+  --tam-texto: 14px;
+  --tam-pequeno: 12px;
+  --tam-titulo-cartao: 14px;
+  --tam-titulo-bloco: 13px;
+  --tam-destaque: 28px;
+  --peso-destaque: 600;
+
+  --espaco-1: 4px; --espaco-2: 6px; --espaco-3: 10px; --espaco-4: 14px; --espaco-5: 20px; --espaco-6: 28px;
+  --raio-cartao: 6px;
+  --raio-controle: 6px;
+  --raio-lancar: 14px;
+  --altura-barra: 6px;
+  --sombra-cartao: none;
+  --sombra-lancar: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* Acabamento próprio: títulos de bloco em caixa alta, linha de destaque superior colorida. */
+.bloco-titulo { text-transform: uppercase; letter-spacing: 0.08em; }
+.bloco-casa .cartao { border-top: 2px solid var(--cor-casa); }
+.bloco-eu .cartao { border-top: 2px solid var(--cor-eu); }
+.cartao h3 { color: var(--cor-texto-2); font-weight: 500; }
+.cartao-total h3 { color: var(--cor-texto); }

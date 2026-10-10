@@ -1,0 +1,65 @@
+{
+  "_sobre": "Dados de exemplo do mockup (fictícios). Hoje = 2026-10-09 (sexta), mês exibido = outubro/2026 (parcial). Valores em centavos. As respostas da API em respostas/*.json são derivadas destes dados e as telas mostram exatamente o que elas contêm.",
+  "lar": { "nome": "Casa Leandro e Ana" },
+  "membros": [
+    { "id": "00000000-0000-4000-8000-000000000101", "nome": "Leandro", "email": "leandro@exemplo.com", "sessao_do_mockup": true },
+    { "id": "00000000-0000-4000-8000-000000000102", "nome": "Ana", "email": "ana@exemplo.com" }
+  ],
+  "contas_leandro": [
+    { "nome": "Nubank", "saldo_inicial": 250000, "saldo": 321485 },
+    { "nome": "Itaú", "saldo_inicial": 80000, "saldo": 109000 }
+  ],
+  "formas_leandro": [
+    { "nome": "Pix Nubank", "tipo": "pix", "conta": "Nubank", "preferida": true },
+    { "nome": "Débito Itaú", "tipo": "debito", "conta": "Itaú" },
+    { "nome": "Cartão de crédito XP", "tipo": "credito", "dia_vencimento": 10, "conta_pagamento": "Itaú", "gasto_mes": 128460, "comprometido_futuro": 215000 }
+  ],
+  "categorias": {
+    "conjuntas_despesa": ["Mercado (variável)", "Delivery/iFood do casal (variável)", "Moradia", "Contas da casa", "Outros da casa"],
+    "individuais_despesa_leandro": ["Almoço/Alimentação fora (variável)", "Delivery pessoal (variável)", "Transporte (variável)", "Lazer pessoal (variável)", "Outros"],
+    "individuais_receita_leandro": ["Salário", "Extra", "Outros"]
+  },
+  "outubro_conjunto": {
+    "por_categoria": { "Moradia": 85000, "Mercado": 76820, "Delivery/iFood do casal": 36800, "Contas da casa": 33250, "Outros da casa": 10000 },
+    "total": 241870,
+    "variaveis": 113620,
+    "pago_por": { "Leandro": 140250, "Ana": 101620 },
+    "composicao": [
+      "Moradia: Geladeira nova (2/3) R$ 650,00 paga por Leandro no Cartão XP (compra 20/08, 3x R$ 1.950,00; 3/3 com data ajustada para 17/11) + Conserto do chuveiro R$ 200,00 pago por Ana",
+      "Mercado: Leandro R$ 541,20 + Ana R$ 227,00",
+      "Delivery/iFood do casal: Leandro R$ 116,20 + Ana R$ 251,80",
+      "Contas da casa (fixas pagas): Luz R$ 187,40 (Ana), Água R$ 95,10 (Leandro), Gás R$ 50,00 (Ana)",
+      "Outros da casa (fixa paga): Diarista R$ 100,00 (Ana)"
+    ],
+    "fixas_pendentes": { "Internet (atrasada, venceu 05/10)": 11990, "Aluguel (vence 10/10)": 120000, "Condomínio (vence 15/10)": 22010 },
+    "orcamento": { "Mercado": 100000, "Delivery/iFood do casal": 40000, "Moradia": 240000, "Contas da casa": 30000, "Outros da casa": 20000, "total": 430000 },
+    "resultado": 188130
+  },
+  "outubro_leandro": {
+    "minha_parte_conjunto": 140250,
+    "individual_por_categoria": { "Almoço/Alimentação fora": 41230, "Transporte": 18600, "Lazer pessoal": 15000, "Delivery pessoal": 9800 },
+    "meu_individual": 84630,
+    "meu_total": 224880,
+    "variaveis": 150370,
+    "receitas": 750000,
+    "resultado": 525120,
+    "guardado_no_mes": 50000,
+    "orcamento": { "Almoço/Alimentação fora": 40000, "Delivery pessoal": 12000, "Transporte": 30000, "Lazer pessoal": 38000, "total": 120000 },
+    "fila_offline": [ { "descricao": "Padaria", "valor": 1250, "data": "2026-10-09", "categoria": "Almoço/Alimentação fora", "forma": "Pix Nubank", "situacao": "aguardando" } ]
+  },
+  "metas": [
+    { "nome": "Reserva de emergência", "escopo": "conjunto", "alvo": 3000000, "guardado": 1850000 },
+    { "nome": "Viagem Nordeste", "escopo": "conjunto", "alvo": 1200000, "guardado": 620000, "prazo": "2027-07", "por_local": { "Caixinha Nubank": 420000, "CDB Banco Inter": 200000 } },
+    { "nome": "Notebook novo", "escopo": "individual", "alvo": 600000, "guardado": 240000 },
+    { "nome": "Curso de inglês", "escopo": "individual", "alvo": 180000, "guardado": 180000, "atingida": true },
+    { "nome": "Carro novo", "escopo": "individual", "alvo": 2000000, "guardado": 0, "prazo": "2028-12", "_uso": "só nos estados vazios de T11/T13" }
+  ],
+  "regras_de_calculo_conferidas": [
+    "Total do casal = soma das categorias conjuntas = 241870 = 140250 (Leandro) + 101620 (Ana)",
+    "Meu total = minha parte 140250 + meu individual 84630 = 224880",
+    "Variáveis (Eu) = parte variável da casa 54120 + 11620 + individual variável 84630 = 150370",
+    "Resultado individual = 750000 − 224880 = 525120; resultado da casa = 430000 − 241870 = 188130",
+    "Mensal necessário = falta ÷ meses depois do atual até o prazo (inclusive), arredondado para cima: Viagem 580000/9 = 64445; Carro 2000000/26 = 76924",
+    "Situação de orçamento: < 80% dentro, 80% a 100% atenção, > 100% estourado"
+  ]
+}

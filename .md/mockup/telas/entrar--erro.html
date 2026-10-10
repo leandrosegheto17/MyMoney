@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Entrar · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-olho" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+</svg>
+<main class="tela-entrar">
+  <form class="cartao cartao-entrar" aria-labelledby="titulo">
+    <p class="logo"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>MyMoney</p>
+    <h1 id="titulo" class="titulo-pagina">Entrar</h1>
+    <p class="aviso-erro-topo" role="alert"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>E-mail ou senha incorretos.</p>
+    <div class="campo"><label for="email">E-mail</label><input id="email" class="entrada" type="email" autocomplete="username" value="leandro@exemplo.com"></div>
+    <div class="campo">
+      <label for="senha">Senha</label>
+      <div style="display:flex;gap:var(--espaco-2)">
+        <input id="senha" class="entrada" type="password" autocomplete="current-password" value="">
+        <button class="icone-botao" type="button" aria-label="Mostrar senha" aria-pressed="false" style="border:1px solid var(--cor-contorno)"><svg class="icone" aria-hidden="true"><use href="#i-olho"/></svg></button>
+      </div>
+    </div>
+    <button class="botao botao-principal botao-bloco" type="submit">Entrar</button>
+    <a class="link-mais" href="redefinir-senha--sucesso.html" style="justify-self:center">Esqueci minha senha</a>
+  </form>
+</main>
+</body>
+</html>

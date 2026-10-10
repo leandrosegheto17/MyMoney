@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR" class="com-folha">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Lançar · MyMoney</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../base.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></symbol>
+  <symbol id="i-pessoa" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+  <symbol id="i-grafico" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-alvo" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-fechar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-marcado" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+  <symbol id="i-baixo" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-dir" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+</svg>
+
+<div class="app">
+  <nav class="trilho" aria-label="Navegação principal">
+    <span class="marca">MyMoney</span>
+    <a class="botao-lancar-pc" href="lancar--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg>Lançar</a>
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+      <li><a href="ajustes--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-ajustes"/></svg>Ajustes</a></li>
+    </ul>
+  </nav>
+  <div class="conteudo" aria-hidden="true"><!-- T02 por trás da folha (oculta na comparação visual) --></div>
+  <nav class="barra-inferior" aria-label="Navegação principal">
+    <ul>
+      <li><a href="inicio--sucesso.html" aria-current="page"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Início</a></li>
+      <li><a href="lancamentos--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-lista"/></svg>Lançamentos</a></li>
+      <li><a href="lancar--sucesso.html" class="item-lancar"><span class="botao-lancar"><svg class="icone" aria-hidden="true"><use href="#i-mais"/></svg></span>Lançar</a></li>
+      <li><a href="orcamento--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-grafico"/></svg>Orçamento</a></li>
+      <li><a href="metas--sucesso.html"><svg class="icone" aria-hidden="true"><use href="#i-alvo"/></svg>Metas</a></li>
+    </ul>
+  </nav>
+</div>
+
+<div class="veu" aria-hidden="true"></div>
+<section class="folha" role="dialog" aria-modal="true" aria-labelledby="folha-titulo">
+  <div class="folha-alca" aria-hidden="true"></div>
+  <div class="folha-topo">
+    <h2 id="folha-titulo" class="visualmente-oculto">Lançar</h2>
+    <fieldset class="segmentado" style="margin:0;padding:0">
+      <legend class="visualmente-oculto">Tipo de lançamento</legend>
+      <label><input type="radio" name="tipo" value="despesa" checked>Despesa</label>
+      <label><input type="radio" name="tipo" value="receita">Receita</label>
+    </fieldset>
+    <a class="icone-botao" href="inicio--sucesso.html" aria-label="Fechar"><svg class="icone" aria-hidden="true"><use href="#i-fechar"/></svg></a>
+  </div>
+  <form class="folha-corpo" id="form-lancar">
+    <div class="campo campo-valor">
+      <label for="valor">Valor</label>
+      <input id="valor" class="entrada" inputmode="numeric" autocomplete="off" value="R$ 360,00" aria-describedby="valor-lido">
+      <span id="valor-lido" class="visualmente-oculto">R$ 360,00</span>
+    </div>
+
+    <fieldset class="campo" style="margin:0;padding:0;border:0">
+      <legend class="rotulo" style="margin-bottom:var(--espaco-2)">Categoria</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="categoria" value="almoco"><span class="chip-nome">Almoço/Alimentação fora</span><span class="selo selo-escopo eu"><svg class="icone" aria-hidden="true"><use href="#i-pessoa"/></svg>Eu</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="mercado" checked><span class="chip-nome">Mercado</span><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Casa</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="transporte"><span class="chip-nome">Transporte</span><span class="selo selo-escopo eu"><svg class="icone" aria-hidden="true"><use href="#i-pessoa"/></svg>Eu</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="delivery-casal"><span class="chip-nome">Delivery/iFood do casal</span><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Casa</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="delivery-pessoal"><span class="chip-nome">Delivery pessoal</span><span class="selo selo-escopo eu"><svg class="icone" aria-hidden="true"><use href="#i-pessoa"/></svg>Eu</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="lazer"><span class="chip-nome">Lazer pessoal</span><span class="selo selo-escopo eu"><svg class="icone" aria-hidden="true"><use href="#i-pessoa"/></svg>Eu</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="contas-casa"><span class="chip-nome">Contas da casa</span><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Casa</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <label class="chip"><input type="radio" name="categoria" value="moradia"><span class="chip-nome">Moradia</span><span class="selo selo-escopo casa"><svg class="icone" aria-hidden="true"><use href="#i-casa"/></svg>Casa</span><svg class="icone chip-marcado" aria-hidden="true"><use href="#i-marcado"/></svg></label>
+        <button type="button" class="chip chip-outras">Outras…</button>
+      </div>
+    </fieldset>
+
+    <div class="campo">
+      <span class="rotulo" id="forma-rotulo">Forma de pagamento</span>
+      <button type="button" class="botao-forma" aria-labelledby="forma-rotulo forma-atual" aria-haspopup="listbox">
+        <span id="forma-atual">Cartão de crédito XP <span class="tipo">· Crédito</span></span>
+        <svg class="icone" aria-hidden="true"><use href="#i-baixo"/></svg>
+      </button>
+    </div>
+
+    <fieldset class="campo" style="margin:0;padding:0;border:0">
+      <legend class="rotulo" style="margin-bottom:var(--espaco-2)">Parcelas</legend>
+      <div class="chips-linha">
+        <label class="chip"><input type="radio" name="parcelas" value="1"><span>À vista</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="2"><span>2x</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="3" checked><span>3x</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="4"><span>4x</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="6"><span>6x</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="10"><span>10x</span></label>
+        <label class="chip"><input type="radio" name="parcelas" value="12"><span>12x</span></label>
+        <button type="button" class="chip">Outro</button>
+      </div>
+      <p class="campo-ajuda" style="margin-top:var(--espaco-2)">Entra a partir do próximo vencimento do cartão.</p>
+    </fieldset>
+
+    <details class="mais-detalhes">
+      <summary><svg class="icone" aria-hidden="true"><use href="#i-dir"/></svg>Mais detalhes (data: hoje)</summary>
+      <div class="formulario" style="margin-top:0">
+        <div class="campo"><label for="data">Data</label><input id="data" class="entrada" type="date" value="2026-10-09"></div>
+        <div class="campo"><label for="descricao">Descrição (opcional)</label><input id="descricao" class="entrada" type="text"></div>
+      </div>
+    </details>
+  </form>
+  <div class="folha-rodape">
+    <button class="botao botao-principal" type="submit" form="form-lancar">Lançar R$ 360,00 em 3x</button>
+  </div>
+</section>
+</body>
+</html>

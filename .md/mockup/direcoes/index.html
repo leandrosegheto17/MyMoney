@@ -1,0 +1,165 @@
+<title>Direções do MyMoney</title>
+<style>
+  /* Galeria neutra: só emoldura as três direções; as telas trazem o próprio visual. */
+  :root {
+    --fundo: #F2F4F7; --painel: #FFFFFF; --texto: #1C2430; --texto-2: #475467;
+    --borda: #DDE2E8; --moldura: #98A2B3; --pilula: #F2F4F7; --link: #1D4F91; --ok: #1E7A3C;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --fundo: #12161C; --painel: #1A2029; --texto: #E8ECF1; --texto-2: #A3ADBA;
+    --borda: #2A323E; --moldura: #6B7685; --pilula: #252C37; --link: #8DB8F2; --ok: #4ADE80; color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --fundo: #12161C; --painel: #1A2029; --texto: #E8ECF1; --texto-2: #A3ADBA;
+    --borda: #2A323E; --moldura: #6B7685; --pilula: #252C37; --link: #8DB8F2; --ok: #4ADE80; color-scheme: dark }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; padding-inline: 16px; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--texto); background: var(--fundo); line-height: 1.5; }
+  header.topo, main, footer { max-width: 1500px; margin: 0 auto; }
+  header.topo { padding-block: 32px 8px; }
+  h1, h2 { text-wrap: balance; }
+  h1 { margin: 0 0 8px; font-size: clamp(22px, 4vw, 28px); }
+  .intro { margin: 0; max-width: 70ch; color: var(--texto-2); }
+  main { padding-block: 16px 48px; display: grid; gap: 32px; }
+  section.direcao { background: var(--painel); border: 1px solid var(--borda); border-radius: 16px; padding: clamp(16px, 3vw, 24px); min-width: 0; }
+  .direcao h2 { margin: 0; font-size: 22px; }
+  .direcao .frase { margin: 4px 0 16px; color: var(--texto-2); max-width: 70ch; }
+  .ficha { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; font-size: 14px; color: var(--texto-2); }
+  .ficha li { background: var(--pilula); border-radius: 999px; padding: 2px 12px; }
+  .quadros { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  figure { margin: 0; max-width: 100%; overflow-x: auto; }
+  figcaption { font-size: 14px; font-weight: 600; margin-bottom: 6px; display: flex; gap: 12px; align-items: baseline; }
+  figcaption a { font-weight: 500; color: var(--link); }
+  .tela { position: relative; overflow: hidden; border: 1px solid var(--moldura); border-radius: 12px; background: #FFFFFF; }
+  .tela iframe { border: 0; transform-origin: 0 0; display: block; }
+  .celular { width: 254px; height: 549px; }                 /* 390 x 844 a 65% */
+  .celular iframe { width: 390px; height: 844px; transform: scale(0.65); }
+  .pc { width: 691px; height: 432px; }                      /* 1440 x 900 a 48% */
+  .pc iframe { width: 1440px; height: 900px; transform: scale(0.48); }
+  details { margin-top: 20px; }
+  .tabela { overflow-x: auto; }
+  summary { cursor: pointer; font-weight: 600; min-height: 32px; }
+  table { border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 12px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+  th { color: var(--texto-2); font-weight: 600; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .amostra { display: inline-block; width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--moldura); vertical-align: -4px; margin-right: 4px; }
+  .ok { color: var(--ok); font-weight: 600; }
+  footer { padding-block: 0 48px; color: var(--texto-2); font-size: 14px; }
+  footer p { max-width: 80ch; }
+  :focus-visible { outline: 3px solid var(--link); outline-offset: 2px; }
+</style>
+
+<header class="topo">
+  <h1>MyMoney · Direções visuais (etapa B2)</h1>
+  <p class="intro">Três direções para a tela-chave <strong>Início (T02)</strong>: o bloco Casa em cima, o bloco Eu embaixo e a barra inferior com o "+" central no celular (no PC, um trilho lateral com o botão "Lançar").
+  Mesma estrutura e mesmos dados fictícios de outubro de 2026 nas três. Mudam paleta, tipografia, densidade e acabamento. Escolha uma, ou peça uma mistura (ex.: "cores da B com a densidade da C").
+  Todas já cumprem contraste WCAG 2.1 AA (tabela em cada direção). As páginas são responsivas: o mesmo HTML vira celular (390 px) ou PC (1440 px).</p>
+</header>
+
+<main>
+  <section class="direcao" aria-labelledby="d-a">
+    <h2 id="d-a">A · Clara e sóbria</h2>
+    <p class="frase">Visual de banco digital discreto: fundo cinza muito claro, cartões brancos com borda fina, tipografia Inter, azul para ação e verde-petróleo para a Casa. O número fala mais alto que a decoração.</p>
+    <ul class="ficha"><li>Fonte: Inter</li><li>Texto base 15 px</li><li>Raio 12 px</li><li>Densidade média</li><li>Tema claro</li></ul>
+    <div class="quadros">
+      <figure><figcaption>Celular · 390 × 844 <a href="a-sobria/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela celular"><iframe src="a-sobria/inicio.html" title="Direção A no celular" loading="lazy"></iframe></div></figure>
+      <figure><figcaption>PC · 1440 × 900 <a href="a-sobria/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela pc"><iframe src="a-sobria/inicio.html" title="Direção A no PC" loading="lazy"></iframe></div></figure>
+    </div>
+    <details open>
+      <summary>Contraste da direção A (WCAG 2.1 AA: texto ≥ 4,5:1; gráfico e contorno ≥ 3:1)</summary>
+      <div class="tabela"><table>
+        <thead><tr><th>Par (frente / fundo)</th><th>Uso</th><th>Razão</th><th>Mínimo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="amostra" style="background:#1C2430"></span>#1C2430 / #FFFFFF</td><td>Texto em cartão</td><td class="num">15,7:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#1C2430"></span>#1C2430 / #F5F7FA</td><td>Texto no fundo da página</td><td class="num">14,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#55606E"></span>#55606E / #FFFFFF</td><td>Texto secundário, rótulos da barra</td><td class="num">6,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#55606E"></span>#55606E / #EEF1F5</td><td>Selo "Pendente"</td><td class="num">5,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#2060B3"></span>#2060B3 / #FFFFFF</td><td>Links, item ativo, título "Eu", foco</td><td class="num">6,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#2060B3"></span>#FFFFFF / #2060B3</td><td>Botão "+ Lançar", contador</td><td class="num">6,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#2060B3"></span>#2060B3 / #EAF1FB</td><td>Item ativo do trilho (PC)</td><td class="num">5,5:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#0F6B5C"></span>#0F6B5C / #F5F7FA</td><td>Título "Casa"</td><td class="num">6,0:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#1E7A3C"></span>#1E7A3C / #E6F4EA</td><td>Selo "Dentro"</td><td class="num">4,7:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#8A5A00"></span>#8A5A00 / #FDF3E1</td><td>Selo "Atenção"</td><td class="num">5,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#B42318"></span>#B42318 / #FCE8E6</td><td>Selos "Estourado" e "Atrasada"</td><td class="num">5,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td>Barras sobre a trilha #DDE2E8</td><td>Azul / petróleo / verde / âmbar / vermelho</td><td class="num">4,8 / 4,9 / 4,1 / 4,6 / 5,0</td><td class="ok">3 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#8A94A3"></span>#8A94A3 / #FFFFFF</td><td>Contorno do botão secundário e dos selos</td><td class="num">3,1:1</td><td class="ok">3 ✓</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </section>
+
+  <section class="direcao" aria-labelledby="d-b">
+    <h2 id="d-b">B · Colorida e amigável</h2>
+    <p class="frase">Calorosa e leve: fundo creme, cada bloco é um painel colorido (coral = Casa, violeta = Eu) com cartões brancos bem arredondados, tipografia Nunito e números mais gordos. Pensada para dar vontade de abrir todo dia.</p>
+    <ul class="ficha"><li>Fonte: Nunito</li><li>Texto base 16 px</li><li>Raio 20 px</li><li>Densidade folgada</li><li>Tema claro</li></ul>
+    <div class="quadros">
+      <figure><figcaption>Celular · 390 × 844 <a href="b-amigavel/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela celular"><iframe src="b-amigavel/inicio.html" title="Direção B no celular" loading="lazy"></iframe></div></figure>
+      <figure><figcaption>PC · 1440 × 900 <a href="b-amigavel/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela pc"><iframe src="b-amigavel/inicio.html" title="Direção B no PC" loading="lazy"></iframe></div></figure>
+    </div>
+    <details open>
+      <summary>Contraste da direção B (WCAG 2.1 AA: texto ≥ 4,5:1; gráfico e contorno ≥ 3:1)</summary>
+      <div class="tabela"><table>
+        <thead><tr><th>Par (frente / fundo)</th><th>Uso</th><th>Razão</th><th>Mínimo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="amostra" style="background:#2B1E3F"></span>#2B1E3F / #FFFFFF</td><td>Texto em cartão</td><td class="num">15,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#2B1E3F"></span>#2B1E3F / #FFF8F0</td><td>Texto no fundo da página</td><td class="num">14,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#5E5470"></span>#5E5470 / #FFFFFF</td><td>Texto secundário, rótulos da barra</td><td class="num">7,1:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#5E5470"></span>#5E5470 / #FFEFE5 e #F1EBFF</td><td>"· Leandro" e textos sobre os painéis</td><td class="num">6,3 / 6,1:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#5E5470"></span>#5E5470 / #F3EEF8</td><td>Selo "Pendente"</td><td class="num">6,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#C2410C"></span>#C2410C / #FFEFE5</td><td>Título "Casa" (22 px, negrito)</td><td class="num">4,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#C2410C"></span>#FFFFFF / #C2410C</td><td>Botão "+ Lançar", contador</td><td class="num">5,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#6D28D9"></span>#6D28D9 / #FFFFFF</td><td>Links, botão secundário, item ativo, foco</td><td class="num">7,1:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#6D28D9"></span>#6D28D9 / #F1EBFF</td><td>Título "Eu", item ativo do trilho</td><td class="num">6,1:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#166534"></span>#166534 / #DCFCE7</td><td>Selo "Dentro"</td><td class="num">6,5:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#92400E"></span>#92400E / #FEF3C7</td><td>Selo "Atenção"</td><td class="num">6,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#B91C1C"></span>#B91C1C / #FEE2E2</td><td>Selos "Estourado" e "Atrasada"</td><td class="num">5,3:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td>Barras sobre a trilha #EADFD3</td><td>Coral / violeta / verde / âmbar / vermelho</td><td class="num">3,9 / 5,4 / 5,4 / 5,4 / 4,9</td><td class="ok">3 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#8C8299"></span>#8C8299 / #FFFFFF</td><td>Contorno de selo e rótulo "parcial"</td><td class="num">3,6:1</td><td class="ok">3 ✓</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </section>
+
+  <section class="direcao" aria-labelledby="d-c">
+    <h2 id="d-c">C · Noturna e densa</h2>
+    <p class="frase">Modo escuro de painel financeiro: fundo grafite, âmbar = Casa e ciano = Eu, IBM Plex Sans com os valores em Plex Mono alinhados, cantos retos e mais informação por tela. Confortável à noite e com cara de ferramenta.</p>
+    <ul class="ficha"><li>Fontes: IBM Plex Sans + Plex Mono</li><li>Texto base 14 px</li><li>Raio 6 px</li><li>Densidade alta</li><li>Tema escuro</li></ul>
+    <div class="quadros">
+      <figure><figcaption>Celular · 390 × 844 <a href="c-noturna/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela celular"><iframe src="c-noturna/inicio.html" title="Direção C no celular" loading="lazy"></iframe></div></figure>
+      <figure><figcaption>PC · 1440 × 900 <a href="c-noturna/inicio.html" target="_blank" rel="noopener">abrir</a></figcaption>
+        <div class="tela pc"><iframe src="c-noturna/inicio.html" title="Direção C no PC" loading="lazy"></iframe></div></figure>
+    </div>
+    <details open>
+      <summary>Contraste da direção C (WCAG 2.1 AA: texto ≥ 4,5:1; gráfico e contorno ≥ 3:1)</summary>
+      <div class="tabela"><table>
+        <thead><tr><th>Par (frente / fundo)</th><th>Uso</th><th>Razão</th><th>Mínimo</th></tr></thead>
+        <tbody>
+          <tr><td><span class="amostra" style="background:#E8ECF1"></span>#E8ECF1 / #1A2029</td><td>Texto em cartão</td><td class="num">13,8:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#E8ECF1"></span>#E8ECF1 / #10141A</td><td>Texto no fundo da página</td><td class="num">15,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#A3ADBA"></span>#A3ADBA / #1A2029</td><td>Texto secundário, rótulos da barra</td><td class="num">7,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#A3ADBA"></span>#A3ADBA / #252C37</td><td>Selo "Pendente"</td><td class="num">6,2:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#F5B841"></span>#F5B841 / #10141A</td><td>Título "Casa", item ativo</td><td class="num">10,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#F5B841"></span>#10141A / #F5B841</td><td>Botão "+ Lançar", contador</td><td class="num">10,4:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#F5B841"></span>#F5B841 / #252C37</td><td>Item ativo do trilho (PC)</td><td class="num">7,9:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#5CC8E8"></span>#5CC8E8 / #1A2029</td><td>Links, botão secundário, foco</td><td class="num">8,5:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#5CC8E8"></span>#5CC8E8 / #10141A</td><td>Título "Eu"</td><td class="num">9,6:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#4ADE80"></span>#4ADE80 / #12301F</td><td>Selo "Dentro"</td><td class="num">8,5:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#FBBF24"></span>#FBBF24 / #33270A</td><td>Selo "Atenção"</td><td class="num">8,8:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#F87171"></span>#F87171 / #3A1618</td><td>Selos "Estourado" e "Atrasada"</td><td class="num">5,8:1</td><td class="ok">4,5 ✓</td></tr>
+          <tr><td>Barras sobre a trilha #2E3744</td><td>Âmbar / ciano / verde / amarelo / vermelho</td><td class="num">6,8 / 6,3 / 7,0 / 7,3 / 4,4</td><td class="ok">3 ✓</td></tr>
+          <tr><td><span class="amostra" style="background:#6B7685"></span>#6B7685 / #1A2029</td><td>Contorno do botão secundário e dos selos</td><td class="num">3,6:1</td><td class="ok">3 ✓</td></tr>
+        </tbody>
+      </table></div>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <p><strong>Como as razões foram calculadas:</strong> luminância relativa da WCAG 2.1 sobre as cores exatas de cada <code>estilo.css</code>. Em todas as direções, os estados (Dentro, Atenção, Estourado, Atrasada, Pendente) e o escopo (Casa, Eu) sempre têm ícone + texto, nunca só cor. Alvos de toque ≥ 44 px, foco visível de 3 px.</p>
+  <p><strong>Depois da escolha:</strong> a direção escolhida vira o mockup completo da etapa B3 (<code>.md/mockup/</code>, com <code>tokens.css</code> e fontes auto-hospedadas). As outras ficam nesta pasta só como histórico e <strong>não são referência de implementação</strong>. Nesta B2, as fontes vêm do Google Fonts. Na B3, elas passam a ser arquivos locais em <code>fontes/</code>.</p>
+  <p>Dados fictícios: Leandro e Ana, outubro de 2026 (mês parcial).</p>
+</footer>

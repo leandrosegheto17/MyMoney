@@ -1,0 +1,19 @@
+[
+  {
+    "id": "00000000-0000-4000-8000-000000000560",
+    "dono": "00000000-0000-4000-8000-0000000000a1",
+    "args": {
+      "p_id": "00000000-0000-4000-8000-000000000560",
+      "p_valor_centavos": 1250,
+      "p_categoria_id": "00000000-0000-4000-8000-000000000411",
+      "p_forma_id": "00000000-0000-4000-8000-000000000301",
+      "p_parcelas": 1,
+      "p_data": "2026-10-09",
+      "p_descricao": "Padaria"
+    },
+    "exibicao": { "categoria_nome": "Almoço/Alimentação fora", "escopo": "individual", "forma_nome": "Pix Nubank" },
+    "criadoEm": "2026-10-09T08:15:00-03:00",
+    "situacao": "aguardando",
+    "motivo": null
+  }
+]

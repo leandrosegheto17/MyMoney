@@ -1,0 +1,596 @@
+# TASK.md — MyMoney
+
+**Status:** Rascunho do Loop C (rodada 2), 2026-10-09. Aguarda aprovação do usuário. Rodada 2: L-01 resolvida pelo
+ADR-012 (opção A); estimativa total aceita pelo stakeholder; receitas mantidas no lote 23.
+**Base:** `.md/SDD.md` + ADRs 001-009, 011 e 012 (aceitos), `.md/UX-SPEC.md`, mockup aprovado em `.md/mockup/`
+(https://claude.ai/artifact/EV6C3zSheYmFDRqirio5in), `.md/PRD-TECNICO.md`, `.md/PRD.md`, `.md/CTO-REVIEW.md`.
+**Resumo:** 159 tarefas `TP-` + 1 spike `SPK-0001`, em 33 lotes. Os lotes 1 a 22 levam ao **uso diário**
+(lançamento rápido, Início, lista e edição, instalação). Os lotes 23 a 33 completam o MVP (receitas, ajuste de
+parcelas, fixas, orçamento, metas e o pagamento do cartão, que é Could).
+
+---
+
+## 1. Diretrizes de Implementação
+
+### 1.1 Camadas de regra (de baixo para cima)
+
+1. `coding-guidelines` (skill de terceiros): comportamento geral.
+2. **`.claude/CONVENCOES-DE-CODIGO.md`: camada base obrigatória.** Reaproveitar em vez de copiar, fronteiras,
+   tamanho de arquivo (código ~300 linhas, componente ~200, teste ~400), comentários sem ID de tarefa. Esta seção
+   não repete o texto de lá.
+3. Esta seção: o que é específico do MyMoney.
+4. `.md/GUARDRAILS.md` (depois de aprovado pelo Gestor): regras inegociáveis, por cima de tudo.
+
+### 1.2 Execução em paralelo e recursos exclusivos
+
+| Nível | Diretriz |
+|---|---|
+| Obrigatória | **[BD] = recurso exclusivo.** Tarefa marcada [BD] usa o Supabase local (`supabase start`, `db reset`, pgTAP, `testes-api`, e2e de integração). Duas tarefas [BD] **nunca** rodam ao mesmo tempo, mesmo em lotes diferentes: uma zera o banco da outra. A Seção 4 já conta isso |
+| Obrigatória | **[U] = COM O USUÁRIO.** O Executor prepara, mostra exatamente o que vai fazer (comando, lista do que será apagado, SQL do dry-run) e só executa depois que o usuário confirma **na hora**. Ação destrutiva exige confirmação **digitada** (ex.: digitar o ref do projeto). Sem confirmação, a tarefa para e fica `Pendente`. Duas tarefas [U] não rodam ao mesmo tempo |
+| Obrigatória | Tarefas de frontend em paralelo: cada instância sobe o Vite numa porta livre (`PORTA` no ambiente ou `--port 0`) e grava prints em `.md/.visual/<data>/<ID>/`. Nunca editar arquivo que outra tarefa da mesma rodada cria (ver "arquivos-filho" nas tarefas T03 e T02) |
+| Obrigatória | Commit `TP-0000: <resumo>`. Nada de ID de tarefa no código, nem em nome de migration |
+
+### 1.3 Banco de dados (ADR-002, 003, 004, 005, 011; SDD §2, §5, §7)
+
+| Nível | Diretriz |
+|---|---|
+| Obrigatória | **Um arquivo por objeto** em `backend/supabase/schemas/`: `app/tabelas/<tabela>.sql` (tabela + índices + RLS + políticas), `app/funcoes/<nome>.sql`, `api/views/<view>.sql`, `api/funcoes/<funcao>.sql`. Nenhum SQL fora de `backend/supabase/` |
+| Obrigatória | **Migration** gerada por `supabase db diff -f <nome_descritivo>`, revisada e aplicada do zero com `pnpm local:resetar`. Envolvida em `begin; … commit;`. Só adiciona (*expand/contract*): coluna nova com default, função nova ou parâmetro novo com default. O que o `db diff` não capturar (política, grant, `security_invoker`) é escrito à mão na mesma migration e anotado no `backend/README.md` |
+| Obrigatória | Funções `api.*` e `app.*`: `security invoker`, `set search_path = ''`, nomes qualificados (`app.conta`), parâmetros `p_*`. A primeira linha identifica o membro por `app.membro_atual()` |
+| Obrigatória | Erro de regra = `raise exception '<codigo>'` com código de `@mymoney/contrato/erros`. "Não existe" e "não é seu" dão **o mesmo** `registro_invalido` |
+| Obrigatória | `SECURITY DEFINER` só na lista fechada do SDD §7: `api.editar_lancamento` (ADR-003) e as auxiliares de RLS `app.membro_atual()` e `app.lar_atual()` (ADR-012). Entrada nova exige ADR. O teste de catálogo (TP-0017) falha se aparecer outra. As políticas usam as auxiliares (`lar_id = app.lar_atual()`, `dono_id = app.membro_atual()`) e nunca leem `app.membro` direto |
+| Obrigatória | Dinheiro: `bigint` com sufixo `_centavos` e `check (> 0)` quando for valor de operação. Data de negócio: `date`. "Hoje" só por `app.hoje()` (fuso America/Sao_Paulo, TP-0004). Dia no mês só por `app.dia_no_mes()` (TP-0004) |
+| Obrigatória | Todo total soma **parcelas** pelo mês de `parcela.data` (ADR-005). Nenhuma função de total lê `lancamento.valor_total_centavos` |
+| Obrigatória | Criação idempotente pelo `id` (uuid) do cliente: mesmo id do mesmo membro devolve o resultado anterior; id de outro membro dá `registro_invalido` |
+| Obrigatória | pgTAP: um arquivo por regra em `backend/supabase/tests/`, executando como `authenticated` com o JWT de cada membro de teste |
+| Recomendada | Funções curtas. Lógica que duas funções `api.*` usam vai para `app.*` (as `api.*` não chamam umas às outras, exceto `resumo_mes` → `app.*`) |
+
+Exemplo (faça assim):
+```sql
+create or replace function api.arquivar_conta(p_id uuid) returns void
+language plpgsql security invoker set search_path = '' as $$
+declare v_membro uuid := app.membro_atual();
+begin
+  update app.conta set arquivada = true where id = p_id and dono_id = v_membro;
+  if not found then raise exception 'registro_invalido'; end if;
+end $$;
+```
+Não assim: `raise exception 'conta pertence a outro membro'` (revela que o registro existe).
+
+### 1.4 Contrato da API (`@mymoney/contrato`)
+
+| Nível | Diretriz |
+|---|---|
+| Obrigatória | `src/banco.ts` é gerado (`pnpm contrato:gerar`) e nunca editado à mão. Toda tarefa [BD] que muda o schema `api` roda o gerador; o CI falha com diff (`contrato:verificar`) |
+| Obrigatória | As respostas em JSON (RPCs que devolvem `jsonb`) têm o tipo em `src/respostas/<recurso>.ts`, escrito a partir de `.md/mockup/respostas/*.json` (D-02). **A forma real da API é a do JSON do mockup**, que é superconjunto da tabela do SDD §2 (D-03). Importar por caminho (`@mymoney/contrato/respostas/resumo-mes`), sem arquivo-barril |
+| Obrigatória | Toda tarefa de recurso `api` acrescenta `backend/testes-api/casos/<recurso>.test.ts` com: (a) o isolamento (B tenta ler, listar, filtrar por id, inferir por total ou contagem, alterar e excluir dado de A; tudo falha ou volta vazio com `registro_invalido`); (b) `mesmaForma(resposta, <json do mockup>)` quando houver arquivo no mockup |
+
+### 1.5 Frontend (ADR-006, ADR-007; SDD §2 "Camadas"; UX-SPEC)
+
+| Nível | Diretriz |
+|---|---|
+| Obrigatória | Camadas em `frontend/web/src`: `paginas/` → `componentes/` → `componentes/base/`; `ganchos/` → `dados/`; `formatacao/`, `rotulos/`, `pwa/`, `configuracao/`. `componentes/` nunca importa `dados/`. Checado pelo ESLint (TP-0022) |
+| Obrigatória | Só `dados/` importa `@supabase/supabase-js` e `idb-keyval`. `dados/` exporta funções (`buscarResumoMes`, `lancarDespesa`, `fila.esvaziar`), nunca o cliente. Nenhuma escrita por `.insert/.update/.upsert/.delete`: escrita só por `rpc` |
+| Obrigatória | A tela não calcula parcela, competência, saldo, total, situação de orçamento nem "quanto falta". Formata centavos e datas, monta centavos a partir dos dígitos e propõe "hoje". Faltou um campo? É lacuna de contrato: `BK` para o Coordenador |
+| Obrigatória | Estilo: CSS Modules por componente, transcrevendo a seção de mesmo nome de `.md/mockup/base.css` e usando só variáveis de `tokens.css`. `tokens.css` e as fontes são cópias **sem alteração** (teste de hash, TP-0023). Tema único escuro, sem `prefers-color-scheme` |
+| Obrigatória | Um componente exportado por arquivo. Página fina: lê parâmetros, chama o gancho, compõe componentes |
+| Obrigatória | Dados do servidor por TanStack Query (`refetchOnWindowFocus`). Erro de leitura: mostra o último dado em cache com a faixa "Mostrando dados de {hora}" (padrão do TP-0040). Escrita fora da T03 sem rede: avisa e mantém o formulário |
+| Proibida | Script de terceiros, analytics, monitor de erros, fonte por CDN, `dangerouslySetInnerHTML` |
+| Recomendada | Rotas preguiçosas, exceto Início e Lançar, que entram no bundle inicial (RNF-03) |
+
+### 1.6 Critérios-padrão citados na Seção 3
+
+- **[BD padrão]:** objeto num arquivo próprio (1.3); migration gerada e aplicada do zero (`pnpm local:resetar` verde);
+  pgTAP da regra passando; `pnpm contrato:gerar` sem diff pendente (a partir do TP-0019); CI do banco verde.
+- **[API padrão]:** [BD padrão] + caso em `testes-api` com isolamento e `mesmaForma` (1.4). O meta-teste do TP-0016
+  falha se o recurso não tiver caso.
+- **[Tela padrão]:** comparação visual (`pnpm --filter @mymoney/web visual --tela <id>`) dos estados *auto*
+  listados, PC e celular, com no máximo **1%** de pixels divergentes e a mesma altura de página do mockup; estados
+  *manuais* listados conferidos por Playwright executando a interação (print anexado); `@axe-core/playwright` sem
+  violação *serious* ou *critical* em cada estado; testes de componente dos comportamentos citados; nenhuma chamada
+  real (só as respostas do mockup).
+
+### 1.7 Documentação mínima (obrigatória)
+
+`backend/README.md` + `backend/.env.example` e `frontend/README.md` + `frontend/.env.example`, com setup, comandos de
+execução e teste e todas as variáveis (nunca valores reais). Criados no TP-0002 e no TP-0021; toda tarefa que
+acrescenta comando ou variável atualiza os dois arquivos.
+
+---
+
+## 2. Spikes Técnicos Identificados
+
+| Tarefa relacionada | Pergunta que o spike responde | Prazo do spike | Time responsável |
+|---|---|---|---|
+| SPK-0001 (protótipo no TP-0031); destrava TP-0081 a TP-0084 | No **iPhone 17 (iOS 26.x)**, com o app instalado na tela de início e também no Safari, e no **Moto Edge 60** (Chrome, instalado e no navegador), o toque no "+" que exibe a folha **já montada** e chama `focus()` no campo `inputmode=numeric` **no mesmo handler síncrono** abre o teclado numérico com o cursor no valor em 10 de 10 tentativas, inclusive ao fechar e reabrir, ao voltar do segundo plano e logo depois de um lançamento? O botão fixo fica acima do teclado (`visualViewport`)? | 1 dia (timebox) | Coordenador + usuário (aparelhos reais); protótipo pelo Executor (Mobile) |
+
+Critério 2 do framework (integração não testada: comportamento real do WebKit, só documentado de forma indireta).
+Se falhar, o Coordenador abre um `BK` com as alternativas: (a) campo de valor real sempre presente na barra (o "+"
+é o próprio campo); (b) campo-proxy focado no gesto e foco transferido para o valor; (c) aceitar 1 toque a mais, o
+que exige o aval do stakeholder porque fere o RNF-01 (ressalva 1 do Gate 1, crítica).
+
+Riscos acompanhados sem spike (não se encaixam nos 4 critérios; viram cuidado dentro da tarefa):
+- `supabase db diff` pode não capturar política, grant ou `security_invoker`: conferido no TP-0003 e escrito à mão
+  quando faltar (1.3).
+- Deployment Checks da Vercel no plano Hobby: o TP-0030 tem plano B definido (proteção da `main`).
+
+---
+
+## 3. Lista de Tarefas
+
+Legenda: **[BD]** usa o Supabase local (exclusivo); **[U]** com o usuário; **[BD padrão]**, **[API padrão]** e
+**[Tela padrão]** estão definidos em 1.6. Estimativa em horas de trabalho efetivo (1 dia-pessoa de hobby ≈ 6 h; nenhuma
+tarefa passa disso). Status inicial `Pendente`.
+
+### Lote 1 — Fundação do repositório
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0001 | Lote 1 | Workspace pnpm na raiz | Backend (operação) | SDD §2 Pacotes; ADR-006, ADR-011 | `pnpm-workspace.yaml` com `backend/contrato`, `backend/testes-api`, `backend/operacao/*`, `frontend/web`; `package.json` com `lint`, `typecheck`, `test` recursivos; `tsconfig.base.json` estrito; ESLint e Prettier; `.editorconfig`; `.gitignore` cobre `.env` e `.env.*` (exceto `.env.example`), `*.dump`, `node_modules`, `.md/.visual/`; README da raiz lista pacotes e comandos. `pnpm install`, `pnpm lint` e `pnpm typecheck` verdes | 3h | — | — | Pendente |
+| TP-0002 | Lote 1 | Supabase CLI local em `backend/supabase` [BD] | Backend (operação) | ADR-011 §2-3; ADR-008; SDD §3 "Ambientes" | `config.toml` com cadastro desligado, senha mínima 12, `api.schemas = ["api"]`, GraphQL desligado, JWT de 3600 s e rotação de refresh, cada item comentado "espelha o painel"; seeds em arquivos `supabase/seeds/*.sql` (`sql_paths`); `pnpm local:subir` (`supabase start --workdir backend` + Vite quando existir) e `pnpm local:resetar` (`db reset`) funcionam num Docker limpo; `backend/README.md` e `backend/.env.example` criados; nenhuma credencial real versionada | 3h | TP-0001 | TP-0006, TP-0007 | Pendente |
+| TP-0003 | Lote 1 | Schemas `app` e `api` e privilégios padrão [BD] | Backend | ADR-002 §3, ADR-003 §1; SDD §7 itens 1-2 | Migration cria `app` e `api`; `anon` sem `usage` em `app`; `authenticated` com `usage` em `app` (necessário às funções INVOKER) e em `api`; `alter default privileges` tira `execute` de `public` e `anon` em funções novas; pgTAP `tests/seguranca/00-privilegios.sql` passa. `backend/README.md` registra o que o `db diff` captura ou não de política, grant e `security_invoker` | 3h | TP-0002 | TP-0006, TP-0007 | Pendente |
+| TP-0004 | Lote 1 | Utilitários de data do banco: `app.hoje()`, `app.dia_no_mes()`, `app.inicio_mes()` [BD] | Backend | ADR-004; RN-14, CA-06.1a, CA-11.2 | `app.hoje()` = data em America/Sao_Paulo; `app.dia_no_mes(mes, dia)` devolve o dia ou o último dia do mês (31 em fevereiro → 28/29; 31 em abril → 30); `app.inicio_mes(data)`; pgTAP cobre virada de ano, bissexto e 23h30 de 31/12 em São Paulo; [BD padrão]. Única fonte de "hoje" e de "dia no mês" (usada por TP-0015, TP-0061, TP-0120) | 2h | TP-0003 | TP-0006, TP-0007 | Pendente |
+| TP-0005 | Lote 1 | Função `api.ping()` [BD] | Backend | ADR-009 §1; SDD §2 Contrato | `select 1`, INVOKER, `search_path = ''`; `execute` para `anon` e `authenticated`; pgTAP: a lista de funções executáveis por `anon` é exatamente `{api.ping}`; [BD padrão] | 1.5h | TP-0003 | TP-0006, TP-0007 | Pendente |
+| TP-0006 | Lote 1 | Worker de keep-alive (`@mymoney/keepalive`): código | Backend (operação) | ADR-009 §1-3; RNF-07 | `wrangler.toml` com cron `0 9 * * *` e sem rota HTTP (só `scheduled`); `POST {SUPABASE_URL}/rest/v1/rpc/ping` com a chave `anon` dos *secrets*; 3 tentativas com espera exponencial; log só com status e número da tentativa; testes Vitest com `fetch` simulado (sucesso; 2 falhas e sucesso; 3 falhas → erro registrado); README com deploy, verificação e plano B (reativar pelo painel). Depende só do contrato de `rpc/ping` (URL e corpo), não da implementação | 3h | TP-0001 | TP-0002, TP-0003, TP-0004, TP-0005, TP-0007 | Pendente |
+| TP-0007 | Lote 1 | CI base no GitHub Actions | Backend (operação) | SDD §3 CI, §7 "Superfície"; ADR-011 | `.github/workflows/ci.yml` em push e PR: pnpm com cache, lint, typecheck, Vitest de todos os pacotes, gitleaks; passos de grep que falham se houver `service_role` fora de docs, ID de tarefa (`(TP\|RTP\|SPK\|BK)-[0-9]{4}`) em `backend/` ou `frontend/`, ou arquivo `.sql` fora de `backend/supabase/`; nenhum segredo de produção referenciado. Prova: um segredo falso num branch de teste deixa o job vermelho | 3h | TP-0001 | TP-0002, TP-0003, TP-0004, TP-0005, TP-0006 | Pendente |
+
+### Lote 2 — Produção limpa e keep-alive no ar
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0008 | Lote 2 | Script `backend/operacao/deploy/migrar.sh` [BD] | Backend (operação) | ADR-011 §4; SDD §6 "Migrations" | Recusa árvore suja e commit sem CI verde (`gh run list --commit`), incluindo o job `isolamento`; grava a cópia pontual pré-migração (`supabase db dump` de schema e dados) em pasta fora do repositório; mostra o SQL de `supabase db push --dry-run`; exige confirmação digitada (sem entrada → aborta, coberto por teste); aplica; imprime como restaurar a cópia. `shellcheck` no CI. Ensaio contra o Supabase local documentado no README | 4h | TP-0002, TP-0007 | TP-0009 | Pendente |
+| TP-0009 | Lote 2 | Limpeza do Supabase de produção com verificação de região [U] | Backend (operação) | SDD §6 "Limpeza dos ambientes", RT-09; CTO ressalva 6; ADR-011 §1 | Destrutiva, na ordem do SDD: (0) região do projeto `xrcxbzrglndetrrhavhc` conferida e registrada; (1) `pg_dump` completo (schemas, dados, auth) guardado fora do repositório e conferido com `pg_restore --list`; (2) lista do que será apagado (schemas, tabelas, funções, usuários do Auth, buckets, Edge Functions, cron) mostrada e confirmada pelo usuário com texto digitado; (3) se `sa-east-1`: `supabase db reset --linked` e remoção de usuários, buckets e Edge Functions antigos; senão: o usuário exclui o projeto e cria outro Free em `sa-east-1`, e a URL e as chaves novas vão para o gerenciador de senhas e o `.env` local; (4) `backend/operacao/setup/limpeza.md` com data, região, ref e hash do dump, sem segredo. Verificação no painel: `public` sem tabelas, Auth sem usuários, sem bucket nem Edge Function. Roteiro em `setup/limpar-supabase.sh`, que aborta sem a confirmação | 3h | TP-0002 | TP-0008 | Pendente |
+| TP-0010 | Lote 2 | Configuração do Auth e da API em produção [U] | Backend (operação) | ADR-008 §1, §4; ADR-011 (consequências); SDD §3 "Ambientes" | No painel: cadastro desligado, senha mínima 12, schemas expostos só `api`, `pg_graphql` desligado, JWT de 3600 s, rotação de refresh, Site URL e Redirect URL `https://<domínio de produção da Vercel>/redefinir-senha`. `backend/operacao/setup/conferencia-painel.md` lista cada item, o valor no painel e o valor no `config.toml`, todos iguais | 2h | TP-0009 | TP-0008 | Pendente |
+| TP-0011 | Lote 2 | Primeira migration em produção (schemas, utilitários e ping) [U] | Backend (operação) | ADR-009 §5 (Worker no 1º lote); ADR-011 §4 | Aplicada com `migrar.sh` depois de o usuário conferir o SQL do dry-run; `curl -X POST <url>/rest/v1/rpc/ping` com a `anon` devolve `1`; qualquer outro recurso sem JWT falha. Exceção registrada (D-11): é a única migration fora do `/deploy` | 1h | TP-0004, TP-0005, TP-0008, TP-0010 | — | Pendente |
+| TP-0012 | Lote 2 | Deploy do Worker na Cloudflare [U] | Backend (operação) | ADR-009 §3, §5; RT-03 | `wrangler login` na conta do casal, `wrangler secret put` da URL e da `anon`, `wrangler deploy`; disparo de teste do cron com sucesso no histórico do painel; `backend/operacao/setup/verificacao-keepalive.md` registra a data de início da janela de 10 dias | 1.5h | TP-0006, TP-0011 | — | Pendente |
+
+### Lote 3 — Acesso e teste de isolamento
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0013 | Lote 3 | Tabelas `app.lar` e `app.membro`, RLS e `app.membro_atual()`/`app.lar_atual()` [BD] | Backend | ADR-008 §2; ADR-012; ADR-002 §2; RN-11; SDD §5, §7 item 4 | Exatamente 1 lar; no máximo 2 membros; `user_id` único → `auth.users`; RLS `enable` + `force`; os 2 membros se veem (id, nome) pela política `lar_id = app.lar_atual()`. `app.membro_atual()` e `app.lar_atual()` conforme o ADR-012: `security definer`, `language sql`, `stable`, `search_path = ''`, sem parâmetros, leem só a linha de `auth.uid()`, `execute` só para `authenticated` (revogado de `public` e `anon`). pgTAP: sem recursão; usuário sem linha em `membro` recebe `null` das duas e não vê nada; 3º membro e 2º lar recusados; A vê id e nome de B e nada mais; as auxiliares nunca devolvem o id de B; [BD padrão] | 4h | TP-0003 | — | Pendente |
+| TP-0014 | Lote 3 | Seeds locais de acesso [BD] | Backend | ADR-011 §2; SDD §3 | `seeds/01-acesso.sql`: lar, 2 usuários de teste (Leandro e Ana, com os ids de `.md/mockup/dados.json` quando houver) com senha conhecida só no local, os 2 membros e 1 usuário autenticado **sem** membro; `pnpm local:resetar` cria tudo; nenhum dado real | 2h | TP-0013 | — | Pendente |
+| TP-0015 | Lote 3 | `api.contexto()` [BD] | Backend | RF-01; SDD §2 Contrato | Devolve membro atual (id, nome), nome do outro membro e mês corrente por `app.hoje()`, na forma de `respostas/contexto.json`; pgTAP; caso em `testes-api` criado junto do TP-0016 | 2h | TP-0004, TP-0013 | — | Pendente |
+| TP-0016 | Lote 3 | Pacote `@mymoney/testes-api` (suíte de isolamento) [BD] | Backend | ADR-002 §6; SDD §7 item 7; RNF-04 | Vitest + supabase-js; login real dos 2 usuários de teste e do usuário sem membro; ajudantes `comoA`, `comoB`, `esperarRegistroInvalido`, `mesmaForma(real, exemplo)`; recusa rodar se a URL não for `localhost`/`127.0.0.1` (teste); **meta-teste** lê do catálogo todas as views e funções do schema `api` e falha se alguma não tiver `casos/<recurso>.test.ts`; casos de `ping` e `contexto` (o usuário sem membro não obtém nada) | 5h | TP-0014, TP-0015 | — | Pendente |
+| TP-0017 | Lote 3 | Testes de catálogo da segurança do banco [BD] | Backend | SDD §7 itens 1-4; ADR-002, ADR-003, ADR-004 | pgTAP `tests/seguranca/catalogo.sql` que vale para objetos futuros: toda tabela de `app` com RLS `enable` + `force`; nenhuma política `using (true)` ou `with check (true)`; toda view de `api` com `security_invoker = true`; funções `security definer` em `app` e `api` = lista fechada do SDD §7 (`api.editar_lancamento`, `app.membro_atual`, `app.lar_atual`; ADR-003 e ADR-012), escrita no teste; `anon` só executa `api.ping`; nenhuma coluna `real`, `double precision` ou `numeric` em `app`; toda coluna `*_centavos` é `bigint` | 3h | TP-0013 | TP-0018 | Pendente |
+| TP-0018 | Lote 3 | CI do banco | Backend (operação) | ADR-011 §4.2; SDD §3 CI; RT-01 | Job com Docker: `supabase start`, `db reset`, `supabase test db`, `supabase db lint` sem erro; job separado e nomeado **`isolamento`** roda `@mymoney/testes-api`; nenhum acesso à produção. Os dois jobs verdes no PR desta tarefa | 4h | TP-0007, TP-0016 | TP-0017 | Pendente |
+
+### Lote 4 — Base do app e contrato
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0019 | Lote 4 | Pacote `@mymoney/contrato`: tipos gerados e códigos de erro [BD] | Backend | SDD §2 Pacotes | `pnpm contrato:gerar` (`supabase gen types typescript --local --schema api` → `src/banco.ts`); `src/erros.ts` com a união dos códigos estáveis (`valor_invalido`, `registro_invalido`, `sem_permissao`, `confirmar_descarte_ajustes`, `categoria_em_uso`, `em_uso`…); `pnpm contrato:verificar` (regenera e falha com diff) acrescentado ao job do banco no CI | 3h | TP-0015, TP-0018 | TP-0021 | Pendente |
+| TP-0020 | Lote 4 | Tipos das respostas em JSON e das linhas das views | Backend | D-02, D-03; UX-SPEC §0 (respostas no formato do contrato) | Um arquivo por recurso em `src/respostas/`: contexto, dados_lancamento, resumo_mes, lancamentos_mes, lancamento, ocorrencias_mes, orcamento_mes, movimentos_meta, locais_guardados, lancar_despesa e as linhas de contas, formas_pagamento, categorias, despesas_fixas, metas; escritos a partir de `.md/mockup/respostas/*.json`; teste de tipo: cada JSON do mockup importado com `satisfies` compila; exportação por caminho, sem barril; enums (escopo, tipo de forma, situação) exportados como uniões | 5h | TP-0019 | TP-0021, TP-0022, TP-0023, TP-0024 | Pendente |
+| TP-0021 | Lote 4 | Esqueleto `@mymoney/web` | Frontend | ADR-006; SDD §2 Camadas | Vite + React 19 + TS estrito + React Router (SPA) + TanStack Query (`refetchOnWindowFocus`); `configuracao/` lê e valida URL e `anon` de `import.meta.env`; Vitest + Testing Library; `browserslist` do ADR-006; `<html lang="pt-BR">`; `frontend/README.md` e `frontend/.env.example`; `pnpm --filter @mymoney/web build` verde | 3h | TP-0001 | TP-0019, TP-0020 | Pendente |
+| TP-0022 | Lote 4 | Regras de fronteira no lint do web | Frontend | SDD §2 Camadas; CONVENCOES §2 | ESLint impõe a direção de import da 1.5; `@supabase/supabase-js` e `idb-keyval` só em `dados/`; `componentes/` não importa `dados/`; `.insert/.update/.upsert/.delete` proibidos; nenhum import de pacote interno além de `@mymoney/contrato`; arquivos-fixture de violação fazem o lint falhar (teste) | 2h | TP-0021 | TP-0020, TP-0023, TP-0024 | Pendente |
+| TP-0023 | Lote 4 | Base visual e comparação visual | Frontend | task-decomposition item 8; UX-SPEC §0, §3; ADR-006 | `tokens.css` e `fontes/*.woff2` copiados para `src/estilo/` sem alteração (teste compara o hash com `.md/mockup/`); `@font-face` local; `global.css` com a seção "Base" do `base.css`; `componentes/base/Icone.tsx` com o sprite do mockup; Playwright + Chromium + `@axe-core/playwright` no pacote; script `visual` que chama `.claude/scripts/comparar-visual.mjs` com `--iniciar` e prova que roda contra uma rota provisória | 4h | TP-0021 | TP-0020, TP-0022, TP-0024 | Pendente |
+| TP-0024 | Lote 4 | `formatacao/` | Frontend | RNF-09; ADR-004; R-UX-07 | Centavos → "R$ 1.234,56" (e o mesmo texto acessível); dígitos → centavos ("4590" → 4590); `YYYY-MM-DD` → dd/mm/aaaa; mês "Outubro de 2026"; "hoje" em America/Sao_Paulo; leitura e escrita de `?mes=AAAA-MM`. Testes: zero, valores grandes, virada de ano, 23h30 em São Paulo | 3h | TP-0021 | TP-0020, TP-0022, TP-0023 | Pendente |
+
+### Lote 5 — App publicado e instalável
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0025 | Lote 5 | `dados/` núcleo: cliente, sessão, erros e contexto | Frontend | ADR-008 §3; SDD §2 "Acesso a dados num só lugar" | `cliente.ts` interno (supabase-js com `persistSession` e renovação automática), não exportado; `sessao.ts`: entrar, sair local, sair global, pedir redefinição, salvar nova senha, ouvir a sessão; `erros.ts` traduz erro do PostgREST e do Auth para o código de `@mymoney/contrato/erros` e distingue erro de rede de erro de regra; consulta `contexto` + gancho `useContexto`; testes com `fetch` simulado | 4h | TP-0015, TP-0019, TP-0022 | TP-0027, TP-0028 | Pendente |
+| TP-0026 | Lote 5 | Modo de comparação visual (sessão falsa e sem sessão) | Frontend | UX-SPEC R-UX-08 (1); telas.json `_sobre` | `VITE_MODO_COMPARACAO=sessao-falsa` injeta em `dados/sessao.ts` uma sessão falsa (usuário de `respostas/auth-usuario.json`, sem chamada de rede ao Auth) e aponta para uma URL fictícia interceptada pelo Playwright; `sem-sessao` serve T01 e T01b; o build de produção falha se a variável estiver definida e um teste confere que o bundle de produção não contém o código do modo; o script `visual` faz duas passadas (T01 e T01b sem sessão; o resto com sessão falsa) | 3h | TP-0023, TP-0025 | TP-0027, TP-0028, TP-0029 | Pendente |
+| TP-0027 | Lote 5 | PWA: manifest, ícones e service worker | Mobile | RF-20; ADR-006; RNF-03 | `pwa/` + vite-plugin-pwa: nome "MyMoney", `display: standalone`, `theme_color` = `--cor-fundo`, ícones 192/512 *maskable* e `apple-touch-icon` gerados por script a partir de um SVG versionado; `registerType: autoUpdate`; precache do app shell. Playwright: SW ativo e app shell abre com a rede desligada; manifest válido para instalação | 4h | TP-0021 | TP-0025, TP-0026, TP-0028 | Pendente |
+| TP-0028 | Lote 5 | `vercel.json`: rotas e cabeçalhos de segurança | Frontend | SDD §7 "Superfície"; ADR-006 | Rewrite `/*` → `/index.html`; CSP `default-src 'self'`, `connect-src` só o domínio do Supabase de produção (ref de `setup/limpeza.md`), sem `unsafe-inline` em script, `frame-ancestors 'none'`; HSTS; `nosniff`; `Referrer-Policy: no-referrer`; `Permissions-Policy` restritiva. Testes: cada cabeçalho conferido no arquivo; o bundle de produção não contém URL de host além do Supabase | 2h | TP-0009, TP-0021 | TP-0025, TP-0026, TP-0027 | Pendente |
+| TP-0029 | Lote 5 | Limpeza e reconfiguração do projeto Vercel `mymoney` [U] | Backend (operação) | SDD §6 "Limpeza dos ambientes"; CTO ressalva 6 | Destrutiva: lista de deploys, domínios e variáveis atuais mostrada e confirmada pelo usuário; deploys e variáveis antigos removidos; root `frontend/web`, framework Vite, comandos pnpm, branch de produção `main`; variáveis só `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (nunca `service_role`); primeiro deploy do esqueleto; `curl -I` mostra HTTPS e os cabeçalhos do TP-0028; registro em `setup/limpeza.md` | 2h | TP-0010, TP-0027, TP-0028 | TP-0025, TP-0026 | Pendente |
+| TP-0030 | Lote 5 | CI do frontend e isolamento como condição de deploy [U] | Backend (operação) | SDD §3 CI, §6 RT-01; ADR-002 §6 | Job Playwright (Chromium): testes de componente, axe e `visual` (limite 1%, prints como artefato); job `integracao` que sobe o Supabase local e roda os e2e marcados `@integracao`; **gate**: Vercel Deployment Checks exigindo `ci`, `banco` e `isolamento` (plano B, se o Hobby não oferecer: proteção da `main` exigindo os mesmos jobs; D-07). Prova: PR com um caso de isolamento quebrado de propósito não chega à produção (print), e o PR é descartado | 3h | TP-0018, TP-0026, TP-0029 | — | Pendente |
+
+### Lote 6 — Spike do teclado no iOS
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0031 | Lote 6 | Página de ensaio do teclado (descartável) | Mobile | RT-02; R-UX-01; ADR-006 | Rota `/ensaio-teclado`, fora da navegação e sem dado: folha montada e oculta; botão "+" mostra a folha e chama `focus()` no `input inputmode=numeric` no mesmo handler síncrono; botão fixo acima do teclado por `visualViewport`; contador de tentativas na tela; publicada na produção da Vercel | 3h | TP-0027, TP-0029 | — | Pendente |
+| SPK-0001 | Lote 6 | Spike: teclado numérico no "+" no iPhone 17 e no Moto Edge 60 | Coordenador + usuário | RT-02; R-UX-01; ADR-006; CTO ressalva 1 | Roteiro da Seção 2 executado nos 2 aparelhos, nos modos instalado e navegador, 10 tentativas por cenário; resultado por cenário e decisão gravados em `## Resolução` do `SPK-0001` e na Seção 6; se falhar, `BK` aberto com as alternativas da Seção 2 antes de qualquer tarefa da T03 | 1 dia (timebox) | TP-0031 | — | Pendente |
+
+### Lote 7 — Componentes compartilhados: estrutura e formulários
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0032 | Lote 7 | `BarraNavegacao` e `TrilhoNavegacao` | Frontend | UX-SPEC §1 navegação, §3, §6 | Barra inferior no celular (Início, Lançamentos, "+", Orçamento, Metas; "+" central maior); trilho lateral a partir de 1024 px com "+ Lançar" no topo e Ajustes; item ativo por rota com `aria-current`; o "+" recebe um callback (a ligação com a folha é do TP-0081); CSS Module transcrito do `base.css`; testes de componente + axe; alvos de 44 px | 4h | TP-0023 | TP-0034, TP-0035, TP-0036 | Pendente |
+| TP-0033 | Lote 7 | Roteamento e layout autenticado | Frontend | UX-SPEC §0 rotas, §5 (2.4.2) | Mapa de rotas do UX-SPEC §0 (preguiçosas, exceto Início e Lançar); guarda: sem sessão → `/entrar`, com sessão em `/entrar` → `/`; layout `.app` + `.conteudo` com a barra e o trilho; `<title>` por tela no formato "Início · Outubro de 2026 · MyMoney"; página 404 simples; testes de rota | 3h | TP-0025, TP-0032 | TP-0034, TP-0035, TP-0036, TP-0037 | Pendente |
+| TP-0034 | Lote 7 | Campos de formulário e botão | Frontend | UX-SPEC §3, §5 (1.3.1, 3.3.1); estado `formulario--salvando` | `CampoTexto`, `CampoData`, `Selecao`, `Interruptor` e `Botao` (com o estado "Salvando…" desabilitado do padrão) em arquivos próprios; rótulo visível; erro ligado por `aria-describedby` + `aria-invalid`; utilitário que põe o foco no 1º campo com erro; testes + axe; estado manual `formulario--salvando` conferido por Playwright | 5h | TP-0023, TP-0024 | TP-0032, TP-0033, TP-0035, TP-0036, TP-0037 | Pendente |
+| TP-0035 | Lote 7 | `CampoValor` (centavos) | Frontend | R-UX-07; UX-SPEC §5 (T03 CampoValor); ADR-004 | Dígitos entram pela direita ("4590" → R$ 45,90), `inputmode=numeric`, rótulo "Valor", texto acessível com o valor formatado, estados normal, foco, erro e desabilitado; usa `formatacao/`; testes (apagar, colar, zero) | 3h | TP-0023, TP-0024 | TP-0032, TP-0033, TP-0034, TP-0036, TP-0037 | Pendente |
+| TP-0036 | Lote 7 | `Folha` (bottom sheet e diálogo no PC) | Frontend | UX-SPEC §3, §5 (2.1.1), §6; R-UX-08 (2); RT-02 | Folha de baixo para cima no celular e diálogo de ~480 px no PC; `role=dialog` + `aria-modal`; armadilha de foco; Esc, X e arrastar para baixo fecham; foco devolvido ao gatilho; classe `com-folha` no `<html>` enquanto aberta; `prefers-reduced-motion`; opção de ficar **montada e oculta** (exigência do SPK-0001); testes + axe | 4h | TP-0023 | TP-0032, TP-0033, TP-0034, TP-0035 | Pendente |
+| TP-0037 | Lote 7 | `DialogoConfirmacao` | Frontend | UX-SPEC §3; CA-08.6; R-UX-13 | Variantes destrutiva e neutra, texto exato recebido por quem chama, confirmação explícita, sobre a `Folha`; testes + axe | 2h | TP-0036 | TP-0033, TP-0034, TP-0035 | Pendente |
+
+### Lote 8 — Componentes compartilhados: estados e indicadores
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0038 | Lote 8 | `rotulos/` | Frontend | CONVENCOES §3 (rótulos num só módulo); SDD §2 Camadas | Rótulo, ícone e ordem de exibição de tipo de forma, escopo (Casa e Eu), situação de orçamento, situação de ocorrência e tipo de movimento, derivados das uniões de `@mymoney/contrato`; teste de exaustividade (enum novo sem rótulo não compila) | 1.5h | TP-0020, TP-0021 | TP-0039, TP-0041, TP-0043 | Pendente |
+| TP-0039 | Lote 8 | `Aviso` (toast) e `Faixa` | Frontend | UX-SPEC §3, §5 (4.1.3) | `Aviso` em `aria-live` (`polite` para sucesso, `assertive` para erro), visível por 4 s ou mais e sem sumir com o foco nele; `Faixa` com `role=status` nas variantes offline, pendentes, instalar e "Mostrando dados de {hora}"; testes + axe | 3h | TP-0023 | TP-0038, TP-0040, TP-0041, TP-0042, TP-0043, TP-0044 | Pendente |
+| TP-0040 | Lote 8 | `EstadoVazio`, `EstadoErro`, `Esqueleto` e leitura com cache | Frontend | UX-SPEC §4 padrões globais | Esqueleto só depois de 300 ms; erro "Não foi possível carregar. Verifique a conexão" + "Tentar de novo"; gancho utilitário em `ganchos/` que expõe o último dado em cache e a hora, para a faixa "Mostrando dados de {hora}"; testes | 3h | TP-0023, TP-0039 | TP-0041, TP-0042, TP-0043, TP-0044 | Pendente |
+| TP-0041 | Lote 8 | `SeletorMes` | Frontend | RF-14; UX-SPEC §1, §5, §6 | ‹ Mês ›, mês na URL (`mes`) e levado entre telas, padrão o mês corrente; `aria-label` "Mês anterior: setembro de 2026"; setas do teclado no PC; alvos de 44 px; testes | 3h | TP-0024, TP-0033 | TP-0038, TP-0039, TP-0040, TP-0042, TP-0043, TP-0044 | Pendente |
+| TP-0042 | Lote 8 | `SeloEscopo` e `SeloSituacao` | Frontend | UX-SPEC §3, §5 (1.4.1) | Casa e Eu sempre com ícone e texto; situações pendente, atrasada, paga e data ajustada com ícone e texto; usam `rotulos/`; testes + axe | 2h | TP-0038 | TP-0039, TP-0040, TP-0041, TP-0043, TP-0044 | Pendente |
+| TP-0043 | Lote 8 | `ChipOpcao` e `GrupoChips` | Frontend | UX-SPEC §2 T03, §5 (T03) | `radiogroup` com setas; selecionado com ícone de marcado além da cor; altura mínima de 44 px e variante de 64 px (grade de categorias); testes + axe | 3h | TP-0023 | TP-0038, TP-0039, TP-0040, TP-0041, TP-0042, TP-0044 | Pendente |
+| TP-0044 | Lote 8 | `BarraProgresso`, `ValorDestaque` e `CartaoResumo` | Frontend | UX-SPEC §3, §5 (T02, T10) | Barra com `role=progressbar`, `aria-valuenow` e texto sempre visível, nas situações dentro, atenção, estourado e atingida; `ValorDestaque` com o rótulo "parcial"; `CartaoResumo` com dado, vazio e esqueleto; testes + axe | 3h | TP-0038 | TP-0039, TP-0040, TP-0041, TP-0042, TP-0043 | Pendente |
+
+### Lote 9 — Entrar e Ajustes
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0045 | Lote 9 | T01 Entrar | Frontend | RF-01 (CA-01.1 a 01.3); ADR-008; UX-SPEC T01 | E-mail (`autocomplete=username`), senha (`current-password`) com mostrar/ocultar (`aria-pressed`), "Entrando…", erro genérico "E-mail ou senha incorretos" em `role=alert`, "Sem conexão", "Esqueci minha senha" com a mensagem neutra; sem "Criar conta". [Tela padrão] T01 auto `sucesso` (passada sem sessão); manuais `entrar--carregando`, `entrar--erro` | 4h | TP-0026, TP-0033, TP-0034, TP-0039 | TP-0046, TP-0047 | Pendente |
+| TP-0046 | Lote 9 | T01b Redefinir senha | Frontend | ADR-008 §4; UX-SPEC T01b | Lê a sessão de recuperação do link; nova senha + confirmação com a regra de 12 caracteres visível; erros no campo; link expirado; "Senha alterada" → T01. [Tela padrão] T01b auto `sucesso` (sem sessão); manual `redefinir-senha--erro` | 3h | TP-0026, TP-0033, TP-0034, TP-0039 | TP-0045, TP-0047 | Pendente |
+| TP-0047 | Lote 9 | T14 Ajustes | Frontend | CA-01.4; RNF-06; UX-SPEC T14 | Lista Contas, Formas de pagamento, Categorias e Despesas fixas; "Aplicativo" com instalar (se não instalado) e versão do build; "Sair" (`scope: local`) e "Sair de todos os aparelhos" (`scope: global`) com diálogo; sem rede: "Sem conexão. Tente de novo". [Tela padrão] T14 auto `sucesso`; manual `ajustes--sair-todos` | 3h | TP-0026, TP-0033, TP-0037, TP-0039 | TP-0045, TP-0046 | Pendente |
+
+### Lote 10 — Cadastros e lançamentos: tabelas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0048 | Lote 10 | Tabelas `app.conta` e `app.movimento_conta` [BD] | Backend | RF-02; RN-03, RN-12; SDD §5 | `conta` (nome, `saldo_inicial_centavos` padrão 0, arquivada, `dono_id`); `movimento_conta` (tipo ajuste, aporte, retirada ou pagamento de cartão; sentido; valor; data); RLS dono; seed de exemplo em `seeds/02-contas.sql`; pgTAP: B não lê nem altera conta ou movimento de A; [BD padrão] | 3h | TP-0013 | — | Pendente |
+| TP-0049 | Lote 10 | Tabela `app.forma_pagamento` [BD] | Backend | RF-03; RN-12; CA-03.2a; SDD §5 | Tipo pix, débito ou crédito; pix e débito exigem conta do mesmo dono; crédito exige dia de 1 a 31; no máximo 1 preferida por dono; arquivada; acrescenta `movimento_conta.forma_credito_id` (FK, nulo); RLS dono; seed `seeds/03-formas.sql`; pgTAP das restrições e do isolamento; [BD padrão] | 3h | TP-0048 | — | Pendente |
+| TP-0050 | Lote 10 | Tabela `app.categoria` [BD] | Backend | RF-04; RN-17; SDD §5 | Tipo, escopo, `dono_id` só na individual, `variavel` só em despesa, receita sempre individual, único por lar + escopo + dono + nome; RLS (conjunta: lar; individual: dono); seed `seeds/04-categorias.sql`; pgTAP; [BD padrão] | 3h | TP-0013 | — | Pendente |
+| TP-0051 | Lote 10 | Tabelas `app.lancamento`, `app.lancamento_pagamento` e `app.parcela` [BD] | Backend | ADR-002 §1, ADR-005; RN-04; SDD §5 | Um único agregado (cabeçalho, parte privada 1:1 e parcelas, inseparável: D-01); `lancamento_pagamento` com RLS **só do pagador** (forma, conta, `data_operacao`, `dia_vencimento_aplicado`); `parcela` com `data`, `data_ajustada` e RLS igual ao lançamento; exclusão em cascata; índices `parcela(lar_id, data)`, `parcela(dono_id, data)`, `lancamento(dono_id)`; seed `seeds/05-lancamentos.sql`; pgTAP: B vê a conjunta de A mas não a linha de `lancamento_pagamento`; [BD padrão] | 5h | TP-0048, TP-0049, TP-0050 | — | Pendente |
+| TP-0052 | Lote 10 | `api.inicializar_membro()` [BD] | Backend | CA-04.2; SDD §6 "Seed das categorias" | Cria as categorias iniciais: as conjuntas uma vez por lar e as individuais do chamador; idempotente pela restrição única; [API padrão] (B chamando não cria nem vê as individuais de A) | 2.5h | TP-0050 | — | Pendente |
+| TP-0053 | Lote 10 | View `api.categorias` [BD] | Backend | RF-04; RN-17 | `security_invoker`; conjuntas + individuais do membro; [API padrão] com `mesmaForma` contra `respostas/categorias.json` | 2h | TP-0016, TP-0050 | — | Pendente |
+
+### Lote 11 — Cadastros: funções de escrita
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0054 | Lote 11 | `api.salvar_conta` [BD] | Backend | CA-02.1 | Cria ou edita (nome, saldo inicial padrão 0); conta alheia → `registro_invalido`; idempotente pelo id; [API padrão] | 2h | TP-0048 | — | Pendente |
+| TP-0055 | Lote 11 | `api.arquivar_conta` e `api.excluir_conta` [BD] | Backend | CA-02.4, CA-02.5 (D-01) | Arquivar tira das opções e mantém o histórico; excluir com lançamento, movimento ou forma ligada → `em_uso`; [API padrão] | 2h | TP-0048, TP-0049, TP-0051 | — | Pendente |
+| TP-0056 | Lote 11 | `api.salvar_forma` [BD] | Backend | CA-03.1, 03.2, 03.2a, 03.2b; R-UX-06 | Pix e Débito exigem conta própria; Crédito exige dia de 1 a 31 e aceita conta de pagamento opcional; o tipo não muda depois de criado; mudar o dia não altera parcelas existentes; [API padrão] | 2.5h | TP-0049 | — | Pendente |
+| TP-0057 | Lote 11 | `api.arquivar_forma` e `api.excluir_forma` [BD] | Backend | CA-03.5 (D-01) | Excluir com lançamento ligado → `em_uso`; arquivar mantém o histórico; [API padrão] | 2h | TP-0049, TP-0051 | — | Pendente |
+| TP-0058 | Lote 11 | `api.definir_preferida` [BD] | Backend | CA-03.4; RN-19 | Uma preferida por dono (a anterior deixa de ser); forma alheia → `registro_invalido`; [API padrão] | 1.5h | TP-0049 | — | Pendente |
+| TP-0059 | Lote 11 | `api.salvar_categoria` [BD] | Backend | CA-04.1, 04.3, 04.4; R-UX-06 | Receita força individual; escopo imutável depois de criada; conjunta editável pelos 2; individual só pelo dono; [API padrão] | 2h | TP-0050 | — | Pendente |
+| TP-0060 | Lote 11 | `api.arquivar_categoria` e `api.excluir_categoria` [BD] | Backend | CA-04.5 (D-01) | Excluir em uso → `categoria_em_uso`; arquivar mantém o histórico; conjunta pelos 2, individual pelo dono; [API padrão] | 2h | TP-0050, TP-0051 | — | Pendente |
+
+### Lote 12 — Lançamento: banco
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0061 | Lote 12 | Regra `app.gerar_parcelas` [BD] | Backend | RN-14; CA-06.1, 06.1a, 06.1b, 06.2; ADR-005 §3 | Entrada: data da compra, dia de vencimento, N (1 a 24), total; saída: N parcelas em `app.dia_no_mes(mês seguinte + k−1, dia)`, centavos na 1ª, soma = total. pgTAP: 15/10, 3x, dia 10 → 10/11, 10/12, 10/01; à vista → 10/11; R$ 600 em 3x; R$ 100 em 3x = 33,34 + 33,33 + 33,33; dia 31 em fevereiro; 24x atravessando 2 anos; compra no próprio dia do vencimento | 4h | TP-0004 | — | Pendente |
+| TP-0062 | Lote 12 | `api.lancar_despesa` [BD] | Backend | RF-05, RF-06; RN-01, RN-05, RN-14; ADR-003 §6; ADR-007 | Escopo pela categoria; Pix e Débito: 1 parcela na data da operação; Crédito: usa `app.gerar_parcelas` e grava o dia aplicado; data padrão `app.hoje()`; valor > 0; forma e categoria visíveis e ativas; idempotente pelo id (reenvio devolve o mesmo resultado; id de outro membro → `registro_invalido`); devolve `{id, escopo, primeira_parcela_data}`; [API padrão] com `mesmaForma` contra `respostas/lancar-despesa-credito.json` | 5h | TP-0051, TP-0061 | — | Pendente |
+| TP-0063 | Lote 12 | `api.dados_lancamento` [BD] | Backend | CA-05.2, 05.3; RN-19; SDD §7 item 6 | Categorias de despesa visíveis ordenadas pelo uso **do próprio membro** (empate por nome), categorias de receita, formas ativas, `forma_padrao_id` (preferida, senão a última usada), contas ativas e `conta_receita_padrao_id` (última usada); nenhuma contagem usa dado do outro; [API padrão] com `mesmaForma` contra `respostas/dados-lancamento.json` | 3h | TP-0051 | — | Pendente |
+
+### Lote 13 — Saldos e cartões: banco
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0064 | Lote 13 | Regra `app.saldo_conta` [BD] | Backend | RN-12, RN-13; ADR-005 §6 | Saldo inicial + receitas − despesas Pix e Débito ligadas à conta ± `movimento_conta`, pela data da operação até `app.hoje()` (D-12); crédito não entra; pgTAP com cada componente e com a parcela de crédito sem efeito | 3h | TP-0048, TP-0049, TP-0051 | — | Pendente |
+| TP-0065 | Lote 13 | View `api.contas` (com saldo) [BD] | Backend | RF-02 (CA-02.2) | `security_invoker`; contas do membro com o saldo de `app.saldo_conta`; [API padrão] com `mesmaForma` contra `respostas/contas.json` | 2h | TP-0064 | — | Pendente |
+| TP-0066 | Lote 13 | `api.ajustar_saldo` [BD] | Backend | CA-02.3; I-14; D-05 | Grava em `movimento_conta` a diferença entre o saldo real informado e o atual; não entra em nenhum total; parâmetro `p_simular` (padrão `false`) devolve só a diferença, sem gravar, para a prévia da T16; [API padrão] | 2h | TP-0064 | — | Pendente |
+| TP-0067 | Lote 13 | Regra `app.gasto_cartao` (compras) [BD] | Backend | CA-03.3; RN-13; ADR-005 §5 | Para uma forma de Crédito e um mês: `gasto_mes` = parcelas com data no mês; `comprometido_futuro` = parcelas depois do mês; só o dono enxerga; pgTAP. O caso da fixa paga no crédito fica no TP-0128 | 3h | TP-0049, TP-0051 | — | Pendente |
+| TP-0068 | Lote 13 | View `api.formas_pagamento` [BD] | Backend | RF-03 | `security_invoker`; formas do membro; no Crédito, `gasto_mes` e `comprometido_futuro` do mês corrente por `app.gasto_cartao`; [API padrão] com `mesmaForma` contra `respostas/formas-pagamento.json` | 2h | TP-0067 | — | Pendente |
+
+### Lote 14 — Cadastros: telas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0069 | Lote 14 | Dados dos cadastros (consultas, comandos e primeiro uso) | Frontend | SDD §2 `dados/`; F6 | Em `dados/` + `ganchos/`: consultas das views contas, formas_pagamento e categorias; comandos salvar, arquivar e excluir de conta, forma e categoria, `ajustar_saldo` (com `simular`) e `definir_preferida`, com invalidação do cache; depois do login, `inicializar_membro` chamado uma vez por sessão; tipos de `@mymoney/contrato`; testes com `fetch` simulado | 5h | TP-0025, TP-0052, TP-0053, TP-0054, TP-0055, TP-0056, TP-0057, TP-0058, TP-0059, TP-0060, TP-0065, TP-0066, TP-0068 | — | Pendente |
+| TP-0070 | Lote 14 | T15 Contas | Frontend | RF-02; UX-SPEC T15 | Lista com nome e saldo, filtro "Mostrar arquivadas" desligado, "Nova conta". [Tela padrão] T15 auto `sucesso`, `vazio`, `carregando`, `erro` | 3h | TP-0040, TP-0069 | TP-0071, TP-0072, TP-0073, TP-0074, TP-0075 | Pendente |
+| TP-0071 | Lote 14 | T16 Conta | Frontend | CA-02.1 a 02.5; UX-SPEC T16 | Nome e saldo inicial; saldo atual só leitura; "Informar saldo real" mostra a prévia ("Ajuste de +R$ 12,30") vinda de `ajustar_saldo` com `simular` e confirma; arquivar; excluir só sem vínculo, e `em_uso` oferece arquivar; sem rede avisa e mantém. [Tela padrão] T16 auto `sucesso`; manual `conta--erro` | 5h | TP-0034, TP-0035, TP-0037, TP-0039, TP-0069 | TP-0070, TP-0072, TP-0073, TP-0074, TP-0075 | Pendente |
+| TP-0072 | Lote 14 | T17 Formas de pagamento | Frontend | RF-03; UX-SPEC T17 | Lista agrupada por tipo, estrela de preferida, no Crédito "Neste mês · Próximos meses" e "vence dia N". [Tela padrão] T17 auto `sucesso`, `vazio`, `carregando`, `erro` | 3h | TP-0040, TP-0069 | TP-0070, TP-0071, TP-0073, TP-0074, TP-0075 | Pendente |
+| TP-0073 | Lote 14 | T18 Forma de pagamento | Frontend | CA-03.1 a 03.5; R-UX-06; UX-SPEC T18 | Tipo só na criação; conta obrigatória em Pix e Débito; dia de 1 a 31 obrigatório e conta de pagamento opcional no Crédito, com a nota de mudança de dia; interruptor Preferida; quadro "Neste mês / Próximos meses"; arquivar e excluir como na T16; ponto de montagem da folha T21 (`?pagamento=1`, preenchido no TP-0159). [Tela padrão] T18 auto `sucesso`; manual `forma--erro` | 5h | TP-0034, TP-0037, TP-0039, TP-0069 | TP-0070, TP-0071, TP-0072, TP-0074, TP-0075 | Pendente |
+| TP-0074 | Lote 14 | T19 Categorias | Frontend | RF-04; UX-SPEC T19 | Seletor Despesas ou Receitas, grupos "Da casa" e "Minhas" (receitas só "Minhas"), selo "variável". [Tela padrão] T19 auto `sucesso`, `vazio`, `carregando`, `erro` | 3h | TP-0040, TP-0042, TP-0069 | TP-0070, TP-0071, TP-0072, TP-0073, TP-0075 | Pendente |
+| TP-0075 | Lote 14 | T20 Categoria | Frontend | CA-04.1 a 04.5; R-UX-06; UX-SPEC T20 | Nome; tipo e escopo só na criação (receita força "Minha"); interruptor "Gasto variável" só em despesa; arquivar e excluir (`categoria_em_uso` oferece arquivar). [Tela padrão] T20 auto `sucesso`; manual `categoria--erro` | 4h | TP-0034, TP-0037, TP-0069 | TP-0070, TP-0071, TP-0072, TP-0073, TP-0074 | Pendente |
+
+### Lote 15 — Lançamento sem rede: dados e fila
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0076 | Lote 15 | Dados do lançamento com cache no aparelho | Frontend | ADR-007 §6; SDD §7 "No aparelho" | Consulta `dados_lancamento` + gancho; última resposta guardada no IndexedDB e usada sem rede; atualizada a cada abertura com rede; `sair()` apaga este cache e **não** apaga a fila do membro; testes | 3h | TP-0025, TP-0063 | TP-0077, TP-0079 | Pendente |
+| TP-0077 | Lote 15 | Fila offline: núcleo (`dados/fila`) | Frontend | ADR-007 §2, §5, §7; RNF-02; RT-04 | Ao confirmar: gera uuid e grava a chamada completa de `lancar_despesa` **antes** de enviar, com o `membro_id`; envia em ordem, 1 por vez; remove só com sucesso; rejeição de regra vira **falha** com o motivo; descarte só com confirmação; item de outro membro nunca enviado com a sessão atual; testes com IndexedDB falso (resposta perdida → reenvio sem duplicata pela idempotência) | 5h | TP-0025, TP-0062 | TP-0076, TP-0079 | Pendente |
+| TP-0078 | Lote 15 | Fila offline: gatilhos de envio e sessão | Frontend | ADR-007 §3, §7 | Esvazia ao abrir o app, no evento `online`, no `visibilitychange` e a cada 30 s enquanto houver pendente; renova a sessão antes de enviar; sessão revogada guarda a fila até o login do mesmo membro; contador de pendentes exposto por gancho; testes com relógio falso | 3h | TP-0077 | TP-0076, TP-0079 | Pendente |
+| TP-0079 | Lote 15 | Puxar para atualizar | Frontend | UX-SPEC §6 (celular) | Componente/gancho que, ao puxar o topo da página no celular, revalida as consultas da página; sem efeito no PC; respeita `prefers-reduced-motion`; usado por T02 e T04; testes | 3h | TP-0023 | TP-0076, TP-0077, TP-0078 | Pendente |
+
+### Lote 16 — Lançar (T03)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0080 | Lote 16 | `BotaoForma` e `ListaFormas` | Frontend | CA-05.5; UX-SPEC T03 item 4, T08 | Botão-chip "Pix Nubank · Pix"; o toque abre a lista das formas do membro (opções) e a escolha fecha (2 toques); variante "Conta de destino" para a receita; testes + axe | 2h | TP-0023, TP-0043 | TP-0081 | Pendente |
+| TP-0081 | Lote 16 | T03a Folha de lançamento montada e o "+" | Frontend | CA-05.1, 05.2; R-UX-01; RT-02; resultado do SPK-0001 | Folha montada no layout autenticado (D-09), oculta; o "+" da barra e do trilho a mostra e dá o foco no `CampoValor` no mesmo handler, como o SPK-0001 validou; topo com Despesa ou Receita (receita desabilitada até o TP-0116) e Fechar; rota `/lancar` abre a folha; arquivos-filho vazios para categoria, forma e parcelas e "Mais detalhes" (preenchidos por TP-0082 e TP-0083); a página `/ensaio-teclado` é removida. [Tela padrão] T03 auto `inicial` | 5h | SPK-0001, TP-0032, TP-0033, TP-0035, TP-0036, TP-0076 | TP-0080 | Pendente |
+| TP-0082 | Lote 16 | T03b Grade de categorias | Frontend | CA-05.3, 05.4; RN-01; UX-SPEC T03 item 3 | Grade 3×3: as 8 mais usadas + "Outras…" (lista com busca, agrupada em "Casa" e "Minhas"); selo de escopo em cada chip; `radiogroup`; chips de 64 px; testes | 4h | TP-0042, TP-0043, TP-0081 | TP-0083 | Pendente |
+| TP-0083 | Lote 16 | T03c Forma, parcelas e "Mais detalhes" | Frontend | CA-05.5, 05.6, 05.8; RN-19; UX-SPEC T03 itens 4-6 | Forma padrão de `forma_padrao_id`; parcelas só no Crédito: "À vista", 2x a 6x, 10x, 12x e "Outro" (1 a 24) com o texto "Entra a partir do próximo vencimento do cartão"; "Mais detalhes" recolhido com Data (padrão Hoje) e Descrição; testes | 4h | TP-0034, TP-0043, TP-0080, TP-0081 | TP-0082 | Pendente |
+| TP-0084 | Lote 16 | T03d Confirmar, avisos, fila e estados | Frontend | CA-05.7, 05.9; RNF-01, RNF-02; R-UX-02; UX-SPEC T03 itens 7-8, §4 | Botão fixo acima do teclado "Lançar R$ X", sempre habilitado, erro no campo anunciado; envio pela fila; avisos de Pix/Débito, de Crédito ("1ª parcela em 10/11") e "Guardado no aparelho"; "Lançando…" por até 3 s e depois vai para a fila; limpa valor e categoria, mantém a forma, foco volta ao valor; Ctrl/⌘ + Enter no PC; vazio sem forma ("Cadastrar forma") e sem categoria ativa; erro de regra no topo da folha. [Tela padrão] T03 auto `vazio`; manuais `lancar--sucesso`, `--confirmado`, `--guardado`, `--carregando`, `--erro` | 5h | TP-0039, TP-0077, TP-0078, TP-0082, TP-0083 | — | Pendente |
+
+### Lote 17 — Início: banco
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0085 | Lote 17 | Regra `app.totais_conjunto(mes)` [BD] | Backend | RN-16a, RN-16e; I-15; ADR-005 | Total do casal (parcelas conjuntas do mês), variáveis da casa, total por categoria conjunta e quanto cada membro pagou (com percentual); pgTAP com crédito parcelado atravessando meses e com a garantia de não usar dado individual | 4h | TP-0051 | — | Pendente |
+| TP-0086 | Lote 17 | Regra `app.totais_individuais(mes)` [BD] | Backend | RN-16b, RN-16c, RN-16e; I-10 | Meu total = minha parte no conjunto + meu individual; variáveis; por categoria individual; minha parte por categoria conjunta; receitas; resultado; pgTAP: os números de A nunca mudam com lançamentos individuais de B | 4h | TP-0051 | — | Pendente |
+| TP-0087 | Lote 17 | `api.resumo_mes(mes)` [BD] | Backend | RF-13, RF-14, RF-16; SDD §2 | Compõe as regras acima, `mes_fechado` e o rótulo parcial, contas (`app.saldo_conta`) e cartões (`app.gasto_cartao`); fixas, orçamento, metas e `guardado_no_mes` vêm vazios ou nulos até os TP-0127, TP-0139 e TP-0151; [API padrão] com `mesmaForma` contra `respostas/resumo-mes.json` | 4h | TP-0064, TP-0067, TP-0085, TP-0086 | — | Pendente |
+| TP-0088 | Lote 17 | Seed de volume de 2 anos e medição do desempenho [BD] | Backend | RNF-03; RT-08; ADR-011 §4.2 | Script que gera cerca de 6.000 parcelas para os 2 membros num arquivo de seed opcional (fora do `local:resetar` padrão); com ele, `resumo_mes` e `lancamentos_mes` ficam abaixo de 500 ms no Supabase local e o `explain` usa os índices; resultado registrado no `backend/README.md` | 4h | TP-0087 | — | Pendente |
+
+### Lote 18 — Início (T02)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0089 | Lote 18 | T02a Estrutura, estados, cabeçalho e faixas | Frontend | RF-13, RF-14; UX-SPEC T02, §4 | Página `/?mes=` com o gancho de `resumo_mes`; cabeçalho com `SeletorMes`, ícone de pendentes (contador) e engrenagem; faixas offline e pendentes (slot para a de instalar); blocos Casa e Eu com títulos `h2`/`h3` e arquivos-filho por seção (preenchidos por TP-0091 a TP-0095); carregando, erro com e sem cache e "Servidor indisponível…"; puxar para atualizar. [Tela padrão] T02 auto `carregando` e `erro` | 5h | TP-0025, TP-0033, TP-0039, TP-0040, TP-0041, TP-0079, TP-0087 | TP-0090 | Pendente |
+| TP-0090 | Lote 18 | Componentes `ResumoOrcamento` e `MetaCompacta` | Frontend | UX-SPEC T02 (Casa 4 e 7, Eu 3 e 7) | `ResumoOrcamento` (orçado × realizado, barra, %, situação em texto, 3 destaques, "Ver orçamento") e `MetaCompacta` (nome, barra, "faltam R$ X", %, selo Atingida), usados pelos dois blocos; testes + axe | 3h | TP-0044 | TP-0089 | Pendente |
+| TP-0091 | Lote 18 | T02b Casa: total, quem pagou, por categoria e resultado | Frontend | CA-13.2; RN-16a, 16d; I-15; R-UX-10 | Total do casal com "parcial", variáveis e previsto a pagar; quem pagou com barra e valor em texto; por categoria (selo variável, link para a T04 filtrada); resultado da casa. Na comparação T02 `sucesso`, nenhuma divergência na região dessas seções (diff.png); testes + axe | 4h | TP-0042, TP-0044, TP-0089 | TP-0092, TP-0093, TP-0095 | Pendente |
+| TP-0092 | Lote 18 | T02c Casa: fixas pendentes, orçamento e metas | Frontend | CA-13.2; CA-11.3; RF-15, RF-17; D-14 | Até 3 fixas (vencimento, valor, selo Atrasada) com "Marcar paga" levando a `/fixas?mes=&pagar=` e "Ver todas"; sem pendentes: "Todas as fixas do mês pagas"; orçamento e metas da casa com os componentes do TP-0090, cada seção com linha de vazio quando o dado vier vazio. Região sem divergência na comparação T02 `sucesso`; testes + axe | 3h | TP-0042, TP-0089, TP-0090 | TP-0091, TP-0093, TP-0095 | Pendente |
+| TP-0093 | Lote 18 | T02d Eu: meu total, receitas e resultado, por categoria | Frontend | CA-13.3; RN-16b, 16c | "Eu · {nome}"; meu total com as duas parcelas visíveis; variáveis; receitas, resultado, guardado no mês e "parcial"; minhas categorias e minha parte nas da casa, com link para a T04. Região sem divergência na comparação T02 `sucesso`; testes + axe | 4h | TP-0044, TP-0089 | TP-0091, TP-0092, TP-0095 | Pendente |
+| TP-0094 | Lote 18 | T02e Eu: orçamento, contas, cartões e metas; Início completo | Frontend | CA-13.3; CA-02.2, CA-03.3 | Meu orçamento, contas (link T16), cartões "neste mês" e "próximos meses" (link T18) e minhas metas. **[Tela padrão] T02 auto `sucesso` com a tela inteira** (fecha a T02) | 4h | TP-0090, TP-0091, TP-0092, TP-0093 | TP-0095 | Pendente |
+| TP-0095 | Lote 18 | T02f Primeiros passos e mês vazio | Frontend | F6; UX-SPEC T02 vazio | Cartão de primeiros passos com 3 itens marcáveis (conta → T16, forma → T18, instalar → T22) quando não há forma nem conta; "Nada lançado em outubro ainda" + "+ Lançar". [Tela padrão] T02 auto `vazio` | 3h | TP-0089 | TP-0091, TP-0092, TP-0093, TP-0094 | Pendente |
+
+### Lote 19 — Lista e edição: banco
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0096 | Lote 19 | `api.lancamentos_mes` [BD] | Backend | RF-09; CA-06.3; SDD §2 | Parcelas visíveis do mês com "Descrição (k/N)" (sem "(1/1)"), pagador e escopo; filtros escopo, categoria, forma (só os próprios lançamentos) e variável; `total_filtrado` e contagem; [API padrão] com `mesmaForma` contra `respostas/lancamentos-mes.json`, incluindo filtro por forma de A feito por B → vazio | 4h | TP-0051 | — | Pendente |
+| TP-0097 | Lote 19 | `api.lancamento(id)` [BD] | Backend | RF-08; RN-04; R-UX-05 | Cabeçalho + parcelas + `alterado_por`; forma, conta e data da operação **só** para o pagador (para o outro, os campos não existem na resposta); [API padrão] com `mesmaForma` contra `respostas/lancamento-pagador.json` e `lancamento-outro-membro.json` | 3h | TP-0051 | — | Pendente |
+| TP-0098 | Lote 19 | Regra `app.permissoes_edicao` [BD] | Backend | RN-06, RN-07; CA-08.2 a 08.4 | Para um lançamento e o membro atual, devolve o que ele pode mudar: pagador/dono tudo; outro membro numa conjunta só descrição, valor, data (não no crédito) e categoria conjunta; troca de escopo só por quem lançou; pgTAP da matriz completa | 3h | TP-0051 | — | Pendente |
+| TP-0099 | Lote 19 | `api.editar_lancamento` (`SECURITY DEFINER`) [BD] | Backend | CA-08.1, 08.2, 08.5a; I-21; ADR-003 §3 | As 5 regras do ADR-003 §3; usa `app.permissoes_edicao`; recalcula pela RN-14 com o dia congelado (ou o da forma nova); com parcelas ajustadas e `p_confirmar_descarte = false` → `confirmar_descarte_ajustes` sem gravar; grava `alterado_por` e `alterado_em`; nunca devolve campo privado do pagador; [API padrão] com casos de isolamento próprios do DEFINER (B tenta mudar forma e parcelas de A; B tenta ler a parte privada pela resposta) | 5h | TP-0061, TP-0098 | — | Pendente |
+| TP-0100 | Lote 19 | `api.excluir_lancamento` [BD] | Backend | CA-08.1, 08.5b, 08.6 | Conjunta: qualquer membro; individual: só o dono; parcelas e parte privada em cascata; [API padrão] | 2h | TP-0051 | — | Pendente |
+
+### Lote 20 — Lista e edição: telas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0101 | Lote 20 | `LinhaLancamento` | Frontend | UX-SPEC §3, T04 | Ícone de escopo, descrição ou categoria com "(k/N)", categoria e "Pago por {nome}", valor (receita com "+" e rótulo), variante "aguardando envio"; link com nome completo para leitor de tela; testes + axe | 2h | TP-0024, TP-0042 | TP-0102 | Pendente |
+| TP-0102 | Lote 20 | Dados de lançamentos (lista, detalhe, editar e excluir) | Frontend | SDD §2 `dados/` | Consultas `lancamentos_mes` e `lancamento` + ganchos; comandos `editar_lancamento` (com `confirmar_descarte`) e `excluir_lancamento` com invalidação de lista e resumo; testes | 3h | TP-0025, TP-0096, TP-0097, TP-0099, TP-0100 | TP-0101 | Pendente |
+| TP-0103 | Lote 20 | T04a Lista do mês | Frontend | RF-09; UX-SPEC T04, §6 | `SeletorMes`; lista agrupada por dia (mais recente primeiro); total filtrado fixo ("Total: R$ … · N lançamentos", `aria-live` ao mudar); tabela no PC; arquivo-filho de filtros (preenchido no TP-0104); puxar para atualizar. [Tela padrão] T04 auto `sucesso`, `carregando`, `erro` | 5h | TP-0040, TP-0041, TP-0079, TP-0101, TP-0102 | TP-0105 | Pendente |
+| TP-0104 | Lote 20 | T04b Filtros e lançamentos na fila | Frontend | CA-09.1, 09.2; UX-SPEC T04, §4 | Chips de escopo, categoria, forma (minhas) e variável, guardados na URL; "Nenhum lançamento com esses filtros" + "Limpar filtros"; rodapé com os itens da fila marcados "aguardando envio", fora do total. [Tela padrão] T04 auto `vazio` | 4h | TP-0043, TP-0077, TP-0103 | TP-0105, TP-0106 | Pendente |
+| TP-0105 | Lote 20 | T05a Detalhe e edição | Frontend | RF-08; F4; R-UX-05; I-21; UX-SPEC T05 | Resumo (valor, categoria, pago por, parcela k de N, alterado por); formulário por papel: pagador vê tudo, outro membro vê valor, categoria (só da casa), descrição e data (não no crédito) e a nota de campos restritos; campos que não se aplicam são removidos; diálogo I-21 em `confirmar_descarte_ajustes`; "Alterações salvas" volta à T04; arquivo-filho da lista de parcelas (preenchido no TP-0118). [Tela padrão] T05 auto `sucesso`, `outro-membro`, `carregando`, `erro`; manual `lancamento--descarte` | 5h | TP-0034, TP-0035, TP-0037, TP-0039, TP-0042, TP-0102 | TP-0103, TP-0104 | Pendente |
+| TP-0106 | Lote 20 | T05c Excluir e "não existe mais" | Frontend | CA-08.6, 08.5b; UX-SPEC T05, §4 | Botão destrutivo com o diálogo "Excluir esta compra e as N parcelas?"; "Excluído" volta à T04; item excluído pelo outro membro mostra "Este lançamento não existe mais" + Voltar. Manual `lancamento--excluir` conferido por Playwright; axe | 2h | TP-0037, TP-0105 | TP-0104 | Pendente |
+
+### Lote 21 — Instalação, envios pendentes e integração
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0107 | Lote 21 | T22 Instalar o app | Mobile | RF-20 (CA-20.1, 20.2); R-UX-09; UX-SPEC T22 | Faixa na T02 só no navegador do celular e fora do modo instalado, dispensável (lembrada); folha com o prompt nativo no Android (`beforeinstallprompt`) e os 3 passos com ícones e texto no iOS; sem prompt no Android, mostra os passos; item em Ajustes. Manuais `instalar--ios` e `instalar--android` conferidos por Playwright; axe | 4h | TP-0027, TP-0036, TP-0089 | TP-0108, TP-0109 | Pendente |
+| TP-0108 | Lote 21 | T23 Envios pendentes | Frontend | RNF-02; ADR-007 §5; F7; UX-SPEC T23 | Folha a partir do ícone e da faixa de pendentes: valor, categoria, data e situação (aguardando ou falhou com o motivo); "Tentar agora", "Corrigir" (abre a T03 preenchida) e "Descartar" com diálogo; fila vazia fecha com "Tudo enviado"; aviso "Enviado: 1ª parcela em 10/11". Manuais `envios--sucesso` e `envios--erro`; axe | 4h | TP-0036, TP-0037, TP-0078, TP-0084 | TP-0107, TP-0109 | Pendente |
+| TP-0109 | Lote 21 | CI: ensaio de migration sobre dados e checagem aditiva [BD] | Backend (operação) | ADR-011 §4.2-4.3; RT-06, RT-14 | Job que aplica as migrations da `main`, carrega o seed de volume (TP-0088) e então aplica as migrations novas do PR; passo que falha se uma migration nova tiver `drop`, `rename` ou `alter … type` sem um arquivo de justificativa ao lado; prova com uma migration de teste que adiciona `not null` sem default (o job falha) | 4h | TP-0018, TP-0088 | TP-0107, TP-0108 | Pendente |
+| TP-0110 | Lote 21 | E2E de integração: entrar, primeiro uso, lançar e fila [BD] | Frontend | F1, F6, F2 (lançamento), F7; RNF-02; RT-04 | Playwright contra o Supabase local, marcado `@integracao`: login do usuário de teste (o usuário sem membro não vê nada); primeiro uso (categorias criadas, conta e forma cadastradas); lançar Pix e ver na T02 e na T04; Crédito 3x com o aviso da 1ª parcela e as parcelas nos meses certos; modo avião → "Guardado no aparelho" → rede volta → enviado; resposta perdida depois de gravar → nenhuma duplicata | 5h | TP-0045, TP-0069, TP-0084, TP-0094, TP-0095, TP-0103, TP-0108 | TP-0107 | Pendente |
+| TP-0111 | Lote 21 | E2E de integração: privacidade e edição com 2 membros [BD] | Frontend | RNF-04; F4; RN-04, RN-06 | Com as 2 sessões: B não vê, nas telas T02, T04 e T05, nenhum item individual de A, nem forma, conta ou data da compra numa conjunta de A; B edita valor e descrição de uma conjunta de A e A vê "Alterado por último por B"; B não vê os campos de forma e parcelas; exclusão de conjunta por B some para A | 4h | TP-0105, TP-0106, TP-0110 | TP-0107 | Pendente |
+
+### Lote 22 — Liberação do uso diário
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0112 | Lote 22 | Cadastro dos 2 usuários em produção [U] | Backend (operação) | ADR-008 §1-2; RN-11; CA-01.2 | Pré-condição: migrations dos lotes 1 a 21 publicadas pelo `/deploy`. O usuário cria os 2 usuários no painel do Auth (e-mails e senhas dele, senha de 12 ou mais); `backend/operacao/setup/criar-membros.sql` (lar + 2 membros pelos `user_id`) mostrado e confirmado antes de rodar; cada um entra no app publicado e vê as categorias iniciais; tentativa de cadastro pela API é recusada; nenhum e-mail ou senha versionado | 2h | TP-0029, TP-0110 | — | Pendente |
+| TP-0113 | Lote 22 | Verificação do keep-alive antes do uso diário [U] | Backend (operação) | ADR-009 §5; RT-03 | O histórico do Worker mostra execuções diárias com sucesso e o painel mostra o projeto *Active* depois de 10 dias seguidos sem uso humano (nem login nem migration); registrado em `setup/verificacao-keepalive.md`. Sem essa janela: risco aceito e monitorado, com lembrete de conferir o histórico na 1ª e na 4ª semana de uso | 1h | TP-0012 | — | Pendente |
+| TP-0114 | Lote 22 | Roteiro de fricção e desempenho nos aparelhos reais [U] | Mobile | RNF-01 (M3), RNF-03, RNF-05 | Com o app instalado no iPhone 17 e no Moto Edge 60: 10 lançamentos cronometrados por aparelho (mediana de 10 s ou menos, valor + 3 toques); ícone → lançamento pronto em 3 s ou menos em 4G; Início em 2 s ou menos; resultado em `setup/roteiro-m3.md`. Desvio vira `BK` ao Coordenador (ressalva 1 do Gate 1) | 2h | TP-0107, TP-0112 | — | Pendente |
+
+### Lote 23 — Receitas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0115 | Lote 23 | `api.lancar_receita` [BD] | Backend | RF-07; RN-17; I-06 | Individual; categoria de receita do membro; conta de destino própria; data padrão `app.hoje()`; idempotente pelo id; soma ao saldo (pgTAP com `app.saldo_conta`) e às receitas do resumo; [API padrão] | 2.5h | TP-0051 | — | Pendente |
+| TP-0116 | Lote 23 | T03e Modo Receita | Frontend | RF-07; F1b; ADR-007 §1; UX-SPEC T03 | Seletor Despesa ou Receita habilitado; categorias de receita; "Conta de destino" (padrão `conta_receita_padrao_id`); sem rede: "Sem conexão. A receita não foi salva" e mantém os dados (não usa a fila). Manual `lancar--receita` por Playwright; e2e `@integracao`: receita aumenta o saldo da conta e as receitas da T02 | 3h | TP-0076, TP-0084, TP-0115 | — | Pendente |
+
+### Lote 24 — Crédito: ajuste de parcelas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0117 | Lote 24 | `api.alterar_data_parcela` [BD] | Backend | CA-08.5; RN-14; ADR-005 | Só o pagador ou dono; muda a data de uma parcela e marca `data_ajustada`; a parcela passa a contar no mês novo (pgTAP com `app.totais_conjunto`); valor e categoria da parcela não mudam; [API padrão] | 2h | TP-0051 | — | Pendente |
+| TP-0118 | Lote 24 | T05b Lista de parcelas e "Alterar data" | Frontend | CA-08.5; UX-SPEC T05, F2 | Na visão do pagador, lista k/N, valor e data com "Alterar data" (seletor de data) e selo "data ajustada"; o outro membro não vê a lista editável; comando em `dados/` com invalidação; e2e `@integracao`: ajuste move a parcela de mês na T04 e na T02; axe | 3h | TP-0042, TP-0105, TP-0117 | — | Pendente |
+
+### Lote 25 — Despesas fixas: modelo e ocorrências (banco)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0119 | Lote 25 | Tabelas `app.despesa_fixa` e `app.ocorrencia_fixa` [BD] | Backend | RF-10, RF-11; RN-15; SDD §5 | `despesa_fixa` (descrição, categoria conjunta, valor previsto, dia, início, encerrada_em); `ocorrencia_fixa` com único `(despesa_fixa_id, mes)` e `lancamento_id` nulo; RLS do lar; seed `seeds/06-fixas.sql`; pgTAP; [BD padrão] | 3h | TP-0050, TP-0051 | — | Pendente |
+| TP-0120 | Lote 25 | Regra `app.garantir_ocorrencias(mes)` [BD] | Backend | CA-11.1, 11.2; RN-15; ADR-003 (consequências) | Exatamente 1 ocorrência por fixa ativa no mês, vencimento por `app.dia_no_mes`; idempotente (chamar 2 vezes não duplica); fixa encerrada não gera nos meses seguintes; pgTAP | 3h | TP-0004, TP-0119 | — | Pendente |
+| TP-0121 | Lote 25 | View `api.despesas_fixas` [BD] | Backend | RF-10 | `security_invoker`; modelos do lar; [API padrão] com `mesmaForma` contra `respostas/despesas-fixas.json` | 1.5h | TP-0119 | — | Pendente |
+| TP-0122 | Lote 25 | `api.salvar_despesa_fixa` [BD] | Backend | CA-10.1; RN-06 | Cria ou edita; só categoria conjunta de despesa; dia de 1 a 31; qualquer membro; [API padrão] | 2.5h | TP-0119 | — | Pendente |
+| TP-0123 | Lote 25 | `api.encerrar_despesa_fixa` [BD] | Backend | CA-10.2 | Marca `encerrada_em` e remove as ocorrências pendentes dos meses seguintes (as pagas ficam); [API padrão] | 2h | TP-0119, TP-0120 | — | Pendente |
+| TP-0124 | Lote 25 | `api.ocorrencias_mes(mes)` [BD] | Backend | RF-11, RF-12; CA-11.3; R-UX-12 | Garante as ocorrências do mês e devolve situação (pendente, atrasada por `app.hoje()`, paga), valor previsto ou efetivo, vencimento e pagador; para o outro membro, a data mostrada é o vencimento; [API padrão] com `mesmaForma` contra `respostas/ocorrencias-mes.json` | 3h | TP-0120 | — | Pendente |
+
+### Lote 26 — Despesas fixas: pagamento (banco)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0125 | Lote 26 | `api.pagar_ocorrencia` [BD] | Backend | CA-12.1, 12.2, 12.2a; RN-15; I-20; ADR-005 §3 | Forma do pagador à vista; valor padrão o previsto; data padrão hoje; cria o lançamento conjunto do pagador ligado à ocorrência, com 1 parcela no **vencimento da ocorrência**, e a parte privada com a data do pagamento; efeito no saldo só no Pix/Débito; idempotente; [API padrão] | 4h | TP-0051, TP-0124 | — | Pendente |
+| TP-0126 | Lote 26 | `api.desfazer_pagamento` [BD] | Backend | CA-12.3; RN-06 | Só o pagador; exclui o lançamento ligado e volta a ocorrência a pendente, estornando o efeito; o outro membro → `registro_invalido`; [API padrão] | 2h | TP-0125 | — | Pendente |
+| TP-0127 | Lote 26 | `resumo_mes`: seção de fixas [BD] | Backend | CA-13.2; RN-16a | Mudança aditiva: `resumo_mes` chama `app.garantir_ocorrencias` e preenche `fixas_pendentes` (até as atrasadas primeiro), `fixas_total`, `previsto_a_pagar_centavos` e `pendentes_previstos_centavos`; fixa paga entra no total do mês da ocorrência; pgTAP; `mesmaForma` continua verde | 2.5h | TP-0087, TP-0124 | — | Pendente |
+| TP-0128 | Lote 26 | `app.gasto_cartao`: fixa paga no crédito [BD] | Backend | CA-12.2a; ADR-005 §5 | Mudança na regra do TP-0067: a fixa paga no Crédito aparece no cartão no próximo vencimento depois da data do pagamento (parte privada), sem mudar a competência da casa; pgTAP do caso especial | 2.5h | TP-0067, TP-0125 | — | Pendente |
+
+### Lote 27 — Despesas fixas: telas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0129 | Lote 27 | Dados das fixas | Frontend | SDD §2 `dados/` | Consultas `despesas_fixas` e `ocorrencias_mes` + ganchos; comandos salvar, encerrar, pagar e desfazer, com invalidação das fixas e do resumo; testes | 3h | TP-0025, TP-0121, TP-0122, TP-0123, TP-0124, TP-0125, TP-0126 | — | Pendente |
+| TP-0130 | Lote 27 | T06 Despesas fixas do mês | Frontend | RF-11, RF-12; UX-SPEC T06 | `SeletorMes`; "Pagas: X de Y · Previsto a pagar"; ocorrências com situação (atrasadas primeiro), "Marcar como paga: {nome}" e "Desfazer pagamento" (só o pagador, com diálogo); seção Modelos e "Nova despesa fixa"; ponto de montagem da folha T08 (`?pagar=`). [Tela padrão] T06 auto `sucesso`, `vazio`, `carregando`, `erro` | 5h | TP-0037, TP-0040, TP-0041, TP-0042, TP-0129 | TP-0131 | Pendente |
+| TP-0131 | Lote 27 | T07 Modelo de despesa fixa | Frontend | RF-10; UX-SPEC T07 | Descrição, categoria (só despesas da casa), valor previsto, dia de 1 a 31 com a nota de meses curtos; "Encerrar despesa fixa" com diálogo; "Despesa fixa salva" → T06. [Tela padrão] T07 auto `sucesso`; manual `fixa--erro` | 4h | TP-0034, TP-0035, TP-0037, TP-0129 | TP-0130, TP-0132 | Pendente |
+| TP-0132 | Lote 27 | T08 Marcar fixa como paga | Frontend | CA-12.1; I-20; UX-SPEC T08 | Folha com forma (minhas, à vista), valor efetivo (padrão o previsto), data (padrão hoje) e a nota sempre visível do crédito; sem forma: atalho para cadastrar; sem rede: avisa e mantém; "Marcada como paga". [Tela padrão] T08 auto `sucesso`, `vazio`; manual `pagar-fixa--erro` | 4h | TP-0035, TP-0036, TP-0080, TP-0130 | TP-0131 | Pendente |
+| TP-0133 | Lote 27 | E2E de integração: ciclo da despesa fixa [BD] | Frontend | F3; RN-15; I-20 | `@integracao`: criar modelo → ocorrência pendente no mês e na T02 → atrasada depois do vencimento → A paga no Crédito (conta na casa no mês da ocorrência e no cartão no próximo vencimento) → B vê "Paga por A" e não vê "Desfazer" → A desfaz | 3h | TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | — | Pendente |
+
+### Lote 28 — Orçamento: banco
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0134 | Lote 28 | Tabela `app.orcamento` [BD] | Backend | RF-15; SDD §5 | Mês, categoria de despesa, valor, escopo, dono na individual; único `(categoria_id, mes)`; RLS (conjunto: lar; individual: dono); seed `seeds/07-orcamento.sql`; pgTAP; [BD padrão] | 2h | TP-0050 | — | Pendente |
+| TP-0135 | Lote 28 | Regra `app.orcado_realizado` e situação [BD] | Backend | CA-15.3; RN-16c, 16d; ADR-005 | Por categoria e por total de escopo: orçado, realizado (parcelas do mês), percentual e situação (abaixo de 80% dentro, de 80% a 100% atenção, acima de 100% estourado); orçamento individual compara só categorias individuais; pgTAP nas fronteiras 79,99%, 80%, 100%, 100,01% | 3h | TP-0051, TP-0134 | — | Pendente |
+| TP-0136 | Lote 28 | `api.orcamento_mes(mes, escopo)` [BD] | Backend | RF-15; D-03 | Linhas orçadas visíveis, total, resultado, `sem_orcamento` (categorias do escopo sem valor) e `pode_copiar_anterior`; [API padrão] com `mesmaForma` contra `respostas/orcamento-mes.json` | 3h | TP-0135 | — | Pendente |
+| TP-0137 | Lote 28 | `api.definir_orcamento` [BD] | Backend | CA-15.1, 15.2; D-04 | Conjunto pelos 2, individual só pelo dono; valor nulo remove o orçamento da categoria no mês; [API padrão] | 2h | TP-0134 | — | Pendente |
+| TP-0138 | Lote 28 | `api.copiar_orcamento` [BD] | Backend | CA-15.4 | Copia o mês anterior para o escopo pedido, sem sobrescrever o que já existe; só o que o membro pode ver; [API padrão] | 2h | TP-0134 | — | Pendente |
+| TP-0139 | Lote 28 | `resumo_mes`: seção de orçamento e resultado da casa [BD] | Backend | CA-13.2, 13.3; RN-16d; CA-16.1 | Mudança aditiva: `orcamento` de cada bloco (com 3 destaques de maior %) e resultado conjunto = orçamento conjunto − total do casal; pgTAP; `mesmaForma` verde | 2.5h | TP-0087, TP-0135 | — | Pendente |
+
+### Lote 29 — Orçamento: telas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0140 | Lote 29 | Dados do orçamento | Frontend | SDD §2 `dados/` | Consulta `orcamento_mes` + gancho; comandos definir (inclusive remover) e copiar, com invalidação do orçamento e do resumo; testes | 2h | TP-0025, TP-0136, TP-0137, TP-0138 | — | Pendente |
+| TP-0141 | Lote 29 | T09a Orçamento do mês | Frontend | RF-15, RF-16; UX-SPEC T09, §6 | `SeletorMes` e seletor Casa ou Eu na URL; linha de total com situação e resultado; lista por categoria com barra e "Editar orçamento de {nome}"; seção recolhida "Sem orçamento" com "Definir"; mês vazio com "Copiar de {mês anterior}"; 2 colunas no PC; ponto de montagem da folha de valor (`?editar=`). [Tela padrão] T09 auto `sucesso`, `vazio`, `carregando`, `erro` | 5h | TP-0040, TP-0041, TP-0044, TP-0140 | — | Pendente |
+| TP-0142 | Lote 29 | T09b Folha de valor do orçamento | Frontend | CA-15.1, 15.2; UX-SPEC T09 | Folha com `CampoValor`, Salvar e "Remover orçamento"; sem rede avisa e mantém. [Tela padrão] T09 auto `orcamento-valor--sucesso` | 3h | TP-0035, TP-0036, TP-0141 | — | Pendente |
+| TP-0143 | Lote 29 | E2E de integração: orçamento [BD] | Frontend | F5; CA-15.1 a 15.4 | `@integracao`: A define orçamento da casa e individual; B vê e edita o da casa e não vê o individual de A; lançamentos mudam a situação; "Copiar de setembro" no mês novo; T02 mostra o resumo do orçamento | 2.5h | TP-0139, TP-0141, TP-0142 | — | Pendente |
+
+### Lote 30 — Metas: modelo e leitura (banco)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0144 | Lote 30 | Tabelas `app.meta` e `app.movimento_meta` [BD] | Backend | RF-17, RF-18; RN-08, RN-09; ADR-002 §1 | `meta` (nome, alvo, prazo, escopo, dono, `atingida_em`); `movimento_meta` (tipo, valor, data, local livre, autor); acrescenta `movimento_conta.movimento_meta_id` (a conta fica só na parte privada do autor); RLS (compartilhada: lar; individual: dono; movimento visível se a meta é); seed `seeds/08-metas.sql`; pgTAP; [BD padrão] | 3h | TP-0013, TP-0048 | — | Pendente |
+| TP-0145 | Lote 30 | Regra `app.progresso_meta` [BD] | Backend | CA-17.2, 17.3; SDD §5 Derivações | Guardado = aportes − retiradas; falta = max(0, alvo − guardado); %; mensal necessário = falta ÷ meses até o prazo (com teto); atingida; guardado por local; pgTAP | 3h | TP-0144 | — | Pendente |
+| TP-0146 | Lote 30 | View `api.metas` [BD] | Backend | RF-17; CA-17.4 | `security_invoker`; metas visíveis com os campos de `app.progresso_meta`; [API padrão] com `mesmaForma` contra `respostas/metas.json` | 2h | TP-0145 | — | Pendente |
+| TP-0147 | Lote 30 | `api.movimentos_meta(meta_id)` [BD] | Backend | RF-18; RN-08 | Aportes e retiradas com valor, data, autor e local; a conta só nas linhas do próprio autor; [API padrão] com `mesmaForma` contra `respostas/movimentos-meta.json` | 2h | TP-0144 | — | Pendente |
+| TP-0148 | Lote 30 | `api.locais_guardados()` [BD] | Backend | CA-18.1; SDD §7 item 6 | Locais já usados nas metas **visíveis** ao membro; [API padrão] com `mesmaForma` contra `respostas/locais-guardados.json` (B não recebe local de meta individual de A) | 1.5h | TP-0144 | — | Pendente |
+
+### Lote 31 — Metas: escrita (banco)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0149 | Lote 31 | `api.salvar_meta` [BD] | Backend | CA-17.1; R-UX-06 | Cria com guardado zero ou edita nome, alvo e prazo; escopo só na criação; individual só pelo dono; [API padrão] | 2h | TP-0144 | — | Pendente |
+| TP-0150 | Lote 31 | `api.movimentar_meta` [BD] | Backend | CA-18.1 a 18.3; RN-08, RN-09; CA-17.3 | Aporte ou retirada com valor, data e local; conta opcional vira `movimento_conta` privado do autor (debita no aporte, credita na retirada); retirada maior que o guardado no local → erro no campo; marca ou desmarca `atingida_em`; idempotente; [API padrão] (B não obtém a conta de A pela resposta) | 4h | TP-0144, TP-0145 | — | Pendente |
+| TP-0151 | Lote 31 | `resumo_mes`: seção de metas e guardado no mês [BD] | Backend | CA-13.2, 13.3; RN-16c | Mudança aditiva: `metas` de cada bloco e `guardado_no_mes_centavos` (aportes − retiradas do membro no mês, sem reduzir o resultado); pgTAP; `mesmaForma` verde | 2.5h | TP-0087, TP-0145 | — | Pendente |
+
+### Lote 32 — Metas: telas
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0152 | Lote 32 | Dados das metas | Frontend | SDD §2 `dados/` | Consultas `metas`, `movimentos_meta` e `locais_guardados` + ganchos; comandos `salvar_meta` e `movimentar_meta` com invalidação de metas e resumo; testes | 3h | TP-0025, TP-0146, TP-0147, TP-0148, TP-0149, TP-0150 | — | Pendente |
+| TP-0153 | Lote 32 | T10 Metas | Frontend | RF-17; UX-SPEC T10 | Seções "Da casa" e "Minhas"; cartão com barra, "Guardado R$ X de R$ Y", "Faltam R$ Z", %, prazo com valor mensal, selo Atingida; "Nova meta" por seção. [Tela padrão] T10 auto `sucesso`, `vazio`, `carregando`, `erro` | 3h | TP-0040, TP-0044, TP-0152 | TP-0154, TP-0155 | Pendente |
+| TP-0154 | Lote 32 | T11 Detalhe da meta | Frontend | RF-17, RF-18; RN-08; UX-SPEC T11, §6 | Resumo, "Onde está guardado", histórico (conta só nas linhas próprias), Aportar, Retirar e Editar; lado a lado e tabela no PC; ponto de montagem da folha T13 (`?movimentar=`). [Tela padrão] T11 auto `sucesso`, `vazio`, `carregando`, `erro` | 4h | TP-0040, TP-0044, TP-0152 | TP-0153, TP-0155 | Pendente |
+| TP-0155 | Lote 32 | T12 Nova ou editar meta | Frontend | CA-17.1; R-UX-06; UX-SPEC T12 | Nome, alvo, prazo (mês e ano, opcional) e escopo "Minha" ou "Da casa" só na criação (depois, texto); "Meta salva" → T11. [Tela padrão] T12 auto `sucesso`; manual `meta-form--erro` | 3h | TP-0034, TP-0035, TP-0152 | TP-0153, TP-0154, TP-0156 | Pendente |
+| TP-0156 | Lote 32 | T13 Aporte ou retirada | Frontend | CA-18.1 a 18.3; UX-SPEC T13 | Folha com Aporte ou Retirada, valor, data; local com sugestões no aporte e escolha entre os locais com saldo na retirada; conta opcional com a nota "Só você vê"; erro do CA-18.3 no campo; vazio "Não há valor guardado para retirar". [Tela padrão] T13 auto `sucesso`, `retirada`, `vazio`; manual `movimentar-meta--erro` | 4h | TP-0034, TP-0035, TP-0036, TP-0043, TP-0154 | TP-0153, TP-0155 | Pendente |
+| TP-0157 | Lote 32 | E2E de integração: metas [BD] | Frontend | RF-17, RF-18; RN-08 | `@integracao`: A cria meta da casa e aporta com conta (saldo da conta cai); B vê o aporte sem a conta; retirada acima do guardado no local é recusada; meta atingida ganha o selo; meta individual de A não aparece para B nem nos locais sugeridos | 2.5h | TP-0151, TP-0153, TP-0154, TP-0155, TP-0156 | — | Pendente |
+
+### Lote 33 — Pagamento do cartão (Could)
+
+| ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| TP-0158 | Lote 33 | `api.registrar_pagamento_cartao` [BD] | Backend | RF-19 (Could); RN-13; I-14 | Valor, data, conta de origem e forma de Crédito do próprio membro; grava `movimento_conta` (pagamento de cartão) que debita a conta e não entra em nenhum total, orçamento ou resultado (pgTAP); [API padrão] | 2.5h | TP-0048, TP-0049, TP-0064 | — | Pendente |
+| TP-0159 | Lote 33 | T21 Registrar pagamento do cartão | Frontend | RF-19; UX-SPEC T21 | Folha sobre a T18 (`?pagamento=1`): valor, data, conta (padrão a conta de pagamento do cartão), nota "Sai da conta. Não conta como despesa"; sem conta: atalho para cadastrar; comando em `dados/`. [Tela padrão] T21 auto `sucesso`, `vazio` | 3h | TP-0035, TP-0036, TP-0073, TP-0158 | — | Pendente |
+
+---
+
+## 4. Dependências e Ordem de Execução
+
+**Tipo de dependência.** Todas as dependências da coluna "Depende de" são de **implementação completa**, com duas
+exceções de **contrato**: TP-0006 depende só da URL e do corpo de `rpc/ping` (SDD §2), e as tarefas de tela dependem
+da **forma** das respostas (TP-0020 + `.md/mockup/respostas/`), não do banco pronto. As telas só esperam o banco por
+causa da tarefa de `dados/` da área, que usa os tipos gerados das funções.
+
+**Recursos exclusivos.** Tarefas [BD] nunca rodam ao mesmo tempo (1.2); tarefas [U] também não. Por isso os lotes só
+de banco têm 1 instância por rodada. O ganho de paralelismo vem de rodar um lote de banco **junto** com um lote de
+telas (`/desenvolver --lotes-distintos`), respeitando as dependências.
+
+| Lote | Entrega (linguagem de usuário) | Rodadas (o que roda junto) | Máx. instâncias por rodada | Depende de outros lotes |
+|---|---|---|---|---|
+| 1 | Repositório organizado, banco local para testes e CI | R1: 0001 · R2: 0002, 0006, 0007 · R3: 0003 · R4: 0004 · R5: 0005 | 3 | — |
+| 2 | Produção limpa (em São Paulo) e banco que não "dorme" | R1: 0008, 0009 · R2: 0010 · R3: 0011 · R4: 0012 | 2 | 1 |
+| 3 | Os 2 membros do lar e o teste de privacidade automático | R1: 0013 · R2: 0014 · R3: 0015 · R4: 0016 · R5: 0017, 0018 | 2 | 1 |
+| 4 | Contrato da API e a base visual do app | R1: 0019, 0021 · R2: 0020, 0022, 0023, 0024 | 4 | 1, 3 |
+| 5 | App publicado na Vercel e instalável | R1: 0025, 0027, 0028 · R2: 0026, 0029 · R3: 0030 | 3 | 2, 3, 4 |
+| 6 | Prova do teclado no iPhone e no Motorola | R1: 0031 · R2: SPK-0001 | 1 | 5 |
+| 7 | Navegação, campos e folhas | R1: 0032, 0034, 0035, 0036 · R2: 0033, 0037 | 4 | 4, 5 |
+| 8 | Avisos, estados vazios e indicadores | R1: 0038, 0039, 0041, 0043 · R2: 0040, 0042, 0044 | 4 | 4, 7 |
+| 9 | Entrar, redefinir senha e Ajustes | R1: 0045, 0046, 0047 | 3 | 5, 7, 8 |
+| 10 | Tabelas de contas, formas, categorias e lançamentos | R1 a R6: 0048 → 0049 → 0050 → 0051 → 0052 → 0053 | 1 | 3 |
+| 11 | Salvar, arquivar e excluir cadastros | R1 a R7: 0054 a 0060, um por vez | 1 | 10 |
+| 12 | Lançar despesa (servidor), com parcelas do crédito | R1: 0061 · R2: 0062 · R3: 0063 | 1 | 1, 10 |
+| 13 | Saldo das contas, ajuste de saldo e gasto do cartão | R1 a R5: 0064 → 0065 → 0066 → 0067 → 0068 | 1 | 10 |
+| 14 | Telas de contas, formas e categorias | R1: 0069 · R2: 0070 a 0075 | 6 | 7, 8, 11, 13 |
+| 15 | Lançamento sem rede (fila no aparelho) | R1: 0076, 0077, 0079 · R2: 0078 | 3 | 5, 12 |
+| 16 | Lançar em 3 toques | R1: 0080, 0081 · R2: 0082, 0083 · R3: 0084 | 2 | 6, 7, 8, 15 |
+| 17 | Totais do mês (servidor) | R1 a R4: 0085 → 0086 → 0087 → 0088 | 1 | 12, 13 |
+| 18 | Tela Início completa | R1: 0089, 0090 · R2: 0091, 0092, 0093, 0095 · R3: 0094 | 4 | 7, 8, 15, 17 |
+| 19 | Lista, detalhe, edição e exclusão (servidor) | R1 a R5: 0096 a 0100, um por vez | 1 | 10, 12 |
+| 20 | Telas de lista do mês e de detalhe e edição | R1: 0101, 0102 · R2: 0103, 0105 · R3: 0104, 0106 | 2 | 8, 15, 19 |
+| 21 | Instalar, envios pendentes e testes de ponta a ponta | R1: 0107, 0108, 0109 · R2: 0110 · R3: 0111 | 3 | 16, 18, 20 |
+| 22 | **Início do uso diário** (usuários reais, keep-alive conferido, medição nos aparelhos) | R1: 0112 · R2: 0113 · R3: 0114 | 1 | 2, 21 + `/deploy` dos lotes 1-21 |
+| 23 | Receitas | R1: 0115 · R2: 0116 | 1 | 10, 16 |
+| 24 | Ajuste manual da data de uma parcela | R1: 0117 · R2: 0118 | 1 | 10, 20 |
+| 25 | Despesas fixas: modelos e ocorrências (servidor) | R1 a R6: 0119 a 0124, um por vez | 1 | 1, 10 |
+| 26 | Pagar e desfazer fixa; fixa no Início e no cartão (servidor) | R1 a R4: 0125 → 0126 → 0127 → 0128 | 1 | 13, 17, 25 |
+| 27 | Telas de despesas fixas | R1: 0129 · R2: 0130, 0131 · R3: 0132 · R4: 0133 | 2 | 16, 26 |
+| 28 | Orçamento (servidor) | R1 a R6: 0134 a 0139, um por vez | 1 | 10, 17 |
+| 29 | Tela de orçamento | R1: 0140 · R2: 0141 · R3: 0142 · R4: 0143 | 1 | 7, 8, 28 |
+| 30 | Metas: progresso e histórico (servidor) | R1 a R5: 0144 a 0148, um por vez | 1 | 3, 10 |
+| 31 | Aportes, retiradas e metas no Início (servidor) | R1 a R3: 0149 → 0150 → 0151 | 1 | 17, 30 |
+| 32 | Telas de metas | R1: 0152 · R2: 0153, 0154, 0155 · R3: 0156 · R4: 0157 | 3 | 7, 8, 31 |
+| 33 | Registrar pagamento do cartão (Could) | R1: 0158 · R2: 0159 | 1 | 13, 14 |
+
+**Lotes com 7 tarefas (justificativa):** o lote 1 é a fundação inteira e 3 tarefas rodam juntas; o lote 8 são
+componentes pequenos e independentes (até 4 juntos); o lote 11 são funções de 1,5 a 2,5 h do mesmo padrão; o lote 14
+são as 6 telas de cadastro, que rodam todas juntas depois da camada de dados; o lote 18 é a T02 dividida por seção.
+
+**Pares recomendados entre lotes** (banco ∥ telas): L10-L13 ∥ L7-L9; L17 ∥ L14-L16; L19 ∥ L18; L25-L26 ∥ L23-L24
+(telas); L28 ∥ L27; L30-L31 ∥ L29.
+
+**Caminho crítico até o uso diário** (cadeia de tarefas [BD], que não paralelizam entre si): TP-0001 → 0002 → 0003 →
+0004/0005 → 0013 → 0014 → 0015 → 0016 → 0019 → 0048 → … → 0068 (lotes 10 a 13) → 0085 → 0088 → 0096 → 0100 → 0109
+→ 0110 → 0111 → 0112. São cerca de **135 h** de banco em série; as telas cabem em paralelo ao lado dessa cadeia. O
+SPK-0001 está fora do caminho crítico do banco, mas bloqueia a T03 (lote 16).
+
+---
+
+## 5. Riscos de Prazo Sinalizados
+
+| Time | Esforço total estimado | Até o uso diário (lotes 1-22) | Capacidade conhecida | Risco |
+|---|---|---|---|---|
+| Backend (banco + operação) | 227 h | 159,5 h | Não informada para o Executor. Gate 1: MVP de 75 a 115 h de **hobby humano** | Alto, em comparação com o Gate 1 |
+| Frontend | 252,5 h | 192,5 h | Idem | Alto, em comparação com o Gate 1 |
+| Mobile (PWA, aparelhos) | 13 h | 13 h | Idem | Baixo |
+| Spike | 1 dia (timebox) | 1 dia | Usuário com os 2 aparelhos | Médio (ver R-P3) |
+| **Total** | **492,5 h + spike** | **365 h + spike** | — | — |
+
+**Estimativa aceita pelo stakeholder em 2026-10-09** (Loop C, rodada 2); o Gate 1 previa 75 a 115 h. Quem executa
+é o agente; o escopo do MVP fica como está.
+
+| # | Risco | Detalhe | Mitigação |
+|---|---|---|---|
+| R-P1 | **Soma muito acima da estimativa do Gate 1** (75 a 115 h) | A estimativa do Gate 1 não detalhava pgTAP por regra, suíte de isolamento por recurso, comparação visual de 58 estados × 2 tamanhos, e2e de integração e as tarefas operacionais. Os números aqui são esforço-equivalente de quem executa (o Executor), não horas do stakeholder | **Aceito pelo stakeholder em 2026-10-09.** O tempo dele concentra-se nas tarefas [U] (~24 h) e nas aprovações. Ritmo do Executor não informado: medir nos lotes 1 a 5, só para previsão |
+| R-P2 | Banco é gargalo serial | ~135 h de tarefas [BD] que não paralelizam entre si (Supabase local único) | Rodar lotes de telas ao lado (pares da Seção 4); tarefas de banco pequenas |
+| R-P3 | SPK-0001 falhar | Sem teclado no 1º toque, o RNF-01 (crítico) cai | Alternativas prontas na Seção 2; a decisão (c) exige o stakeholder |
+| R-P4 | ~~L-01 aberta bloqueia o lote 3~~ | Resolvido na rodada 2 pelo ADR-012 | TP-0013 desbloqueado |
+| R-P5 | Tarefas [U] dependem da agenda do usuário | 0009-0012, 0029, 0030, SPK-0001, 0112-0114 | Agrupar as [U] em sessões; lotes 2 e 5 cedo |
+| R-P6 | Janela de 10 dias do keep-alive | Cada `/deploy` com migration conta como atividade e pode zerar a janela | TP-0113 aceita o caminho "risco aceito e monitorado" do ADR-009 §5 |
+| R-P7 | Deployment Checks indisponível no Hobby | Gate de deploy do TP-0030 | Plano B: proteção da `main` (D-07) |
+
+---
+
+## 6. Lacunas Sinalizadas ao Software Architect
+
+O Coordenador é o próprio Software Architect neste conjunto de agentes. As lacunas **estruturais** ficam abertas até
+o usuário decidir; as de **detalhe** foram decididas aqui. Nenhuma lacuna estrutural continua aberta.
+
+| # | Tipo | Descrição | Tarefas afetadas | Status / decisão |
+|---|---|---|---|---|
+| L-01 | **Estrutural** | **Recursão de RLS em `app.membro`.** A política "os 2 membros do lar se veem" precisa saber o lar do membro atual, lendo a própria `membro`; com `SECURITY INVOKER`, o Postgres entra em recursão infinita ("infinite recursion detected in policy"). O SDD §7 só permite `api.editar_lancamento` como `DEFINER`. Opções: **(A, recomendada)** ADR-012 acrescentando à lista fechada as funções auxiliares `app.membro_atual()` e `app.lar_atual()` como `SECURITY DEFINER` (`stable`, `search_path = ''`, devolvem só id e lar do próprio `auth.uid()`, não expostas); é o padrão do Supabase. **(B)** manter tudo INVOKER: `membro` com leitura só da própria linha e uma tabela nova `app.membro_perfil` (id, lar, nome) com a política do lar; muda o modelo do SDD §5 | TP-0013 e todas as políticas que usam o lar; TP-0017 (lista fechada) | **Resolvida em 2026-10-09:** opção A aprovada pelo stakeholder. `.md/adr/012-funcoes-auxiliares-de-rls-security-definer-na-lista-fechada.md` (Aceito), SDD §7 item 4 e RT-01 atualizados, GUARDRAILS G-03 atualizada, TP-0013 e TP-0017 ajustados |
+| D-01 | Detalhe | Não-mistura: `arquivar_X` + `excluir_X` numa tarefa, porque o CA de exclusão oferece o arquivamento (CA-02.5, 03.5, 04.5: uma regra só). O agregado lançamento + parte privada + parcelas é uma mudança de schema só (cabeçalho 1:1 e parcelas não existem um sem o outro) | TP-0051, 0055, 0057, 0060 | Decidida |
+| D-02 | Detalhe | `@mymoney/contrato` passa a ter, além dos tipos gerados, os tipos escritos à mão das respostas em JSON (o gerador devolve `Json` para `jsonb`). Sem lógica | TP-0020 | Decidida |
+| D-03 | Detalhe | A forma real das respostas é a de `.md/mockup/respostas/*.json`, superconjunto da tabela resumida do SDD §2. Ex.: `orcamento_mes` recebe `escopo` e devolve `sem_orcamento`; `dados_lancamento` devolve `conta_receita_padrao_id`; `resumo_mes` devolve `fixas_total`, `previsto_a_pagar_centavos` e `minha_parte_por_categoria` | TP-0020 e todas as tarefas de API | Decidida |
+| D-04 | Detalhe | "Remover orçamento" (T09) = `definir_orcamento` com valor nulo, sem função nova | TP-0137, 0142 | Decidida |
+| D-05 | Detalhe | A prévia "Ajuste de +R$ 12,30" (T16) vem do servidor: `ajustar_saldo(…, p_simular)`. A tela não calcula a diferença | TP-0066, 0071 | Decidida |
+| D-06 | Detalhe | Cada tarefa de banco gera a própria migration; por isso as tarefas [BD] são seriais (1.2) | Todas as [BD] | Decidida |
+| D-07 | Detalhe | Gate de deploy: Vercel Deployment Checks; se o Hobby não oferecer, proteção da `main`. O CI nunca recebe credencial do Supabase de produção | TP-0030 | Decidida |
+| D-08 | Detalhe | Seeds locais em um arquivo por contexto (`seeds/NN-*.sql`), para tarefas diferentes não editarem o mesmo arquivo | Tarefas de tabela | Decidida |
+| D-09 | Detalhe | A folha da T03 fica montada no **layout autenticado**, não só na T02, porque o "+" abre de qualquer tela (CA-05.1); continua "parte da página, já montada" (R-UX-01) | TP-0081 | Decidida |
+| D-10 | Detalhe | Telas são testadas só com as respostas do mockup; a integração com o banco fica em tarefas e2e próprias (TP-0110, 0111, 0133, 0143, 0157 e os e2e de TP-0116 e 0118) | Telas | Decidida |
+| D-11 | Detalhe | TP-0011 é a única migration fora do `/deploy`: o ADR-009 exige o Worker no 1º lote | TP-0011 | Decidida |
+| D-12 | Detalhe | Saldo atual soma operações com data até hoje (São Paulo); operação com data futura não entra no saldo atual | TP-0064 | Decidida |
+| D-13 | Detalhe | `app.hoje()` e `app.dia_no_mes()` nascem numa tarefa própria (lógica de 3+ consumidores) | TP-0004 | Decidida |
+| D-14 | Detalhe | Na T02, "Marcar paga" leva a `/fixas?mes=&pagar=` (folha sobre a T06), uma das duas opções do UX-SPEC §1 ("sobre T06 ou T02") | TP-0092 | Decidida |
+
+### Inconsistências de documentação encontradas (sem impacto nas tarefas)
+
+Todas corrigidas na rodada 2 (2026-10-09). São correções de texto, sem mudar decisão aprovada.
+
+| # | Onde | O quê | Correção |
+|---|---|---|---|
+| I-D1 | SDD, linha "ADRs" e §4 | Diziam "todos com status *Proposto*" | Status *Aceito* no índice; linha "ADRs" e índice incluem o ADR-012 |
+| I-D2 | SDD §6, dívida "Sem rotina de backup" | Pedia atualizar a linha do RNF-07 no PRD-TECNICO, que já estava atualizada | Nota trocada por "a linha do RNF-07 já registra a retirada" |
+| I-D3 | UX-SPEC §7, R-UX-14 | "Pendente: rodar o script" | Marcado como resolvido (os 6 `.woff2` existem) |
+| I-D4 | UX-SPEC §1, T04 | Rota sem `&variavel=` | Parâmetro acrescentado |
+| I-D5 | SDD §2, contrato | D-03 só no TASK.md | Nota "Forma detalhada das respostas" no SDD §2 |
+
+### Autocheck de granularidade (divisões feitas antes de apresentar)
+
+| Antes (rascunho) | Regra violada | Depois |
+|---|---|---|
+| Tela Início (T02) numa tarefa | Tamanho (~26 h) e canário (14 seções + JSON do resumo + mockup) | 7 tarefas: TP-0089 a 0095 (componentes de orçamento e meta extraídos no TP-0090) |
+| Tela Lançar (T03) numa tarefa | Tamanho (~21 h) | TP-0081 a 0084, mais TP-0116 (receita) e TP-0080 (componente extraído) |
+| `resumo_mes` com todos os totais | Mistura de 3 regras com endpoint; tamanho | TP-0085 e 0086 (regras), 0087 (endpoint) e as seções aditivas 0127, 0139, 0151 |
+| `editar_lancamento` com as permissões | Regra + endpoint; tamanho | TP-0098 (regra) e TP-0099 (endpoint) |
+| Contas com saldo e ajuste | Regra + endpoint + endpoint | TP-0064, 0065, 0066 |
+| Cartão: gasto e view | Regra + endpoint | TP-0067, 0068, mais o caso da fixa no TP-0128 |
+| CRUD de cada cadastro numa tarefa | Mais de um endpoint | Salvar; arquivar + excluir (D-01); regra própria (ajuste, preferida) |
+| Fila offline | Tamanho (~8 h) | TP-0077 (núcleo) e TP-0078 (gatilhos e sessão) |
+| Fundação do banco | Schema + endpoint; lógica compartilhada | TP-0003 (schemas), 0004 (utilitários de data), 0005 (ping) |
+| Worker | Código + operação em produção | TP-0006 (código) e TP-0012 (deploy [U]) |
+| CI numa tarefa | Tamanho (~14 h) | TP-0007 (base), 0018 (banco), 0030 (frontend e gate), 0109 (ensaio de migration) |
+| Limpeza dos ambientes | Duas plataformas + configuração | TP-0009 (Supabase), 0010 (Auth/API), 0029 (Vercel) |
+| `lar`/`membro` com `contexto` | Schema + endpoint | TP-0013 e TP-0015 |
+| Contrato | Tamanho e duas origens | TP-0019 (gerado) e TP-0020 (respostas) |
+| T04 e T05 | Tamanho | TP-0103/0104 e TP-0105/0106/0118 |
+| T09 | Tamanho | TP-0141 e TP-0142 |
+| Componentes compartilhados num bloco | Tamanho (~40 h) | 13 tarefas nos lotes 7 e 8, mais 0079, 0080, 0090, 0101 |
+| Fixas e metas no banco, cada um num lote | Lotes de 10 e 8 tarefas | Lotes 25/26 e 30/31 |
+| E2E de integração do uso diário | Tamanho (~9 h) | TP-0110 (lançar e fila) e TP-0111 (privacidade e edição) |
+| Seed de volume dentro do CI de migration | Mistura banco + CI; tamanho | TP-0088 e TP-0109 |
