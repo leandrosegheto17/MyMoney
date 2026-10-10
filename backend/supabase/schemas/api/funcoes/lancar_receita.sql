@@ -34,7 +34,8 @@ begin
     return v_repetido;
   end if;
 
-  if p_valor_centavos is null or p_valor_centavos <= 0 then
+  if p_valor_centavos is null or p_valor_centavos <= 0
+     or p_valor_centavos > 100000000000 then
     raise exception 'valor_invalido';
   end if;
 

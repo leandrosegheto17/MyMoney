@@ -11,6 +11,8 @@ create table app.lancamento (
   categoria_id uuid not null,
   descricao text,
   valor_total_centavos bigint not null check (valor_total_centavos > 0),
+  -- Teto de R$ 1 bilhão: dois lançamentos no teto ainda somam sem estourar bigint.
+  constraint lancamento_valor_maximo check (valor_total_centavos <= 100000000000),
   num_parcelas smallint not null check (num_parcelas between 1 and 24),
   alterado_por uuid references app.membro (id),
   alterado_em timestamptz,

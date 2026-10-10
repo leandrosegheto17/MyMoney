@@ -109,7 +109,8 @@ begin
     raise exception 'sem_permissao';
   end if;
 
-  if p_valor_total_centavos is not null and p_valor_total_centavos <= 0 then
+  if p_valor_total_centavos is not null
+     and (p_valor_total_centavos <= 0 or p_valor_total_centavos > 100000000000) then
     raise exception 'valor_invalido';
   end if;
   if v_mudou_cat and v_cat_arquivada then
