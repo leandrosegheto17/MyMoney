@@ -2,6 +2,7 @@ import { FormularioEntrar } from '../componentes/FormularioEntrar';
 import { useAviso } from '../componentes/base/useAviso';
 import { useEntrar } from '../ganchos/useEntrar';
 import { usePedirRedefinicao } from '../ganchos/usePedirRedefinicao';
+import { TEXTO_SEM_CONEXAO, TEXTO_SERVIDOR_INDISPONIVEL } from '../rotulos/textosConexao';
 
 const MENSAGEM_NEUTRA = 'Se o e-mail for de um membro, você vai receber um link.';
 
@@ -14,7 +15,7 @@ export function Entrar() {
   function pedirLink(email: string) {
     redefinicao.mutate(email, {
       onSuccess: () => mostrar('sucesso', MENSAGEM_NEUTRA),
-      onError: (erro) => mostrar('erro', erro.tipo === 'rede' ? 'Sem conexão.' : 'Servidor indisponível. Tente de novo em instantes.'),
+      onError: (erro) => mostrar('erro', erro.tipo === 'rede' ? TEXTO_SEM_CONEXAO : TEXTO_SERVIDOR_INDISPONIVEL),
     });
   }
 
