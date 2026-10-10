@@ -377,3 +377,6 @@ RTP-0016 OK em segurança — 22 arquivos só com formatação (conteúdo idênt
 
 ## RTP-0050 — DevSecOps — 2026-10-10
 RTP-0050 aprovada na segurança: verificação só lê o catálogo, com trava de host local, SQL constante somente leitura, sem credencial nova nem dependência nova.
+
+## RTP-0051 — DevSecOps — 2026-10-10
+RTP-0051 aprovada em segurança; só o arquivo de teste mudou, sem dependência/segredo novo e com o caso na sessão do usuário (sem service_role).

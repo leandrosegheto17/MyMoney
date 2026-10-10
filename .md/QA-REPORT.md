@@ -389,3 +389,6 @@ RTP-0050 aprovada no QA: lint, tsc e vitest verdes, verificação de aderência 
 
 ## RTP-0051 — QA — 2026-10-10
 RTP-0051 aprovada no QA; mês sem dado derivado de api.contexto().hoje + 5 anos devolve fixas_total 0 com app.hoje() em 2026-10-12, 2029-05-03 e 2030-12-31, sem achados.
+
+## RTP-0052 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; só o comentário mudou, sem ID de tarefa em testes-api/src, tsc/prettier/lint verdes.
