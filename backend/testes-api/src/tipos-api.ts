@@ -95,6 +95,7 @@ export type Database = {
       arquivar_conta: { Args: { p_id: string }; Returns: undefined };
       arquivar_forma: { Args: { p_id: string }; Returns: undefined };
       contexto: { Args: never; Returns: unknown };
+      copiar_orcamento: { Args: { p_mes: string; p_escopo: string }; Returns: number };
       dados_lancamento: { Args: never; Returns: unknown };
       definir_orcamento: {
         Args: { p_mes: string; p_categoria_id: string; p_valor_centavos?: number | null };
