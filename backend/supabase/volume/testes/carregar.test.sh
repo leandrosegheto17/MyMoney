@@ -84,6 +84,12 @@ recusa "host que só começa com 127.0.0.1 é recusado" \
 recusa "IP de outra máquina é recusado" \
   "postgresql://postgres:postgres@10.0.0.5:54322/postgres"
 recusa "sem URL do supabase status, não conecta" ""
+recusa "'@localhost' na query não esconde o host real" \
+  "postgresql://evil.example?x=@localhost"
+recusa "?host= na query não sobrepõe o host" \
+  "postgresql://localhost/db?host=evil.example"
+recusa "?hostaddr= na query não sobrepõe o host" \
+  "postgresql://postgres:postgres@localhost:54322/postgres?hostaddr=10.0.0.5"
 
 aceita "127.0.0.1 é aceito e o volume é carregado" \
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
