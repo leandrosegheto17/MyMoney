@@ -1,5 +1,6 @@
--- Orçamentos fictícios de outubro/2026 (mockup). Conjunto: ...0401-...0405; individual de
--- Leandro: ...0411-...0414; uma de Ana (...0421, categoria ...0431) para o teste de isolamento.
+-- Orçamentos fictícios de outubro/2026 (mockup) e um de setembro/2026 (...0715, categoria ...0415).
+-- Outubro: conjunto ...0401-...0405; individual de Leandro ...0411-...0414; uma de Ana (...0421,
+-- categoria ...0431) para o teste de isolamento.
 -- Novembro fica vazio de propósito. Depende dos seeds de acesso e de categorias.
 insert into app.orcamento (id, lar_id, mes, categoria_id, escopo, dono_id, valor_centavos)
 select o.id::uuid, c.lar_id, date '2026-10-01', o.categoria_id::uuid, c.escopo, c.dono_id, o.valor_centavos
