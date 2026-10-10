@@ -38,3 +38,12 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0007: cobertura 94% de linhas, throw
 
 ## TP-0027 — QA — 2026-10-10
 DEVOLVIDA — e2e PWA (SW/offline/installability/axe) e demais vitest verdes, mas 1 crítico: lerToken.test falha (token `#10141a` minúsculo vs esperado `#10141A`); 0 não críticos.
+
+## TP-0022 — QA — 2026-10-10
+APROVADA (rodada 2) — install limpo com --frozen-lockfile exit 0 (unrs-resolver: false), pnpm lint verde, 21/21 testes de lint, aceite cumprido; 0 críticos, 0 não críticos.
+
+## TP-0023 — QA — 2026-10-10
+APROVADA (Rodada 2) — tokens.css idêntico ao mockup e ignorado pelo Prettier; 12/12 testes, build, format:check, lint verdes; prova visual conferida (0 críticos, 0 não críticos).
+
+## TP-0027 — QA — 2026-10-10
+APROVADA (rodada 2) — QA-1 corrigido (tokens.css `#10141A`); vitest 15/15, e2e PWA 2/2, format/lint limpos; 0 críticos, 0 não críticos.
