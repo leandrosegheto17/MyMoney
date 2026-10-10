@@ -265,6 +265,8 @@ Arquivo `supabase/migrations/<nome da migration sem .sql>.justificativa.md` com 
   data, que cite `G-12` e o nome da migration, com Validade `permanente` ou data não vencida. Linha
   acrescentada no próprio PR não vale.
 
-Testes (sem banco): `bash backend/operacao/deploy/testes/checar-aditiva.test.sh`. Com Supabase local:
+Testes (sem banco): `bash backend/operacao/deploy/testes/checar-aditiva.test.sh` e os irmãos
+`checar-aditiva.{justificativa,literais,dollar-quote,sem-perl,falha-fechada}.test.sh` (apoio comum em
+`checar-aditiva.apoio.sh`). Com Supabase local:
 `bash backend/operacao/deploy/testes/ensaiar-migration.test.sh`. As fixtures do ensaio ficam em
 `supabase/ensaio/`, fora de `migrations/` e `tests/`.

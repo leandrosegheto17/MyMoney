@@ -51,6 +51,11 @@ jobs:
           bash backend/operacao/deploy/testes/migrar.test.sh
           bash backend/operacao/deploy/testes/migrar-job-migration.test.sh
           bash backend/operacao/deploy/testes/checar-aditiva.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.justificativa.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.literais.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.dollar-quote.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.sem-perl.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.falha-fechada.test.sh
 
       - name: Gitleaks
         run: |
