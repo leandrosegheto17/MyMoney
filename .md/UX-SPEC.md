@@ -407,6 +407,19 @@ ficam na §6. Nos layouts abaixo, **"Casa"** é o rótulo de interface para *Con
   edição do valor (folha com campo de valor + Salvar + "Remover orçamento").
 - Seção recolhida "Sem orçamento", com as categorias de despesa do escopo e o botão "Definir".
 - Mês sem orçamento: "Sem orçamento da casa em outubro" com o botão "**Copiar de setembro**" (CA-15.4).
+- **Decisões de detalhe (Coordenador, 2026-10-10, BK-0022; dentro do já aprovado, sem mudar custo ou prazo):**
+  1. **Seção "Sem orçamento" com itens:** `details` recolhido no lugar da linha "Todas as categorias… têm
+     orçamento", com `summary` "Sem orçamento (N)"; dentro, uma linha por categoria com o nome e o botão de texto
+     "Definir" (`aria-label` "Definir orçamento de {nome}"), que abre a mesma folha de valor (`?editar=<id>`). Com N = 0,
+     vale a linha de texto do mockup. O mockup não tem esse estado; a implementação o registra num print sem
+     comparação automática (fora do limite de 1%).
+  2. **"Definir do zero" / "Definir orçamento"** (mês vazio, sem cópia possível ou botão secundário): troca o estado
+     vazio pela lista de categorias sem orçamento, com a seção da decisão 1 já aberta. Não escolhe categoria sozinho.
+  3. **Escopo Eu:** títulos e textos trocam "da casa" por "meu/seu": "Meu orçamento", "Meu resultado", "Sem orçamento
+     seu em novembro", "Todas as suas categorias de despesa têm orçamento em outubro."; a borda do cartão de total usa
+     `--cor-eu` (a da casa usa `--cor-casa`).
+  4. **Avisos da cópia:** sucesso "Orçamento copiado de outubro"; sem rede "Sem conexão. O orçamento não foi copiado."
+     (aviso de erro; nada muda na tela).
 
 **T10 Metas**. Ação principal: **Nova meta**.
 - Duas seções: "Da casa" (compartilhadas) e "Minhas".
@@ -559,7 +572,7 @@ Padrões globais:
 | T06 | Sem modelos: "Nenhuma despesa fixa cadastrada" + "Nova despesa fixa". Com modelos e tudo pago: "Todas pagas em outubro" | Esqueleto | Padrão global | Lista |
 | T07 | N/A: formulário | Botão "Salvando…" | Campo obrigatório ou dia fora de 1 a 31, no campo | "Despesa fixa salva" → T06 |
 | T08 | Sem forma de pagamento: atalho para cadastrar | Botão "Confirmando…" | Avisa e mantém | "Marcada como paga" + item atualizado |
-| T09 | Mês sem orçamento: "Copiar de {mês anterior}" (se houver) ou "Definir orçamento" | Esqueleto | Padrão global | Lista com situações |
+| T09 | Mês sem orçamento: "Copiar de {mês anterior}" (se houver) ou "Definir orçamento". Escopo Eu: "Sem orçamento seu em {mês}". Cópia: "Orçamento copiado de {mês anterior}" (aviso de sucesso) | Esqueleto; "Copiando…" no botão | Padrão global. Cópia sem rede: "Sem conexão. O orçamento não foi copiado." (nada muda) | Lista com situações |
 | T10 | "Nenhuma meta ainda" + "Nova meta" (por seção) | Esqueleto de cartões | Padrão global | Cartões |
 | T11 | Sem movimentos: "Nenhum aporte ainda" + "Aportar" | Esqueleto | Padrão global | Detalhe |
 | T12 | N/A: formulário | "Salvando…" | Validação no campo | "Meta salva" → T11 |

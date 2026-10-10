@@ -2,7 +2,8 @@
 
 **Status:** Aprovado pelo stakeholder em 2026-10-09, junto com o UX-SPEC.md e o mockup (Loop B encerrado). ADRs
 001 a 009 e 011 aceitos; ADR-010 adiado. ADR-012 aceito em 2026-10-09 (Loop C, rodada 2: funções auxiliares de RLS na
-lista fechada de `SECURITY DEFINER`).
+lista fechada de `SECURITY DEFINER`). ADR-013 aceito em 2026-10-10 (BK-0024: "Sair de todos" revoga antes de remover a
+sessão local).
 
 **Mudanças da rodada 2** (respostas do stakeholder):
 - só existe o ambiente de produção. O Supabase local é ferramenta de teste, não staging (ADR-011);
@@ -370,6 +371,7 @@ falsos ao lado dos reais e testaria violações de privacidade sobre dados verda
 | [010](adr/010-backup-diario-cifrado-no-servidor-proprio.md) | Rotina de backup fora do MVP, por decisão do stakeholder. A proposta (`pg_dump` cifrado no servidor próprio) fica guardada com condição de revisão | **Adiado** |
 | [011](adr/011-ambiente-unico-de-producao-e-supabase-local-para-testes.md) | Só produção. Supabase local (CLI/Docker) como ferramenta de teste, não staging. Sem `docker-compose.yml` (desvio aprovado). Cuidados mínimos de migração | Aceito |
 | [012](adr/012-funcoes-auxiliares-de-rls-security-definer-na-lista-fechada.md) | `app.membro_atual()` e `app.lar_atual()` como `SECURITY DEFINER` mínimas e não expostas, na lista fechada (evita a recursão de RLS em `membro`). Complementa o ADR-003 §3 | Aceito |
+| [013](adr/013-sair-de-todos-revoga-no-servidor-antes-de-remover-a-sessao-local.md) | "Sair de todos os aparelhos" revoga no servidor antes de remover a sessão local; sem rede, falha e mantém a sessão. Complementa o ADR-008 §3 | Aceito |
 
 ## 5. Modelo de Dados de Alto Nível
 
@@ -476,7 +478,8 @@ erDiagram
 - **Sessão:**
   - JWT de 1 h com refresh token rotativo, persistido no PWA (CA-01.3);
   - "Sair" encerra a sessão do aparelho (`scope: local`, CA-01.4);
-  - "Sair de todos os aparelhos" revoga tudo (`scope: global`, RNF-06).
+  - "Sair de todos os aparelhos" revoga tudo (`scope: global`, RNF-06). Revoga no servidor **antes** de remover a
+    sessão local; sem rede, falha e mantém a sessão (ADR-013).
 - **Serviço a serviço:**
   - o Worker usa só a chave `anon`, e só alcança `api.ping()`;
   - o `migrar.sh` usa o `supabase link` da máquina do desenvolvedor (token pessoal e senha do banco fora do

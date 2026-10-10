@@ -61,7 +61,7 @@
 - Descrição: TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, mas o TP-0047 não está na Dep do TP-0070: adicionar a dependência ou mover a criação dos três arquivos para o TP-0070
 - Impacto se não resolvido: TP-0070 não pode ser executada; provável o mesmo problema em outras telas de lote 14 (TP-0071..0075)
 - Sugestão: Incluir TP-0047 em Dep do TP-0070 (e das demais telas que usam esses componentes)
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): Lacuna de dependência (TASK.md D-17). Coordenador incluiu TP-0047 na Dep de TP-0070 a 0075 (e TP-0070 na Dep de TP-0072 a 0075, que usam o `Segmentado` que nasce lá, como já decidido em 2026-10-09); as telas deixaram de ser todas paralelas (Lote 14: R2 = 0070, 0071; R3 = 0072 a 0075). Sem mover código: os componentes já existem no TP-0047. TP-0047 só fecha depois do TP-0160 (BK-0024)
 
 ## Bloqueio 008 — 2026-10-10 (BK-0008)
 - Reportado por: Executor
@@ -70,7 +70,7 @@
 - Descrição: TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem e não estão na Dep; relacionado ao BK-0007
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045 e TP-0047 em Dep do TP-0071
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0045 (já Concluída) e TP-0047 incluídas na Dep do TP-0071 (TASK.md D-17)
 
 ## Bloqueio 009 — 2026-10-10 (BK-0009)
 - Reportado por: Executor
@@ -79,7 +79,7 @@
 - Descrição: TP-0155 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0155 (e TP-0070, de onde vem o `Segmentado`) (TASK.md D-17)
 
 ## Bloqueio 010 — 2026-10-10 (BK-0010)
 - Reportado por: Executor
@@ -88,7 +88,7 @@
 - Descrição: TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0045, TP-0047 e TP-0070 (`Segmentado`) incluídas na Dep do TP-0075 (TASK.md D-17)
 
 ## Bloqueio 011 — 2026-10-10 (BK-0011)
 - Reportado por: Executor
@@ -97,7 +97,7 @@
 - Descrição: TP-0073 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0045, TP-0047 e TP-0070 (`Segmentado`) incluídas na Dep do TP-0073 (TASK.md D-17)
 
 ## Bloqueio 012 — 2026-10-10 (BK-0012)
 - Reportado por: Executor
@@ -106,7 +106,7 @@
 - Descrição: TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 e TP-0070 incluídas na Dep do TP-0072 (TASK.md D-17); TP-0045 não é usada por esta tela
 
 ## Bloqueio 013 — 2026-10-10 (BK-0013)
 - Reportado por: Executor
@@ -115,7 +115,7 @@
 - Descrição: TP-0131 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0131 (TASK.md D-17); Lote 27 passa a depender do Lote 9
 
 ## Bloqueio 014 — 2026-10-10 (BK-0014)
 - Reportado por: Executor
@@ -124,7 +124,7 @@
 - Descrição: TP-0081 move folgaTeclado.ts e remove a página EnsaioTeclado, criados pelo TP-0031 (Pendente, fora da Dep); useFormularioLancar.test.ts exige formaInicial.ts, que o plano atribui ao TP-0083
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0031 na Dep do TP-0081 ou reescrever o TP-0081 para criar componentes/base/folgaTeclado.ts; definir onde ficam os casos de formaInicial
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): Opção (b) (TASK.md D-16). TP-0081 passa a criar `componentes/base/folgaTeclado.ts` e a mover o teste; TP-0031 (exigia TP-0029 [U] e push em produção) ficou Dispensada, já que o SPK-0001 foi aprovado provisoriamente sem aparelho (D-15); sem página `/ensaio-teclado`. Casos de `formaInicial`/troca de forma do `useFormularioLancar.test.ts` (inclusive `mudar(parcelas)`) ficam no TP-0083; TP-0081 só deixa verdes "estado inicial" e "mudar por campo". Dep do TP-0081 ganhou TP-0070 (`Segmentado`, que nasce lá). CONFIRMAR com o usuário a dispensa do TP-0031
 
 ## Bloqueio 015 — 2026-10-10 (BK-0015)
 - Reportado por: Executor
@@ -133,7 +133,7 @@
 - Descrição: TP-0089 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0089 (TASK.md D-17); Lote 18 passa a depender do Lote 9
 
 ## Bloqueio 016 — 2026-10-10 (BK-0016)
 - Reportado por: Executor
@@ -142,7 +142,7 @@
 - Descrição: TP-0105 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0045 e TP-0047 incluídas na Dep do TP-0105 (TASK.md D-17); Lote 20 passa a depender do Lote 9
 
 ## Bloqueio 017 — 2026-10-10 (BK-0017)
 - Reportado por: Executor
@@ -151,7 +151,7 @@
 - Descrição: TP-0101 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0101 (TASK.md D-17)
 
 ## Bloqueio 018 — 2026-10-10 (BK-0018)
 - Reportado por: Executor
@@ -160,7 +160,7 @@
 - Descrição: TP-0154 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0154 (TASK.md D-17)
 
 ## Bloqueio 019 — 2026-10-10 (BK-0019)
 - Reportado por: Executor
@@ -169,7 +169,7 @@
 - Descrição: TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 e TP-0070 (`Segmentado`) incluídas na Dep do TP-0074 (TASK.md D-17)
 
 ## Bloqueio 020 — 2026-10-10 (BK-0020)
 - Reportado por: Executor
@@ -178,7 +178,7 @@
 - Descrição: TP-0130 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0047 incluída na Dep do TP-0130 (TASK.md D-17)
 
 ## Bloqueio 021 — 2026-10-10 (BK-0021)
 - Reportado por: Executor
@@ -187,7 +187,7 @@
 - Descrição: TP-0090 usa LinkMais.tsx (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045 na Dep do TP-0090
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0045 (já Concluída; `LinkMais.tsx` existe) incluída na Dep do TP-0090 (TASK.md D-17)
 
 ## Bloqueio 022 — 2026-10-10 (BK-0022)
 - Reportado por: Executor
@@ -196,7 +196,7 @@
 - Descrição: TP-0141 usa Segmentado.tsx (TP-0081), ResumoOrcamento.tsx (TP-0090), formatacao/links.ts + LinhasValores.tsx (TP-0089) e filtrosLancamentos.ts (TP-0104), que não existem e não estão na Dep; TP-0081/0089/0090 estão bloqueadas; UX pendente (seção 'Sem orçamento', escopo Eu, textos de aviso)
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0081, TP-0089, TP-0090 e TP-0104 na Dep do TP-0141 e resolver as pendências de UX
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0081, TP-0089, TP-0090 e TP-0104 incluídas na Dep do TP-0141 (TASK.md D-17; Segmentado vem do TP-0070 via TP-0081). Pendências de UX decididas pelo Coordenador como detalhe dentro do aprovado e gravadas no UX-SPEC (§4 T09 e seção T09, "Decisões de detalhe") e no plano do TP-0141: `details` "Sem orçamento (N)" com "Definir"; "Definir do zero" abre essa seção; textos do escopo Eu; avisos da cópia. O mockup não tem o estado "Sem orçamento" com itens (print sem comparação automática); incluí-lo no mockup é opcional, a pedido do usuário
 
 ## Bloqueio 023 — 2026-10-10 (BK-0023)
 - Reportado por: Executor
@@ -205,7 +205,7 @@
 - Descrição: TP-0153 usa MetaCompacta.tsx e formatarMesCurto (TP-0090), BlocoInicio.tsx e formatacao/links.ts com linkMeta (TP-0089), que não existem; TP-0089/TP-0090 estão bloqueadas e fora da Dep
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0089 e TP-0090 na Dep do TP-0153
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): TP-0089 e TP-0090 incluídas na Dep do TP-0153 (TASK.md D-17); ambas já saem do bloqueio (BK-0015/BK-0021)
 
 ## Bloqueio 024 — 2026-10-10 (BK-0024)
 - Reportado por: QA
@@ -214,4 +214,4 @@
 - Descrição: 'Sair de todos' sem rede contraria o aceite e o RNF-06: supabase-js 2.117.3 (_signOut) remove a sessão local mesmo com falha de rede; SIGNED_OUT leva a /entrar e desmonta RegiaoAvisos (o aviso 'Sem conexão' some) e os outros aparelhos não são revogados; a correção está em dados/sessao.ts (TP-0025) e exige decisão de desenho
 - Impacto se não resolvido: T14 Ajustes não fecha; visual e demais critérios OK (RTP-0086 aberta para a seta de 'Instalar o app')
 - Sugestão: Decidir se sairDeTodos deve checar rede antes de chamar signOut/ou tratar o evento SIGNED_OUT local sem navegar; ajustar SDD/TP-0025 e reabrir o TP-0047
-- Status: Em aberto
+- Status: Resolvido (2026-10-10): Decisão de desenho no ADR-013 (aceito): `sairDeTodos()` revoga no servidor antes de remover a sessão local (`auth.admin.signOut(jwt,'global')` com o JWT do usuário, plano B `fetch` ao mesmo endpoint) e só então faz `signOut({scope:'local'})`; falha de rede ou 5xx lança erro `rede` sem tocar na sessão. SDD §4 (índice) e §7 (Sessão) atualizados. Nova tarefa TP-0160 (Lote 9, `dados/sessao`, 3h, Dep TP-0025) faz a mudança; TP-0047 reaberta como Pendente com TP-0160 na Dep (restam só religar o teste e repassar o QA)
