@@ -13,6 +13,10 @@ describe('fronteiras: import dinâmico e escrita via variável', () => {
     'componentes/importaSupabaseDinamico.ts',
     'componentes/importaIdbDinamico.ts',
     'componentes/requireIdb.ts',
+    'componentes/importaIdbTemplate.ts',
+    'componentes/requireIdbTemplate.ts',
+    'componentes/escreveFromColchetes.ts',
+    'componentes/escreveViaVariavelColchetes.ts',
     'dados/escreveViaVariavel.ts',
   ])('proibido: %s', (arquivo) => {
     const erros = mensagensDe(arquivo).filter((m) => m.severity === 2);

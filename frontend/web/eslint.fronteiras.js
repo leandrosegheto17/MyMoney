@@ -37,7 +37,27 @@ const SELECTORES_ESCRITA = [
   },
   {
     selector:
+      "CallExpression[callee.property.value=/^(insert|update|upsert|delete)$/][callee.object.callee.property.value='from']",
+    message: MSG_ESCRITA,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.name=/^(insert|update|upsert|delete)$/][callee.object.callee.property.value='from']",
+    message: MSG_ESCRITA,
+  },
+  {
+    selector:
+      "CallExpression[callee.property.value=/^(insert|update|upsert|delete)$/][callee.object.callee.property.name='from']",
+    message: MSG_ESCRITA,
+  },
+  {
+    selector:
       ":matches(VariableDeclarator, AssignmentExpression) > CallExpression[callee.property.name='from']:not([callee.object.name=/^[A-Z]/])",
+    message: MSG_BUILDER,
+  },
+  {
+    selector:
+      ":matches(VariableDeclarator, AssignmentExpression) > CallExpression[callee.property.value='from']:not([callee.object.name=/^[A-Z]/])",
     message: MSG_BUILDER,
   },
 ];
@@ -45,6 +65,14 @@ const SELECTORES_ESCRITA = [
 const SELECTORES_IMPORT_DINAMICO = [
   {
     selector: `ImportExpression[source.value=/^(${NOMES_SO_DADOS})(\\/|$)/]`,
+    message: MSG_IMPORT_DINAMICO,
+  },
+  {
+    selector: `ImportExpression[source.quasis.0.value.cooked=/^(${NOMES_SO_DADOS})(\\/|$)/]`,
+    message: MSG_IMPORT_DINAMICO,
+  },
+  {
+    selector: `CallExpression[callee.name='require'][arguments.0.quasis.0.value.cooked=/^(${NOMES_SO_DADOS})(\\/|$)/]`,
     message: MSG_IMPORT_DINAMICO,
   },
   {
