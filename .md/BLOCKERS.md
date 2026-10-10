@@ -17,3 +17,12 @@
 - Impacto se não resolvido: 26 de 27 testes passam; implementação completa e Playwright 8/8; sem a decisão o teste não fica verde
 - Sugestão: Autorizar a alteração do teste pré-escrito na linha 199 e reexecutar
 - Status: Em aberto
+
+## Bloqueio 003 — 2026-10-10 (BK-0003)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0006
+- Descrição: Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-types@5.20261010.1) e reexecutar /executar --tarefa RTP-0006
+- Impacto se não resolvido: —
+- Sugestão: Reexecutar após a janela, sem mudar nada
+- Status: Em aberto

@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 08:54
+Atualizado: 2026-10-10 12:04
 
-Resumo: Não executada 140 · Em execução 2 · Executada (aguarda teste) 7 · Testada (aguarda segurança) 1 · Aprovada 18 · Bloqueada 2 · total 170
+Resumo: Não executada 135 · Em execução 1 · Executada (aguarda teste) 13 · Testada (aguarda segurança) 1 · Aprovada 18 · Bloqueada 3 · total 171
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -27,10 +27,10 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 12 | TP-0011 | executor | ✔ | Primeira migration em produção (schemas, utilitários e ping) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Não executada |
 | 13 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Não executada |
 | 14 | TP-0013 | executor | ✔ | Tabelas app.lar e app.membro, RLS e app.membro_atual()/app.lar_atual() [BD] | Lote 3 | TP-0003 | Aprovada |
-| 15 | TP-0014 | executor | ✔ | Seeds locais de acesso [BD] | Lote 3 | TP-0013 | Não executada |
-| 16 | TP-0015 | executor | ✔ | api.contexto() [BD] | Lote 3 | TP-0004, TP-0013 | Não executada |
+| 15 | TP-0014 | executor | ✔ | Seeds locais de acesso [BD] | Lote 3 | TP-0013 | Executada (aguarda teste) |
+| 16 | TP-0015 | executor | ✔ | api.contexto() [BD] | Lote 3 | TP-0004, TP-0013 | Executada (aguarda teste) |
 | 17 | TP-0016 | executor | ✔ | Pacote @mymoney/testes-api (suíte de isolamento) [BD] | Lote 3 | TP-0014, TP-0015 | Não executada |
-| 18 | TP-0017 | executor | ✔ | Testes de catálogo da segurança do banco [BD] | Lote 3 | TP-0013 | Não executada |
+| 18 | TP-0017 | executor | ✔ | Testes de catálogo da segurança do banco [BD] | Lote 3 | TP-0013 | Executada (aguarda teste) |
 | 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Não executada |
 | 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Não executada |
 | 21 | TP-0020 | executor | ✔ | Tipos das respostas em JSON e das linhas das views | Lote 4 | TP-0019 | Não executada |
@@ -63,9 +63,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 48 | TP-0045 | executor | ✔ | T01 Entrar | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Não executada |
 | 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Não executada |
 | 50 | TP-0047 | executor | ✔ | T14 Ajustes | Lote 9 | TP-0026, TP-0033, TP-0037, TP-0039 | Não executada |
-| 51 | TP-0048 | executor | ✔ | Tabelas app.conta e app.movimento_conta [BD] | Lote 10 | TP-0013 | Não executada |
+| 51 | TP-0048 | executor | ✔ | Tabelas app.conta e app.movimento_conta [BD] | Lote 10 | TP-0013 | Executada (aguarda teste) |
 | 52 | TP-0049 | executor | ✔ | Tabela app.forma_pagamento [BD] | Lote 10 | TP-0048 | Não executada |
-| 53 | TP-0050 | executor | ✔ | Tabela app.categoria [BD] | Lote 10 | TP-0013 | Não executada |
+| 53 | TP-0050 | executor | ✔ | Tabela app.categoria [BD] | Lote 10 | TP-0013 | Executada (aguarda teste) |
 | 54 | TP-0051 | executor | ✔ | Tabelas app.lancamento, app.lancamento_pagamento e app.parcela [BD] | Lote 10 | TP-0048, TP-0049, TP-0050 | Não executada |
 | 55 | TP-0052 | executor | ✔ | api.inicializar_membro() [BD] | Lote 10 | TP-0050 | Não executada |
 | 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050 | Não executada |
@@ -76,7 +76,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 61 | TP-0058 | executor | ✔ | api.definir_preferida [BD] | Lote 11 | TP-0049 | Não executada |
 | 62 | TP-0059 | executor | ✔ | api.salvar_categoria [BD] | Lote 11 | TP-0050 | Não executada |
 | 63 | TP-0060 | executor | ✔ | api.arquivar_categoria e api.excluir_categoria [BD] | Lote 11 | TP-0050, TP-0051 | Não executada |
-| 64 | TP-0061 | executor | ✔ | Regra app.gerar_parcelas [BD] | Lote 12 | TP-0004 | Não executada |
+| 64 | TP-0061 | executor | ✔ | Regra app.gerar_parcelas [BD] | Lote 12 | TP-0004 | Executada (aguarda teste) |
 | 65 | TP-0062 | executor | ✔ | api.lancar_despesa [BD] | Lote 12 | TP-0051, TP-0061 | Não executada |
 | 66 | TP-0063 | executor | ✔ | api.dados_lancamento [BD] | Lote 12 | TP-0051 | Não executada |
 | 67 | TP-0064 | executor | ✔ | Regra app.saldo_conta [BD] | Lote 13 | TP-0048, TP-0049, TP-0051 | Não executada |
@@ -179,7 +179,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 164 | RTP-0002 | executor | ✔ | README do backend: --no-backup do local:parar | Refatoração Lote-1 | TP-0002 | Aprovada |
 | 165 | RTP-0003 | executor | ✔ | Prova do Docker limpo de local:subir/local:resetar | Refatoração Lote-1 | TP-0003 | Aprovada |
 | 166 | RTP-0004 | executor | ✔ | Keepalive: typecheck cobrir o arquivo de teste | Refatoração Lote-1 | TP-0006 | Aprovada |
-| 167 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | TP-0006 | Em execução |
-| 168 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
-| 169 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
-| 170 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Executada (aguarda teste) |
+| 167 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Aprovada |
+| 168 | RTP-0007 | executor | ✔ | formatacao/: cobrir os lançamentos de erro de centavos.ts e mes.ts (cobertura 100%) | Refatoração Lote-4 | TP-0024 | Aprovada |
+| 169 | RTP-0008 | executor | ✔ | Lint de fronteira: cobrir import() dinâmico e escrita via variável | Refatoração Lote-4 | TP-0022 | Executada (aguarda teste) |
+| 170 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 171 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
