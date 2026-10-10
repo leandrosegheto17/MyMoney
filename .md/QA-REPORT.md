@@ -404,3 +404,24 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0054: `...415` seed true x categoria
 
 ## TP-0138 — QA — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; pgTAP (shim) copiar_orcamento 24/24 e regressão de orcamento/* verde, isolamento A/B, G-05, anon sem execute e search_path confirmados; vitest/contrato:gerar não verificados (sem API/Docker).
+
+## RTP-0018 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (nome fixo no reenvio quebra 2ª execução sem reset, RTP-0058); tsc/eslint/prettier limpos e os 3 comportamentos reproduzidos em SQL como A.
+
+## RTP-0053 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; grep do CI vazio, typecheck e eslint verdes, diff só troca o nome da pasta de prints.
+
+## RTP-0054 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (cabeçalho do seed 07 desatualizado, RTP-0057); categorias A idênticas ao JSON nas 13 linhas, out/nov inalterados com e sem o seed novo, pgTAP idêntico nas duas bases, tsc ok.
+
+## RTP-0055 — QA — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; 5 `uses:` de terceiros fixadas por SHA, conferidas por `git ls-remote` (incluindo `^{}` do pnpm), YAML válido e diff restrito às linhas `uses:`.
+
+## TP-0008 — QA — 2026-10-10
+TP-0008 devolvida: 19 testes verdes e aceite coberto, mas o passo shellcheck do CI falha (exit 123) por SC1091 em migrar.sh (1 crítico) e SC2034 em teste de outra tarefa (RTP-0056); ensaio local/gh real não verificados.
+
+## TP-0018 — QA — 2026-10-10
+APROVADA, 0 críticos e 0 não críticos; aceite verificado por leitura/estática (YAML, `test:config` 24/24, sed, grep limpo, SHAs preservados); execução real dos jobs e prova de vermelho pendentes por falta de Docker/GitHub.
+
+## TP-0037 — QA — 2026-10-10
+TP-0037 aprovada no QA: 43 vitest + 16 e2e verdes, visual conforme mockup, pilha de armadilhas sem regressão na Folha; 0 achados.
