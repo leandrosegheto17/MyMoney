@@ -618,6 +618,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0084 | Refatoração Lote-9 | T01 Entrar: formatação e textos de erro duplicados | Frontend | RF-01; CONVENCOES-DE-CODIGO §1 | prettier --check limpo em Entrar.tsx e Botao.tsx; textos 'Sem conexão.' e 'Servidor indisponível. Tente de novo em instantes.' definidos em um único módulo e usados por Entrar.tsx e textoErroEntrar.ts; testes de Entrar e Botao verdes (origem: QA do TP-0045) | 1h | TP-0045 |  | frontend/web/src/paginas/Entrar.tsx, frontend/web/src/componentes/base/Botao.tsx, frontend/web/src/componentes/textoErroEntrar.ts | Entrar.test.tsx, Botao.test.tsx | Pendente |
+| RTP-0085 | Refatoração Lote-9 | FormularioNovaSenha usa focarPrimeiroErro em vez de foco próprio | Frontend | CONVENCOES-DE-CODIGO regra 1 (reaproveitar); plano TP-0046 passo 3; origem: achado não crítico do QA de TP-0046 | FormularioNovaSenha foca o primeiro campo com erro via focarPrimeiroErro (TP-0034), sem refs/useEffect/contador de tentativa próprios; testes de RedefinirSenha e e2e redefinir-senha seguem verdes (foco na senha com 8 e 9 caracteres) | 1h | TP-0046 | - | frontend/web/src/componentes/FormularioNovaSenha.tsx | frontend/web/src/paginas/RedefinirSenha.test.tsx | Pendente |
 
 
 
