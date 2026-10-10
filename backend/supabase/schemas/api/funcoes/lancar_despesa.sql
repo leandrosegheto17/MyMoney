@@ -52,11 +52,7 @@ begin
 
   select f.tipo, f.conta_id, f.dia_vencimento, f.arquivada
     into v_forma_tipo, v_forma_conta, v_forma_dia, v_forma_arquivada
-  from app.forma_pagamento f
-  where f.id = p_forma_id and f.dono_id = v_membro;
-  if not found then
-    raise exception 'registro_invalido';
-  end if;
+  from app.forma_do_membro(p_forma_id) f;
 
   if v_cat_arquivada then
     raise exception 'categoria_arquivada';

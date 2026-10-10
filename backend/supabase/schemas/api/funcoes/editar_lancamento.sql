@@ -134,11 +134,7 @@ begin
     -- Só o pagador chega aqui (permissão `forma`): a forma nova tem de ser dele.
     select f.tipo, f.conta_id, f.dia_vencimento, f.arquivada
       into v_forma_tipo, v_forma_conta, v_forma_dia, v_forma_arquivada
-    from app.forma_pagamento f
-    where f.id = p_forma_id and f.dono_id = v_membro;
-    if not found then
-      raise exception 'registro_invalido';
-    end if;
+    from app.forma_do_membro(p_forma_id) f;
     if v_forma_arquivada then
       raise exception 'forma_arquivada';
     end if;
