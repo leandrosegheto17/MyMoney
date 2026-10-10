@@ -1,12 +1,16 @@
 import { randomUUID } from 'node:crypto';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
+import { apagarFixas } from '../src/limpar-fixas';
 import { comoA, comoAnon, comoB, comoSemMembro } from '../src/sessoes';
 
 const CONJUNTA = '00000000-0000-4000-8000-000000000401';
 
+const criadas: string[] = [];
+
 async function criarFixaDeA() {
   const id = randomUUID();
+  criadas.push(id);
   const criada = await (await comoA()).rpc('salvar_despesa_fixa', {
     p_id: id, p_descricao: 'Condomínio', p_categoria_id: CONJUNTA,
     p_valor_previsto_centavos: 45000, p_dia_vencimento: 8,
@@ -16,6 +20,8 @@ async function criarFixaDeA() {
 }
 
 describe('api.encerrar_despesa_fixa', () => {
+  afterAll(() => apagarFixas(criadas));
+
   it('B encerra a fixa de A e os dois veem encerrada_em pela view', async () => {
     const id = await criarFixaDeA();
     const encerrada = await (await comoB()).rpc('encerrar_despesa_fixa', { p_id: id });
