@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 21:19
+Atualizado: 2026-10-10 21:22
 
-Resumo: Não executada 56 · Em execução 1 · Executada (aguarda teste) 2 · Em teste 1 · Testada (aguarda segurança) 1 · Aprovada 186 · Bloqueada 18 · total 265
+Resumo: Não executada 57 · Em execução 2 · Testada (aguarda segurança) 2 · Aprovada 187 · Bloqueada 18 · total 266
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -39,7 +39,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 24 | TP-0023 | executor | ✔ | Base visual e comparação visual | Lote 4 | TP-0021 | Aprovada |
 | 25 | TP-0024 | executor | ✔ | formatacao/ | Lote 4 | TP-0021 | Aprovada |
 | 26 | TP-0025 | executor | ✔ | dados/ núcleo: cliente, sessão, erros e contexto | Lote 5 | TP-0015, TP-0019, TP-0022 | Aprovada |
-| 27 | TP-0026 | executor | ✔ | Modo de comparação visual (sessão falsa e sem sessão) | Lote 5 | TP-0023, TP-0025 | Testada (aguarda segurança) |
+| 27 | TP-0026 | executor | ✔ | Modo de comparação visual (sessão falsa e sem sessão) | Lote 5 | TP-0023, TP-0025 | Aprovada |
 | 28 | TP-0027 | executor | ✔ | PWA: manifest, ícones e service worker | Lote 5 | TP-0021 | Aprovada |
 | 29 | TP-0028 | executor | ✔ | vercel.json: rotas e cabeçalhos de segurança | Lote 5 | TP-0009, TP-0021 | Não executada |
 | 30 | TP-0029 | executor | ✔ | Limpeza e reconfiguração do projeto Vercel mymoney [U] | Lote 5 | TP-0010, TP-0027, TP-0028 | Não executada |
@@ -204,8 +204,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 189 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 190 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
 | 191 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
-| 192 | RTP-0079 | executor | ✔ | SeletorMes: spec Playwright (alvos 44 px, axe) e comparação visual | Refatoração Lote-8 | TP-0041 | Em teste |
-| 193 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Executada (aguarda teste) |
+| 192 | RTP-0079 | executor | ✔ | SeletorMes: spec Playwright (alvos 44 px, axe) e comparação visual | Refatoração Lote-8 | TP-0041 | Testada (aguarda segurança) |
+| 193 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Testada (aguarda segurança) |
 | 194 | RTP-0082 | executor | ✔ | SeletorMes: título da vitrine e comparação visual do cabeçalho | Refatoração Lote-8 | RTP-0079 | Não executada |
 | 195 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
 | 196 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |
@@ -262,19 +262,20 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 247 | RTP-0072 | executor | ✔ | checar-aditiva.sh: falha aberta quando o perl existe mas falha em execução | Refatoração Lote-21 | RTP-0060 | Aprovada |
 | 248 | RTP-0073 | executor | ✔ | checar-aditiva.test.sh: dividir o arquivo de teste (417 linhas) por comportamento | Refatoração Lote-21 | RTP-0060 | Aprovada |
 | 249 | RTP-0066 | executor | ✔ | pedirRedefinicao: não engolir erro de limite de taxa | Lote 5 | TP-0025 | Aprovada |
-| 250 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Executada (aguarda teste) |
-| 251 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
-| 252 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
-| 253 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
-| 254 | BK-0007 | coordenador | ✔ | TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, | — | — | Não executada |
-| 255 | TP-0070 | executor | ✔ | T15 Contas | Lote 14 | BK-0007, TP-0040, TP-0069 | Bloqueada |
-| 256 | BK-0008 | coordenador | ✔ | TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem | — | — | Não executada |
-| 257 | TP-0071 | executor | ✔ | T16 Conta | Lote 14 | BK-0008, TP-0034, TP-0035, TP-0037, TP-0039, TP-0069 | Bloqueada |
-| 258 | BK-0012 | coordenador | ✔ | TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Não executada |
-| 259 | TP-0072 | executor | ✔ | T17 Formas de pagamento | Lote 14 | BK-0012, TP-0040, TP-0069 | Bloqueada |
-| 260 | BK-0019 | coordenador | ✔ | TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Não executada |
-| 261 | TP-0074 | executor | ✔ | T19 Categorias | Lote 14 | BK-0019, TP-0040, TP-0042, TP-0069 | Bloqueada |
-| 262 | BK-0010 | coordenador | ✔ | TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Não executada |
-| 263 | TP-0075 | executor | ✔ | T20 Categoria | Lote 14 | BK-0010, TP-0034, TP-0037, TP-0069 | Bloqueada |
-| 264 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
-| 265 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
+| 250 | RTP-0083 | executor | ✔ | Trava do modo de comparação cobre qualquer modo de build | Refatoração Lote-5 | TP-0026 | Não executada |
+| 251 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Em execução |
+| 252 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
+| 253 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
+| 254 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
+| 255 | BK-0007 | coordenador | ✔ | TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, | — | — | Não executada |
+| 256 | TP-0070 | executor | ✔ | T15 Contas | Lote 14 | BK-0007, TP-0040, TP-0069 | Bloqueada |
+| 257 | BK-0008 | coordenador | ✔ | TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem | — | — | Não executada |
+| 258 | TP-0071 | executor | ✔ | T16 Conta | Lote 14 | BK-0008, TP-0034, TP-0035, TP-0037, TP-0039, TP-0069 | Bloqueada |
+| 259 | BK-0012 | coordenador | ✔ | TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Não executada |
+| 260 | TP-0072 | executor | ✔ | T17 Formas de pagamento | Lote 14 | BK-0012, TP-0040, TP-0069 | Bloqueada |
+| 261 | BK-0019 | coordenador | ✔ | TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Não executada |
+| 262 | TP-0074 | executor | ✔ | T19 Categorias | Lote 14 | BK-0019, TP-0040, TP-0042, TP-0069 | Bloqueada |
+| 263 | BK-0010 | coordenador | ✔ | TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Não executada |
+| 264 | TP-0075 | executor | ✔ | T20 Categoria | Lote 14 | BK-0010, TP-0034, TP-0037, TP-0069 | Bloqueada |
+| 265 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 266 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |

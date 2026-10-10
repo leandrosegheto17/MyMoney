@@ -554,3 +554,15 @@ APROVADA, 0 críticos/0 não críticos; 26 testes passando (gatilhos, sessão, i
 
 ## TP-0080 — QA — 2026-10-10
 APROVADA; 0 críticos, 1 não crítico (RTP-0081: botão "Depois" da vitrine reprova axe e quebra 2 testes do spec); vitest 10/10, 44 px e teclado ok, axe do componente limpo; sem comparação visual com mockup.
+
+## RTP-0079 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0082: comparação visual pendente + título da vitrine); spec Playwright 6/6 passando (44x44, axe, setas) com chromium-1194 via config temporária.
+
+## RTP-0080 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 24 testes verdes, variantes extras de SeloSituacao cobertas conforme o mockup.
+
+## RTP-0081 — QA — 2026-10-10
+DEVOLVIDA - ajuste da vitrine correto e axe verde, mas spec tem 2/6 falhas ("2 toques" 390 e 1440) por defeito do TP-0080 (ListaFormas.aoPerderFoco + spec clica input com pointer-events:none); 0 críticos, 2 não críticos; RTP-0083 proposta; /pw.cfg.ts vazio na raiz registrado, não apagado.
+
+## TP-0026 — QA — 2026-10-10
+APROVADA (rodada 3) — 0 críticos, 0 não críticos; teste de build e 32 testes do escopo passam, bundle real sem marcadores exclusivos do modo; 20 falhas de `src/dados` são de tarefas futuras (módulos ausentes), não regressão.
