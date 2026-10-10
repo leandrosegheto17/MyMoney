@@ -50,16 +50,19 @@ select is(
   '[false, true, true]'::jsonb, 'mês futuro: aberto e parcial')
 from (select api.resumo_mes((app.inicio_mes(app.hoje()) + interval '2 months')::date) r) t;
 
--- Seções que ainda não existem
-select is((api.resumo_mes('2026-10-01')->>'pendentes_previstos_centavos')::bigint, 0::bigint, 'pendentes previstos 0');
+-- Seções sem dono neste teste (metas e guardado) e orçamento de outubro (seed 07)
 select is(
-  (select jsonb_build_array(c->'previsto_a_pagar_centavos', c->'fixas_total', c->'fixas_pendentes', c->'orcamento', c->'metas')
+  (select jsonb_build_array(jsonb_typeof(c->'orcamento'), c->'metas')
      from (select api.resumo_mes('2026-10-01')->'conjunto' c) t),
-  '[0, 0, [], null, []]'::jsonb, 'conjunto: previsto, fixas, orçamento e metas vazios');
+  '["object", []]'::jsonb, 'conjunto: orçamento de outubro preenchido e metas vazias');
 select is(
-  (select jsonb_build_array(i->'guardado_no_mes_centavos', i->'orcamento', i->'metas')
+  (select jsonb_build_array(i->'guardado_no_mes_centavos', jsonb_typeof(i->'orcamento'), i->'metas')
      from (select api.resumo_mes('2026-10-01')->'individual' i) t),
-  '[0, null, []]'::jsonb, 'individual: guardado, orçamento e metas vazios');
+  '[0, "object", []]'::jsonb, 'individual: guardado 0, orçamento de outubro preenchido e metas vazias');
+select is(
+  (select jsonb_build_array(r->'conjunto'->'orcamento', r->'individual'->'orcamento')
+     from (select api.resumo_mes('2030-01-01') r) t),
+  '[null, null]'::jsonb, 'mês sem orçamento: orcamento null nos dois blocos');
 
 -- Composição das regras
 select is(
