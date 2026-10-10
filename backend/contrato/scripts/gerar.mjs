@@ -24,14 +24,25 @@ export function compararGerado(atual, novo) {
 const URL_RECUSADA = 'CONTRATO_DB_URL fora do formato aceito (postgresql://[usuario[:senha]@]host[:porta]/banco)';
 const PARAMETROS_DE_DESTINO = new Set(['host', 'hostaddr', 'service', 'options']);
 
-// Troca o userinfo (usuário:senha) de qualquer URL de conexão presente no texto.
+// Mascara tudo entre `://` e o último `@` da URL (até o próximo espaço): a senha pode conter
+// `@`, `/`, `?` ou `#` crus, então nenhum delimitador antes do último `@` é confiável.
 export function mascararUrl(texto) {
-  return String(texto).replace(/(postgres(?:ql)?:\/\/)[^\s@/]*@/gi, '$1***@');
+  return String(texto).replace(/(postgres(?:ql)?:\/\/)(\S*)/gi, (inteiro, prefixo, resto) => {
+    const arroba = resto.lastIndexOf('@');
+    return arroba < 0 ? inteiro : `${prefixo}***${resto.slice(arroba)}`;
+  });
+}
+
+function temCaractereDeControle(texto) {
+  for (let i = 0; i < texto.length; i += 1) {
+    if (texto.charCodeAt(i) < 32) return true;
+  }
+  return false;
 }
 
 // Mesmas regras de backend/operacao/comum/host-local.sh (G-06): o host validado é o que o libpq usa.
 function exigirUrlLocal(url) {
-  if (/[\s\u0000-\u001f\\#]/.test(url)) throw new Error(URL_RECUSADA);
+  if (/[\s\\#]/.test(url) || temCaractereDeControle(url)) throw new Error(URL_RECUSADA);
   let analisada;
   try {
     analisada = new URL(url);

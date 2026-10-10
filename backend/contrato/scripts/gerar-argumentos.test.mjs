@@ -49,6 +49,30 @@ describe('mascararUrl', () => {
     );
     expect(mascararUrl('postgres://u:p%40ss@127.0.0.1/x')).toBe('postgres://***@127.0.0.1/x');
   });
+
+  it.each([
+    ['postgresql://u:Yw/Tp7@h@host:5432/db', 'Yw', 'Tp7'],
+    ['postgresql://u:SE@GREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE/GREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE?GREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE#GREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE%2FGREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE@@GREDO@h/x', 'SE', 'GREDO'],
+    ['postgresql://u:SE:GREDO@h/x', 'SE', 'GREDO'],
+    ['"postgresql://u:SE@GREDO@h/x"', 'SE', 'GREDO'],
+    ["erro 'postgres://u:SE/GREDO@[::1]:5432/x' fim", 'SE', 'GREDO'],
+    ['postgresql://:SE/GREDO@h/x', 'SE', 'GREDO'],
+  ])('não deixa fragmento da senha: %s', (entrada, parteA, parteB) => {
+    const saida = mascararUrl(entrada);
+    expect(saida).not.toContain(parteA);
+    expect(saida).not.toContain(parteB);
+    expect(saida).toContain('***@');
+  });
+
+  it('URL sem senha ou sem usuário não é alterada além do necessário', () => {
+    expect(mascararUrl('postgresql://localhost:5432/x')).toBe('postgresql://localhost:5432/x');
+    expect(mascararUrl('postgresql://@localhost/x')).toBe('postgresql://***@localhost/x');
+  });
 });
 
 describe('gerar', () => {
