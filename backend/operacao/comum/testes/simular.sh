@@ -64,7 +64,7 @@ simular_padroes() {
   export SIM_REGIAO='sa-east-1'
   export SIM_DUMP_FALHA=0
   export SIM_GH_RUNS='[{"databaseId":42,"conclusion":"success","status":"completed"}]'
-  export SIM_GH_JOBS='{"jobs":[{"name":"base","conclusion":"success","status":"completed"}]}'
+  export SIM_GH_JOBS='{"jobs":[{"name":"base","conclusion":"success","status":"completed"},{"name":"migration","conclusion":"success","status":"completed"}]}'
   export SIM_PG_RESTORE_LISTA=$'; Archive created\n1; 2615 2200 SCHEMA - app postgres\n2; 1259 16385 TABLE public exemplo postgres'
   export SIM_PSQL_SAIDA=''
 

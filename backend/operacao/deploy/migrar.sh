@@ -12,7 +12,7 @@
 set -euo pipefail
 
 # Jobs do workflow ci que precisam estar verdes no commit a aplicar.
-JOBS_EXIGIDOS=(base)
+JOBS_EXIGIDOS=(base migration)
 WORKFLOW_CI="ci.yml"
 
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

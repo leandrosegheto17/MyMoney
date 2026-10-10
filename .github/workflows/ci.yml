@@ -47,7 +47,10 @@ jobs:
         run: find backend/operacao -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck
 
       - name: Testes dos scripts de deploy
-        run: bash backend/operacao/deploy/testes/migrar.test.sh
+        run: |
+          bash backend/operacao/deploy/testes/migrar.test.sh
+          bash backend/operacao/deploy/testes/migrar-job-migration.test.sh
+          bash backend/operacao/deploy/testes/checar-aditiva.test.sh
 
       - name: Gitleaks
         run: |
@@ -153,3 +156,42 @@ jobs:
 
       - name: Suíte de isolamento da API
         run: pnpm --filter @mymoney/testes-api test
+
+  migration:
+    name: migration
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout (histórico completo)
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+
+      - name: Base de comparação (main)
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          EVENT_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -n "$BASE_REF" ]; then
+            base="origin/$BASE_REF"
+          elif [ -n "$EVENT_BEFORE" ] && [ -n "${EVENT_BEFORE//0/}" ] && git cat-file -e "$EVENT_BEFORE^{commit}" 2>/dev/null; then
+            base="$EVENT_BEFORE"
+          else
+            base="origin/main"
+          fi
+          echo "MIGRATION_BASE=$base" >> "$GITHUB_ENV"
+
+      - name: Checagem aditiva das migrations novas
+        run: bash backend/operacao/deploy/checar-aditiva.sh "$MIGRATION_BASE"
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local
+        run: pnpm local:ci
+
+      - name: Ensaio das migrations novas sobre o seed de volume
+        run: bash backend/operacao/deploy/ensaiar-migration.sh --base "$MIGRATION_BASE"

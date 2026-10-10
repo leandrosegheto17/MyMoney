@@ -21,15 +21,9 @@ if [ -z "$DB_URL" ]; then
   exit 1
 fi
 
-# postgresql://usuario:senha@host:porta/banco -> host
-SEM_ESQUEMA="${DB_URL#*://}"
-AUTORIDADE="${SEM_ESQUEMA%%/*}"
-HOST="${AUTORIDADE##*@}"
-HOST="${HOST%%:*}"
-if [ "$HOST" != "localhost" ] && [ "$HOST" != "127.0.0.1" ]; then
-  echo "Recusado: o volume só roda no Supabase local (host '$HOST')." >&2
-  exit 1
-fi
+# shellcheck source=../../operacao/comum/host-local.sh
+source "$BACKEND/operacao/comum/host-local.sh"
+exigir_host_local "$DB_URL" "o volume" || exit 1
 
 if [ ! -f "$ARQUIVO" ]; then
   echo "Arquivo SQL não encontrado: $ARQUIVO" >&2

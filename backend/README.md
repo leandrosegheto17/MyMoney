@@ -229,3 +229,42 @@ depois de confirmar a migração.
 
 Testes do script (comandos externos simulados, nada toca produção):
 `bash backend/operacao/deploy/testes/migrar.test.sh`.
+
+## CI de migration (job `migration`)
+
+Job em `.github/workflows/ci.yml`, em push e PR, sem filtro de caminho e sem `if:`. A base de comparação
+é `origin/<branch alvo>` no PR e o commit anterior (`github.event.before`) no push; push de branch novo
+usa `origin/main`. O job é exigido por `operacao/deploy/migrar.sh` (`JOBS_EXIGIDOS`) antes do `db push`.
+
+1. `operacao/deploy/checar-aditiva.sh <base>`: em cada migration nova (arquivo adicionado em
+   `supabase/migrations/*.sql`, sem contar comentários) procura `drop`, `rename` e troca de tipo de
+   coluna (`alter table … alter [column] x [set data] type`). `alter type … add value` é aditivo.
+   Achou: falha, a menos que exista a justificativa ao lado (G-12).
+2. `operacao/deploy/ensaiar-migration.sh --base <base>`: recria o Supabase local com as migrations da
+   base (`git archive`, sem mexer na árvore de trabalho), carrega o seed de volume na versão da base e
+   aplica só as migrations novas (`supabase migration up --local`). Erro do Postgres, como `not null`
+   sem default sobre linhas existentes, falha o job. Só roda contra host `localhost`/`127.0.0.1`.
+
+Reproduzir (Supabase local no ar, Docker em execução):
+
+```sh
+bash backend/operacao/deploy/checar-aditiva.sh origin/main
+bash backend/operacao/deploy/ensaiar-migration.sh --base origin/main
+```
+
+Depois do ensaio, `pnpm local:resetar` devolve o banco local ao estado da árvore de trabalho.
+
+### Justificativa de migration não aditiva
+
+Arquivo `supabase/migrations/<nome da migration sem .sql>.justificativa.md` com uma destas linhas:
+
+- `Fase expand: <arquivo.sql>`: migration que existe na base e entrou na `main` há 30 dias ou mais
+  (`git log --diff-filter=A`). O CI não enxerga a data de publicação em produção: a data de entrada na
+  `main` é a aproximação usada.
+- `Exceção: <AAAA-MM-DD>`: linha do Log de Alterações do `.md/GUARDRAILS.md` **da base** com essa
+  data, que cite `G-12` e o nome da migration, com Validade `permanente` ou data não vencida. Linha
+  acrescentada no próprio PR não vale.
+
+Testes (sem banco): `bash backend/operacao/deploy/testes/checar-aditiva.test.sh`. Com Supabase local:
+`bash backend/operacao/deploy/testes/ensaiar-migration.test.sh`. As fixtures do ensaio ficam em
+`supabase/ensaio/`, fora de `migrations/` e `tests/`.

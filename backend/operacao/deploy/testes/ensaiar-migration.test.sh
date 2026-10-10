@@ -71,10 +71,10 @@ rodar "$(preparar_pr not_null_sem_default.sql)"
 if [ "$CODIGO" -ne 0 ]; then ok "not null sem default termina com código diferente de 0"; else nok "not null sem default termina com código diferente de 0"; fi
 
 total=$((total + 1))
-if printf '%s' "$SAIDA" | grep -qi "violates not-null"; then
-  ok "log traz o erro do Postgres (violates not-null)"
+if printf '%s' "$SAIDA" | grep -qiE "contains null values|violates not-null"; then
+  ok "log traz o erro do Postgres (not null sobre linhas existentes)"
 else
-  nok "log traz o erro do Postgres (violates not-null)"
+  nok "log traz o erro do Postgres (not null sobre linhas existentes)"
 fi
 
 total=$((total + 1))
