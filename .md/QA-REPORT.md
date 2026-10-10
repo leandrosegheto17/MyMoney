@@ -425,3 +425,18 @@ APROVADA, 0 críticos e 0 não críticos; aceite verificado por leitura/estátic
 
 ## TP-0037 — QA — 2026-10-10
 TP-0037 aprovada no QA: 43 vitest + 16 e2e verdes, visual conforme mockup, pilha de armadilhas sem regressão na Folha; 0 achados.
+
+## RTP-0057 — QA — 2026-10-10
+RTP-0057 aprovada no QA: só o comentário do cabeçalho mudou, descreve corretamente outubro e o orçamento ...0715 de setembro, sem ID de tarefa, e os seeds 00-08 aplicam sem erro em banco descartável (0 achados).
+
+## RTP-0058 — QA — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; nome único por id, 2 execuções seguidas sem nome_repetido e controle com nome fixo falha na 2ª (SQL em banco descartável); tsc/eslint/prettier limpos.
+
+## TP-0008 — QA — 2026-10-10
+TP-0008 aprovada na rodada 3: 19 testes verdes, shellcheck -x sai 0 em migrar.sh/migrar.test.sh e ci.yml mantém SHAs/permissions/ordem; 0 críticos, 2 não críticos de outras tarefas (RTP-0056 existente, RTP-0059 aberta); ensaio local/gh real não verificados.
+
+## TP-0019 — QA — 2026-10-10
+APROVADA; 0 críticos e 0 não críticos; gerar/verificar rc 0 em banco descartável, 12 códigos de regra batem com o banco, 10 testes verdes; typecheck do pacote vermelho só por arquivos da TP-0020.
+
+## TP-0109 — QA — 2026-10-10
+APROVADA; 0 críticos, 2 não críticos (RTP-0060 `'--'` em literal esconde drop; RTP-0061 SC1091 em carregar.sh); checar-aditiva 31/31, migrar 19/19 + job-migration 2/2, ensaio [BD] 7/7 em banco descartável com shim (not null sem default falha com "contains null values" após 5969 parcelas); CLI real/CI não verificados.
