@@ -607,6 +607,12 @@ tarefa passa disso). Status inicial `Pendente`.
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0066 | Lote 5 | pedirRedefinicao: não engolir erro de limite de taxa | Frontend | QA de TP-0025; UX T01; plano TP-0025 passo 5 | pedirRedefinicao só devolve resultado neutro para usuário inexistente; rede, indisponível e limite de taxa (429/over_email_send_rate_limit) lançam ErroDados; teste cobre os três | 1h | TP-0025 |  | frontend/web/src/dados/sessao.ts, frontend/web/src/dados/erros.ts, frontend/web/src/dados/sessao.test.ts | vitest src/dados/sessao.test.ts | Concluída · QA ✔ · Sec ✔ |
 
+### Refatoração Lote-16
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0081 | Refatoração Lote-16 | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Frontend | QA de TP-0080 (achado baixo); G-19 | e2e/botao-forma.spec.ts passa nos 2 tamanhos: o botão 'Depois' da vitrine ganha estilo com tokens (ou o axe é limitado ao campo), sem violação serious de color-contrast com a lista fechada e aberta | 0.5h | TP-0080 | não | frontend/web/e2e/vitrine/botao-forma.tsx, frontend/web/e2e/vitrine/formulario.css, frontend/web/e2e/botao-forma.spec.ts | pnpm --filter @mymoney/web exec playwright test e2e/botao-forma.spec.ts | Pendente |
+
+
 
 
 
