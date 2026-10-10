@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 17:22
+Atualizado: 2026-10-10 17:29
 
-Resumo: Não executada 82 · Em execução 1 · Aprovada 134 · Bloqueada 1 · total 218
+Resumo: Não executada 78 · Em execução 1 · Executada (aguarda teste) 4 · Aprovada 134 · Bloqueada 1 · total 218
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -20,7 +20,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 5 | TP-0005 | executor | ✔ | Função api.ping() [BD] | Lote 1 | TP-0003 | Aprovada |
 | 6 | TP-0006 | executor | ✔ | Worker de keep-alive (@mymoney/keepalive): código | Lote 1 | TP-0001 | Aprovada |
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Aprovada |
-| 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Não executada |
+| 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Executada (aguarda teste) |
 | 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Não executada |
 | 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Em execução |
 | 11 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | TP-0009 | Não executada |
@@ -51,7 +51,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 36 | TP-0034 | executor | ✔ | Campos de formulário e botão | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 37 | TP-0035 | executor | ✔ | CampoValor (centavos) | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 38 | BK-0002 | coordenador | ✔ | Folha.test.tsx:199 (pré-escrito) exige queryByLabelText('Valor') nulo com o campo no DOM; | — | — | Aprovada |
-| 39 | TP-0036 | executor | ✔ | Folha (bottom sheet e diálogo no PC) | Lote 7 | BK-0002, TP-0023 | Não executada |
+| 39 | TP-0036 | executor | ✔ | Folha (bottom sheet e diálogo no PC) | Lote 7 | BK-0002, TP-0023 | Executada (aguarda teste) |
 | 40 | TP-0037 | executor | ✔ | DialogoConfirmacao | Lote 7 | TP-0036 | Não executada |
 | 41 | TP-0038 | executor | ✔ | rotulos/ | Lote 8 | TP-0020, TP-0021 | Não executada |
 | 42 | TP-0039 | executor | ✔ | Aviso (toast) e Faixa | Lote 8 | TP-0023 | Aprovada |
@@ -68,7 +68,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 53 | TP-0050 | executor | ✔ | Tabela app.categoria [BD] | Lote 10 | TP-0013 | Aprovada |
 | 54 | TP-0051 | executor | ✔ | Tabelas app.lancamento, app.lancamento_pagamento e app.parcela [BD] | Lote 10 | TP-0048, TP-0049, TP-0050 | Aprovada |
 | 55 | TP-0052 | executor | ✔ | api.inicializar_membro() [BD] | Lote 10 | TP-0050 | Aprovada |
-| 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050, TP-0051 | Não executada |
+| 56 | TP-0053 | executor | ✔ | View api.categorias [BD] | Lote 10 | TP-0016, TP-0050, TP-0051 | Executada (aguarda teste) |
 | 57 | TP-0054 | executor | ✔ | api.salvar_conta [BD] | Lote 11 | TP-0048 | Aprovada |
 | 58 | TP-0055 | executor | ✔ | api.arquivar_conta e api.excluir_conta [BD] | Lote 11 | TP-0048, TP-0049, TP-0051 | Aprovada |
 | 59 | TP-0056 | executor | ✔ | api.salvar_forma [BD] | Lote 11 | TP-0049 | Aprovada |
@@ -153,7 +153,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 138 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Aprovada |
 | 139 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Aprovada |
 | 140 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Aprovada |
-| 141 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | TP-0134, TP-0135, TP-0136 | Não executada |
+| 141 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | TP-0134, TP-0135, TP-0136 | Executada (aguarda teste) |
 | 142 | TP-0139 | executor | ✔ | resumo_mes: seção de orçamento e resultado da casa [BD] | Lote 28 | TP-0087, TP-0135 | Aprovada |
 | 143 | TP-0140 | executor | ✔ | Dados do orçamento | Lote 29 | TP-0025, TP-0136, TP-0137, TP-0138 | Não executada |
 | 144 | TP-0141 | executor | ✔ | T09a Orçamento do mês | Lote 29 | TP-0040, TP-0041, TP-0044, TP-0140 | Não executada |
