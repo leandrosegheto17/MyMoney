@@ -506,3 +506,21 @@ APROVADA; 0 achados críticos, 0 não críticos; 38 testes e typecheck passando,
 
 ## TP-0152 — QA — 2026-10-10
 APROVADA; 0 críticos, 0 não críticos; 46 testes passando e tsc limpo, rpc tipada pelo banco.ts.
+
+## RTP-0072 — QA — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; teste novo 10/10 (2/10 contra o script antigo), 62 casos atuais e migrar 30 verdes.
+
+## RTP-0073 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 62 casos verdes em 5 arquivos (+10 falha-fechada), lista de `ok - ` idêntica à do arquivo original, todos abaixo de 300 linhas, CI chama os 6.
+
+## TP-0026 — QA — 2026-10-10
+DEVOLVIDA — 1 crítico (teste de bundle falha: literal 'sessao-falsa' vazando via inicializarMembro.ts e teste sem NODE_ENV=production), 0 não críticos; visual 2 passadas e lista vazia ok.
+
+## TP-0033 — QA — 2026-10-10
+APROVADA, 0 críticos e 0 não críticos; 78/79 testes de rota/título/mapa passam (falha restante é do TP-0031), lint e tsc limpos, sem comparação visual (sem tela).
+
+## TP-0069 — QA — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; 13 arquivos/106 testes passando, tsc e eslint limpos, escrita só por rpc, sem RTP.
+
+## TP-0140 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; 35 testes passando, tsc e eslint limpos, aceite do orçamento (consulta, definir/remover, copiar, invalidação) conferido no diff.

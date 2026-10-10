@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 20:29
+Atualizado: 2026-10-10 20:30
 
-Resumo: Não executada 63 · Em execução 1 · Em teste 6 · Testada (aguarda segurança) 12 · Aprovada 160 · Bloqueada 1 · total 243
+Resumo: Não executada 63 · Em execução 2 · Testada (aguarda segurança) 17 · Aprovada 160 · Bloqueada 1 · total 243
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -39,7 +39,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 24 | TP-0023 | executor | ✔ | Base visual e comparação visual | Lote 4 | TP-0021 | Aprovada |
 | 25 | TP-0024 | executor | ✔ | formatacao/ | Lote 4 | TP-0021 | Aprovada |
 | 26 | TP-0025 | executor | ✔ | dados/ núcleo: cliente, sessão, erros e contexto | Lote 5 | TP-0015, TP-0019, TP-0022 | Aprovada |
-| 27 | TP-0026 | executor | ✔ | Modo de comparação visual (sessão falsa e sem sessão) | Lote 5 | TP-0023, TP-0025 | Em teste |
+| 27 | TP-0026 | executor | ✔ | Modo de comparação visual (sessão falsa e sem sessão) | Lote 5 | TP-0023, TP-0025 | Em execução |
 | 28 | TP-0027 | executor | ✔ | PWA: manifest, ícones e service worker | Lote 5 | TP-0021 | Aprovada |
 | 29 | TP-0028 | executor | ✔ | vercel.json: rotas e cabeçalhos de segurança | Lote 5 | TP-0009, TP-0021 | Não executada |
 | 30 | TP-0029 | executor | ✔ | Limpeza e reconfiguração do projeto Vercel mymoney [U] | Lote 5 | TP-0010, TP-0027, TP-0028 | Não executada |
@@ -47,7 +47,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 32 | TP-0031 | executor | ✔ | Página de ensaio do teclado (descartável) | Lote 6 | TP-0027, TP-0029 | Não executada |
 | 33 | SPK-0001 | coordenador | — | Spike: teclado numérico no "+" no iPhone 17 e no Moto Edge 60 | Lote 6 | TP-0031 | Aprovada |
 | 34 | TP-0032 | executor | ✔ | BarraNavegacao e TrilhoNavegacao | Lote 7 | TP-0023 | Aprovada |
-| 35 | TP-0033 | executor | ✔ | Roteamento e layout autenticado | Lote 7 | TP-0025, TP-0032 | Em teste |
+| 35 | TP-0033 | executor | ✔ | Roteamento e layout autenticado | Lote 7 | TP-0025, TP-0032 | Testada (aguarda segurança) |
 | 36 | TP-0034 | executor | ✔ | Campos de formulário e botão | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 37 | TP-0035 | executor | ✔ | CampoValor (centavos) | Lote 7 | TP-0023, TP-0024 | Aprovada |
 | 38 | BK-0002 | coordenador | ✔ | Folha.test.tsx:199 (pré-escrito) exige queryByLabelText('Valor') nulo com o campo no DOM; | — | — | Aprovada |
@@ -84,7 +84,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 69 | TP-0066 | executor | ✔ | api.ajustar_saldo [BD] | Lote 13 | TP-0064 | Aprovada |
 | 70 | TP-0067 | executor | ✔ | Regra app.gasto_cartao (compras) [BD] | Lote 13 | TP-0049, TP-0051 | Aprovada |
 | 71 | TP-0068 | executor | ✔ | View api.formas_pagamento [BD] | Lote 13 | TP-0067 | Aprovada |
-| 72 | TP-0069 | executor | ✔ | Dados dos cadastros (consultas, comandos e primeiro uso) | Lote 14 | TP-0025, TP-0052, TP-0053, TP-0054, TP-0055, TP-0056, TP-0057, TP-0058, TP-0059, TP-0060, TP-0065, TP-0066, TP-0068 | Em teste |
+| 72 | TP-0069 | executor | ✔ | Dados dos cadastros (consultas, comandos e primeiro uso) | Lote 14 | TP-0025, TP-0052, TP-0053, TP-0054, TP-0055, TP-0056, TP-0057, TP-0058, TP-0059, TP-0060, TP-0065, TP-0066, TP-0068 | Testada (aguarda segurança) |
 | 73 | TP-0070 | executor | ✔ | T15 Contas | Lote 14 | TP-0040, TP-0069 | Não executada |
 | 74 | TP-0071 | executor | ✔ | T16 Conta | Lote 14 | TP-0034, TP-0035, TP-0037, TP-0039, TP-0069 | Não executada |
 | 75 | TP-0072 | executor | ✔ | T17 Formas de pagamento | Lote 14 | TP-0040, TP-0069 | Não executada |
@@ -155,7 +155,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 140 | TP-0137 | executor | ✔ | api.definir_orcamento [BD] | Lote 28 | TP-0134 | Aprovada |
 | 141 | TP-0138 | executor | ✔ | api.copiar_orcamento [BD] | Lote 28 | TP-0134, TP-0135, TP-0136 | Aprovada |
 | 142 | TP-0139 | executor | ✔ | resumo_mes: seção de orçamento e resultado da casa [BD] | Lote 28 | TP-0087, TP-0135 | Aprovada |
-| 143 | TP-0140 | executor | ✔ | Dados do orçamento | Lote 29 | TP-0025, TP-0136, TP-0137, TP-0138 | Em teste |
+| 143 | TP-0140 | executor | ✔ | Dados do orçamento | Lote 29 | TP-0025, TP-0136, TP-0137, TP-0138 | Testada (aguarda segurança) |
 | 144 | TP-0141 | executor | ✔ | T09a Orçamento do mês | Lote 29 | TP-0040, TP-0041, TP-0044, TP-0140 | Não executada |
 | 145 | TP-0142 | executor | ✔ | T09b Folha de valor do orçamento | Lote 29 | TP-0035, TP-0036, TP-0141 | Não executada |
 | 146 | TP-0143 | executor | ✔ | E2E de integração: orçamento [BD] | Lote 29 | TP-0139, TP-0141, TP-0142 | Não executada |
@@ -248,8 +248,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 233 | RTP-0068 | executor | ✔ | CI: shellcheck não cobre backend/supabase/*.sh (carregar.sh e carregar.test.sh fora do... | Refatoração Lote-21 | RTP-0061 | Testada (aguarda segurança) |
 | 234 | RTP-0069 | executor | ✔ | checar-aditiva.sh: tag de dollar-quote com não-ASCII ($é$) não é reconhecida e '--' den... | 21 | RTP-0060 | Aprovada |
 | 235 | RTP-0070 | executor | ✔ | checar-aditiva.sh: falha aberta quando perl falta (migration com drop passa como aditiv... | 21 | RTP-0060 | Aprovada |
-| 236 | RTP-0072 | executor | ✔ | checar-aditiva.sh: falha aberta quando o perl existe mas falha em execução | Refatoração Lote-21 | RTP-0060 | Em teste |
-| 237 | RTP-0073 | executor | ✔ | checar-aditiva.test.sh: dividir o arquivo de teste (417 linhas) por comportamento | Refatoração Lote-21 | RTP-0060 | Em teste |
+| 236 | RTP-0072 | executor | ✔ | checar-aditiva.sh: falha aberta quando o perl existe mas falha em execução | Refatoração Lote-21 | RTP-0060 | Testada (aguarda segurança) |
+| 237 | RTP-0073 | executor | ✔ | checar-aditiva.test.sh: dividir o arquivo de teste (417 linhas) por comportamento | Refatoração Lote-21 | RTP-0060 | Testada (aguarda segurança) |
 | 238 | RTP-0066 | executor | ✔ | pedirRedefinicao: não engolir erro de limite de taxa | Lote 5 | TP-0025 | Testada (aguarda segurança) |
 | 239 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 240 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
