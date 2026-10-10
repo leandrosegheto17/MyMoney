@@ -35,3 +35,21 @@
 - Impacto se não resolvido: —
 - Sugestão: Executar TP-0038 antes e confirmar o desenho da lista aberta com o UX
 - Status: Em aberto
+
+## Bloqueio 005 — 2026-10-10 (BK-0005)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: TP-0053
+- Descrição: Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 colunas sem calculadas e o cálculo exigiria a tabela de lançamentos
+- Impacto se não resolvido: —
+- Sugestão: Incluir pode_excluir na view (após app.lancamento, TP-0051) ou retirá-lo do JSON/contrato
+- Status: Em aberto
+
+## Bloqueio 006 — 2026-10-10 (BK-0006)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: TP-0138
+- Descrição: Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dependência não declarada na Dep
+- Impacto se não resolvido: —
+- Sugestão: Executar TP-0135 e TP-0136 e acrescentá-las à Dep de TP-0138
+- Status: Em aberto
