@@ -44,7 +44,7 @@ jobs:
         run: pnpm run --if-present test:config
 
       - name: Shellcheck dos scripts de operação
-        run: find backend/operacao -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck -x
+        run: find backend/operacao backend/supabase -name '*.sh' -not -path '*/node_modules/*' -print0 | xargs -0 shellcheck -x
 
       - name: Testes dos scripts de deploy
         run: |
