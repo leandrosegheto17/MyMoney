@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { lerToken } from './scripts/lerToken.mjs';
 
@@ -18,8 +19,20 @@ const manterImportMetaUrlDosTestes = {
   },
 };
 
+// O modo de comparação visual é só do script `visual`: o build de produção recusa a variável.
+const travaDoModoDeComparacao = {
+  name: 'trava-do-modo-de-comparacao',
+  config(_: unknown, { command, mode }: { command: string; mode: string }) {
+    if (command !== 'build' || mode !== 'production') return;
+    if (loadEnv(mode, new URL('.', import.meta.url).pathname, 'VITE_').VITE_MODO_COMPARACAO !== undefined) {
+      throw new Error('VITE_MODO_COMPARACAO não pode estar definida no build de produção (é só para o script visual)');
+    }
+  },
+};
+
 export default defineConfig({
   plugins: [
+    travaDoModoDeComparacao,
     react(),
     {
       name: 'cor-do-tema',

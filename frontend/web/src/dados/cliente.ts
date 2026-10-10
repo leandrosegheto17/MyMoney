@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { lerAmbiente } from '../configuracao/ambiente';
+import { tokenDoModo } from './modoComparacao';
 
 /** Cliente tipado no schema `api`, o único exposto. */
 // `any`: o tipo das linhas vem de @mymoney/contrato, não de um Database gerado.
@@ -14,9 +15,12 @@ export interface OpcoesCliente {
 
 /** Só o schema `api` é exposto pelo PostgREST; a sessão persiste e renova sozinha, e o link de redefinição chega pela URL. */
 export function criarCliente({ url, chave, fetch }: OpcoesCliente): ClienteDados {
+  const tokenFalso = tokenDoModo();
   return createClient(url, chave, {
     db: { schema: 'api' },
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    // Com `accessToken` o cliente não usa o Auth: nada de renovar sessão (modo de comparação visual).
+    ...(tokenFalso ? { accessToken: async () => tokenFalso } : {}),
     ...(fetch ? { global: { fetch } } : {}),
   });
 }

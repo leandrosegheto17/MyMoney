@@ -18,7 +18,10 @@ beforeEach(() => {
   vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'chave-de-comparacao');
 });
 
+const DateOriginal = globalThis.Date;
+
 afterEach(() => {
+  globalThis.Date = DateOriginal;
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
@@ -87,5 +90,25 @@ describe('sem a variável', () => {
     await entrar('leandro@exemplo.com', 'senha-de-teste');
     expect(simulado.chamadasA('/auth/v1/token')).toHaveLength(1);
     expect((await obterSessao())?.user.id).toBe(USUARIO.id);
+  });
+});
+
+describe('relógio do modo', () => {
+  it('com o modo ligado, hojeEmSaoPaulo devolve 2026-10-09', async () => {
+    vi.stubEnv('VITE_MODO_COMPARACAO', 'sem-sessao');
+    vi.resetModules();
+    await import('./modoComparacao');
+    const { hojeEmSaoPaulo } = await import('../formatacao/data');
+    expect(hojeEmSaoPaulo()).toBe('2026-10-09');
+    expect(new Date(2020, 0, 1).getFullYear()).toBe(2020);
+  });
+
+  it('sem o modo, a data real', async () => {
+    vi.stubEnv('VITE_MODO_COMPARACAO', '');
+    vi.resetModules();
+    await import('./modoComparacao');
+    const { hojeEmSaoPaulo } = await import('../formatacao/data');
+    expect(hojeEmSaoPaulo()).toBe(hojeEmSaoPaulo(new DateOriginal()));
+    expect(globalThis.Date).toBe(DateOriginal);
   });
 });

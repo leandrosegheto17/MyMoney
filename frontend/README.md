@@ -26,8 +26,14 @@ pnpm --filter @mymoney/web typecheck
 | `VITE_SUPABASE_URL`      | URL do Supabase (https, ou http só em localhost/127.0.0.1)   |
 | `VITE_SUPABASE_ANON_KEY` | Chave anon pública; chave de serviço é recusada na leitura   |
 | `PORTA`                  | Porta do servidor de desenvolvimento (execuções em paralelo) |
+| `VITE_MODO_COMPARACAO`   | `sessao-falsa` ou `sem-sessao`; só o `visual` define (ver abaixo) |
 
 Tudo com prefixo `VITE_` vai para o bundle público: não coloque mais nada.
+
+`VITE_MODO_COMPARACAO` é só do script `pnpm --filter @mymoney/web visual` (comparação com o mockup): `sem-sessao`
+serve T01 e T01b; `sessao-falsa` injeta o usuário de `auth-usuario.json`, sem chamar o Auth, e fixa o "hoje" em
+2026-10-09. Só existe em desenvolvimento: o build de produção falha se ela estiver definida. Não a coloque em
+`.env.example`, `.env.local` nem na Vercel.
 
 ## Regras de fronteira (lint)
 
