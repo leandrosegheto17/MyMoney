@@ -383,3 +383,15 @@ RTP-0051 aprovada em segurança; só o arquivo de teste mudou, sem dependência/
 
 ## RTP-0052 — DevSecOps — 2026-10-10
 RTP-0052 aprovada em segurança; só um comentário mudou, sem dependência, segredo, migration ou grant novos.
+
+## TP-0007 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/altos, 1 não crítico (RTP-0055: ações por tag e não SHA); permissions mínimas, sem secrets/pull_request_target, 35 fingerprints verificadas no histórico (JWTs supabase-demo e placeholders), gitleaks/actionlint/prova no GitHub não executados.
+
+## TP-0036 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; revisão do diff sem sinks perigosos (innerHTML/style/eval/storage), sem dependência de produção nova (só user-event em dev), foco/ARIA sem vazamento do campo oculto; eslint limpo e vitest 27/27 executados; alteração do BK-0002 é só teste.
+
+## TP-0053 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; security_invoker, só SELECT a authenticated, anon negado, sem lar_id/dono_id, isolamento A/B e `pode_excluir` sem vazamento (FK impede vínculo privado em categoria conjunta) provados por sondas em banco descartável (PostgREST/pgTAP reais não verificados).
+
+## TP-0138 — DevSecOps — 2026-10-10
+OK — 0 críticos, 0 não críticos; invoker, search_path vazio, execute só authenticated, isolamento A/B, G-05, idempotência sem sobrescrita e sem dependência nova confirmados por sondas executadas em banco descartável (PostgREST/pgTAP real não executados).
