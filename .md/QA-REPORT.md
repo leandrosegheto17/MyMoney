@@ -440,3 +440,30 @@ APROVADA; 0 críticos e 0 não críticos; gerar/verificar rc 0 em banco descart�
 
 ## TP-0109 — QA — 2026-10-10
 APROVADA; 0 críticos, 2 não críticos (RTP-0060 `'--'` em literal esconde drop; RTP-0061 SC1091 em carregar.sh); checar-aditiva 31/31, migrar 19/19 + job-migration 2/2, ensaio [BD] 7/7 em banco descartável com shim (not null sem default falha com "contains null values" após 5969 parcelas); CLI real/CI não verificados.
+
+## RTP-0056 — QA — 2026-10-10
+APROVADA — shellcheck -x sai 0, 2+24 casos verdes, asserção segue discriminante (falha com JOBS_EXIGIDOS sem migration); 0 achados.
+
+## RTP-0059 — QA — 2026-10-10
+APROVADA — diretiva única, shellcheck -x do arquivo exit 0, ensaiar 7/7 e checar-aditiva 44/44; 0 críticos, 1 não crítico (SC1091 em host-local.test.sh mantém o passo do CI vermelho) aberto como RTP-0067.
+
+## RTP-0060 — QA — 2026-10-10
+DEVOLVIDA: 44+24 testes verdes e aceite literal cumprido, mas bypass real com tag $é$ (RTP-0069) e falha aberta sem perl (RTP-0070); 1 crítico, 1 não crítico.
+
+## RTP-0061 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0068: CI não cobre backend/supabase/*.sh); shellcheck -x exit 0, carregar.test.sh e host-local.test.sh (48 casos) verdes, diff de 1 linha de diretiva.
+
+## RTP-0062 — QA — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; reuso de exigir_host_local sem parse duplicado, 24+48+44 testes verdes, 4 casos novos falham no código antigo, 9 URLs adversariais recusadas ou legitimamente locais.
+
+## RTP-0063 — QA — 2026-10-10
+APROVADA; 0 críticos, 2 não críticos (lint no-control-regex em gerar.mjs:34 e mascararUrl com @/ crus na senha -> RTP-0071); prova: 8 URLs (porta/senha erradas, hostis, especiais) sem senha em stdout+stderr, corpus host-local 47/48 equivalente.
+
+## RTP-0064 — QA — 2026-10-10
+APROVADA — aceite e 65 casos adversariais (@, query host/hostaddr/service/options, %-encoding, case, `\`, espaço/controle, sufixo/prefixo, IPv6, multi-host, vazio) sem bypass; host-local 48/48, carregar, migrar 24/24, checar-aditiva 44/44 ok, shellcheck só os 2 SC1091 da RTP-0067; ensaiar-migration.test.sh não executado (sem Supabase/CLI real), 0 achados.
+
+## TP-0020 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0065: `pagamento.forma` deveria aceitar null em receita); typecheck e 65 testes verdes, 15 recursos e exports conferidos, 3 exclusões do mockup justificadas, formas conferidas por leitura do SQL.
+
+## TP-0025 — QA — 2026-10-10
+TP-0025 APROVADA no QA (59/59 testes, tsc e eslint limpos, dependências ok); `pedirRedefinicao` engole limite de taxa (RTP-0066); `cliente.test.ts` sessao-falsa depende da TP-0026 (aceitável).
