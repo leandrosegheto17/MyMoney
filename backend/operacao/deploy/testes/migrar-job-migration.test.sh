@@ -22,7 +22,7 @@ preparar() {
 
 executar() {
   CODIGO=0
-  SAIDA="$(cd "$SIM_REPO" && bash "$MIGRAR" 2>&1 <<< "refteste")" || CODIGO=$?
+  (cd "$SIM_REPO" && bash "$MIGRAR" <<< "refteste") > /dev/null 2>&1 || CODIGO=$?
 }
 
 jobs_exigidos() {
