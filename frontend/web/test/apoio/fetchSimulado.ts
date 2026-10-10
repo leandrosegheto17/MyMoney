@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 export type Chamada = { url: URL; metodo: string; cabecalhos: Headers; corpo: unknown };
 export type Rota = (chamada: Chamada) => Response | Promise<Response> | undefined;
 
-const RESPOSTAS = new URL('../../../../.md/mockup/respostas/', import.meta.url);
+const RESPOSTAS = new URL('../../../../.md/mockup/respostas/', import.meta['url']);
 
 /** Lê uma resposta de `.md/mockup/respostas/` (fonte única das fixtures). */
 export function lerResposta<T = unknown>(nome: string): T {

@@ -74,6 +74,12 @@ importers:
 
   frontend/web:
     dependencies:
+      '@mymoney/contrato':
+        specifier: workspace:*
+        version: link:../../backend/contrato
+      '@supabase/supabase-js':
+        specifier: 2.117.3
+        version: 2.117.3
       '@tanstack/react-query':
         specifier: ^5.104.1
         version: 5.104.1(react@19.3.0)
