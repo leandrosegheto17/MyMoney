@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'vite';
-import { afterAll, afterEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const RAIZ_WEB = fileURLToPath(new URL('../../', import.meta.url));
 const pastas: string[] = [];
@@ -32,8 +32,17 @@ function arquivos(pasta: string): string[] {
   });
 }
 
+// O Vitest roda com NODE_ENV=test, o que mantém `import.meta.env.DEV` verdadeiro no build;
+// o bundle de produção de verdade exige NODE_ENV=production.
+const NODE_ENV_ORIGINAL = process.env.NODE_ENV;
+
+beforeEach(() => {
+  process.env.NODE_ENV = 'production';
+});
+
 afterEach(() => {
   delete process.env.VITE_MODO_COMPARACAO;
+  process.env.NODE_ENV = NODE_ENV_ORIGINAL;
 });
 
 afterAll(() => {
