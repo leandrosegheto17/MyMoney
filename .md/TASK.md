@@ -630,6 +630,13 @@ tarefa passa disso). Status inicial `Pendente`.
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0087 | Refatoração Lote-20 | Comparação visual do cabeçalho com SeletorMes (T02/T04/T06/T09) | QA | RTP-0082 item (b) | comparar-visual.mjs sem divergência no cabeçalho com SeletorMes na T04a (TP-0103) e demais telas que o usem; resultado registrado | 1h | TP-0103 | — | — | comparar-visual.mjs | Pendente |
 
+### Refatoração Lote-18
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0091 | Refatoração Lote-18 | BarraProgresso: ordem do texto secundário (meta: topo, barra, depois valores e faltam) | Frontend | UX-SPEC T02; mockup inicio--sucesso.html linhas 144-157 (QA TP-0090) | Em MetaCompacta a barra aparece entre o topo (nome/%) e a linha 'R$ X de R$ Y · faltam R$ Z', como no mockup, sem quebrar a ordem dos destaques do ResumoOrcamento; teste cobre a ordem no DOM | 1h | TP-0090 | - | frontend/web/src/componentes/base/BarraProgresso.tsx, MetaCompacta.tsx | BarraProgresso.test.tsx, MetaCompacta.test.tsx | Pendente |
+| RTP-0092 | Refatoração Lote-18 | LinkMais com ícone dir como no mockup (Ver orçamento / Nova meta) | Frontend | UX-SPEC T02; mockup inicio--sucesso.html a.link-mais (QA TP-0090) | LinkMais renderiza o ícone dir depois do texto, aria-hidden, como a.link-mais do mockup; teste do LinkMais cobre o ícone | 1h | TP-0090 | - | frontend/web/src/componentes/base/LinkMais.tsx | LinkMais.test.tsx | Pendente |
+
+
 
 
 
