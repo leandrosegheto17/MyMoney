@@ -584,3 +584,12 @@ APROVADA — aceite atendido; vitest 112/112, e2e 6/6, visual T01b sucesso 0,00%
 
 ## TP-0047 — QA — 2026-10-10
 DEVOLVIDA: 1 crítico (Sair de todos sem rede: supabase-js remove a sessão local, guarda leva a /entrar sem aviso e demais aparelhos não revogados) e 1 não crítico (RTP-0086, seta de "Instalar o app"); visual T14 0,01%/0,06% OK, 20/20 unitários.
+
+## RTP-0084 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RedefinirSenha.tsx repete textos de conexão -> RTP-0089); prettier limpo e 24 testes verdes.
+
+## RTP-0085 — QA — 2026-10-10
+APROVADA — foco via focarPrimeiroErro sem refs/useEffect próprios; vitest 27/27 e e2e redefinir-senha 6/6 (foco com 8 e 9 caracteres); mudança em CartaoAcesso necessária e sem efeito em T01 Entrar; 0 achados.
+
+## RTP-0088 — QA — 2026-10-10
+APROVADA — 0 críticos, 0 não críticos; 3 códigos do Auth uniformizados para "E-mail ou senha incorretos.", 47 testes verdes (4 arquivos), convenções OK.
