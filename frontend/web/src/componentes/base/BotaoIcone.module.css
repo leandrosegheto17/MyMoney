@@ -1,0 +1,13 @@
+.botao {
+  position: relative;
+  min-width: var(--alvo-minimo);
+  min-height: var(--alvo-minimo);
+  display: inline-grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--cor-texto);
+  border-radius: var(--raio-controle);
+  cursor: pointer;
+  text-decoration: none;
+}
