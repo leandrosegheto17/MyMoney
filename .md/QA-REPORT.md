@@ -62,3 +62,42 @@ APROVADA — reset do zero + pgTAP acesso (estrutura/limites/auxiliares/visibili
 
 ## TP-0005 — QA — 2026-10-10
 APROVADA; 0 achados (críticos 0, não críticos 0); reset do zero + 20 testes pgTAP PASS, migration idêntica ao schema; curl sem apikey = 200 é comportamento do gateway local, fora do aceite.
+
+## RTP-0008 — QA — 2026-10-10
+RTP-0008 aprovada no QA; lint cobre import()/require() dinâmico e `.from()` em variável, 27 testes e pnpm lint verdes; falso positivo em `Uint8Array.from` aberto como RTP-0012.
+
+## TP-0014 — QA — 2026-10-10
+TP-0014 aprovada no QA; seed validado em Postgres descartável (1 lar, 2 membros, 3 usuários, senha confere); resetar/pgTAP/login real/gitleaks ficaram sem verificação por falta de Docker/CLI.
+
+## TP-0015 — QA — 2026-10-10
+TP-0015 aprovada no QA, 16/16 asserções pgTAP (shim) ok, aceite e convenções conferidos; reset/pgTAP real pendentes no CI.
+
+## TP-0017 — QA — 2026-10-10
+TP-0017 aprovada no QA, 10 asserções do catálogo e a do 01-anon passam com shim de pgTAP e 11 provas de falha ficam vermelhas; pgTAP real não verificado.
+
+## TP-0032 — QA — 2026-10-10
+TP-0032 aprovada no QA: 17 testes unitários e 3 e2e passando, axe e alvos de 44 px ok, comparação visual igual ao mockup, sem achados.
+
+## TP-0034 — QA — 2026-10-10
+TP-0034 aprovada no QA: 44 testes unitários e 6 e2e (axe, alvos 44 px, foco no 1º erro, estado salvando) passam, visual confere com o mockup, sem achados.
+
+## TP-0035 — QA — 2026-10-10
+TP-0035 aprovada no QA: 21/21 unitários, 6/6 e2e, axe e visual conferidos, sem achados.
+
+## TP-0039 — QA — 2026-10-10
+TP-0039 aprovada no QA (20 testes e axe ok); 1 achado não crítico (spec e2e espelha markup em vez de usar componentes reais) aberto como RTP-0010.
+
+## TP-0043 — QA — 2026-10-10
+TP-0043 aprovada no QA (26 testes, alturas 64/44, 3 colunas a 390/320, axe limpo); 1 achado baixo em RTP-0009 (foco no grupo com erro e CSS duplicado).
+
+## TP-0048 — QA — 2026-10-10
+TP-0048 aprovada no QA: 35 asserções pgTAP (conta, movimento_conta, catálogo) e seed passam em shim local; sem achados; reconferir no CI com Docker.
+
+## TP-0050 — QA — 2026-10-10
+TP-0050 aprovada no QA: 22 asserções pgTAP (categoria) e 10 do catálogo passam em shim local, seed idempotente e RLS ok; sem achados; reconferir `local:resetar`/pgTAP real/contrato no CI com Docker.
+
+## TP-0061 — QA — 2026-10-10
+TP-0061 aprovada no QA, 25/25 asserções do plano ok em banco descartável com shim de pgTAP, sem achados; pgTAP real/reset/contrato não verificáveis aqui.
+
+## TP-0079 — QA — 2026-10-10
+TP-0079 aprovada no QA (11/11 testes verdes, aceite atendido); 1 achado não crítico (keyframes girar duplicado) -> RTP-0011; visual/Playwright não aplicáveis ainda.
