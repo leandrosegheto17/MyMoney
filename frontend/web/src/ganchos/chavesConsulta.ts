@@ -7,5 +7,8 @@ export const CHAVES = {
   categorias: ['categorias'],
   categoria: (id: string) => ['categorias', id],
   dadosLancamento: ['dados_lancamento'],
+  resumoMes: ['resumo_mes'],
+  lancamentosMes: ['lancamentos_mes'],
+  lancamento: (id: string) => ['lancamento', id],
   dadosLancamentoAparelho: ['dados_lancamento', 'aparelho'],
 } as const;

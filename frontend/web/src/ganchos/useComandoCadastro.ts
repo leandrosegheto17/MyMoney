@@ -1,16 +1,22 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ErroDados } from '../dados/erros';
 
-/** Fábrica dos comandos de cadastro: chama, expõe o `ErroDados` e só em sucesso invalida as chaves dadas. */
+type Chaves = readonly (readonly unknown[])[];
+
+/**
+ * Fábrica dos comandos de cadastro: chama, expõe o `ErroDados` e só em sucesso invalida as chaves dadas
+ * (ou as que a função devolver para as variáveis enviadas).
+ */
 export function useComandoCadastro<V, R>(
   comando: (variaveis: V) => Promise<R>,
-  chavesInvalidadas: readonly (readonly unknown[])[],
+  chavesInvalidadas: Chaves | ((variaveis: V) => Chaves),
 ) {
   const cliente = useQueryClient();
   return useMutation<R, ErroDados, V>({
     mutationFn: (variaveis) => comando(variaveis),
-    onSuccess: async () => {
-      await Promise.all(chavesInvalidadas.map((queryKey) => cliente.invalidateQueries({ queryKey })));
+    onSuccess: async (_, variaveis) => {
+      const chaves = typeof chavesInvalidadas === 'function' ? chavesInvalidadas(variaveis) : chavesInvalidadas;
+      await Promise.all(chaves.map((queryKey) => cliente.invalidateQueries({ queryKey })));
     },
   });
 }

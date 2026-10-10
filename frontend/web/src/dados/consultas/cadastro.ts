@@ -1,9 +1,8 @@
 import { obterCliente } from '../cliente';
 import { extrair, type ErroDados } from '../erros';
+import { ehUuid } from '../uuid';
 
 export type TabelaCadastro = 'contas' | 'formas_pagamento' | 'categorias';
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** "Não existe" e "não é seu" dão a mesma resposta: a tela não distingue. */
 const REGISTRO_INVALIDO: ErroDados = { tipo: 'regra', codigo: 'registro_invalido' };
@@ -17,7 +16,7 @@ export async function buscarLinhas<T>(tabela: TabelaCadastro): Promise<T[]> {
 }
 
 export async function buscarLinha<T>(tabela: TabelaCadastro, id: string): Promise<T> {
-  if (!UUID.test(id)) throw REGISTRO_INVALIDO;
+  if (!ehUuid(id)) throw REGISTRO_INVALIDO;
   const linhas = extrair<T[]>(await consultar(tabela).eq('id', id));
   const [linha] = linhas;
   if (linha === undefined) throw REGISTRO_INVALIDO;
