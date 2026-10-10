@@ -25,6 +25,21 @@ Copie `.env.example` para `.env` e preencha `SUPABASE_ANON_KEY` com o valor de
 - `supabase/seeds/*.sql`: dados de desenvolvimento, aplicados no `db reset`.
 - `supabase/verificacoes/`: conferência do `config.toml` contra o painel (`pnpm test:config`).
 
+## Seeds de acesso
+
+`supabase/seeds/01-acesso.sql` cria, só no ambiente local, o lar "Casa Leandro e Ana" e três
+usuários fictícios com a mesma senha `senha-local-123`:
+
+| E-mail | Auth id | Membro |
+|---|---|---|
+| `leandro@exemplo.com` | `...0000a1` | Leandro (`...000101`) |
+| `ana@exemplo.com` | `...0000a2` | Ana (`...000102`) |
+| `visitante@exemplo.com` | `...0000a3` | nenhum |
+
+Os ids de Ana e do visitante não existem no mockup; `...a2` e `...a3` são convenção local. A
+suíte de API lê `TESTE_EMAIL_A`, `TESTE_EMAIL_B`, `TESTE_EMAIL_SEM_MEMBRO` e `TESTE_SENHA` do
+`.env` (valores em `.env.example`). Seed não vai para produção: `db push` não o aplica.
+
 ## Fonte declarativa e migrations
 
 A fonte fica em `supabase/schemas/` (um arquivo por objeto); a migration é gerada com
