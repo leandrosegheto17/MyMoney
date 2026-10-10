@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { flushSync } from 'react-dom';
 import { AvisoErroTopo } from './base/AvisoErroTopo';
 import { Botao } from './base/Botao';
 import { CampoTexto } from './base/CampoTexto';
+import { focarPrimeiroErro } from './base/focarPrimeiroErro';
 import { LinkMais } from './base/LinkMais';
 import { CartaoAcesso } from './CartaoAcesso';
 
@@ -28,24 +30,16 @@ export function FormularioNovaSenha({ aoSalvar, ocupado, erroTopo, erroSenhaServ
   const [senha, setSenha] = useState('');
   const [confirma, setConfirma] = useState('');
   const [erros, setErros] = useState<Erros>({});
-  const [tentativa, setTentativa] = useState(0);
-  const campoSenha = useRef<HTMLInputElement>(null);
-  const campoConfirma = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (tentativa === 0) return;
-    (erros.senha ? campoSenha : erros.confirma ? campoConfirma : null)?.current?.focus();
-    // Só reage a uma nova tentativa de envio, não à digitação.
-  }, [tentativa]);
-
-  function enviar() {
+  function enviar(formulario: HTMLFormElement) {
     if (ocupado) return;
     const novos: Erros = {};
     if (senha.length < TAMANHO_MINIMO) novos.senha = ERRO_CURTA;
     if (confirma !== senha) novos.confirma = ERRO_CONFERE;
-    setErros(novos);
+    // Síncrono: o aria-invalid precisa estar no DOM antes de focar.
+    flushSync(() => setErros(novos));
     if (novos.senha || novos.confirma) {
-      setTentativa((n) => n + 1);
+      focarPrimeiroErro(formulario);
       return;
     }
     aoSalvar(senha);
@@ -57,7 +51,6 @@ export function FormularioNovaSenha({ aoSalvar, ocupado, erroTopo, erroSenhaServ
     <CartaoAcesso titulo="Nova senha" nomeFormulario="Redefinir senha" aoEnviar={enviar} ocupado={ocupado}>
       {erroTopo ? <AvisoErroTopo>{erroTopo}</AvisoErroTopo> : null}
       <CampoTexto
-        ref={campoSenha}
         rotulo="Nova senha"
         type="password"
         autoComplete="new-password"
@@ -67,7 +60,6 @@ export function FormularioNovaSenha({ aoSalvar, ocupado, erroTopo, erroSenhaServ
         erro={erroSenha}
       />
       <CampoTexto
-        ref={campoConfirma}
         rotulo="Repita a nova senha"
         type="password"
         autoComplete="new-password"

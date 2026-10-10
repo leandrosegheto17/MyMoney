@@ -4,7 +4,8 @@ import estilo from './CartaoAcesso.module.css';
 
 interface Props {
   titulo: string;
-  aoEnviar: () => void;
+  /** Recebe o formulário, para quem precisa focar o primeiro campo com erro depois de renderizá-lo. */
+  aoEnviar: (formulario: HTMLFormElement) => void;
   ocupado?: boolean;
   /** Nome do formulário quando o título repete o rótulo de um campo (senão o campo ficaria com dois alvos de rótulo). */
   nomeFormulario?: string;
@@ -17,7 +18,7 @@ export function CartaoAcesso({ titulo, aoEnviar, ocupado, nomeFormulario, childr
 
   function aoSubmeter(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    aoEnviar();
+    aoEnviar(e.currentTarget);
   }
 
   return (
