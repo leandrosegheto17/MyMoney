@@ -1,0 +1,2 @@
+-- Seeds de desenvolvimento local, aplicados em ordem alfabética por `db reset`.
+-- Vazio de propósito: o lar e os usuários de teste entram junto com o modelo de dados.

@@ -11,6 +11,10 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "format": "prettier --write .",
+    "local:subir": "supabase start --workdir backend && pnpm --filter @mymoney/web --if-present dev",
+    "local:resetar": "supabase db reset --workdir backend",
+    "local:parar": "supabase stop --workdir backend",
+    "test:config": "node --test \"backend/supabase/verificacoes/*.test.mjs\"",
     "format:check": "prettier --check ."
   },
   "devDependencies": {
