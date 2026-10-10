@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
-const CONTA_A = 'e1000000-0000-4000-8000-000000000201';
+const CONTA_A = '00000000-0000-4000-8000-000000000201';
 
 describe('api.excluir_conta', () => {
   it('A cria uma conta e a exclui', async () => {
@@ -20,5 +20,8 @@ describe('api.excluir_conta', () => {
 
   it('B não exclui a conta de A e não descobre que está em uso', async () => {
     await esperarRegistroInvalido((await comoB()).rpc('excluir_conta', { p_id: CONTA_A }));
+    const { data, error } = await (await comoA()).from('contas').select('id').eq('id', CONTA_A);
+    expect(error).toBeNull();
+    expect(data).toEqual([{ id: CONTA_A }]);
   });
 });
