@@ -19,12 +19,25 @@ begin
   from generate_subscripts(p_valores, 1) n;
 end $$;
 
+-- aporte/retirada exigem o movimento de meta correspondente (check movimento_conta_meta_ck).
 create function pg_temp.movimento(p_tipo text, p_sentido text, p_valor bigint, p_data date, p_forma uuid default null)
-returns void language sql as $$
-  insert into app.movimento_conta (lar_id, dono_id, conta_id, tipo, sentido, valor_centavos, data, forma_credito_id)
+returns void language plpgsql as $$
+declare v_mm uuid;
+begin
+  if p_tipo in ('aporte', 'retirada') then
+    insert into app.meta (id, lar_id, dono_id, nome, alvo_centavos, escopo)
+    values ('e6400000-0000-4000-8000-0000000000e1', (select id from app.lar), '00000000-0000-4000-8000-000000000101',
+            'Meta de teste', 1000000, 'individual')
+    on conflict (id) do nothing;
+    insert into app.movimento_meta (lar_id, meta_id, tipo, valor_centavos, data, local, autor_id)
+    values ((select id from app.lar), 'e6400000-0000-4000-8000-0000000000e1', p_tipo, p_valor, p_data, 'Caixinha',
+            '00000000-0000-4000-8000-000000000101')
+    returning id into v_mm;
+  end if;
+  insert into app.movimento_conta (lar_id, dono_id, conta_id, tipo, sentido, valor_centavos, data, forma_credito_id, movimento_meta_id)
   values ((select id from app.lar), '00000000-0000-4000-8000-000000000101', 'e6400000-0000-4000-8000-0000000000c1',
-          p_tipo, p_sentido, p_valor, p_data, p_forma);
-$$;
+          p_tipo, p_sentido, p_valor, p_data, p_forma, v_mm);
+end $$;
 
 -- Contas de A: X (saldo inicial R$ 1000), Y (outra) e Z (zerada)
 insert into app.conta (id, lar_id, dono_id, nome, saldo_inicial_centavos) values
