@@ -1,13 +1,7 @@
 import type { UseQueryResult } from '@tanstack/react-query';
+import type { LeituraComCache, SituacaoLeitura } from '../tipos/leitura';
 
-export type SituacaoLeitura = 'carregando' | 'erro' | 'cache' | 'pronto';
-
-export interface LeituraComCache<T> {
-  situacao: SituacaoLeitura;
-  dados: T | undefined;
-  /** Epoch em ms da última carga com sucesso; sem formatar. */
-  atualizadoEm: number;
-}
+export type { LeituraComCache, SituacaoLeitura };
 
 /** Traduz uma consulta no estado de tela. `cache` = refetch falhou mas há dado anterior (memória do TanStack). */
 export function useLeituraComCache<T>(consulta: UseQueryResult<T>): LeituraComCache<T> {

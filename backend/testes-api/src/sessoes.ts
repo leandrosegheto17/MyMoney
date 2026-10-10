@@ -1,6 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { lerAmbiente, type Ambiente } from './ambiente';
 
+// Sem tipos gerados do schema `api`: os casos leem o retorno de rpc/select como dado dinâmico.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ClienteApi = SupabaseClient<any, 'api'>;
 
 let ambiente: Ambiente | undefined;

@@ -3,7 +3,7 @@ import { CarregandoComAtraso } from './base/CarregandoComAtraso';
 import { EstadoErro } from './base/EstadoErro';
 import { Faixa } from './base/Faixa';
 import { formatarHora } from '../formatacao/data';
-import type { LeituraComCache } from '../ganchos/useLeituraComCache';
+import type { LeituraComCache } from '../tipos/leitura';
 
 interface Props<T> {
   leitura: LeituraComCache<T>;
