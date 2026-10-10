@@ -1,0 +1,16 @@
+{
+  "name": "@mymoney/contrato",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./banco": "./src/banco.ts",
+    "./erros": "./src/erros.ts"
+  },
+  "scripts": {
+    "gerar": "node scripts/gerar.mjs",
+    "verificar": "node scripts/gerar.mjs --verificar",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}

@@ -123,6 +123,9 @@ jobs:
       - name: Lint do banco
         run: pnpm exec supabase db lint --workdir backend --level error
 
+      - name: Contrato de tipos em dia
+        run: pnpm contrato:verificar
+
   isolamento:
     name: isolamento
     runs-on: ubuntu-latest

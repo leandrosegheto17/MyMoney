@@ -18,6 +18,20 @@ pnpm local:parar     # supabase stop (use --no-backup para apagar os volumes)
 Copie `.env.example` para `.env` e preencha `SUPABASE_ANON_KEY` com o valor de
 `pnpm exec supabase status --workdir backend`.
 
+## Contrato de tipos
+
+`backend/contrato` (`@mymoney/contrato`) guarda `src/banco.ts`, gerado do schema `api` do banco local
+(nunca à mão), e `src/erros.ts`, com os códigos de erro estáveis.
+
+```sh
+pnpm contrato:gerar      # regenera src/banco.ts (precisa do banco local: pnpm local:subir)
+pnpm contrato:verificar  # regenera em memória e falha se src/banco.ts estiver desatualizado (roda no CI)
+```
+
+Rode `pnpm contrato:gerar` depois de toda tarefa de banco que muda o schema `api` e versione o
+`banco.ts`. Sem Docker, `CONTRATO_DB_URL=postgresql://...@localhost:.../banco_descartavel` aponta o
+gerador para um Postgres local com as migrations aplicadas (só hosts de loopback são aceitos).
+
 ## Pastas
 
 - `supabase/migrations/`: migrations (schemas e funções).

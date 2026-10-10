@@ -17,6 +17,8 @@
     "local:volume": "bash backend/supabase/volume/carregar.sh",
     "local:medir": "bash backend/supabase/volume/carregar.sh medir.sql",
     "local:parar": "supabase stop --workdir backend",
+    "contrato:gerar": "pnpm --filter @mymoney/contrato gerar",
+    "contrato:verificar": "pnpm --filter @mymoney/contrato verificar",
     "test:config": "node --test \"backend/supabase/verificacoes/*.test.mjs\"",
     "format:check": "prettier --check ."
   },
