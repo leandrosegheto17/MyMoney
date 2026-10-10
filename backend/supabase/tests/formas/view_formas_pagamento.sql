@@ -1,14 +1,14 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
-select plan(12);
+select plan(13);
 
 -- Estrutura e privilégios
 select ok(
   (select reloptions from pg_class where oid = 'api.formas_pagamento'::regclass) @> array['security_invoker=true'],
   'api.formas_pagamento é security_invoker');
 select columns_are('api', 'formas_pagamento',
-  array['id', 'nome', 'tipo', 'conta', 'dia_vencimento', 'preferida', 'arquivada',
+  array['id', 'nome', 'tipo', 'conta', 'dia_vencimento', 'preferida', 'arquivada', 'pode_excluir',
         'gasto_mes_centavos', 'comprometido_futuro_centavos'],
   'colunas iguais às de formas-pagamento.json, sem lar_id, dono_id nem conta_id solto');
 select table_privs_are('api', 'formas_pagamento', 'authenticated', array['SELECT'], 'authenticated só lê');
@@ -64,6 +64,13 @@ select results_eq(
      where id = '00000000-0000-4000-8000-000000000301'$$,
   $$values (null::bigint, null::bigint, '{"id": "00000000-0000-4000-8000-000000000201", "nome": "Nubank"}'::jsonb)$$,
   'Pix: gastos nulos e conta {id, nome}');
+
+select results_eq(
+  $$select id::text, pode_excluir from api.formas_pagamento
+     where id in ('e6800000-0000-4000-8000-0000000000f1', 'e6800000-0000-4000-8000-0000000000f2')
+     order by id$$,
+  $$values ('e6800000-0000-4000-8000-0000000000f1', false), ('e6800000-0000-4000-8000-0000000000f2', true)$$,
+  'pode_excluir: false com lançamento ligado, true sem vínculo');
 
 select testes.como_b();
 select is_empty(
