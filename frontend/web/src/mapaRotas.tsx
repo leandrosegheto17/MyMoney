@@ -4,6 +4,7 @@ import { AreaPublica } from './paginas/AreaPublica';
 import { NaoEncontrada } from './paginas/NaoEncontrada';
 import { Provisoria } from './paginas/Provisoria';
 import type { HandleRota } from './ganchos/useTituloDaPagina';
+import { estaInstalado } from './pwa/modoInstalado';
 
 const carregarEmConstrucao = () => import('./paginas/EmConstrucao').then((m) => ({ Component: m.EmConstrucao }));
 
@@ -52,7 +53,15 @@ export const mapaRotas: RouteObject[] = [
       pagina('/metas/nova', 'Nova meta', estreito),
       pagina('/metas/:id', 'Meta'),
       pagina('/metas/:id/editar', 'Editar meta', estreito),
-      pagina('/ajustes', 'Ajustes', estreito),
+      {
+        path: '/ajustes',
+        lazy: () =>
+          import('./paginas/Ajustes').then((m) => ({
+            // `paginas/` não importa `pwa/`: a raiz entrega se o app já está instalado.
+            Component: () => <m.Ajustes instalado={estaInstalado()} aoInstalar={() => {}} />,
+          })),
+        handle: { titulo: 'Ajustes', ...estreito } satisfies HandleRota,
+      },
       pagina('/ajustes/contas', 'Contas', estreito),
       pagina('/ajustes/contas/nova', 'Nova conta', estreito),
       pagina('/ajustes/contas/:id', 'Conta', estreito),

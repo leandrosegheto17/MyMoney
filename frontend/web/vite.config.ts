@@ -5,6 +5,8 @@ import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { lerToken } from './scripts/lerToken.mjs';
 
+const versaoApp = (JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string })
+  .version;
 const porta = Number(process.env.PORTA ?? 5173);
 const corFundo = lerToken(readFileSync(new URL('./src/estilo/tokens.css', import.meta.url), 'utf8'), '--cor-fundo');
 
@@ -31,6 +33,7 @@ const travaDoModoDeComparacao = {
 };
 
 export default defineConfig({
+  define: { __VERSAO_APP__: JSON.stringify(versaoApp) },
   plugins: [
     travaDoModoDeComparacao,
     react(),

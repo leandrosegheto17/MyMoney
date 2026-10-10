@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useNavigate, useSearchParams } from 'react-router';
+import { RegiaoAvisos } from '../componentes/base/RegiaoAvisos';
 import { EstruturaApp } from '../componentes/EstruturaApp';
 import { lerMesDaUrl } from '../formatacao/mes';
 import { useContexto } from '../ganchos/useContexto';
@@ -28,5 +29,9 @@ export function AreaAutenticada() {
   useEnvioAutomatico();
   if (carregando) return null;
   if (!sessao) return <Navigate to="/entrar" replace />;
-  return <Estrutura />;
+  return (
+    <RegiaoAvisos>
+      <Estrutura />
+    </RegiaoAvisos>
+  );
 }
