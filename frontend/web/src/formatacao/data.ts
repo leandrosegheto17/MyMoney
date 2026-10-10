@@ -20,3 +20,15 @@ export function hojeEmSaoPaulo(agora: Date = new Date()): string {
   const partes = Object.fromEntries(formatadorSaoPaulo.formatToParts(agora).map((p) => [p.type, p.value]));
   return `${partes.year}-${partes.month}-${partes.day}`;
 }
+
+const formatadorHora = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** Instante (epoch ms) → 'HH:mm' em America/Sao_Paulo. */
+export function formatarHora(epochMs: number): string {
+  return formatadorHora.format(epochMs);
+}
