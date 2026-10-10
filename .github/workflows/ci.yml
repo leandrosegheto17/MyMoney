@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITLEAKS_VERSION: 8.30.1
+
+jobs:
+  base:
+    name: base
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout (histórico completo)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: pnpm (versão do packageManager)
+        uses: pnpm/action-setup@v4
+
+      - name: Node com cache pnpm
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Testes (Vitest de todos os pacotes)
+        run: pnpm test
+
+      - name: Teste do config.toml do Supabase
+        run: pnpm run --if-present test:config
+
+      - name: Gitleaks
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          file="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -fsSL -o "$RUNNER_TEMP/$file" "$base/$file"
+          curl -fsSL -o "$RUNNER_TEMP/checksums.txt" "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          (cd "$RUNNER_TEMP" && grep " $file\$" checksums.txt | sha256sum -c -)
+          tar -xzf "$RUNNER_TEMP/$file" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" detect --redact --no-banner
+
+      - name: Arquivo .sql fora de backend/supabase/
+        run: |
+          achados=$(git ls-files '*.sql' | grep -v '^backend/supabase/' || true)
+          if [ -n "$achados" ]; then
+            echo "::error::SQL fora de backend/supabase/:"
+            echo "$achados"
+            exit 1
+          fi
+
+      - name: ID de tarefa em backend/ ou frontend/
+        run: |
+          if achados=$(git grep -nE '(TP|RTP|SPK|BK)-[0-9]{4}' -- backend frontend); then
+            echo "::error::ID de tarefa em código ou documentação de backend/ ou frontend/:"
+            echo "$achados"
+            exit 1
+          fi
+
+      - name: Chave de servico fora de .md/, .claude/, README e guarda de ambiente do web
+        run: |
+          if achados=$(git grep -n 'service[_]role' -- . ':!.md' ':!.claude' ':!**/README.md' ':!README.md' ':!frontend/web/src/configuracao/ambiente.ts' ':!frontend/web/src/configuracao/ambiente.test.ts'); then
+            echo "::error::Chave de servico fora das áreas permitidas:"
+            echo "$achados"
+            exit 1
+          fi
+
+      - name: Credenciais de produção em .github/
+        run: |
+          if achados=$(git grep -nE 'SUPABASE_ACCESS[_]TOKEN|SUPABASE_DB[_]PASSWORD|PGPASS[W]ORD|service[_]role|postgres(ql)?://[^ ]+:[^ ]+@' -- .github); then
+            echo "::error::Credencial de produção referenciada em .github/:"
+            echo "$achados"
+            exit 1
+          fi
+
+      - name: Nenhum segredo além de GITHUB_TOKEN
+        run: |
+          if achados=$(grep -nE 'secrets\.' .github/workflows/ci.yml | grep -vE 'secrets\.GITHUB_TOKEN'); then
+            echo "::error::Segredo referenciado no workflow:"
+            echo "$achados"
+            exit 1
+          fi

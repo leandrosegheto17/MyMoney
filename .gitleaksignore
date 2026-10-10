@@ -1,0 +1,37 @@
+# Falsos positivos verificados (BK-0001): JWTs da demo local do Supabase (iss=supabase-demo) e placeholders de documentacao.
+# Fingerprints por commit+arquivo+linha: qualquer segredo novo continua sendo detectado.
+d273d66533b4b7d749b93cef54f73e499f5f0671:.github/workflows/ci.yml:jwt:52
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-plan-progress.test.mjs:jwt:30
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-plan-progress.test.mjs:jwt:33
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-signup.spec.ts:jwt:35
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-signup.spec.ts:jwt:38
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-erasure.spec.ts:jwt:38
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-erasure.spec.ts:jwt:41
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-erasure-request.test.mjs:jwt:25
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-erasure-request.test.mjs:jwt:28
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-preference.test.mjs:jwt:29
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-preference.test.mjs:jwt:32
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-analytics.test.mjs:jwt:38
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-analytics.test.mjs:jwt:41
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-signin.spec.ts:jwt:29
+d273d66533b4b7d749b93cef54f73e499f5f0671:e2e/identity-signin.spec.ts:jwt:32
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-profile-consent.test.mjs:jwt:33
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-profile-consent.test.mjs:jwt:36
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-push-subscription-reminder-log.test.mjs:jwt:30
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-push-subscription-reminder-log.test.mjs:jwt:33
+d273d66533b4b7d749b93cef54f73e499f5f0671:tests/db/rls-push-subscription-reminder-log.test.mjs:generic-api-key:180
+d273d66533b4b7d749b93cef54f73e499f5f0671:.md/SECURITY-REVIEW.md:jwt:1315
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/argo-smart-routing/README.md:curl-auth-header:14
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/bindings/patterns.md:generic-api-key:89
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/bindings/patterns.md:generic-api-key:187
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/argo-smart-routing/api.md:curl-auth-header:30
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/argo-smart-routing/api.md:curl-auth-header:92
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/cloudflare-deploy/references/pipelines/api.md:curl-auth-header:119
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:57
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:177
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:178
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:179
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:194
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:195
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:197
+50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:198

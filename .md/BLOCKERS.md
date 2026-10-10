@@ -7,7 +7,7 @@
 - Descrição: Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .claude/skills) e o passo service_role (acusa frontend/web/src/configuracao/ambiente.ts e ambiente.test.ts) devem passar no CI; permitir push/branch de prova no GitHub
 - Impacto se não resolvido: CI fica vermelho desde o primeiro push sem .gitleaks.toml/baseline, que o plano proíbe; G-15 só abre exceção para README
 - Sugestão: Autorizar baseline/allowlist do gitleaks e ajustar a G-15 (exceção para os arquivos de ambiente do web)
-- Status: Em aberto
+- Status: Resolvido em 2026-10-10 — aprovado pelo usuário. Aplicado: `.gitleaksignore` com 35 fingerprints (sem allowlist de path), exceção da G-15 por caminho exato para `ambiente.ts` e `ambiente.test.ts` (GUARDRAILS e ci.yml). Os 35 achados foram verificados com o gitleaks: JWTs com `iss=supabase-demo` e placeholders de documentação. Detalhes em `.md/.taskplan/BK-0001.md`. Falta o Executor ajustar o aceite do TP-0007 e repetir as fixtures negativas.
 
 ## Bloqueio 002 — 2026-10-10 (BK-0002)
 - Reportado por: Executor
