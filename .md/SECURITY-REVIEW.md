@@ -92,3 +92,42 @@ TP-0061 aprovada em segurança, revisão do diff e prova em banco descartável s
 
 ## TP-0079 — DevSecOps — 2026-10-10
 TP-0079 aprovada na segurança (sem achados, sem dependência nova, lint G-09 limpo); axe nas telas fica para TP-0089/TP-0103.
+
+## RTP-0009 — DevSecOps — 2026-10-10
+RTP-0009 sem achados de segurança (só ARIA/CSS, sem dependência nova nem dado pessoal), Sec aprovada.
+
+## RTP-0010 — DevSecOps — 2026-10-10
+RTP-0010 aprovada na segurança, vitrine de teste fora do bundle, sem dependência nova nem achados.
+
+## RTP-0011 — DevSecOps — 2026-10-10
+RTP-0011 aprovada em segurança; só CSS/classe, sem dado sensível nem dependência nova, sem achados.
+
+## RTP-0012 — DevSecOps — 2026-10-10
+RTP-0012 sem achados de segurança (só config de lint e fixtures, 30/30 testes de lint verdes, sem dependência nova); Sec aprovado.
+
+## RTP-0013 — DevSecOps — 2026-10-10
+RTP-0013 OK em segurança: security definer comparado por assinatura, lista literal confere com SDD §7/ADR-012, sem dependência/segredo; nenhum achado novo.
+
+## TP-0016 — DevSecOps — 2026-10-10
+TP-0016 aprovada na segurança (G-06 trava de host, G-15 sem service_role, deps fixas e sem vulnerabilidades no pnpm audit, 18 unitários verdes); sem achados novos, RTP-0016 (Prettier) do QA segue pendente.
+
+## TP-0040 — DevSecOps — 2026-10-10
+TP-0040 sem achados de segurança: erro com texto fixo, sem import de dados/ em componentes, sem dependência nova.
+
+## TP-0049 — DevSecOps — 2026-10-10
+TP-0049 APROVADA em segurança (revisão do diff: RLS enable+force, políticas por dono, FKs compostos, sem grant a anon, seed fictício); sem RTP; sem dependências novas.
+
+## TP-0052 — DevSecOps — 2026-10-10
+TP-0052 OK na segurança: invoker, search_path vazio, anon sem execute, RLS isola individuais e sem-membro não cria nada; nenhum achado novo (RTP-0017 já cobre a duplicação).
+
+## TP-0054 — DevSecOps — 2026-10-10
+TP-0054 sem achados de segurança (invoker, search_path vazio, G-05/G-02/RN-03 conferidos por revisão do diff); catálogo e testes-api pendentes de CI.
+
+## TP-0059 — DevSecOps — 2026-10-10
+TP-0059 aprovada na segurança (invoker, search_path vazio, grants só authenticated, dono por membro_atual, id alheio dá registro_invalido, nome_repetido sem vazamento; probe em banco descartável); sem achados novos.
+
+## TP-0134 — DevSecOps — 2026-10-10
+TP-0134 aprovada em segurança: RLS enable+force sem política aberta, individual isolada por dono, sem grant a anon, sem dependência nova; nenhum achado que exija RTP.
+
+## TP-0144 — DevSecOps — 2026-10-10
+TP-0144 Sec OK: RLS enable+force, FK composto (RN-08) e isolamento da individual (RN-17) conferem por leitura do diff; 1 achado baixo (update de meta conjunta pode mudar escopo/dono) virou RTP-0021.
