@@ -1,7 +1,7 @@
 import type { SituacaoOcorrencia, SituacaoOrcamento } from '../enums';
 import type { Id, LinhaOrcamento, TotalPorCategoria } from './comuns';
 
-type ResumoOrcamento = {
+export type ResumoOrcamento = {
   orcado_centavos: number;
   realizado_centavos: number;
   percentual: number;
@@ -16,7 +16,7 @@ type ResumoResultado = {
   parcial: boolean;
 };
 
-type ResumoMeta = {
+export type ResumoMeta = {
   meta_id: Id;
   nome: string;
   alvo_centavos: number;

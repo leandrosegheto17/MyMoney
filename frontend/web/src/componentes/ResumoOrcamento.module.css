@@ -1,0 +1,10 @@
+.orc-linha {
+  display: grid;
+  gap: 2px;
+  padding: var(--espaco-2) 0;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.item-titulo {
+  font-weight: var(--peso-medio);
+}
