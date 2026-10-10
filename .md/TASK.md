@@ -578,6 +578,13 @@ tarefa passa disso). Status inicial `Pendente`.
 | RTP-0056 | Lote 2 | shellcheck: variável SAIDA sem uso em migrar-job-migration.test.sh (SC2034) | Backend (operação) | QA de TP-0008; passo shellcheck do CI | shellcheck backend/operacao/deploy/testes/migrar-job-migration.test.sh sai com 0 (remover ou usar SAIDA); migrar-job-migration.test.sh segue verde | 0.5h | TP-0008 | - | backend/operacao/deploy/testes/migrar-job-migration.test.sh | bash backend/operacao/deploy/testes/migrar-job-migration.test.sh | Pendente |
 | RTP-0059 | Refatoração Lote-2 | shellcheck: SC1091 em ensaiar-migration.sh (host-local.sh não resolvido) | Backend (operação) | QA de TP-0008 (Rodada 3); passo shellcheck do CI | Com shellcheck -x (comando do passo do CI), backend/operacao/deploy/ensaiar-migration.sh sai 0 (adicionar '# shellcheck source-path=SCRIPTDIR' antes do source, como em migrar.sh); o teste do script segue verde | 0.5h | TP-0109 | Não | backend/operacao/deploy/ensaiar-migration.sh | shellcheck -x backend/operacao/deploy/ensaiar-migration.sh (exit 0) | Pendente |
 
+### Refatoração Lote-21
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0060 | Refatoração Lote-21 | checar-aditiva.sh: '--' dentro de literal esconde drop/rename na mesma linha | Backend (operação) | QA de TP-0109 (achado médio); ADR-011 §4.2; G-12 | Em checar-aditiva.sh, uma migration com "insert into app.t values ('--'); drop table app.t;" na mesma linha é reprovada sem justificativa (hoje passa como aditiva, pois o remove-comentários trata '--' do literal como comentário); caso novo em checar-aditiva.test.sh; os 31 casos atuais seguem verdes | 1h | TP-0109 | Não | backend/operacao/deploy/checar-aditiva.sh, backend/operacao/deploy/testes/checar-aditiva.test.sh | bash backend/operacao/deploy/testes/checar-aditiva.test.sh | Pendente |
+| RTP-0061 | Refatoração Lote-21 | shellcheck: SC1091 em volume/carregar.sh (host-local.sh não resolvido com -x) | Backend (operação) | QA de TP-0109 (achado baixo); mesma causa da RTP-0059 | shellcheck -x backend/supabase/volume/carregar.sh sai 0 (acrescentar '# shellcheck source-path=SCRIPTDIR' antes do source, ou ajustar a diretiva source=); carregar.test.sh segue verde | 0.5h | TP-0109 | Não | backend/supabase/volume/carregar.sh | shellcheck -x backend/supabase/volume/carregar.sh (exit 0); bash backend/supabase/volume/testes/carregar.test.sh | Pendente |
+
+
 
 
 
