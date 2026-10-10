@@ -6,11 +6,13 @@ interface Props {
   titulo: string;
   aoEnviar: () => void;
   ocupado?: boolean;
+  /** Nome do formulário quando o título repete o rótulo de um campo (senão o campo ficaria com dois alvos de rótulo). */
+  nomeFormulario?: string;
   children: ReactNode;
 }
 
 /** Moldura das telas públicas de acesso: logo, título da página e o formulário. */
-export function CartaoAcesso({ titulo, aoEnviar, ocupado, children }: Props) {
+export function CartaoAcesso({ titulo, aoEnviar, ocupado, nomeFormulario, children }: Props) {
   const idTitulo = useId();
 
   function aoSubmeter(e: FormEvent<HTMLFormElement>) {
@@ -22,7 +24,8 @@ export function CartaoAcesso({ titulo, aoEnviar, ocupado, children }: Props) {
     <main className={estilo['tela-entrar']}>
       <form
         className={estilo['cartao-entrar']}
-        aria-labelledby={idTitulo}
+        aria-label={nomeFormulario}
+        aria-labelledby={nomeFormulario ? undefined : idTitulo}
         aria-busy={ocupado ? 'true' : undefined}
         onSubmit={aoSubmeter}
         noValidate

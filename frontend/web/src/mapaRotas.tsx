@@ -29,7 +29,13 @@ export const mapaRotas: RouteObject[] = [
   },
   {
     element: <AreaPublica />,
-    children: [pagina('/redefinir-senha', 'Redefinir senha')],
+    children: [
+      {
+        path: '/redefinir-senha',
+        lazy: () => import('./paginas/RedefinirSenha').then((m) => ({ Component: m.RedefinirSenha })),
+        handle: { titulo: 'Redefinir senha' } satisfies HandleRota,
+      },
+    ],
   },
   {
     element: <AreaAutenticada />,

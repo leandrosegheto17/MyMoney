@@ -103,6 +103,33 @@ export async function pedirRedefinicao(email: string): Promise<void> {
   if (traduzido.tipo === 'rede' || traduzido.tipo === 'indisponivel') throw traduzido;
 }
 
+export type EstadoRecuperacao = 'pronta' | 'expirado' | 'sem_link';
+
+const ERROS_DE_LINK = ['otp_expired', 'access_denied'];
+
+function linkVeioComErro(): boolean {
+  const parametros = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const consulta = new URLSearchParams(window.location.search);
+  const codigos = [
+    parametros.get('error_code'),
+    parametros.get('error'),
+    consulta.get('error_code'),
+    consulta.get('error'),
+  ];
+  return codigos.some((codigo) => codigo !== null && ERROS_DE_LINK.includes(codigo));
+}
+
+/** Lê o retorno do link de redefinição depois que o cliente de Auth termina de processar a URL. */
+export async function estadoRecuperacao(): Promise<EstadoRecuperacao> {
+  if (semRede()) return 'sem_link';
+  const comErro = linkVeioComErro();
+  const auth = obterCliente().auth;
+  await auth.initialize();
+  if (comErro) return 'expirado';
+  const { data } = await auth.getSession();
+  return data.session ? 'pronta' : 'sem_link';
+}
+
 export async function salvarNovaSenha(senha: string): Promise<void> {
   if (semRede()) return;
   const { error } = await obterCliente().auth.updateUser({ password: senha });
