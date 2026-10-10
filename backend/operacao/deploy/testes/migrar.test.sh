@@ -191,6 +191,33 @@ afirmar_codigo_nao_zero "$CODIGO"
 afirmar_sem_dump
 afirmar_nao_contem "$SAIDA" 'segredo' "a saída não deve mostrar a senha da URL"
 
+recusar_db_url() {
+  preparar
+  executar "refteste" --db-url "$1"
+  afirmar_codigo_nao_zero "$CODIGO"
+  afirmar_sem_dump
+  afirmar_nao_contem "$SAIDA" 'segredo' "a saída não deve mostrar a senha da URL"
+}
+
+caso "--db-url com '@' na query e host remoto é recusado antes do dump"
+recusar_db_url 'postgresql://evil.example?x=@localhost'
+
+caso "--db-url com '@' na query depois do caminho é recusado antes do dump"
+recusar_db_url 'postgresql://evil.example/db?x=@127.0.0.1'
+
+caso "--db-url com '@' no caminho é recusado antes do dump"
+recusar_db_url 'postgresql://evil.example/@localhost'
+
+caso "--db-url com host= na query é recusado antes do dump"
+recusar_db_url 'postgresql://postgres:segredo@127.0.0.1:54322/postgres?host=evil.example'
+
+caso "--db-url local legítima com usuário e senha segue para o dump"
+preparar
+executar "local" --db-url 'postgresql://postgres:segredo@127.0.0.1:54322/postgres'
+afirmar_codigo_zero "$CODIGO"
+afirmar_contem "$(chamadas_supabase)" 'db dump' "devia chamar supabase db dump"
+afirmar_nao_contem "$SAIDA" 'segredo' "a saída não deve mostrar a senha da URL"
+
 # ---------- caminho feliz ----------
 
 caso "caminho feliz: dump de schema, dump de dados, dry-run, push e instruções de restauração"

@@ -18,6 +18,8 @@ WORKFLOW_CI="ci.yml"
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../comum/confirmar.sh
 source "$AQUI/../comum/confirmar.sh"
+# shellcheck source=../comum/host-local.sh
+source "$AQUI/../comum/host-local.sh"
 
 abortar() {
   echo "ERRO: $*" >&2
@@ -38,13 +40,7 @@ done
 
 # Aceita só host local; a senha da URL nunca é impressa.
 if [ -n "$DB_URL" ]; then
-  host="${DB_URL#*://}"
-  host="${host#*@}"
-  host="${host%%[:/?]*}"
-  case "$host" in
-    127.0.0.1 | localhost) ;;
-    *) abortar "--db-url só aceita host 127.0.0.1 ou localhost (o alvo de produção é --linked)" ;;
-  esac
+  exigir_host_local "$DB_URL" "a migração com --db-url" || exit 1
   ALVO=(--db-url "$DB_URL")
 else
   ALVO=(--linked)
