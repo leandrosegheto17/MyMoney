@@ -566,3 +566,21 @@ DEVOLVIDA - ajuste da vitrine correto e axe verde, mas spec tem 2/6 falhas ("2 t
 
 ## TP-0026 — QA — 2026-10-10
 APROVADA (rodada 3) — 0 críticos, 0 não críticos; teste de build e 32 testes do escopo passam, bundle real sem marcadores exclusivos do modo; 20 falhas de `src/dados` são de tarefas futuras (módulos ausentes), não regressão.
+
+## RTP-0081 — QA — 2026-10-10
+APROVADA (rodada 2) - botao-forma.spec.ts 6/6 verde (390 e 1440, axe fechado e aberto), unitários BotaoForma/ListaFormas verdes, preventDefault no mousedown não afeta teclado/foco; 0 críticos, 0 não críticos; RTP-0083 dispensada; /pw.cfg.ts vazio segue para o usuário apagar.
+
+## RTP-0082 — QA — 2026-10-10
+APROVADA (título da vitrine corrigido); 0 críticos, 1 não crítico (comparação visual do item b impossível, pois nenhuma tela usa o SeletorMes; passa para a T04a/TP-0103, exige RTP de pendência).
+
+## RTP-0083 — QA — 2026-10-10
+APROVADA — 0 críticos/0 não críticos; teste novo falha na config anterior e passa na atual (3/3 verdes).
+
+## TP-0045 — QA — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0084: prettier em Entrar.tsx/Botao.tsx e textos de erro duplicados); vitest 42/42, e2e 6/6, visual T01 sucesso 0%, carregando <= 0,06%, erro 0% (pc e celular).
+
+## TP-0046 — QA — 2026-10-10
+APROVADA — aceite atendido; vitest 112/112, e2e 6/6, visual T01b sucesso 0,00% e erro 0,70% celular/0,20% PC; `nomeFormulario` aceito; 0 críticos, 1 não crítico (RTP-0085: foco próprio em vez de focarPrimeiroErro).
+
+## TP-0047 — QA — 2026-10-10
+DEVOLVIDA: 1 crítico (Sair de todos sem rede: supabase-js remove a sessão local, guarda leva a /entrar sem aviso e demais aparelhos não revogados) e 1 não crítico (RTP-0086, seta de "Instalar o app"); visual T14 0,01%/0,06% OK, 20/20 unitários.
