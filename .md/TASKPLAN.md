@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 08:47
+Atualizado: 2026-10-10 08:54
 
-Resumo: Não executada 141 · Em execução 1 · Executada (aguarda teste) 7 · Testada (aguarda segurança) 1 · Aprovada 18 · Bloqueada 2 · total 170
+Resumo: Não executada 140 · Em execução 2 · Executada (aguarda teste) 7 · Testada (aguarda segurança) 1 · Aprovada 18 · Bloqueada 2 · total 170
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -22,7 +22,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Não executada |
 | 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Bloqueada |
 | 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Não executada |
-| 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Não executada |
+| 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Em execução |
 | 11 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | TP-0009 | Não executada |
 | 12 | TP-0011 | executor | ✔ | Primeira migration em produção (schemas, utilitários e ping) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Não executada |
 | 13 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Não executada |
