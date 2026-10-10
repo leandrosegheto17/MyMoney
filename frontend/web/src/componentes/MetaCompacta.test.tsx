@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
@@ -58,6 +60,17 @@ describe('MetaCompacta', () => {
     expect(screen.getByRole('progressbar', { name: 'Curso de inglês' }).className).toMatch(classe('barra-dentro'));
     expect(screen.queryByText('100%')).not.toBeInTheDocument();
     expect(screen.getByText('faltam R$ 0,00')).toBeInTheDocument();
+  });
+
+  it('a barra (span) é bloco dentro do link, senão fica com altura 0', () => {
+    const css = readFileSync(resolve(__dirname, 'MetaCompacta.module.css'), 'utf8');
+    const regra = /\.meta-link\s+\[role=['"]?progressbar['"]?\]\s*\{([^}]*)\}/.exec(css);
+
+    expect(regra).not.toBeNull();
+    expect(regra![1]).toMatch(/display:\s*block/);
+    montar(reserva, 'casa');
+    expect(screen.getByRole('progressbar').tagName).toBe('SPAN');
+    expect(screen.getByRole('link').className).toMatch(classe('meta-link'));
   });
 
   it('o link usa o href recebido', () => {
