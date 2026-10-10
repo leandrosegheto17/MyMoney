@@ -32,12 +32,13 @@ export type NomeIcone =
 
 interface Props {
   nome: NomeIcone;
+  className?: string;
 }
 
 /** Ícone decorativo: o significado vai no rótulo do botão, não no <svg>. */
-export function Icone({ nome }: Props) {
+export function Icone({ nome, className }: Props) {
   return (
-    <svg className="icone" aria-hidden="true">
+    <svg className={className ? `icone ${className}` : 'icone'} aria-hidden="true">
       <use href={`#i-${nome}`} />
     </svg>
   );

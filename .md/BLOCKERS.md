@@ -8,3 +8,12 @@
 - Impacto se não resolvido: CI fica vermelho desde o primeiro push sem .gitleaks.toml/baseline, que o plano proíbe; G-15 só abre exceção para README
 - Sugestão: Autorizar baseline/allowlist do gitleaks e ajustar a G-15 (exceção para os arquivos de ambiente do web)
 - Status: Em aberto
+
+## Bloqueio 002 — 2026-10-10 (BK-0002)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: TP-0036
+- Descrição: Folha.test.tsx:199 (pré-escrito) exige queryByLabelText('Valor') nulo com o campo no DOM; só passa com o nó fora de document.body, o que quebra getByRole('dialog'). Decidir se o teste pode ser corrigido (ex.: queryByRole('textbox',{name:'Valor'}))
+- Impacto se não resolvido: 26 de 27 testes passam; implementação completa e Playwright 8/8; sem a decisão o teste não fica verde
+- Sugestão: Autorizar a alteração do teste pré-escrito na linha 199 e reexecutar
+- Status: Em aberto

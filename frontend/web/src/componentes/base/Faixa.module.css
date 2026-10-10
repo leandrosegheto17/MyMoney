@@ -1,0 +1,33 @@
+.faixa {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  flex-wrap: wrap;
+  margin-top: var(--espaco-2);
+  padding: var(--espaco-2) var(--espaco-3);
+  border-radius: var(--raio-cartao);
+  font-size: var(--tam-pequeno);
+  background: var(--cor-neutro-fundo);
+  color: var(--cor-texto);
+}
+
+.texto-faixa {
+  flex: 1;
+  min-width: 12em;
+}
+
+.faixa-aviso {
+  background: var(--cor-atencao-fundo);
+  color: var(--cor-atencao);
+}
+
+.faixa-erro {
+  background: var(--cor-estourado-fundo);
+  color: var(--cor-estourado);
+}
+
+.acoes {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+}

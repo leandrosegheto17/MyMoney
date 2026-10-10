@@ -1,0 +1,20 @@
+/* Layout de ensaio: os mesmos valores de .formulario e .acoes-formulario do mockup (base.css). */
+.vitrine {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--espaco-4);
+}
+.formulario {
+  display: grid;
+  gap: var(--espaco-4);
+  margin-top: var(--espaco-3);
+}
+.acoes-formulario {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+  margin-top: var(--espaco-2);
+}
+.acoes-formulario > button {
+  flex: 1;
+}
