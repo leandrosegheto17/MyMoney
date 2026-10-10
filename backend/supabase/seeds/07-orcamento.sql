@@ -17,3 +17,11 @@ from (values
 ) as o (id, categoria_id, valor_centavos)
 join app.categoria c on c.id = o.categoria_id::uuid
 on conflict do nothing;
+
+-- Orçamento de setembro/2026 da individual "Outros" (...0415), fora dos meses do mockup: dá vínculo
+-- à categoria (pode_excluir = false, como em respostas/categorias.json) sem mexer em outubro.
+insert into app.orcamento (id, lar_id, mes, categoria_id, escopo, dono_id, valor_centavos)
+select '00000000-0000-4000-8000-000000000715', c.lar_id, date '2026-09-01', c.id, c.escopo, c.dono_id, 10000
+from app.categoria c
+where c.id = '00000000-0000-4000-8000-000000000415'
+on conflict do nothing;

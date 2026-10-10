@@ -27,6 +27,18 @@ describe('api.categorias', () => {
     for (const l of linhas) expect(typeof l.pode_excluir).toBe('boolean');
   });
 
+  it('pode_excluir de cada categoria é o valor de categorias.json', async () => {
+    const { data, error } = await (await comoA()).from('categorias').select('id, pode_excluir');
+    expect(error).toBeNull();
+    const obtido = Object.fromEntries(
+      (data as unknown as LinhaCategoria[]).map((l) => [l.id, l.pode_excluir]),
+    );
+    const esperado = Object.fromEntries(
+      (categorias as LinhaCategoria[]).map((l) => [l.id, l.pode_excluir]),
+    );
+    expect(obtido).toEqual(esperado);
+  });
+
   it('B não recebe as individuais de A por lista, id nem contagem', async () => {
     const b = await comoB();
     const lista = await b.from('categorias').select('id');
