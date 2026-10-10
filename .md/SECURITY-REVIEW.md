@@ -542,3 +542,18 @@ APROVADA; 0 críticos, 0 não críticos; diff só de testes, sem dependência ne
 
 ## TP-0026 — DevSecOps — 2026-10-10
 APROVADA — 0 críticos, 1 não crítico (RTP-0083: trava só em mode=production); bundle de produção real limpo do modo (grep), teste de build 2/2, build com a variável falha, sem dependência nova.
+
+## RTP-0081 — DevSecOps — 2026-10-10
+APROVADA (revisão do diff, só lido, nada executado) - preventDefault no mousedown da ListaFormas e ajustes de vitrine/spec sem superfície de segurança, sem dependência nova nem dado sensível; 0 críticos, 0 não críticos; nenhuma RTP aberta.
+
+## RTP-0082 — DevSecOps — 2026-10-10
+OK DevSecOps (revisão do diff, nada executado): troca de `<title>` em HTML de vitrine e2e, sem impacto de segurança; 0 críticos, 0 não críticos, nenhuma RTP aberta.
+
+## RTP-0083 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos/0 não críticos; vite build em production, development e staging com a variável falha (exit 1, sem artefato), bundle sem marcadores do modo, teste de build 3/3 verde.
+
+## TP-0045 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (RTP-0088: códigos de Auth que revelam a conta caem em mensagem diferente de "E-mail ou senha incorretos."); lido o diff + vitest 18/18; sem dependência nova, senha/e-mail sem log/URL/storage, redirectTo fixo.
+
+## TP-0046 — DevSecOps — 2026-10-10
+APROVADA — token do link não vaza (sem log/título/storage próprio, hash tratado pelo supabase-js, teste "token não fica na URL" 15/15 verde), mensagens uniformes, `sair()` local após troca; 0 críticos, 0 não críticos; fluxo real com Auth e política do servidor pendentes para a auditoria de release.

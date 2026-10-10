@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 21:46
+Atualizado: 2026-10-10 21:49
 
-Resumo: Não executada 58 · Em execução 1 · Testada (aguarda segurança) 4 · Em validação de segurança 1 · Aprovada 189 · Bloqueada 19 · total 272
+Resumo: Não executada 58 · Em execução 1 · Aprovada 194 · Bloqueada 19 · total 272
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -60,8 +60,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 45 | TP-0042 | executor | ✔ | SeloEscopo e SeloSituacao | Lote 8 | TP-0038 | Aprovada |
 | 46 | TP-0043 | executor | ✔ | ChipOpcao e GrupoChips | Lote 8 | TP-0023 | Aprovada |
 | 47 | TP-0044 | executor | ✔ | BarraProgresso, ValorDestaque e CartaoResumo | Lote 8 | TP-0038 | Aprovada |
-| 48 | TP-0045 | executor | ✔ | T01 Entrar | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Em validação de segurança |
-| 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Testada (aguarda segurança) |
+| 48 | TP-0045 | executor | ✔ | T01 Entrar | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Aprovada |
+| 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Aprovada |
 | 50 | BK-0024 | coordenador | ✔ | 'Sair de todos' sem rede contraria o aceite e o RNF-06: supabase-js 2.117.3 (_signOut) rem | — | — | Não executada |
 | 51 | TP-0047 | executor | ✔ | T14 Ajustes | Lote 9 | BK-0024, TP-0026, TP-0033, TP-0037, TP-0039 | Bloqueada |
 | 52 | TP-0048 | executor | ✔ | Tabelas app.conta e app.movimento_conta [BD] | Lote 10 | TP-0013 | Aprovada |
@@ -207,7 +207,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 192 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
 | 193 | RTP-0079 | executor | ✔ | SeletorMes: spec Playwright (alvos 44 px, axe) e comparação visual | Refatoração Lote-8 | TP-0041 | Aprovada |
 | 194 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Aprovada |
-| 195 | RTP-0082 | executor | ✔ | SeletorMes: título da vitrine e comparação visual do cabeçalho | Refatoração Lote-8 | RTP-0079 | Testada (aguarda segurança) |
+| 195 | RTP-0082 | executor | ✔ | SeletorMes: título da vitrine e comparação visual do cabeçalho | Refatoração Lote-8 | RTP-0079 | Aprovada |
 | 196 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
 | 197 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |
 | 198 | RTP-0076 | executor | ✔ | Fila: item com 401/JWT não vira falhou (fica aguardando) | Refatoração Lote-15 | TP-0077 | Aprovada |
@@ -263,8 +263,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 248 | RTP-0072 | executor | ✔ | checar-aditiva.sh: falha aberta quando o perl existe mas falha em execução | Refatoração Lote-21 | RTP-0060 | Aprovada |
 | 249 | RTP-0073 | executor | ✔ | checar-aditiva.test.sh: dividir o arquivo de teste (417 linhas) por comportamento | Refatoração Lote-21 | RTP-0060 | Aprovada |
 | 250 | RTP-0066 | executor | ✔ | pedirRedefinicao: não engolir erro de limite de taxa | Lote 5 | TP-0025 | Aprovada |
-| 251 | RTP-0083 | executor | ✔ | Trava do modo de comparação cobre qualquer modo de build | Refatoração Lote-5 | TP-0026 | Testada (aguarda segurança) |
-| 252 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Testada (aguarda segurança) |
+| 251 | RTP-0083 | executor | ✔ | Trava do modo de comparação cobre qualquer modo de build | Refatoração Lote-5 | TP-0026 | Aprovada |
+| 252 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Aprovada |
 | 253 | RTP-0084 | executor | ✔ | T01 Entrar: formatação e textos de erro duplicados | Refatoração Lote-9 | TP-0045 | Não executada |
 | 254 | RTP-0085 | executor | ✔ | FormularioNovaSenha usa focarPrimeiroErro em vez de foco próprio | Refatoração Lote-9 | TP-0046 | Não executada |
 | 255 | RTP-0086 | executor | ✔ | T14: seta ausente no item 'Instalar o app' | Refatoração Lote-9 | TP-0047 | Não executada |
