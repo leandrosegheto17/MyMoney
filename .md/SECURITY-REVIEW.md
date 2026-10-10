@@ -284,3 +284,42 @@ TP-0136 aprovada na segurança: invoker, search_path vazio, anon sem execute, fi
 
 ## TP-0158 — DevSecOps — 2026-10-10
 TP-0158 aprovada em segurança (revisão do diff: invoker, search_path vazio, RLS+FKs compostos, execute só authenticated, sem vazamento entre membros, fora de totais I-14); nenhum achado novo.
+
+## RTP-0023 — DevSecOps — 2026-10-10
+RTP-0023 aprovada em segurança: mudança só de teste, sem segredo, dependência ou dado pessoal; reforça o isolamento G-04 da individual de A em `orcamento_mes`.
+
+## RTP-0030 — DevSecOps — 2026-10-10
+RTP-0030 aprovada em segurança: função comum security invoker, search_path vazio, sem execute para anon, filtros RN-16e mantidos nos chamadores, sem achados.
+
+## RTP-0033 — DevSecOps — 2026-10-10
+RTP-0033 aprovada em segurança — troca de 2 UUIDs em teste, sem código de produção nem dependências; asserções de B agora provam o isolamento G-05 sem oráculo de saldo; sem achados.
+
+## RTP-0034 — DevSecOps — 2026-10-10
+RTP-0034 aprovada na segurança: mudança só em teste (limpeza em finally), sem nova superfície, segredo, dependência ou dado pessoal; nenhum achado.
+
+## RTP-0035 — DevSecOps — 2026-10-10
+RTP-0035 aprovada em segurança — só teste, sem mudança de superfície, sem segredos nem dependências novas; nenhum achado.
+
+## RTP-0036 — DevSecOps — 2026-10-10
+RTP-0036 aprovada em segurança — limpeza parametrizada, só host local, sem mudança de superfície nem dependência; sem achados.
+
+## RTP-0037 — DevSecOps — 2026-10-10
+RTP-0037 aprovada em segurança: diff só de tipagem em teste, sem dependência, segredo ou dado pessoal; isolamento de B intacto; nenhum achado.
+
+## RTP-0038 — DevSecOps — 2026-10-10
+RTP-0038 aprovada em segurança: diff é só espaço em branco em uma linha, sem asserção alterada, sem dependência nova, sem achados.
+
+## RTP-0039 — DevSecOps — 2026-10-10
+RTP-0039 aprovada em segurança: teto de 100000000000 centavos validado antes da escrita nas 3 funções e no check da tabela, grants/DEFINER/search_path preservados, sem achados.
+
+## TP-0088 — DevSecOps — 2026-10-10
+TP-0088 aprovada em segurança: trava de host exata (7/7 testes), sem credencial nem dado real, carga via api.* como membro, package.json só com 2 scripts; sem achados.
+
+## TP-0123 — DevSecOps — 2026-10-10
+TP-0123 aprovada em segurança (revisão do diff: invoker, search_path vazio, RLS do lar, delete só de pendentes, execute só authenticated); sem achados novos.
+
+## TP-0124 — DevSecOps — 2026-10-10
+TP-0124 OK na segurança: sem leitura de pagamento privado, invoker, search_path vazio, grants só authenticated; sem achados novos e sem dependência nova.
+
+## TP-0139 — DevSecOps — 2026-10-10
+TP-0139 OK em segurança (isolamento individual por dono_id explícito, invoker/search_path vazio, anon sem execute, só aditivo); sem achado novo, RTP-0043 (teste TP-0087) segue aberta.
