@@ -196,7 +196,7 @@ describe('Folha: montada e oculta', () => {
     const campo = document.querySelector('input[aria-label="Valor"]') as HTMLElement;
     expect(campo).not.toBeNull();
     expect(campo.closest('[hidden]')).not.toBeNull();
-    expect(screen.queryByLabelText('Valor')).toBeNull();
+    expect(screen.queryByRole('textbox', { name: 'Valor' })).toBeNull();
   });
 
   it('fechada sem a opção não fica no DOM', () => {

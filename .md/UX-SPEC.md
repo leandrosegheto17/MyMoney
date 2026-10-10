@@ -319,8 +319,16 @@ ficam na §6. Nos layouts abaixo, **"Casa"** é o rótulo de interface para *Con
    - O último chip é "Outras…", que abre uma lista com busca, agrupada em "Casa" e "Minhas".
    - Na receita, aparecem só as categorias de receita.
 4. **Forma de pagamento:** um botão-chip com o nome da forma atual e o tipo ("Pix Nubank · Pix"). O toque abre
-   a lista das minhas formas (opções) e a escolha fecha a lista, somando 2 toques.
-   - Na receita, este campo vira **Conta de destino**.
+   a lista das minhas formas e a escolha fecha a lista, somando 2 toques.
+   - **Lista aberta (decidido no BK-0004, desenho A; mockup `lancar--forma-aberta`):** a lista abre **inline**,
+     logo abaixo do botão, como um `GrupoChips` em linha (`radiogroup`, uma opção por chip, alvo mínimo de 44 px,
+     a marcada com ícone de marcado além da cor). Não é menu flutuante nem folha por cima da folha. O botão usa
+     `aria-expanded` e `aria-controls` (não `aria-haspopup`). Ao abrir, o foco vai para a opção marcada; setas
+     navegam; escolher (toque ou Enter, mesmo a já marcada) fecha a lista e devolve o foco ao botão; Esc fecha e
+     devolve o foco; sair do foco para fora fecha sem puxar o foco de volta. A forma escolhida decide se as
+     Parcelas (item 5) aparecem.
+   - Na receita, este campo vira **Conta de destino**, com o mesmo comportamento e sem o tipo ao lado do nome
+     (mockup `lancar--conta-aberta`).
 5. **Parcelas:** só quando a forma é Crédito. Chips "À vista", 2x, 3x, 4x, 5x, 6x, 10x, 12x e "Outro" (passo
    a passo de 1 a 24). Abaixo, o texto "Entra a partir do próximo vencimento do cartão".
 6. **"Mais detalhes"** (recolhido): Data (padrão "Hoje", abre o seletor de data) e Descrição (opcional).
@@ -384,7 +392,9 @@ ficam na §6. Nos layouts abaixo, **"Casa"** é o rótulo de interface para *Con
 - Em modelo existente: "Encerrar despesa fixa", com diálogo.
 
 **T08 Marcar como paga** (folha). Ação principal: **Confirmar pagamento**.
-- Forma (as minhas, à vista), valor efetivo (padrão: o previsto) e data (padrão: hoje).
+- Forma (as minhas, à vista), valor efetivo (padrão: o previsto) e data (padrão: hoje). A forma usa o mesmo
+  `BotaoForma` + `ListaFormas` da T03 (item 4): lista aberta inline, `GrupoChips` em linha, `radiogroup`,
+  2 toques, `aria-expanded` (BK-0004; referência visual `lancar--forma-aberta`).
 - Nota sempre visível **(B3)**: "Se pagar no cartão de crédito: conta em outubro na casa e aparece no cartão no
   próximo vencimento" (I-20). Fica sempre na folha para não mudar o layout ao trocar a forma.
 - **Sem rede:** avisa e mantém os dados.
