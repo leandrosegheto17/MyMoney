@@ -40,7 +40,8 @@ function compararMetas(real: ItemMeta[], exemplos: ItemMeta[]): void {
 const mes = '2026-10-01';
 const META_ISOLAMENTO = 'f6b00000-0000-4000-8000-000000000151';
 const APORTE_ISOLAMENTO = 'f6b00000-0000-4000-8000-000000000b51';
-const mesSemDado = '2030-01-01';
+// Cinco anos à frente do mês corrente: fora da janela de ocorrências, portanto vazio em qualquer data.
+const mesSemDado = `${new Date().getUTCFullYear() + 5}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`;
 
 describe('api.resumo_mes', () => {
   it('A recebe o resumo no formato do exemplo', async () => {
@@ -76,6 +77,7 @@ describe('api.resumo_mes', () => {
     const { data, error } = await (await comoA()).rpc('resumo_mes', { p_mes: mesSemDado });
     expect(error).toBeNull();
     mesmaForma(data, vazio);
+    expect((data as { conjunto: { fixas_total: number } }).conjunto.fixas_total).toBe(0);
   });
 
   it('B não recebe conta, cartão, categoria nem lançamento individual de A', async () => {
