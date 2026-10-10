@@ -70,16 +70,17 @@ describe('salvarConta', () => {
 
   it('erro de regra vira { tipo: regra, codigo }', async () => {
     fetchSimulado.mockImplementation(responder(400, lerResposta('erro-registro-invalido.json')));
-    await expect(
-      salvarConta({ p_id: ID_CONTA, p_nome: 'Nubank', p_saldo_inicial_centavos: 0 }),
-    ).rejects.toEqual({ tipo: 'regra', codigo: 'registro_invalido' });
+    await expect(salvarConta({ p_id: ID_CONTA, p_nome: 'Nubank', p_saldo_inicial_centavos: 0 })).rejects.toEqual({
+      tipo: 'regra',
+      codigo: 'registro_invalido',
+    });
   });
 
   it('falha de rede vira rede', async () => {
     fetchSimulado.mockRejectedValue(new TypeError('Failed to fetch'));
-    await expect(
-      salvarConta({ p_id: ID_CONTA, p_nome: 'Nubank', p_saldo_inicial_centavos: 0 }),
-    ).rejects.toEqual({ tipo: 'rede' });
+    await expect(salvarConta({ p_id: ID_CONTA, p_nome: 'Nubank', p_saldo_inicial_centavos: 0 })).rejects.toEqual({
+      tipo: 'rede',
+    });
   });
 });
 
@@ -150,17 +151,20 @@ describe('ajustarSaldo', () => {
   });
 
   it('valor inválido vira regra valor_invalido', async () => {
-    fetchSimulado.mockImplementation(responder(400, { code: 'P0001', message: 'valor_invalido', details: null, hint: null }));
-    await expect(
-      ajustarSaldo({ contaId: ID_CONTA, saldoRealCentavos: -1, simular: true }),
-    ).rejects.toEqual({ tipo: 'regra', codigo: 'valor_invalido' });
+    fetchSimulado.mockImplementation(
+      responder(400, { code: 'P0001', message: 'valor_invalido', details: null, hint: null }),
+    );
+    await expect(ajustarSaldo({ contaId: ID_CONTA, saldoRealCentavos: -1, simular: true })).rejects.toEqual({
+      tipo: 'regra',
+      codigo: 'valor_invalido',
+    });
   });
 
   it('falha de rede vira rede', async () => {
     fetchSimulado.mockRejectedValue(new TypeError('Failed to fetch'));
-    await expect(
-      ajustarSaldo({ contaId: ID_CONTA, saldoRealCentavos: 320255, simular: false }),
-    ).rejects.toEqual({ tipo: 'rede' });
+    await expect(ajustarSaldo({ contaId: ID_CONTA, saldoRealCentavos: 320255, simular: false })).rejects.toEqual({
+      tipo: 'rede',
+    });
   });
 });
 

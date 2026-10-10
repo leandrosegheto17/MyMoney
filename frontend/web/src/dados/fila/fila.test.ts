@@ -131,10 +131,7 @@ describe('fila.esvaziar', () => {
   });
 
   it('rede no 2º para a rodada: 1º removido, 2º e 3º intactos; nova rodada envia os dois', async () => {
-    lancarDespesa
-      .mockResolvedValueOnce(RESPOSTA)
-      .mockRejectedValueOnce({ tipo: 'rede' })
-      .mockResolvedValue(RESPOSTA);
+    lancarDespesa.mockResolvedValueOnce(RESPOSTA).mockRejectedValueOnce({ tipo: 'rede' }).mockResolvedValue(RESPOSTA);
     const fila = await carregarFila();
     await enfileirarTres(fila);
 
@@ -163,9 +160,7 @@ describe('fila.esvaziar', () => {
   });
 
   it('rejeição de regra vira falha com o motivo e os seguintes são enviados', async () => {
-    lancarDespesa
-      .mockRejectedValueOnce({ tipo: 'regra', codigo: 'registro_invalido' })
-      .mockResolvedValue(RESPOSTA);
+    lancarDespesa.mockRejectedValueOnce({ tipo: 'regra', codigo: 'registro_invalido' }).mockResolvedValue(RESPOSTA);
     const fila = await carregarFila();
     await enfileirarTres(fila);
 

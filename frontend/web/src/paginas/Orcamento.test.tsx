@@ -53,7 +53,16 @@ function consultaCarregando() {
 }
 
 function consultaComErro(erro: unknown) {
-  return { ...consultaCarregando(), error: erro, status: 'error', fetchStatus: 'idle', isPending: false, isLoading: false, isError: true, isFetching: false };
+  return {
+    ...consultaCarregando(),
+    error: erro,
+    status: 'error',
+    fetchStatus: 'idle',
+    isPending: false,
+    isLoading: false,
+    isError: true,
+    isFetching: false,
+  };
 }
 
 // Serve tanto a quem chama a função quanto a quem usa mutate/mutateAsync.
@@ -61,7 +70,10 @@ function comandoSimulado() {
   const comando = vi.fn();
   Object.assign(comando, {
     mutateAsync: comando,
-    mutate: (argumentos: unknown, opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void }) => {
+    mutate: (
+      argumentos: unknown,
+      opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void },
+    ) => {
       Promise.resolve()
         .then(() => comando(argumentos))
         .then(
@@ -170,9 +182,7 @@ describe('Orcamento: mês com orçamento', () => {
   it('sem categorias sem orçamento mostra a linha de tudo orçado', () => {
     renderizarPagina();
 
-    expect(
-      screen.getByText('Todas as categorias de despesa da casa têm orçamento em outubro.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Todas as categorias de despesa da casa têm orçamento em outubro.')).toBeInTheDocument();
   });
 
   it('com categorias sem orçamento mostra a seção recolhida com "Definir" para cada uma', () => {
@@ -225,7 +235,11 @@ describe('Orcamento: mês vazio', () => {
 
     expect(screen.getByRole('heading', { name: 'Sem orçamento da casa em novembro' })).toBeInTheDocument();
     expect(
-      screen.getByText(new RegExp(`^${moeda('Copie os valores de outubro (R$ 4.300,00 em 5 categorias) e ajuste o que mudar.').replace(/[()]/g, '\\$&')}$`)),
+      screen.getByText(
+        new RegExp(
+          `^${moeda('Copie os valores de outubro (R$ 4.300,00 em 5 categorias) e ajuste o que mudar.').replace(/[()]/g, '\\$&')}$`,
+        ),
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Copiar de outubro' })).toBeInTheDocument();
   });

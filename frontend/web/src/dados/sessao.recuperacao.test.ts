@@ -8,8 +8,7 @@ const usuario = JSON.parse(
   readFileSync(fileURLToPath(new URL('../../../../.md/mockup/respostas/auth-usuario.json', import.meta.url)), 'utf8'),
 );
 
-const base64url = (obj: object) =>
-  btoa(JSON.stringify(obj)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+const base64url = (obj: object) => btoa(JSON.stringify(obj)).replace(/=+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
 
 function tokenDeTeste() {
   const exp = Math.floor(Date.now() / 1000) + 3600;

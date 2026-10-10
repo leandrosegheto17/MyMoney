@@ -95,7 +95,9 @@ async function preencher(user: ReturnType<typeof userEvent.setup>, folha: HTMLEl
 
 async function trocarFormaPara(user: ReturnType<typeof userEvent.setup>, folha: HTMLElement, nome: RegExp) {
   await user.click(within(folha).getByRole('button', { name: /^Forma de pagamento/ }));
-  const radios = within(folha).queryAllByRole('radio').filter((r) => r.getAttribute('name') !== 'categoria' && r.getAttribute('name') !== 'tipo');
+  const radios = within(folha)
+    .queryAllByRole('radio')
+    .filter((r) => r.getAttribute('name') !== 'categoria' && r.getAttribute('name') !== 'tipo');
   const lista = radios.length > 0 ? radios : within(folha).getAllByRole('option');
   const alvo = lista.find((o) => nome.test(o.closest('label')?.textContent ?? o.textContent ?? ''));
   await user.click(alvo as HTMLElement);
@@ -267,7 +269,10 @@ describe('estados vazios', () => {
     expect(
       await within(folha).findByRole('heading', { name: 'Cadastre uma forma de pagamento para lançar' }),
     ).toBeInTheDocument();
-    expect(within(folha).getByRole('link', { name: 'Cadastrar forma' })).toHaveAttribute('href', '/ajustes/formas/nova');
+    expect(within(folha).getByRole('link', { name: 'Cadastrar forma' })).toHaveAttribute(
+      'href',
+      '/ajustes/formas/nova',
+    );
     expect(within(folha).queryByRole('group', { name: 'Tipo de lançamento' })).not.toBeInTheDocument();
     expect(within(folha).queryByRole('button', { name: /^Lançar/ })).not.toBeInTheDocument();
   });

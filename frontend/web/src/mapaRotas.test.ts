@@ -69,12 +69,9 @@ describe('mapaRotas', () => {
     expect(rota.Component ?? rota.element).toBeTruthy();
   });
 
-  it.each(ROTAS_DO_UX_SPEC.filter((c) => c !== '/' && c !== '/lancar'))(
-    '%s é preguiçosa',
-    (caminho) => {
-      expect(acharRota(caminho).lazy).toBeTypeOf('function');
-    },
-  );
+  it.each(ROTAS_DO_UX_SPEC.filter((c) => c !== '/' && c !== '/lancar'))('%s é preguiçosa', (caminho) => {
+    expect(acharRota(caminho).lazy).toBeTypeOf('function');
+  });
 
   it('o lazy de toda rota preguiçosa resolve um componente', async () => {
     const preguicosas = ROTAS_DO_UX_SPEC.filter((c) => c !== '/' && c !== '/lancar').map(acharRota);

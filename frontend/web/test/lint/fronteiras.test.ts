@@ -10,7 +10,11 @@ beforeAll(async () => {
 
 const VIOLACOES: Array<[descricao: string, arquivo: string, regra: string]> = [
   ['componentes não importa dados', 'componentes/importaDados.ts', 'import-x/no-restricted-paths'],
-  ['componentes/base não importa o resto de componentes', 'componentes/base/importaComponentes.ts', 'import-x/no-restricted-paths'],
+  [
+    'componentes/base não importa o resto de componentes',
+    'componentes/base/importaComponentes.ts',
+    'import-x/no-restricted-paths',
+  ],
   ['paginas não importa dados', 'paginas/importaDados.ts', 'import-x/no-restricted-paths'],
   ['ganchos não importa componentes', 'ganchos/importaComponentes.ts', 'import-x/no-restricted-paths'],
   ['dados não importa ganchos', 'dados/importaGanchos.ts', 'import-x/no-restricted-paths'],

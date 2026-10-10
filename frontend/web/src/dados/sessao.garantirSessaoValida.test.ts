@@ -19,7 +19,9 @@ const ehLogin = (url: URL) =>
 const loginExpiraEm =
   (segundos: number): Rota =>
   ({ url }) =>
-    ehLogin(url) ? json({ ...sessaoDoAuth(), expires_in: segundos, expires_at: Math.floor(Date.now() / 1000) + segundos }) : undefined;
+    ehLogin(url)
+      ? json({ ...sessaoDoAuth(), expires_in: segundos, expires_at: Math.floor(Date.now() / 1000) + segundos })
+      : undefined;
 
 const renovacoes = () => simulado.chamadas.filter((c) => ehRenovacao(c.url));
 

@@ -68,14 +68,8 @@ describe('TrilhoNavegacao', () => {
   it('com mes, Início, Lançamentos e Orçamento levam o mês; Metas e Ajustes não', () => {
     const { nav } = renderizar('/', { mes: '2026-09' });
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('href', '/?mes=2026-09');
-    expect(within(nav).getByRole('link', { name: 'Lançamentos' })).toHaveAttribute(
-      'href',
-      '/lancamentos?mes=2026-09',
-    );
-    expect(within(nav).getByRole('link', { name: 'Orçamento' })).toHaveAttribute(
-      'href',
-      '/orcamento?mes=2026-09',
-    );
+    expect(within(nav).getByRole('link', { name: 'Lançamentos' })).toHaveAttribute('href', '/lancamentos?mes=2026-09');
+    expect(within(nav).getByRole('link', { name: 'Orçamento' })).toHaveAttribute('href', '/orcamento?mes=2026-09');
     expect(within(nav).getByRole('link', { name: 'Metas' })).toHaveAttribute('href', '/metas');
     expect(within(nav).getByRole('link', { name: 'Ajustes' })).toHaveAttribute('href', '/ajustes');
   });

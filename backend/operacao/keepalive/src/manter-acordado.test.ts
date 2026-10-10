@@ -46,9 +46,7 @@ describe('manterAcordado', () => {
       .mockRejectedValueOnce(new TypeError('fetch failed'))
       .mockResolvedValueOnce(resposta(200));
 
-    await expect(
-      manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep),
-    ).resolves.not.toThrow();
+    await expect(manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep)).resolves.not.toThrow();
 
     expect(dep.buscar).toHaveBeenCalledTimes(3);
     expect(dep.esperar.mock.calls).toEqual([[1000], [2000]]);
@@ -62,9 +60,7 @@ describe('manterAcordado', () => {
     const dep = dependencias();
     dep.buscar.mockResolvedValue(resposta(503));
 
-    await expect(
-      manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep),
-    ).rejects.toThrow('keepalive_falhou');
+    await expect(manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep)).rejects.toThrow('keepalive_falhou');
 
     expect(dep.buscar).toHaveBeenCalledTimes(3);
     expect(dep.esperar).toHaveBeenCalledTimes(2);
@@ -75,9 +71,9 @@ describe('manterAcordado', () => {
     const dep = dependencias();
     dep.buscar.mockResolvedValue(resposta(500));
 
-    await expect(
-      manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep, 4, 10),
-    ).rejects.toThrow('keepalive_falhou');
+    await expect(manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep, 4, 10)).rejects.toThrow(
+      'keepalive_falhou',
+    );
 
     expect(dep.buscar).toHaveBeenCalledTimes(4);
     expect(dep.esperar.mock.calls).toEqual([[10], [20], [40]]);
@@ -85,13 +81,9 @@ describe('manterAcordado', () => {
 
   it('nenhuma linha de log contém a URL nem a chave, nem a mensagem do erro de rede', async () => {
     const dep = dependencias();
-    dep.buscar.mockRejectedValue(
-      new TypeError(`fetch failed ${URL_FALSA}/rest/v1/rpc/ping apikey=${CHAVE_FALSA}`),
-    );
+    dep.buscar.mockRejectedValue(new TypeError(`fetch failed ${URL_FALSA}/rest/v1/rpc/ping apikey=${CHAVE_FALSA}`));
 
-    await expect(
-      manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep),
-    ).rejects.toThrow('keepalive_falhou');
+    await expect(manterAcordado({ url: URL_FALSA, chaveAnon: CHAVE_FALSA }, dep)).rejects.toThrow('keepalive_falhou');
 
     expect(dep.log).toHaveBeenCalled();
     for (const chamada of dep.log.mock.calls) {

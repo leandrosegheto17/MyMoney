@@ -15,7 +15,14 @@ vi.mock('../ganchos/useCategorias', async (importOriginal) => {
   };
 });
 
-type Categoria = { id: string; nome: string; tipo: string; escopo: string; variavel: boolean | null; arquivada: boolean };
+type Categoria = {
+  id: string;
+  nome: string;
+  tipo: string;
+  escopo: string;
+  variavel: boolean | null;
+  arquivada: boolean;
+};
 
 const lerResposta = (nome: string): unknown =>
   JSON.parse(readFileSync(new URL(`../../../../.md/mockup/respostas/${nome}`, import.meta.url), 'utf8'));
@@ -38,7 +45,11 @@ const grupo = (nome: RegExp) => screen.getByRole('heading', { level: 2, name: no
 const nomesDosItens = (secao: HTMLElement) =>
   within(secao)
     .getAllByRole('link')
-    .map((link) => link.querySelector('[class*="titulo"]')?.textContent?.trim() ?? link.textContent?.replace('variável', '').trim());
+    .map(
+      (link) =>
+        link.querySelector('[class*="titulo"]')?.textContent?.trim() ??
+        link.textContent?.replace('variável', '').trim(),
+    );
 
 beforeEach(() => {
   buscarSimulado.mockReset();

@@ -11,9 +11,7 @@ const base = {
 
 describe('lerAmbiente', () => {
   it('recusa a URL da produção', () => {
-    expect(() =>
-      lerAmbiente({ ...base, SUPABASE_URL: 'https://xrcxbzrglndetrrhavhc.supabase.co' }),
-    ).toThrow();
+    expect(() => lerAmbiente({ ...base, SUPABASE_URL: 'https://xrcxbzrglndetrrhavhc.supabase.co' })).toThrow();
   });
 
   it('recusa qualquer host que não seja local', () => {

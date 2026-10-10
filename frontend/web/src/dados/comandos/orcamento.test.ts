@@ -84,17 +84,14 @@ describe('definirOrcamento', () => {
 
     await definirOrcamento({ mes: '2026-10', categoriaId: ID_CONTAS_DA_CASA, valorCentavos: 30000 });
 
-    expect(Object.keys(chamadasRest()[0].corpo).sort()).toEqual([
-      'p_categoria_id',
-      'p_mes',
-      'p_valor_centavos',
-    ]);
+    expect(Object.keys(chamadasRest()[0].corpo).sort()).toEqual(['p_categoria_id', 'p_mes', 'p_valor_centavos']);
   });
 
   it('categoria que não é uuid vira registro_invalido sem requisição', async () => {
-    await expect(
-      definirOrcamento({ mes: '2026-10', categoriaId: 'abc', valorCentavos: 30000 }),
-    ).rejects.toEqual({ tipo: 'regra', codigo: 'registro_invalido' });
+    await expect(definirOrcamento({ mes: '2026-10', categoriaId: 'abc', valorCentavos: 30000 })).rejects.toEqual({
+      tipo: 'regra',
+      codigo: 'registro_invalido',
+    });
     expect(chamadasRest()).toHaveLength(0);
   });
 

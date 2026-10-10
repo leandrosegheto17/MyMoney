@@ -28,7 +28,11 @@ function ultimaChamada() {
     RequestInit | undefined,
   ];
   const url = typeof entrada === 'string' ? entrada : entrada instanceof URL ? entrada.href : entrada.url;
-  return { url, metodo: (init?.method ?? 'GET').toUpperCase(), corpo: init?.body ? JSON.parse(String(init.body)) : undefined };
+  return {
+    url,
+    metodo: (init?.method ?? 'GET').toUpperCase(),
+    corpo: init?.body ? JSON.parse(String(init.body)) : undefined,
+  };
 }
 
 afterEach(() => {

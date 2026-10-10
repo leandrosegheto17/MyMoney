@@ -106,10 +106,7 @@ describe('FormasPagamento (T17)', () => {
     await screen.findByRole('link', { name: /Pix Nubank/ });
     expect(screen.queryByRole('link', { name: /Débito Itaú/ })).not.toBeInTheDocument();
     expect(document.getElementById('g-deb')).toBeNull();
-    expect(screen.getAllByRole('heading', { level: 2 }).map((t) => t.textContent?.trim())).toEqual([
-      'Pix',
-      'Crédito',
-    ]);
+    expect(screen.getAllByRole('heading', { level: 2 }).map((t) => t.textContent?.trim())).toEqual(['Pix', 'Crédito']);
   });
 
   it('cabeçalho tem voltar para Ajustes e "Nova" com a lista', async () => {

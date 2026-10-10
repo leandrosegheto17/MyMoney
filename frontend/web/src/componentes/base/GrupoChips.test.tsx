@@ -12,12 +12,7 @@ const categorias: Opcao[] = [
   { valor: 'transporte', conteudo: 'Transporte' },
 ];
 
-function Controlado(props: {
-  opcoes: Opcao[];
-  inicial?: string;
-  aoMudar: (v: string) => void;
-  erro?: string;
-}) {
+function Controlado(props: { opcoes: Opcao[]; inicial?: string; aoMudar: (v: string) => void; erro?: string }) {
   const [valor, setValor] = useState(props.inicial ?? '');
   return (
     <GrupoChips

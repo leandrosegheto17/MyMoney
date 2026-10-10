@@ -136,9 +136,7 @@ describe('excluirForma', () => {
   });
 
   it('forma com lançamento devolve o código em_uso', async () => {
-    fetchSimulado.mockImplementation(
-      responder(400, { code: 'P0001', message: 'em_uso', details: null, hint: null }),
-    );
+    fetchSimulado.mockImplementation(responder(400, { code: 'P0001', message: 'em_uso', details: null, hint: null }));
     await expect(excluirForma(ID_FORMA)).rejects.toEqual({ tipo: 'regra', codigo: 'em_uso' });
   });
 

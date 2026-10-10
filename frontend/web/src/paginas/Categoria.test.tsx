@@ -99,7 +99,13 @@ describe('Categoria (T20): edição', () => {
 
   it('receita em edição não mostra o interruptor "Gasto variável"', async () => {
     h.buscarCategoria.mockResolvedValue(
-      mercado({ id: '00000000-0000-4000-8000-000000000421', nome: 'Salário', tipo: 'receita', escopo: 'individual', variavel: null }),
+      mercado({
+        id: '00000000-0000-4000-8000-000000000421',
+        nome: 'Salário',
+        tipo: 'receita',
+        escopo: 'individual',
+        variavel: null,
+      }),
     );
     montar('/ajustes/categorias/00000000-0000-4000-8000-000000000421');
 
@@ -188,7 +194,11 @@ describe('Categoria (T20): categoria nova', () => {
     await usuario.click(botaoEnviar());
 
     await waitFor(() => expect(h.salvarCategoria).toHaveBeenCalledTimes(1));
-    expect(h.salvarCategoria.mock.calls[0][0]).toMatchObject({ p_nome: 'Pet', p_tipo: 'despesa', p_escopo: 'conjunto' });
+    expect(h.salvarCategoria.mock.calls[0][0]).toMatchObject({
+      p_nome: 'Pet',
+      p_tipo: 'despesa',
+      p_escopo: 'conjunto',
+    });
   });
 
   it('receita é enviada como individual', async () => {

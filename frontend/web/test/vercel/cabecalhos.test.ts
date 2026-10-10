@@ -9,9 +9,7 @@ type VercelJson = {
   headers?: Array<{ source: string; headers: Cabecalho[] }>;
 };
 
-const vercel: VercelJson = JSON.parse(
-  readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'),
-);
+const vercel: VercelJson = JSON.parse(readFileSync(new URL('../../vercel.json', import.meta.url), 'utf8'));
 
 function cabecalho(nome: string): string {
   const bloco = vercel.headers?.find((h) => h.source === '/(.*)');

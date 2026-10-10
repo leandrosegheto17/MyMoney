@@ -18,9 +18,7 @@ const lerResposta = (nome: string): unknown =>
   JSON.parse(readFileSync(new URL(`../../../../../.md/mockup/respostas/${nome}`, import.meta.url), 'utf8'));
 
 const responder = (status: number, corpo: unknown) => () =>
-  Promise.resolve(
-    new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }),
-  );
+  Promise.resolve(new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }));
 
 function requisicoesRest() {
   return fetchSimulado.mock.calls
@@ -55,7 +53,13 @@ describe('buscarContas', () => {
   it('não filtra as arquivadas (a tela decide o que mostrar)', async () => {
     const comArquivada = [
       ...(lerResposta('contas.json') as object[]),
-      { id: '00000000-0000-4000-8000-000000000209', nome: 'Antiga', saldo_inicial_centavos: 0, saldo_centavos: 0, arquivada: true },
+      {
+        id: '00000000-0000-4000-8000-000000000209',
+        nome: 'Antiga',
+        saldo_inicial_centavos: 0,
+        saldo_centavos: 0,
+        arquivada: true,
+      },
     ];
     fetchSimulado.mockImplementation(responder(200, comArquivada));
 

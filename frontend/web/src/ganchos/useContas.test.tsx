@@ -126,9 +126,7 @@ describe('useComandosConta', () => {
     const { envolver, invalidar } = montar();
     const { result } = renderHook(() => useComandosConta(), { wrapper: envolver });
 
-    await act(() =>
-      result.current.ajustarSaldo.mutateAsync({ contaId: ID_NUBANK, saldoRealCentavos: 320255 }),
-    );
+    await act(() => result.current.ajustarSaldo.mutateAsync({ contaId: ID_NUBANK, saldoRealCentavos: 320255 }));
 
     const [chamada] = vi.mocked(comandos.ajustarSaldo).mock.calls[0] as [Record<string, unknown>];
     expect(chamada).toMatchObject({ contaId: ID_NUBANK, saldoRealCentavos: 320255 });
@@ -165,7 +163,9 @@ describe('usePreviaAjuste', () => {
   });
 
   it('valor novo gera nova prévia', async () => {
-    vi.mocked(comandos.ajustarSaldo).mockResolvedValueOnce(-1230 as never).mockResolvedValueOnce(5000 as never);
+    vi.mocked(comandos.ajustarSaldo)
+      .mockResolvedValueOnce(-1230 as never)
+      .mockResolvedValueOnce(5000 as never);
     const { envolver } = montar();
 
     const { result, rerender } = renderHook(({ valor }) => usePreviaAjuste(ID_NUBANK, valor), {

@@ -122,7 +122,9 @@ describe('FormularioLancamento: outro membro', () => {
   it('categorias só da casa (5 opções) e sem a ajuda de trocar para "Eu"', () => {
     renderizar(OUTRO);
     const categoria = screen.getByLabelText('Categoria') as HTMLSelectElement;
-    const opcoes = within(categoria).getAllByRole('option').map((o) => o.textContent);
+    const opcoes = within(categoria)
+      .getAllByRole('option')
+      .map((o) => o.textContent);
     expect(opcoes).toHaveLength(5);
     for (const texto of opcoes) expect(texto).toMatch(/Casa/);
     expect(opcoes.join()).not.toMatch(/Lazer pessoal|Almoço/);

@@ -75,21 +75,24 @@ describe('EnsaioTeclado', () => {
     expect(screen.getByText(/\b0 tentativas\b/)).toBeInTheDocument();
   });
 
-  it.each(['Fechar', 'Salvar (simulado)'])('"%s" oculta a folha, limpa o campo e um novo "+" foca de novo', async (nome) => {
-    const t = await montar();
-    fireEvent.click(t.mais());
-    fireEvent.change(t.campo(), { target: { value: '4590' } });
+  it.each(['Fechar', 'Salvar (simulado)'])(
+    '"%s" oculta a folha, limpa o campo e um novo "+" foca de novo',
+    async (nome) => {
+      const t = await montar();
+      fireEvent.click(t.mais());
+      fireEvent.change(t.campo(), { target: { value: '4590' } });
 
-    fireEvent.click(t.botao(nome));
+      fireEvent.click(t.botao(nome));
 
-    expect(estaOculta(t.folha())).toBe(true);
-    expect(t.campo().value).toBe('');
-    expect(document.activeElement).not.toBe(t.campo());
+      expect(estaOculta(t.folha())).toBe(true);
+      expect(t.campo().value).toBe('');
+      expect(document.activeElement).not.toBe(t.campo());
 
-    fireEvent.click(t.mais());
-    expect(document.activeElement).toBe(t.campo());
-    expect(estaOculta(t.folha())).toBe(false);
-  });
+      fireEvent.click(t.mais());
+      expect(document.activeElement).toBe(t.campo());
+      expect(estaOculta(t.folha())).toBe(false);
+    },
+  );
 
   it('"Salvar (simulado)" soma um lançamento simulado', async () => {
     const t = await montar();

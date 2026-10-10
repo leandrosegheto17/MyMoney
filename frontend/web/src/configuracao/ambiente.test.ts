@@ -26,9 +26,7 @@ function capturarErro(fn: () => unknown): Error {
 
 describe('lerAmbiente', () => {
   it('aceita URL https e chave anon', () => {
-    const r = lerAmbiente(
-      env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: CHAVE_ANON }),
-    );
+    const r = lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: CHAVE_ANON }));
     expect(r).toEqual({ supabaseUrl: 'https://abcd.supabase.co', supabaseAnonKey: CHAVE_ANON });
   });
 
@@ -40,22 +38,18 @@ describe('lerAmbiente', () => {
   });
 
   it('lança com o nome da variável quando a URL falta', () => {
-    expect(() => lerAmbiente(env({ VITE_SUPABASE_ANON_KEY: CHAVE_ANON }))).toThrow(
+    expect(() => lerAmbiente(env({ VITE_SUPABASE_ANON_KEY: CHAVE_ANON }))).toThrow(/VITE_SUPABASE_URL/);
+  });
+
+  it('lança quando a URL é inválida', () => {
+    expect(() => lerAmbiente(env({ VITE_SUPABASE_URL: 'não é url', VITE_SUPABASE_ANON_KEY: CHAVE_ANON }))).toThrow(
       /VITE_SUPABASE_URL/,
     );
   });
 
-  it('lança quando a URL é inválida', () => {
-    expect(() =>
-      lerAmbiente(env({ VITE_SUPABASE_URL: 'não é url', VITE_SUPABASE_ANON_KEY: CHAVE_ANON })),
-    ).toThrow(/VITE_SUPABASE_URL/);
-  });
-
   it('recusa http fora de localhost', () => {
     expect(() =>
-      lerAmbiente(
-        env({ VITE_SUPABASE_URL: 'http://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: CHAVE_ANON }),
-      ),
+      lerAmbiente(env({ VITE_SUPABASE_URL: 'http://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: CHAVE_ANON })),
     ).toThrow(/VITE_SUPABASE_URL/);
   });
 
@@ -63,16 +57,12 @@ describe('lerAmbiente', () => {
     expect(() =>
       lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: '' })),
     ).toThrow(/VITE_SUPABASE_ANON_KEY/);
-    expect(() => lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co' }))).toThrow(
-      /VITE_SUPABASE_ANON_KEY/,
-    );
+    expect(() => lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co' }))).toThrow(/VITE_SUPABASE_ANON_KEY/);
   });
 
   it('recusa chave secreta sb_secret_', () => {
     expect(() =>
-      lerAmbiente(
-        env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: 'sb_secret_x' }),
-      ),
+      lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: 'sb_secret_x' })),
     ).toThrow(/VITE_SUPABASE_ANON_KEY/);
   });
 
@@ -92,9 +82,7 @@ describe('lerAmbiente', () => {
 
     const chaveServico = jwt({ role: 'service_role', marca: 'xyz-unico' });
     const erro2 = capturarErro(() =>
-      lerAmbiente(
-        env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: chaveServico }),
-      ),
+      lerAmbiente(env({ VITE_SUPABASE_URL: 'https://abcd.supabase.co', VITE_SUPABASE_ANON_KEY: chaveServico })),
     );
     expect(erro2.message).not.toContain(chaveServico);
   });

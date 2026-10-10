@@ -36,7 +36,6 @@ vi.mock('../dados/consultas/dadosLancamento', () => ({
 }));
 vi.mock('../ganchos/usePendentes', () => ({ usePendentes: vi.fn() }));
 
-
 vi.mock('../componentes/inicio/CasaTotal', () => ({ CasaTotal: vi.fn(() => null) }));
 vi.mock('../componentes/inicio/CasaQuemPagou', () => ({ CasaQuemPagou: vi.fn(() => null) }));
 vi.mock('../componentes/inicio/CasaFixas', () => ({ CasaFixas: vi.fn(() => null) }));
@@ -188,7 +187,9 @@ describe('Inicio: cabeçalho e faixas', () => {
     pendentes(1);
     navegar();
 
-    expect(await screen.findByText('1 lançamento aguardando envio. Ele fica guardado no aparelho.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('1 lançamento aguardando envio. Ele fica guardado no aparelho.'),
+    ).toBeInTheDocument();
   });
 
   it('sem rede: faixa offline', async () => {
@@ -227,8 +228,20 @@ describe('Inicio: blocos', () => {
     await waitFor(() => expect(CasaTotal).toHaveBeenCalled());
 
     const filhos = [
-      CasaTotal, CasaQuemPagou, CasaFixas, CasaOrcamento, CasaPorCategoria, CasaResultado, CasaMetas,
-      EuTotal, EuReceitas, EuOrcamento, EuPorCategoria, EuContas, EuCartoes, EuMetas,
+      CasaTotal,
+      CasaQuemPagou,
+      CasaFixas,
+      CasaOrcamento,
+      CasaPorCategoria,
+      CasaResultado,
+      CasaMetas,
+      EuTotal,
+      EuReceitas,
+      EuOrcamento,
+      EuPorCategoria,
+      EuContas,
+      EuCartoes,
+      EuMetas,
     ];
     filhos.forEach((f) => expect(f).toHaveBeenCalled());
   });
@@ -236,7 +249,11 @@ describe('Inicio: blocos', () => {
 
 describe('Inicio: primeiros passos', () => {
   it('sem conta nem forma, mostra "Primeiros passos"', async () => {
-    vi.mocked(buscarDadosLancamento).mockResolvedValue({ dados: semFormas, doAparelho: false, salvoEm: Date.now() } as never);
+    vi.mocked(buscarDadosLancamento).mockResolvedValue({
+      dados: semFormas,
+      doAparelho: false,
+      salvoEm: Date.now(),
+    } as never);
     navegar();
 
     expect(await screen.findByRole('region', { name: 'Primeiros passos' })).toBeInTheDocument();

@@ -33,9 +33,7 @@ describe('rotas', () => {
 
   it('a rota /ensaio-teclado existe e renderiza a página de ensaio', async () => {
     montar('/ensaio-teclado');
-    expect(
-      await screen.findByRole('heading', { name: 'Ensaio do teclado' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Ensaio do teclado' })).toBeInTheDocument();
   });
 
   it('ensaio-teclado só aparece em paginas/ensaioTeclado/ e em rotas.tsx (fora da navegação)', () => {

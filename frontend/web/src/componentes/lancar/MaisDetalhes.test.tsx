@@ -6,12 +6,7 @@ function montar(data: string, descricao = '') {
   const aoMudarData = vi.fn();
   const aoMudarDescricao = vi.fn();
   const resultado = render(
-    <MaisDetalhes
-      data={data}
-      descricao={descricao}
-      aoMudarData={aoMudarData}
-      aoMudarDescricao={aoMudarDescricao}
-    />,
+    <MaisDetalhes data={data} descricao={descricao} aoMudarData={aoMudarData} aoMudarDescricao={aoMudarDescricao} />,
   );
   return { aoMudarData, aoMudarDescricao, ...resultado };
 }

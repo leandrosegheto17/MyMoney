@@ -7,9 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AreaAutenticada } from './paginas/AreaAutenticada';
 
 const lerResposta = (nome: string) =>
-  JSON.parse(
-    readFileSync(fileURLToPath(new URL(`../../../.md/mockup/respostas/${nome}`, import.meta.url)), 'utf8'),
-  );
+  JSON.parse(readFileSync(fileURLToPath(new URL(`../../../.md/mockup/respostas/${nome}`, import.meta.url)), 'utf8'));
 
 const sessao = {
   access_token: 'token-de-teste',

@@ -59,7 +59,10 @@ function comandoSimulado() {
   const comando = vi.fn();
   Object.assign(comando, {
     mutateAsync: comando,
-    mutate: (argumentos: unknown, opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void }) => {
+    mutate: (
+      argumentos: unknown,
+      opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void },
+    ) => {
       Promise.resolve()
         .then(() => comando(argumentos))
         .then(
@@ -171,9 +174,7 @@ describe('DespesaFixa: edição', () => {
   });
 
   it('modelo inexistente ou alheio mostra "não existe mais"', () => {
-    vi.mocked(useDespesaFixa).mockReturnValue(
-      consultaComErro({ tipo: 'regra', codigo: 'registro_invalido' }) as never,
-    );
+    vi.mocked(useDespesaFixa).mockReturnValue(consultaComErro({ tipo: 'regra', codigo: 'registro_invalido' }) as never);
     renderizarPagina(CAMINHO_EDICAO);
 
     expect(screen.getByText(/Esta despesa fixa não existe mais/)).toBeInTheDocument();
@@ -313,9 +314,7 @@ describe('DespesaFixa: encerrar', () => {
 
   it('modelo já encerrado não mostra o botão Encerrar', () => {
     const [aluguel] = resposta<Array<Record<string, unknown>>>('despesa-fixa');
-    vi.mocked(useDespesaFixa).mockReturnValue(
-      consultaPronta({ ...aluguel, encerrada_em: '2026-09-30' }) as never,
-    );
+    vi.mocked(useDespesaFixa).mockReturnValue(consultaPronta({ ...aluguel, encerrada_em: '2026-09-30' }) as never);
     renderizarPagina(CAMINHO_EDICAO);
 
     expect(screen.getByLabelText('Descrição')).toHaveValue('Aluguel');

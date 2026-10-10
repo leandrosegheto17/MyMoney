@@ -59,7 +59,15 @@ describe('ResumoLancamento', () => {
       num_parcelas: 1,
       parcela_em_foco: 1,
       valor_total_centavos: 65000,
-      parcelas: [{ id: '00000000-0000-4000-8000-000000000620', numero: 1, valor_centavos: 65000, data: '2026-09-10', data_ajustada: false }],
+      parcelas: [
+        {
+          id: '00000000-0000-4000-8000-000000000620',
+          numero: 1,
+          valor_centavos: 65000,
+          data: '2026-09-10',
+          data_ajustada: false,
+        },
+      ],
     };
     const resumo = renderizar(avista);
     expect(resumo).toHaveTextContent('Geladeira nova');

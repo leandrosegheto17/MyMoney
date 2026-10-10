@@ -9,7 +9,10 @@ const orcamento = lerResposta<ResumoMes>('resumo-mes.json').conjunto.orcamento;
 const classe = (nome: string) => new RegExp(`(^|\\s|_)${nome}(_|\\s|$)`);
 
 function preenchimento(barra: HTMLElement) {
-  return barra.style.getPropertyValue('--p') || (barra.querySelector('[style]') as HTMLElement | null)?.style.getPropertyValue('--p');
+  return (
+    barra.style.getPropertyValue('--p') ||
+    (barra.querySelector('[style]') as HTMLElement | null)?.style.getPropertyValue('--p')
+  );
 }
 
 function montar(o: typeof orcamento | null) {

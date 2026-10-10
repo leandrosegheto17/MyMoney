@@ -28,9 +28,7 @@ describe('Selecao', () => {
 
   it('dispara a mudança com o valor escolhido', () => {
     const aoMudar = vi.fn();
-    render(
-      <Selecao rotulo="Conta" opcoes={opcoes} value="conta-1" onChange={(e) => aoMudar(e.target.value)} />,
-    );
+    render(<Selecao rotulo="Conta" opcoes={opcoes} value="conta-1" onChange={(e) => aoMudar(e.target.value)} />);
     fireEvent.change(screen.getByLabelText('Conta'), { target: { value: 'conta-2' } });
     expect(aoMudar).toHaveBeenCalledWith('conta-2');
   });

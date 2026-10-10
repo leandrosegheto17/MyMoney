@@ -50,7 +50,11 @@ function comando() {
   return Object.assign(fn, { mutateAsync: fn, isPending: false });
 }
 
-let comandos: { editar: ReturnType<typeof comando>; excluir: ReturnType<typeof comando>; alterarDataParcela: ReturnType<typeof comando> };
+let comandos: {
+  editar: ReturnType<typeof comando>;
+  excluir: ReturnType<typeof comando>;
+  alterarDataParcela: ReturnType<typeof comando>;
+};
 const mostrar = vi.fn();
 
 function SondaLocal() {
@@ -137,7 +141,9 @@ describe('Lancamento (T05): salvar', () => {
     mudarDescricao('Geladeira inox');
     salvar();
     await waitFor(() => expect(comandos.editar).toHaveBeenCalledTimes(1));
-    const [argumentos] = comandos.editar.mock.calls[0] as [{ id: string; campos: Record<string, unknown>; confirmarDescarte?: boolean }];
+    const [argumentos] = comandos.editar.mock.calls[0] as [
+      { id: string; campos: Record<string, unknown>; confirmarDescarte?: boolean },
+    ];
     expect(argumentos.id).toBe(ID);
     expect(argumentos.campos).toEqual({ descricao: 'Geladeira inox' });
     expect(argumentos.confirmarDescarte ?? false).toBe(false);

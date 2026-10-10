@@ -63,7 +63,9 @@ function montar(caminho: string) {
 }
 
 const alertaCom = (texto: string | RegExp) =>
-  screen.getAllByRole('alert').find((el) => (typeof texto === 'string' ? el.textContent?.includes(texto) : texto.test(el.textContent ?? '')));
+  screen
+    .getAllByRole('alert')
+    .find((el) => (typeof texto === 'string' ? el.textContent?.includes(texto) : texto.test(el.textContent ?? '')));
 
 beforeEach(() => {
   vi.clearAllMocks();

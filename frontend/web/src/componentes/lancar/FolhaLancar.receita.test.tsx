@@ -14,8 +14,7 @@ const NUBANK = '00000000-0000-4000-8000-000000000201';
 const SALARIO = '00000000-0000-4000-8000-000000000421';
 
 const TEXTO_SEM_CONEXAO = 'Sem conexão. A receita não foi salva';
-const TEXTO_NOTA =
-  'Sem conexão, a receita não é guardada no aparelho: o app avisa e mantém os dados preenchidos.';
+const TEXTO_NOTA = 'Sem conexão, a receita não é guardada no aparelho: o app avisa e mantém os dados preenchidos.';
 
 type Resultado = { tipo: 'sucesso' | 'sem_conexao' | 'regra' | 'guardado'; [k: string]: unknown };
 

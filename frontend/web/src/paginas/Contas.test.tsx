@@ -95,9 +95,7 @@ describe('Contas (T15)', () => {
     montar();
 
     expect(await screen.findByRole('heading', { name: 'Nenhuma conta cadastrada' })).toBeInTheDocument();
-    expect(
-      screen.getByText('Cadastre suas contas correntes para acompanhar o saldo. Só você vê.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Cadastre suas contas correntes para acompanhar o saldo. Só você vê.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Nova conta' })).toHaveAttribute('href', '/ajustes/contas/nova');
     expect(screen.queryByRole('link', { name: /^Nova$/ })).not.toBeInTheDocument();
   });

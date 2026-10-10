@@ -58,7 +58,12 @@ function opcoes() {
 }
 
 function opcao(nome: RegExp) {
-  const achada = opcoes().find((o) => nome.test(o.textContent ?? '') || nome.test(o.getAttribute('aria-label') ?? '') || nome.test(o.closest('label')?.textContent ?? ''));
+  const achada = opcoes().find(
+    (o) =>
+      nome.test(o.textContent ?? '') ||
+      nome.test(o.getAttribute('aria-label') ?? '') ||
+      nome.test(o.closest('label')?.textContent ?? ''),
+  );
   if (!achada) throw new Error(`opção ${nome} não encontrada`);
   return achada;
 }

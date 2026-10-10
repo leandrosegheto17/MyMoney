@@ -12,9 +12,9 @@ describe('cliente supabase interno a dados/', () => {
   it('importar dados/cliente de ganchos/ é erro', () => {
     const erros = mensagensDe('ganchos/importaCliente.ts').filter((m) => m.severity === 2);
     expect(erros.length).toBeGreaterThan(0);
-    expect(
-      erros.some((m) => m.ruleId === 'no-restricted-imports' || m.ruleId === 'import-x/no-restricted-paths'),
-    ).toBe(true);
+    expect(erros.some((m) => m.ruleId === 'no-restricted-imports' || m.ruleId === 'import-x/no-restricted-paths')).toBe(
+      true,
+    );
   });
 
   it('dentro de dados/ o cliente pode ser importado', () => {

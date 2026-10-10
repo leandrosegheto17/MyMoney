@@ -170,9 +170,7 @@ describe('FormaPagamento (T18): edição de crédito', () => {
 
     await waitFor(() => expect(h.definirPreferida).toHaveBeenCalledTimes(1));
     expect(h.definirPreferida.mock.calls[0][0]).toEqual({ id: ID_XP, preferida: true });
-    expect(h.salvarForma.mock.invocationCallOrder[0]).toBeLessThan(
-      h.definirPreferida.mock.invocationCallOrder[0],
-    );
+    expect(h.salvarForma.mock.invocationCallOrder[0]).toBeLessThan(h.definirPreferida.mock.invocationCallOrder[0]);
   });
 
   it('desligar a preferida chama definirPreferida(id, false)', async () => {
@@ -230,7 +228,13 @@ describe('FormaPagamento (T18): forma nova', () => {
   it('Débito oferece como conta de origem só as contas ativas e envia a escolhida', async () => {
     h.buscarContas.mockResolvedValue([
       ...(lerResposta('contas.json') as object[]),
-      { id: '00000000-0000-4000-8000-000000000209', nome: 'Antiga', saldo_inicial_centavos: 0, saldo_centavos: 0, arquivada: true },
+      {
+        id: '00000000-0000-4000-8000-000000000209',
+        nome: 'Antiga',
+        saldo_inicial_centavos: 0,
+        saldo_centavos: 0,
+        arquivada: true,
+      },
     ]);
     const { usuario } = montar('/ajustes/formas/nova');
 

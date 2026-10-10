@@ -49,7 +49,9 @@ describe('EuPorCategoria', () => {
     montar();
 
     const [, daCasa] = within(cartao()).getAllByRole('list');
-    expect(within(within(daCasa).getByRole('link', { name: /^Moradia/ })).queryByText('variável')).not.toBeInTheDocument();
+    expect(
+      within(within(daCasa).getByRole('link', { name: /^Moradia/ })).queryByText('variável'),
+    ).not.toBeInTheDocument();
     expect(within(within(daCasa).getByRole('link', { name: /^Mercado/ })).getByText('variável')).toBeInTheDocument();
     expect(within(cartao()).getAllByText('variável')).toHaveLength(6);
   });

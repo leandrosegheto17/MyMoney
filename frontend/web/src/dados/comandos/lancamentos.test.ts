@@ -140,17 +140,16 @@ describe('editarLancamento', () => {
   it('registro_invalido é traduzido', async () => {
     fetchSimulado.mockImplementation(responder(400, lerResposta('erro-registro-invalido.json')));
 
-    await expect(
-      editarLancamento({ id: ID_GELADEIRA, campos: { descricao: 'x' } }),
-    ).rejects.toEqual({ tipo: 'regra', codigo: 'registro_invalido' });
+    await expect(editarLancamento({ id: ID_GELADEIRA, campos: { descricao: 'x' } })).rejects.toEqual({
+      tipo: 'regra',
+      codigo: 'registro_invalido',
+    });
   });
 
   it('TypeError do fetch vira { tipo: "rede" }', async () => {
     fetchSimulado.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await expect(
-      editarLancamento({ id: ID_GELADEIRA, campos: { descricao: 'x' } }),
-    ).rejects.toEqual({ tipo: 'rede' });
+    await expect(editarLancamento({ id: ID_GELADEIRA, campos: { descricao: 'x' } })).rejects.toEqual({ tipo: 'rede' });
   });
 });
 

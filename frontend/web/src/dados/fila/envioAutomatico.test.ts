@@ -153,17 +153,20 @@ describe('iniciarEnvioAutomatico: sessão', () => {
     expect(ordem).toEqual(['garantirSessaoValida', 'esvaziar']);
   });
 
-  it.each(['rede', 'revogada', 'sem-sessao'] as const)('sessão "%s": não envia e não mexe na fila', async (situacao) => {
-    garantirSessaoValida.mockResolvedValue(situacao);
-    estado.itens = [aguardando];
+  it.each(['rede', 'revogada', 'sem-sessao'] as const)(
+    'sessão "%s": não envia e não mexe na fila',
+    async (situacao) => {
+      garantirSessaoValida.mockResolvedValue(situacao);
+      estado.itens = [aguardando];
 
-    await iniciar();
-    window.dispatchEvent(new Event('online'));
-    await vi.advanceTimersByTimeAsync(30_000);
+      await iniciar();
+      window.dispatchEvent(new Event('online'));
+      await vi.advanceTimersByTimeAsync(30_000);
 
-    expect(garantirSessaoValida).toHaveBeenCalled();
-    expect(fila.esvaziar).not.toHaveBeenCalled();
-  });
+      expect(garantirSessaoValida).toHaveBeenCalled();
+      expect(fila.esvaziar).not.toHaveBeenCalled();
+    },
+  );
 
   it('parar() depois de sessão revogada não dá erro', async () => {
     garantirSessaoValida.mockResolvedValue('revogada');

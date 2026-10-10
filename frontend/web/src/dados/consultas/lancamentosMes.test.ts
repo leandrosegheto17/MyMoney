@@ -18,9 +18,7 @@ const lerResposta = (nome: string): unknown =>
   JSON.parse(readFileSync(new URL(`../../../../../.md/mockup/respostas/${nome}`, import.meta.url), 'utf8'));
 
 const responder = (status: number, corpo: unknown) => () =>
-  Promise.resolve(
-    new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }),
-  );
+  Promise.resolve(new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }));
 
 function requisicoesRest() {
   return fetchSimulado.mock.calls

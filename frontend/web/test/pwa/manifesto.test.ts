@@ -23,10 +23,7 @@ type Manifesto = {
 
 let saida: string;
 let manifesto: Manifesto;
-const corFundo = lerToken(
-  readFileSync(new URL('../../src/estilo/tokens.css', import.meta.url), 'utf8'),
-  '--cor-fundo',
-);
+const corFundo = lerToken(readFileSync(new URL('../../src/estilo/tokens.css', import.meta.url), 'utf8'), '--cor-fundo');
 
 beforeAll(async () => {
   saida = mkdtempSync(join(tmpdir(), 'mymoney-pwa-'));
@@ -74,9 +71,7 @@ describe('manifest.webmanifest do build', () => {
   it('o index.html aponta o apple-touch-icon e a cor do tema', () => {
     const html = readFileSync(join(saida, 'index.html'), 'utf8');
     expect(html).toContain('<link rel="apple-touch-icon" href="/icones/apple-touch-icon.png"');
-    expect(html.toLowerCase()).toMatch(
-      new RegExp(`<meta name="theme-color" content="${corFundo.toLowerCase()}"`),
-    );
+    expect(html.toLowerCase()).toMatch(new RegExp(`<meta name="theme-color" content="${corFundo.toLowerCase()}"`));
     expect(html).toContain('<meta name="apple-mobile-web-app-title" content="MyMoney"');
   });
 });

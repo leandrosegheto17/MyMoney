@@ -77,7 +77,10 @@ function comandoSimulado() {
   const comando = vi.fn();
   Object.assign(comando, {
     mutateAsync: comando,
-    mutate: (argumentos: unknown, opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void }) => {
+    mutate: (
+      argumentos: unknown,
+      opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void },
+    ) => {
       Promise.resolve()
         .then(() => comando(argumentos))
         .then(

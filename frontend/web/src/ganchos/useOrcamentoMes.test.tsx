@@ -35,9 +35,7 @@ describe('useOrcamentoMes', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(buscarOrcamentoMes).toHaveBeenCalledWith('2026-10', 'conjunto');
-    expect(clienteConsulta.getQueryData(['orcamento_mes', '2026-10', 'conjunto'])).toEqual(
-      resposta('orcamento-mes'),
-    );
+    expect(clienteConsulta.getQueryData(['orcamento_mes', '2026-10', 'conjunto'])).toEqual(resposta('orcamento-mes'));
   });
 
   it('trocar o mês ou o escopo busca de novo sem manter os dados anteriores', async () => {

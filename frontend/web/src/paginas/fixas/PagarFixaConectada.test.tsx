@@ -47,7 +47,10 @@ function comandoSimulado() {
   const comando = vi.fn();
   Object.assign(comando, {
     mutateAsync: comando,
-    mutate: (argumentos: unknown, opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void }) => {
+    mutate: (
+      argumentos: unknown,
+      opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void },
+    ) => {
       Promise.resolve()
         .then(() => comando(argumentos))
         .then(
@@ -149,7 +152,9 @@ describe('Folha "Marcar como paga": abertura e padrões', () => {
     expect(dialogo).toHaveAttribute('aria-modal', 'true');
     expect(dialogo).toHaveTextContent('Internet');
     expect(dialogo).toHaveTextContent('Contas da casa · venceu 05/10');
-    expect(within(dialogo).getByRole('button', { name: /Forma de pagamento\s*Pix Nubank\s*· Pix/ })).toBeInTheDocument();
+    expect(
+      within(dialogo).getByRole('button', { name: /Forma de pagamento\s*Pix Nubank\s*· Pix/ }),
+    ).toBeInTheDocument();
     expect(
       within(dialogo).getByText('Só você vê a forma e a conta. O outro membro vê "Paga por Leandro".'),
     ).toBeInTheDocument();
@@ -166,7 +171,9 @@ describe('Folha "Marcar como paga": abertura e padrões', () => {
 
     await escolherForma(usuario, 'Cartão de crédito XP');
 
-    expect(within(folha()).getByRole('button', { name: /Forma de pagamento\s*Cartão de crédito XP\s*· Crédito/ })).toBeInTheDocument();
+    expect(
+      within(folha()).getByRole('button', { name: /Forma de pagamento\s*Cartão de crédito XP\s*· Crédito/ }),
+    ).toBeInTheDocument();
     expect(within(folha()).getByText(NOTA_CREDITO)).toBeInTheDocument();
   });
 

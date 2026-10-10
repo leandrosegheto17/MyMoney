@@ -9,15 +9,7 @@ const opcoes = [
 ];
 
 function montar(aoMudar = vi.fn()) {
-  render(
-    <Segmentado
-      legenda="Tipo de lançamento"
-      nome="tipo"
-      opcoes={opcoes}
-      valor="despesa"
-      aoMudar={aoMudar}
-    />,
-  );
+  render(<Segmentado legenda="Tipo de lançamento" nome="tipo" opcoes={opcoes} valor="despesa" aoMudar={aoMudar} />);
   return aoMudar;
 }
 

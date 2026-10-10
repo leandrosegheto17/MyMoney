@@ -37,7 +37,9 @@ function grupo() {
 }
 
 function chipDe(nome: string) {
-  return screen.getByRole('radio', { name: new RegExp(`^${nome.replace(/[/]/g, '\\/')}`) }).closest('label') as HTMLElement;
+  return screen
+    .getByRole('radio', { name: new RegExp(`^${nome.replace(/[/]/g, '\\/')}`) })
+    .closest('label') as HTMLElement;
 }
 
 describe('SecaoCategoria: grade', () => {

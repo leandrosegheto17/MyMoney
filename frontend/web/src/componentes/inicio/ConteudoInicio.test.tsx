@@ -39,11 +39,31 @@ const resumo = lerResposta<ResumoMes>('resumo-mes.json');
 const vazio = lerResposta<ResumoMes>('resumo-mes-vazio.json');
 
 const TODOS = [
-  CasaTotal, CasaQuemPagou, CasaFixas, CasaOrcamento, CasaPorCategoria, CasaResultado, CasaMetas,
-  EuTotal, EuReceitas, EuOrcamento, EuPorCategoria, EuContas, EuCartoes, EuMetas,
+  CasaTotal,
+  CasaQuemPagou,
+  CasaFixas,
+  CasaOrcamento,
+  CasaPorCategoria,
+  CasaResultado,
+  CasaMetas,
+  EuTotal,
+  EuReceitas,
+  EuOrcamento,
+  EuPorCategoria,
+  EuContas,
+  EuCartoes,
+  EuMetas,
 ];
 const NO_MES_VAZIO = [CasaTotal, CasaFixas, CasaOrcamento, CasaMetas, EuTotal, EuContas, EuMetas];
-const ESCONDIDOS_NO_MES_VAZIO = [CasaQuemPagou, CasaPorCategoria, CasaResultado, EuReceitas, EuOrcamento, EuPorCategoria, EuCartoes];
+const ESCONDIDOS_NO_MES_VAZIO = [
+  CasaQuemPagou,
+  CasaPorCategoria,
+  CasaResultado,
+  EuReceitas,
+  EuOrcamento,
+  EuPorCategoria,
+  EuCartoes,
+];
 
 function montar(r: ResumoMes) {
   return render(

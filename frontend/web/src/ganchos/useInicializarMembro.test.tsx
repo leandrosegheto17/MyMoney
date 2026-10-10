@@ -34,9 +34,7 @@ describe('useInicializarMembro', () => {
     renderHook(() => useInicializarMembro(USUARIO_A), { wrapper: envolver });
 
     await waitFor(() => expect(inicializarMembro).toHaveBeenCalledWith(USUARIO_A));
-    await waitFor(() =>
-      expect(invalidar).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['categorias'] })),
-    );
+    await waitFor(() => expect(invalidar).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ['categorias'] })));
   });
 
   it('re-renderizações com o mesmo usuário não chamam de novo', async () => {

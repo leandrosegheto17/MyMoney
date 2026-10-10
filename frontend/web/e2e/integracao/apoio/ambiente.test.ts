@@ -32,19 +32,13 @@ describe('lerAmbienteIntegracao', () => {
       'http://exemplo.com/127.0.0.1',
       'http://localhost@exemplo.com',
     ]) {
-      expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: url })), url).toThrow(
-        /VITE_SUPABASE_URL/,
-      );
+      expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: url })), url).toThrow(/VITE_SUPABASE_URL/);
     }
   });
 
   it('recusa URL ausente ou inválida', () => {
-    expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: undefined }))).toThrow(
-      /VITE_SUPABASE_URL/,
-    );
-    expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: 'não é url' }))).toThrow(
-      /VITE_SUPABASE_URL/,
-    );
+    expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: undefined }))).toThrow(/VITE_SUPABASE_URL/);
+    expect(() => lerAmbienteIntegracao(env({ VITE_SUPABASE_URL: 'não é url' }))).toThrow(/VITE_SUPABASE_URL/);
   });
 
   it('exige cada variável TESTE_* com o nome dela no erro', () => {

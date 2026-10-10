@@ -37,9 +37,7 @@ describe('useLancamentosMes', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual(resposta('lancamentos-mes'));
     expect(buscarLancamentosMes).toHaveBeenCalledWith(expect.objectContaining({ mes: '2026-10', ...filtros }));
-    expect(clienteConsulta.getQueryData(['lancamentos_mes', '2026-10', filtros])).toEqual(
-      resposta('lancamentos-mes'),
-    );
+    expect(clienteConsulta.getQueryData(['lancamentos_mes', '2026-10', filtros])).toEqual(resposta('lancamentos-mes'));
   });
 
   it('trocar o filtro mantém os dados anteriores até chegar a nova resposta', async () => {

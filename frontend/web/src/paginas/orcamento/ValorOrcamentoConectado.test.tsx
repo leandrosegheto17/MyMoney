@@ -41,7 +41,10 @@ function comandoSimulado() {
   const comando = vi.fn();
   Object.assign(comando, {
     mutateAsync: comando,
-    mutate: (argumentos: unknown, opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void }) => {
+    mutate: (
+      argumentos: unknown,
+      opcoes?: { onSuccess?: (r: unknown) => void; onError?: (e: unknown) => void; onSettled?: () => void },
+    ) => {
       Promise.resolve()
         .then(() => comando(argumentos))
         .then(
@@ -236,9 +239,7 @@ describe('Folha de valor do orçamento: erros', () => {
     await digitarValor(usuario, '45000');
     await usuario.click(within(folha()).getByRole('button', { name: 'Salvar' }));
 
-    await waitFor(() =>
-      expect(within(folha()).getByLabelText('Valor orçado')).toHaveAttribute('aria-invalid', 'true'),
-    );
+    await waitFor(() => expect(within(folha()).getByLabelText('Valor orçado')).toHaveAttribute('aria-invalid', 'true'));
     expect(mostrarAviso).not.toHaveBeenCalledWith('sucesso', expect.anything());
   });
 

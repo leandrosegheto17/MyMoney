@@ -25,7 +25,9 @@ describe('BarraNavegacao', () => {
     const { nav } = renderizar('/');
     const itens = within(nav).getAllByRole('listitem');
     expect(itens).toHaveLength(5);
-    const nomes = within(nav).getAllByRole('link').map((link) => link.textContent?.trim());
+    const nomes = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.textContent?.trim());
     expect(nomes).toEqual(['Início', 'Lançamentos', 'Lançar', 'Orçamento', 'Metas']);
   });
 
@@ -73,14 +75,8 @@ describe('BarraNavegacao', () => {
   it('com mes, os itens que levam o mês recebem ?mes= e Metas não', () => {
     const { nav } = renderizar('/', { mes: '2026-09' });
     expect(within(nav).getByRole('link', { name: 'Início' })).toHaveAttribute('href', '/?mes=2026-09');
-    expect(within(nav).getByRole('link', { name: 'Lançamentos' })).toHaveAttribute(
-      'href',
-      '/lancamentos?mes=2026-09',
-    );
-    expect(within(nav).getByRole('link', { name: 'Orçamento' })).toHaveAttribute(
-      'href',
-      '/orcamento?mes=2026-09',
-    );
+    expect(within(nav).getByRole('link', { name: 'Lançamentos' })).toHaveAttribute('href', '/lancamentos?mes=2026-09');
+    expect(within(nav).getByRole('link', { name: 'Orçamento' })).toHaveAttribute('href', '/orcamento?mes=2026-09');
     expect(within(nav).getByRole('link', { name: 'Metas' })).toHaveAttribute('href', '/metas');
   });
 

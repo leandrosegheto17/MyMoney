@@ -6,7 +6,15 @@ import { SecaoParcelas } from './SecaoParcelas';
 
 type TipoForma = 'pix' | 'debito' | 'credito';
 
-function Controlado({ tipoForma, inicial = 1, aoMudar = vi.fn() }: { tipoForma: TipoForma; inicial?: number; aoMudar?: (n: number) => void }) {
+function Controlado({
+  tipoForma,
+  inicial = 1,
+  aoMudar = vi.fn(),
+}: {
+  tipoForma: TipoForma;
+  inicial?: number;
+  aoMudar?: (n: number) => void;
+}) {
   const [valor, setValor] = useState(inicial);
   return (
     <SecaoParcelas

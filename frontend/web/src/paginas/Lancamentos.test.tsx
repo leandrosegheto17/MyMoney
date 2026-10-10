@@ -66,13 +66,9 @@ function renderizar(rota = '/lancamentos?mes=2026-10') {
 
 beforeEach(() => {
   vi.mocked(useContexto).mockReturnValue(resultado({ data: resposta('contexto.json') }) as never);
-  vi.mocked(useDadosLancamento).mockReturnValue(
-    resultado({ data: resposta('dados-lancamento.json') }) as never,
-  );
+  vi.mocked(useDadosLancamento).mockReturnValue(resultado({ data: resposta('dados-lancamento.json') }) as never);
   vi.mocked(usePendentes).mockReturnValue({ total: 0, aguardando: 0, falhas: 0, itens: [] } as never);
-  vi.mocked(useLancamentosMes).mockReturnValue(
-    resultado({ data: resposta('lancamentos-mes.json') }) as never,
-  );
+  vi.mocked(useLancamentosMes).mockReturnValue(resultado({ data: resposta('lancamentos-mes.json') }) as never);
 });
 
 afterEach(() => {
@@ -173,9 +169,7 @@ describe('Lancamentos (T04): lista do mês', () => {
 
 describe('Lancamentos (T04): filtros e fila', () => {
   it('os filtros da URL chegam ao gancho no formato da API', () => {
-    renderizar(
-      '/lancamentos?mes=2026-10&escopo=casa&forma=00000000-0000-4000-8000-000000000302&variavel=1',
-    );
+    renderizar('/lancamentos?mes=2026-10&escopo=casa&forma=00000000-0000-4000-8000-000000000302&variavel=1');
     expect(useLancamentosMes).toHaveBeenLastCalledWith(
       '2026-10',
       expect.objectContaining({
@@ -187,9 +181,7 @@ describe('Lancamentos (T04): filtros e fila', () => {
   });
 
   it('vazio com filtro: "Nenhum lançamento com esses filtros" e "Limpar filtros" tira os filtros da URL', () => {
-    vi.mocked(useLancamentosMes).mockReturnValue(
-      resultado({ data: resposta('lancamentos-mes-vazio.json') }) as never,
-    );
+    vi.mocked(useLancamentosMes).mockReturnValue(resultado({ data: resposta('lancamentos-mes-vazio.json') }) as never);
     renderizar('/lancamentos?mes=2026-10&escopo=casa&forma=00000000-0000-4000-8000-000000000302');
 
     expect(screen.getByRole('heading', { name: 'Nenhum lançamento com esses filtros' })).toBeInTheDocument();

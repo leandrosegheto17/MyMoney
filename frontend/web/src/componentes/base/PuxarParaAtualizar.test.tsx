@@ -41,7 +41,8 @@ function montar(aoAtualizar: () => Promise<unknown>) {
 }
 
 function puxar(alvo: Element, deltaY: number, deltaX = 0, dedos = 1) {
-  const ponto = (x: number, y: number) => Array.from({ length: dedos }, () => ({ clientX: x, clientY: y, identifier: 0 }));
+  const ponto = (x: number, y: number) =>
+    Array.from({ length: dedos }, () => ({ clientX: x, clientY: y, identifier: 0 }));
   fireEvent.touchStart(alvo, { touches: ponto(100, 100), changedTouches: ponto(100, 100) });
   for (let passo = 1; passo <= 4; passo++) {
     const x = 100 + (deltaX * passo) / 4;

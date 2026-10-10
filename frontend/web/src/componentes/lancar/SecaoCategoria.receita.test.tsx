@@ -18,9 +18,7 @@ function receitas(total: number) {
 
 describe('SecaoCategoria com semOutras (receita)', () => {
   it('mostra as 3 categorias de receita na ordem recebida e não mostra "Outras…"', () => {
-    render(
-      <SecaoCategoria categorias={DADOS.categorias_receita} valor={null} aoMudar={vi.fn()} semOutras />,
-    );
+    render(<SecaoCategoria categorias={DADOS.categorias_receita} valor={null} aoMudar={vi.fn()} semOutras />);
 
     const radios = screen.getAllByRole('radio');
     expect(radios.map((r) => r.closest('label')?.querySelector('.chip-nome')?.textContent ?? '')).toEqual([
@@ -32,9 +30,7 @@ describe('SecaoCategoria com semOutras (receita)', () => {
   });
 
   it('cada chip de receita leva o selo "Eu"', () => {
-    render(
-      <SecaoCategoria categorias={DADOS.categorias_receita} valor={null} aoMudar={vi.fn()} semOutras />,
-    );
+    render(<SecaoCategoria categorias={DADOS.categorias_receita} valor={null} aoMudar={vi.fn()} semOutras />);
 
     for (const radio of screen.getAllByRole('radio')) {
       const chip = radio.closest('label') as HTMLElement;

@@ -27,16 +27,12 @@ describe('cópias do mockup sem alteração', () => {
     expect(doMockup.length).toBeGreaterThan(0);
     expect(doApp).toEqual(doMockup);
     for (const nome of doMockup) {
-      expect(sha256(new URL(`fontes/${nome}`, ESTILO)), nome).toBe(
-        sha256(new URL(`fontes/${nome}`, MOCKUP)),
-      );
+      expect(sha256(new URL(`fontes/${nome}`, ESTILO)), nome).toBe(sha256(new URL(`fontes/${nome}`, MOCKUP)));
     }
   });
 
   it('a licença OFL acompanha as fontes', () => {
-    expect(sha256(new URL('fontes/LICENSE-OFL.txt', ESTILO))).toBe(
-      sha256(new URL('fontes/LICENSE-OFL.txt', MOCKUP)),
-    );
+    expect(sha256(new URL('fontes/LICENSE-OFL.txt', ESTILO))).toBe(sha256(new URL('fontes/LICENSE-OFL.txt', MOCKUP)));
   });
 });
 

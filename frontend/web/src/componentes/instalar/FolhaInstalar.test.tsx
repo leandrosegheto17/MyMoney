@@ -12,14 +12,7 @@ function renderizar(props: Partial<Props> = {}) {
   const aoInstalar = vi.fn();
   const aoFechar = vi.fn();
   const resultado = render(
-    <FolhaInstalar
-      aberta
-      plataforma="ios"
-      temPrompt={false}
-      aoInstalar={aoInstalar}
-      aoFechar={aoFechar}
-      {...props}
-    />,
+    <FolhaInstalar aberta plataforma="ios" temPrompt={false} aoInstalar={aoInstalar} aoFechar={aoFechar} {...props} />,
   );
   return { ...resultado, aoInstalar, aoFechar };
 }
@@ -41,9 +34,7 @@ describe('FolhaInstalar no iOS', () => {
     expect(passos).toHaveLength(3);
     expect(passos[0]).toHaveTextContent('No Safari, toque em Compartilhar');
     expect(passos[1]).toHaveTextContent('Escolha Adicionar à Tela de Início');
-    expect(passos[2]).toHaveTextContent(
-      'Toque em Adicionar. O ícone "MyMoney" aparece na tela de início.',
-    );
+    expect(passos[2]).toHaveTextContent('Toque em Adicionar. O ícone "MyMoney" aparece na tela de início.');
     expect(within(passos[0]).getByText('Compartilhar').tagName).toBe('STRONG');
     expect(within(passos[1]).getByText('Adicionar à Tela de Início').tagName).toBe('STRONG');
   });

@@ -41,12 +41,7 @@ describe('BarraProgresso', () => {
 
   it('o topo fica visível antes da barra', () => {
     render(
-      <BarraProgresso
-        percentual={56}
-        situacao="dentro"
-        rotulo="Orçamento da casa"
-        topo="R$ 2.418,70 de R$ 4.300,00"
-      />,
+      <BarraProgresso percentual={56} situacao="dentro" rotulo="Orçamento da casa" topo="R$ 2.418,70 de R$ 4.300,00" />,
     );
 
     const topo = screen.getByText('R$ 2.418,70 de R$ 4.300,00');
@@ -92,9 +87,7 @@ describe('BarraProgresso', () => {
   });
 
   it('não usa atributo style estático no HTML', () => {
-    const { container } = render(
-      <BarraProgresso percentual={40} situacao="dentro" rotulo="Mercado" topo="40%" />,
-    );
+    const { container } = render(<BarraProgresso percentual={40} situacao="dentro" rotulo="Mercado" topo="40%" />);
 
     const comStyle = Array.from(container.querySelectorAll('[style]'));
     for (const el of comStyle) expect(el.getAttribute('style')).toMatch(/^--p:\s*40%;?$/);

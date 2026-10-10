@@ -83,9 +83,9 @@ describe('useComandosLancamento: editar', () => {
     const { result } = renderHook(() => useComandosLancamento(), { wrapper: envoltorio });
 
     await act(async () => {
-      await expect(
-        executar(result.current.editar, { id: ID_GELADEIRA, campos: { descricao: 'x' } }),
-      ).rejects.toEqual({ tipo: 'rede' });
+      await expect(executar(result.current.editar, { id: ID_GELADEIRA, campos: { descricao: 'x' } })).rejects.toEqual({
+        tipo: 'rede',
+      });
     });
 
     expect(espiaInvalidar).not.toHaveBeenCalled();

@@ -101,9 +101,7 @@ describe('LinhaLancamento', () => {
       variavel: false,
       valorCentavos: 750000,
     });
-    const valor = Array.from(link.querySelectorAll('span')).find((el) =>
-      classe('valor-receita').test(el.className),
-    );
+    const valor = Array.from(link.querySelectorAll('span')).find((el) => classe('valor-receita').test(el.className));
     expect(valor).toBeDefined();
     expect(valor).toHaveTextContent('+ R$ 7.500,00');
     expect(link).toHaveTextContent('Receita');

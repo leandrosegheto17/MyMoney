@@ -72,7 +72,13 @@ describe('CasaFixas com pendentes', () => {
 
   it('com 5 pendentes mostra só 3', () => {
     const [a, b, c] = resumo.conjunto.fixas_pendentes;
-    const cinco = [a, b, c, { ...c, ocorrencia_id: 'x4', descricao: 'Luz' }, { ...c, ocorrencia_id: 'x5', descricao: 'Água' }];
+    const cinco = [
+      a,
+      b,
+      c,
+      { ...c, ocorrencia_id: 'x4', descricao: 'Luz' },
+      { ...c, ocorrencia_id: 'x5', descricao: 'Água' },
+    ];
     montar({ ...resumo.conjunto, fixas_pendentes: cinco });
 
     expect(itens()).toHaveLength(3);

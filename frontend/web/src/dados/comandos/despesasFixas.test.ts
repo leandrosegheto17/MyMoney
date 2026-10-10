@@ -1,11 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  desfazerPagamento,
-  encerrarDespesaFixa,
-  pagarOcorrencia,
-  salvarDespesaFixa,
-} from './despesasFixas';
+import { desfazerPagamento, encerrarDespesaFixa, pagarOcorrencia, salvarDespesaFixa } from './despesasFixas';
 
 const { fetchSimulado } = vi.hoisted(() => ({ fetchSimulado: vi.fn() }));
 
@@ -133,9 +128,9 @@ describe('pagarOcorrencia', () => {
   it('traduz falha do fetch para rede', async () => {
     fetchSimulado.mockRejectedValue(new TypeError('Failed to fetch'));
 
-    await expect(
-      pagarOcorrencia({ ocorrenciaId: ID_OCORRENCIA_INTERNET, formaId: ID_PIX }),
-    ).rejects.toMatchObject({ tipo: 'rede' });
+    await expect(pagarOcorrencia({ ocorrenciaId: ID_OCORRENCIA_INTERNET, formaId: ID_PIX })).rejects.toMatchObject({
+      tipo: 'rede',
+    });
   });
 });
 

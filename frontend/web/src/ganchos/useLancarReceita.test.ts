@@ -32,9 +32,7 @@ const lerResposta = (nome: string): Record<string, unknown> =>
   JSON.parse(readFileSync(new URL(`../../../../.md/mockup/respostas/${nome}`, import.meta.url), 'utf8'));
 
 const responder = (status: number, corpo: unknown) => () =>
-  Promise.resolve(
-    new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }),
-  );
+  Promise.resolve(new Response(JSON.stringify(corpo), { status, headers: { 'Content-Type': 'application/json' } }));
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
