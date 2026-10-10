@@ -9,8 +9,16 @@ create table app.movimento_conta (
   sentido text not null check (sentido in ('entrada', 'saida')),
   valor_centavos bigint not null check (valor_centavos > 0),
   data date not null,
+  forma_credito_id uuid,
+  -- Aporte/retirada de meta; o FK composto fica em movimento_meta.sql (ordem dos arquivos).
+  movimento_meta_id uuid unique,
   criado_em timestamptz not null default now(),
-  foreign key (conta_id, dono_id) references app.conta (id, dono_id)
+  foreign key (conta_id, dono_id) references app.conta (id, dono_id),
+  foreign key (forma_credito_id, dono_id) references app.forma_pagamento (id, dono_id),
+  constraint movimento_conta_forma_credito_ck
+    check ((tipo = 'pagamento_cartao') = (forma_credito_id is not null)),
+  constraint movimento_conta_meta_ck
+    check ((tipo in ('aporte', 'retirada')) = (movimento_meta_id is not null))
 );
 
 create index movimento_conta_conta_id_data_idx on app.movimento_conta (conta_id, data);
