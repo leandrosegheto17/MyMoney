@@ -1,6 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import { obterCliente } from './cliente';
 import { traduzirErro } from './erros';
+import { apagarCache } from './local/cacheDadosLancamento';
 import { sessaoDoModo } from './modoComparacao';
 
 /** Ponto único de leitura da sessão: tudo que precisa dela passa por aqui. */
@@ -30,12 +31,14 @@ export async function sair(): Promise<void> {
   if (semRede()) return;
   const { error } = await obterCliente().auth.signOut({ scope: 'local' });
   conferir(error);
+  await apagarCache();
 }
 
 export async function sairDeTodos(): Promise<void> {
   if (semRede()) return;
   const { error } = await obterCliente().auth.signOut({ scope: 'global' });
   conferir(error);
+  await apagarCache();
 }
 
 /** Resultado neutro: "usuário não existe" não muda a resposta; rede e indisponibilidade sim. */

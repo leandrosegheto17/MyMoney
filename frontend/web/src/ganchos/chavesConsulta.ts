@@ -6,4 +6,6 @@ export const CHAVES = {
   forma: (id: string) => ['formas_pagamento', id],
   categorias: ['categorias'],
   categoria: (id: string) => ['categorias', id],
+  dadosLancamento: ['dados_lancamento'],
+  dadosLancamentoAparelho: ['dados_lancamento', 'aparelho'],
 } as const;
