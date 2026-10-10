@@ -3,8 +3,10 @@
 -- permitido). `mes_fechado` = o mês terminou (RN-16d); enquanto aberto, os dois `resultado`
 -- levam `parcial = true`. Contas (não arquivadas) e cartões de crédito são do membro logado, com
 -- `dono_id` explícito além da RLS; o saldo é o atual (até hoje) em qualquer mês navegado. Cartão
--- arquivado só aparece enquanto ainda tiver valor no mês ou comprometido. Seções ainda sem dono
--- (metas, guardado no mês) saem vazias ou 0, na forma final do contrato.
+-- arquivado só aparece enquanto ainda tiver valor no mês ou comprometido. Metas: cada bloco
+-- traz o progresso atual (`app.progresso_meta`, independente do mês navegado), não atingidas
+-- primeiro e depois por nome; sem `escopo` nem `por_local`. `guardado_no_mes_centavos` vem de
+-- `app.guardado_no_mes` e não reduz nenhum resultado (RN-16c).
 -- Fixas: garante as ocorrências do mês (por isso é `volatile`; o PostgREST a chama por POST) e
 -- lê `app.ocorrencias_do_mes`; `fixas_pendentes` traz todas as não pagas (atrasadas primeiro, sem
 -- corte; a tela limita), `fixas_total` conta todas as ocorrências e o previsto a pagar soma o
@@ -30,6 +32,8 @@ declare
   v_orc_individual jsonb;
   v_contas jsonb;
   v_credito jsonb;
+  v_metas_conjunto jsonb;
+  v_metas_individual jsonb;
   v_fixas_total integer;
   v_fixas_pendentes jsonb;
   v_previsto bigint;
@@ -68,6 +72,28 @@ begin
           or coalesce(g.gasto_mes_centavos, 0) > 0
           or coalesce(g.comprometido_futuro_centavos, 0) > 0);
 
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'meta_id', m.id, 'nome', m.nome, 'alvo_centavos', m.alvo_centavos,
+           'guardado_centavos', p.guardado_centavos, 'falta_centavos', p.falta_centavos,
+           'percentual', p.percentual, 'prazo', to_char(m.prazo, 'YYYY-MM'),
+           'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
+         order by p.atingida, m.nome), '[]'::jsonb)
+    into v_metas_conjunto
+    from app.meta m
+   cross join lateral app.progresso_meta(m.id) p
+   where m.escopo = 'conjunto';
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'meta_id', m.id, 'nome', m.nome, 'alvo_centavos', m.alvo_centavos,
+           'guardado_centavos', p.guardado_centavos, 'falta_centavos', p.falta_centavos,
+           'percentual', p.percentual, 'prazo', to_char(m.prazo, 'YYYY-MM'),
+           'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
+         order by p.atingida, m.nome), '[]'::jsonb)
+    into v_metas_individual
+    from app.meta m
+   cross join lateral app.progresso_meta(m.id) p
+   where m.escopo = 'individual' and m.dono_id = v_membro;
+
   select count(*)::integer,
          coalesce(jsonb_agg(jsonb_build_object(
            'ocorrencia_id', o.id, 'descricao', o.descricao, 'vencimento', o.vencimento,
@@ -86,16 +112,16 @@ begin
       'fixas_total', v_fixas_total,
       'fixas_pendentes', v_fixas_pendentes,
       'orcamento', app.resumo_orcamento(v_orc_conjunto),
-      'metas', '[]'::jsonb,
+      'metas', v_metas_conjunto,
       'resultado', jsonb_build_object(
         'valor_centavos', coalesce((v_orc_conjunto->'total'->>'orcado_centavos')::bigint, 0)
                           - (v_conjunto->>'total_centavos')::bigint,
         'parcial', not v_fechado)),
     'individual', (v_individual - 'resultado') || jsonb_build_object(
       'resultado', (v_individual->'resultado') || jsonb_build_object('parcial', not v_fechado),
-      'guardado_no_mes_centavos', 0,
+      'guardado_no_mes_centavos', app.guardado_no_mes(v_mes),
       'orcamento', app.resumo_orcamento(v_orc_individual),
-      'metas', '[]'::jsonb,
+      'metas', v_metas_individual,
       'contas', v_contas,
       'credito', v_credito));
 end;

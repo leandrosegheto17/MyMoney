@@ -50,15 +50,15 @@ select is(
   '[false, true, true]'::jsonb, 'mês futuro: aberto e parcial')
 from (select api.resumo_mes((app.inicio_mes(app.hoje()) + interval '2 months')::date) r) t;
 
--- Seções sem dono neste teste (metas e guardado) e orçamento de outubro (seed 07)
+-- Metas e guardado no mês têm pgTAP próprio (resumo_metas.sql); aqui só a forma e o orçamento de outubro (seed 07)
 select is(
-  (select jsonb_build_array(jsonb_typeof(c->'orcamento'), c->'metas')
+  (select jsonb_build_array(jsonb_typeof(c->'orcamento'), jsonb_typeof(c->'metas'))
      from (select api.resumo_mes('2026-10-01')->'conjunto' c) t),
-  '["object", []]'::jsonb, 'conjunto: orçamento de outubro preenchido e metas vazias');
+  '["object", "array"]'::jsonb, 'conjunto: orçamento de outubro preenchido e metas em lista');
 select is(
-  (select jsonb_build_array(i->'guardado_no_mes_centavos', jsonb_typeof(i->'orcamento'), i->'metas')
+  (select jsonb_build_array(jsonb_typeof(i->'guardado_no_mes_centavos'), jsonb_typeof(i->'orcamento'), jsonb_typeof(i->'metas'))
      from (select api.resumo_mes('2026-10-01')->'individual' i) t),
-  '[0, "object", []]'::jsonb, 'individual: guardado 0, orçamento de outubro preenchido e metas vazias');
+  '["number", "object", "array"]'::jsonb, 'individual: guardado numérico, orçamento de outubro preenchido e metas em lista');
 select is(
   (select jsonb_build_array(r->'conjunto'->'orcamento', r->'individual'->'orcamento')
      from (select api.resumo_mes('2030-01-01') r) t),

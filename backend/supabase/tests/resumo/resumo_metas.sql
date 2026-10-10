@@ -18,7 +18,7 @@ insert into resultados values ('A_metas_conjunto_esperadas', (
            'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
          order by p.atingida, m.nome), '[]'::jsonb)
     from app.meta m cross join lateral app.progresso_meta(m.id) p
-   where m.escopo = 'conjunto')));
+   where m.escopo = 'conjunto'));
 insert into resultados values ('A_metas_individual_esperadas', (
   select coalesce(jsonb_agg(jsonb_build_object(
            'meta_id', m.id, 'nome', m.nome, 'alvo_centavos', m.alvo_centavos,
@@ -27,7 +27,7 @@ insert into resultados values ('A_metas_individual_esperadas', (
            'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
          order by p.atingida, m.nome), '[]'::jsonb)
     from app.meta m cross join lateral app.progresso_meta(m.id) p
-   where m.escopo = 'individual' and m.dono_id = '00000000-0000-4000-8000-000000000101')));
+   where m.escopo = 'individual' and m.dono_id = '00000000-0000-4000-8000-000000000101'));
 
 select is((select valor -> 'conjunto' -> 'metas' from resultados where chave = 'A_out'),
   (select valor from resultados where chave = 'A_metas_conjunto_esperadas'),
