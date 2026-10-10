@@ -374,3 +374,6 @@ RTP-0047 APROVADA no QA: item de meta e prazo extraídos para `app.*`, `resumo_m
 
 ## RTP-0048 — QA — 2026-10-10
 RTP-0048 aprovada no QA: os 3 pgTAP de fixas passam com app.hoje() em 5 datas (2026-10 a 2030-12) e falhavam antes da correção; 1 achado baixo (mês sem dado de resumo-mes literal em 2030-01) aberto como RTP-0049.
+
+## RTP-0031 — QA — 2026-10-10
+RTP-0031 APROVADA no QA (lint 0 erro, tsc ok, 18/18 testes, tipo Database bate com 35 funções e 4 views do schema real, sem any/disable); view `categorias` inexistente no tipo e falta de checagem de aderência viraram RTP-0050.

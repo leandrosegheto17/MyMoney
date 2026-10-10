@@ -356,3 +356,12 @@ TP-0128 aprovada em segurança (revisão do diff: filtro por forma/RLS do pagado
 
 ## TP-0151 — DevSecOps — 2026-10-10
 TP-0151 aprovada em segurança (metas individuais isoladas por filtro explícito mais RLS, guardado_no_mes só do autor, funções invoker sem execute para anon); sem achado novo, RTP-0047 (manutenção) já aberta.
+
+## RTP-0046 — DevSecOps — 2026-10-10
+RTP-0046 aprovada na segurança: só o pagador edita/exclui pagamento de fixa (B: sem_permissao/registro_invalido sem oráculo; sem membro e anon recusados), editar_lancamento segue SECURITY DEFINER com search_path vazio e grants só authenticated.
+
+## RTP-0047 — DevSecOps — 2026-10-10
+RTP-0047 Sec OK: funções novas `security invoker`, `search_path` vazio, sem execute para anon, RLS e isolamento de metas individuais preservados; revisão por leitura do diff, sem achados.
+
+## RTP-0048 — DevSecOps — 2026-10-10
+RTP-0048 aprovada na segurança: só 3 pgTAP mudaram, sem alteração de função, grant ou seed e sem dado sensível; nenhum achado novo (RTP-0049 já aberto pelo QA).
