@@ -15,11 +15,18 @@ create table app.lancamento (
   alterado_por uuid references app.membro (id),
   alterado_em timestamptz,
   criado_em timestamptz not null default now(),
+  -- Dono esperado da categoria: o do lançamento se individual; nulo se conjunto.
+  categoria_dono_id uuid generated always as (case when escopo = 'individual' then dono_id end) stored,
   constraint lancamento_receita_individual check (tipo <> 'receita' or escopo = 'individual'),
   -- Sem on update cascade: o escopo da categoria é imutável; quem muda é o lançamento,
   -- trocando categoria e escopo no mesmo update.
   constraint lancamento_categoria_fk foreign key (categoria_id, tipo, escopo)
     references app.categoria (id, tipo, escopo),
+  -- Individual: categoria do mesmo dono (nulo na conjunta, que não tem dono). E do mesmo lar.
+  constraint lancamento_categoria_dono_fk foreign key (categoria_id, categoria_dono_id)
+    references app.categoria (id, dono_id),
+  constraint lancamento_categoria_lar_fk foreign key (categoria_id, lar_id)
+    references app.categoria (id, lar_id),
   -- Alvos dos FKs compostos da parte privada e das parcelas.
   constraint lancamento_id_dono unique (id, dono_id),
   constraint lancamento_id_escopo_dono unique (id, escopo, dono_id)

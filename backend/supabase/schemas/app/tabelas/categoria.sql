@@ -19,7 +19,9 @@ create table app.categoria (
   -- Alvo do FK composto do lançamento: garante tipo e escopo da categoria (RN-01).
   constraint categoria_id_tipo_escopo unique (id, tipo, escopo),
   -- Alvo do FK composto do orçamento individual: o dono do orçamento é o da categoria.
-  constraint categoria_id_dono unique (id, dono_id)
+  constraint categoria_id_dono unique (id, dono_id),
+  -- Alvo do FK composto do lançamento: a categoria é do mesmo lar.
+  constraint categoria_id_lar unique (id, lar_id)
 );
 
 alter table app.categoria enable row level security;
