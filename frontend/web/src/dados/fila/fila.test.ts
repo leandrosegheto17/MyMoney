@@ -130,6 +130,19 @@ describe('fila.esvaziar', () => {
     expect(lancarDespesa).toHaveBeenCalledWith({ ...args('Feira'), p_id: item.args.p_id });
   });
 
+  it('autenticação (401/JWT) no 2º para a rodada: 1º removido, 2º e 3º aguardando e sem motivo', async () => {
+    lancarDespesa.mockResolvedValueOnce(RESPOSTA).mockRejectedValueOnce({ tipo: 'autenticacao' });
+    const fila = await carregarFila();
+    await enfileirarTres(fila);
+    await fila.esvaziar();
+    expect(lancarDespesa).toHaveBeenCalledTimes(2);
+    const restantes = (await itensGuardados()) as { args: { p_descricao: string }; situacao: string; motivo?: string }[];
+    expect(restantes.map((i) => [i.args.p_descricao, i.situacao, i.motivo]).sort()).toEqual([
+      ['segundo', 'aguardando', undefined],
+      ['terceiro', 'aguardando', undefined],
+    ]);
+  });
+
   it('rede no 2º para a rodada: 1º removido, 2º e 3º intactos; nova rodada envia os dois', async () => {
     lancarDespesa.mockResolvedValueOnce(RESPOSTA).mockRejectedValueOnce({ tipo: 'rede' }).mockResolvedValue(RESPOSTA);
     const fila = await carregarFila();

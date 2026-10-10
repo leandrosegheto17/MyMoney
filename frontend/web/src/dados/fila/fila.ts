@@ -23,7 +23,7 @@ async function donoAtual(): Promise<string | undefined> {
 
 function lerErro(e: unknown): ErroDados {
   const tipo = (e as { tipo?: unknown } | null)?.tipo;
-  if (tipo === 'rede' || tipo === 'indisponivel') return { tipo };
+  if (tipo === 'rede' || tipo === 'indisponivel' || tipo === 'autenticacao') return { tipo };
   if (tipo === 'regra') return e as ErroDados;
   return { tipo: 'desconhecido' };
 }
@@ -34,7 +34,7 @@ async function marcarFalha(item: ItemFila, erro: ErroDados) {
   emitir({ tipo: 'mudou' });
 }
 
-/** Um item por vez, em ordem. Rede/indisponível encerram a rodada com o item intacto; falha de regra não bloqueia os demais. */
+/** Um item por vez, em ordem. Rede, indisponível e autenticação encerram a rodada com o item intacto; falha de regra não bloqueia os demais. */
 async function rodada() {
   const dono = await donoAtual();
   if (!dono) return;
@@ -49,7 +49,7 @@ async function rodada() {
       emitir({ tipo: 'mudou' });
     } catch (e) {
       const erro = lerErro(e);
-      if (erro.tipo === 'rede' || erro.tipo === 'indisponivel') return;
+      if (erro.tipo === 'rede' || erro.tipo === 'indisponivel' || erro.tipo === 'autenticacao') return;
       await marcarFalha(item, erro);
     }
   }

@@ -12,6 +12,11 @@ describe('traduzirErro', () => {
     expect(traduzirErro(new AuthRetryableFetchError('Failed to fetch', 0))).toEqual({ tipo: 'rede' });
   });
 
+  it('401 do PostgREST ou do Auth é autenticação', () => {
+    expect(traduzirErro({ message: 'JWT expired' }, 401)).toEqual({ tipo: 'autenticacao' });
+    expect(traduzirErro(new AuthApiError('invalid JWT', 401, undefined))).toEqual({ tipo: 'autenticacao' });
+  });
+
   it('5xx é indisponível', () => {
     const corpo = lerResposta<{ message: string }>('erro-servico.json');
     expect(traduzirErro(new AuthApiError(corpo.message, 503, undefined))).toEqual({

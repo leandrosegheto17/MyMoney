@@ -4,6 +4,7 @@ import { CODIGOS_ERRO, type CodigoErro } from '@mymoney/contrato/erros';
 export type ErroDados =
   | { tipo: 'rede' }
   | { tipo: 'indisponivel' }
+  | { tipo: 'autenticacao' }
   | { tipo: 'regra'; codigo: CodigoErro }
   | { tipo: 'desconhecido' };
 
@@ -21,6 +22,8 @@ function ehCodigo(valor: unknown): valor is CodigoErro {
 
 function porStatus(status: unknown): ErroDados | undefined {
   if (status === 0) return { tipo: 'rede' };
+  // JWT ausente, inválido ou expirado: a sessão precisa ser renovada, não é falha do dado.
+  if (status === 401) return { tipo: 'autenticacao' };
   if (typeof status === 'number' && (status >= 500 || status === 429)) return { tipo: 'indisponivel' };
   return undefined;
 }
