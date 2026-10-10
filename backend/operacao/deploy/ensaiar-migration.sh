@@ -8,6 +8,7 @@
 #   --workdir-pr   pasta "backend" com as migrations do PR (padrão: backend)
 #   SUPABASE       comando da CLI (padrão: supabase, ou "pnpm exec supabase")
 # Só toca o Supabase local; a árvore de trabalho não é alterada.
+# shellcheck source-path=SCRIPTDIR
 set -euo pipefail
 
 AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
