@@ -1,0 +1,100 @@
+begin;
+
+-- Única fonte da seleção "parcelas do mês" com tipo, escopo, pagador e categoria. As regras de
+-- totais (conjunto e individual) e as listagens do mês usam esta função, sem repetir o join nem
+-- o filtro de mês. Competência: a data da parcela (ADR-005), nunca a data da operação.
+-- p_mes é normalizado para o início do mês. Sem filtro de membro: a RLS decide o que é visível
+-- (security invoker): conjuntas do lar e individuais do próprio membro.
+create or replace function app.parcelas_mes(p_mes date)
+returns table (
+  parcela_id uuid,
+  lancamento_id uuid,
+  tipo text,
+  escopo text,
+  dono_id uuid,
+  categoria_id uuid,
+  categoria_nome text,
+  variavel boolean,
+  valor_centavos bigint
+)
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select p.id, p.lancamento_id, l.tipo, p.escopo, p.dono_id,
+         l.categoria_id, c.nome, c.variavel, p.valor_centavos
+    from app.parcela p
+    join app.lancamento l on l.id = p.lancamento_id
+    join app.categoria c on c.id = l.categoria_id
+   where p.data >= app.inicio_mes(p_mes)
+     and p.data < app.inicio_mes(p_mes) + interval '1 month';
+$$;
+
+-- Bloco "conjunto" do resumo do mês (RN-16a, RN-16e): total do casal por competência (parcelas
+-- com data no mês), total das categorias variáveis, total por categoria e quanto cada membro
+-- pagou, com percentual inteiro. O filtro tipo = 'despesa' e escopo = 'conjunto' é explícito:
+-- nenhum total depende só da RLS nem usa dado individual. Pagador = dono_id da parcela; forma,
+-- conta e data da operação não entram. Total 0 devolve pago_por_membro vazio.
+-- Membros em ordem de id (posicao não é legível pelo papel authenticated).
+-- Percentual: round(100 * valor / total) e o último membro recebe 100 menos a soma dos
+-- anteriores, para a soma ser sempre 100.
+create or replace function app.totais_conjunto(p_mes date)
+returns jsonb
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  with conj as (
+    select * from app.parcelas_mes(p_mes) pm
+     where pm.tipo = 'despesa' and pm.escopo = 'conjunto'
+  ),
+  total as (
+    select coalesce(sum(valor_centavos), 0)::bigint as geral,
+           coalesce(sum(valor_centavos) filter (where variavel), 0)::bigint as variaveis
+      from conj
+  ),
+  por_cat as (
+    select categoria_id, categoria_nome, variavel, sum(valor_centavos)::bigint as total
+      from conj
+     group by categoria_id, categoria_nome, variavel
+    having sum(valor_centavos) > 0
+  ),
+  membros as (
+    select m.id, m.nome,
+           coalesce((select sum(c.valor_centavos) from conj c where c.dono_id = m.id), 0)::bigint as valor,
+           row_number() over (order by m.id) as ordem,
+           count(*) over () as qtd
+      from app.membro m
+  ),
+  pct as (
+    select mb.*,
+           case when mb.ordem = mb.qtd
+                then 100 - coalesce(sum(round(100.0 * mb.valor / t.geral)) over (
+                       order by mb.ordem rows between unbounded preceding and 1 preceding), 0)
+                else round(100.0 * mb.valor / t.geral)
+           end::int as percentual
+      from membros mb cross join total t
+     where t.geral > 0
+  )
+  select jsonb_build_object(
+    'total_centavos', t.geral,
+    'total_variaveis_centavos', t.variaveis,
+    'por_categoria', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'categoria_id', pc.categoria_id, 'nome', pc.categoria_nome,
+               'variavel', pc.variavel, 'total_centavos', pc.total)
+             order by pc.total desc, pc.categoria_nome)
+        from por_cat pc), '[]'::jsonb),
+    'pago_por_membro', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'membro_id', p.id, 'nome', p.nome,
+               'valor_centavos', p.valor, 'percentual', p.percentual)
+             order by p.ordem)
+        from pct p), '[]'::jsonb)
+  )
+  from total t;
+$$;
+
+commit;
