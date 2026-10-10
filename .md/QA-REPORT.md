@@ -365,3 +365,12 @@ TP-0128 aprovada no QA (pgTAP 24/24 e 17/17 em shim); regra de data do cartão p
 
 ## TP-0151 — QA — 2026-10-10
 TP-0151 aprovada no QA (metas, guardado no mês, RN-16c e isolamento ok no banco descartável; testes-api/contrato não verificados); 1 achado baixo aberto como RTP-0047.
+
+## RTP-0046 — QA — 2026-10-10
+RTP-0046 aprovada no QA: só o pagador edita/exclui pagamento de fixa (B recebe sem_permissao/registro_invalido, A segue livre), SECURITY DEFINER/grants/search_path preservados, pgTAP novo 13/13 e regressões verdes no shim.
+
+## RTP-0047 — QA — 2026-10-10
+RTP-0047 APROVADA no QA: item de meta e prazo extraídos para `app.*`, `resumo_mes` e `api.metas` idênticos antes/depois, pgTAP verde com shim (testes-api e supabase CLI não verificados).
+
+## RTP-0048 — QA — 2026-10-10
+RTP-0048 aprovada no QA: os 3 pgTAP de fixas passam com app.hoje() em 5 datas (2026-10 a 2030-12) e falhavam antes da correção; 1 achado baixo (mês sem dado de resumo-mes literal em 2030-01) aberto como RTP-0049.

@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 15:25
+Atualizado: 2026-10-10 15:33
 
-Resumo: Não executada 84 · Em execução 1 · Executada (aguarda teste) 3 · Aprovada 120 · Bloqueada 6 · total 214
+Resumo: Não executada 84 · Em execução 1 · Executada (aguarda teste) 1 · Testada (aguarda segurança) 3 · Aprovada 120 · Bloqueada 6 · total 215
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -188,7 +188,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 173 | RTP-0012 | executor | ✔ | Lint de fronteira: não sinalizar X.from() que não seja cliente supabase | Refatoração Lote-4 | RTP-0008 | Aprovada |
 | 174 | RTP-0014 | executor | ✔ | Lint de fronteira: cobrir import() com template literal e .from() por colchetes | Refatoração Lote-4 | RTP-0008 | Aprovada |
 | 175 | RTP-0025 | executor | ✔ | Lint global verde: EstadosDeLeitura importa ganchos/ e any em testes-api/sessoes.ts | Refatoração Lote-4 | RTP-0014 | Aprovada |
-| 176 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Não executada |
+| 176 | RTP-0031 | executor | ✔ | Tipar ClienteApi de testes-api com tipos gerados do schema api (remover any de sessoes.ts) | Refatoração Lote-4 | RTP-0025 | Executada (aguarda teste) |
 | 177 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 178 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
 | 179 | RTP-0015 | executor | ✔ | Testes de Esqueleto, EstadoVazio, LinhaVazia e axe dos estados | Refatoração Lote-8 | TP-0040 | Aprovada |
@@ -222,8 +222,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 207 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Aprovada |
 | 208 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Aprovada |
 | 209 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Aprovada |
-| 210 | RTP-0046 | executor | ✔ | Lançamento ligado a ocorrência de fixa: só o pagador altera ou exclui (RN-06, I-20) | Refatoração Lote-26 | TP-0126 | Executada (aguarda teste) |
-| 211 | RTP-0048 | executor | ✔ | pgTAP e Vitest de ocorrências: fixar app.hoje() ou datas relativas, para a janela de ±1... | Refatoração Lote-26 | RTP-0045 | Executada (aguarda teste) |
-| 212 | RTP-0047 | executor | ✔ | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Refatoração Lote-31 | TP-0151 | Executada (aguarda teste) |
-| 213 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
-| 214 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
+| 210 | RTP-0046 | executor | ✔ | Lançamento ligado a ocorrência de fixa: só o pagador altera ou exclui (RN-06, I-20) | Refatoração Lote-26 | TP-0126 | Testada (aguarda segurança) |
+| 211 | RTP-0048 | executor | ✔ | pgTAP e Vitest de ocorrências: fixar app.hoje() ou datas relativas, para a janela de ±1... | Refatoração Lote-26 | RTP-0045 | Testada (aguarda segurança) |
+| 212 | RTP-0049 | executor | ✔ | Vitest resumo-mes e ocorrencias-mes: derivar os meses do mês corrente, sem datas literais | Refatoração Lote-26 | RTP-0048 | Não executada |
+| 213 | RTP-0047 | executor | ✔ | resumo_mes: extrair o item de meta repetido (e o prazo de api.metas) para uma função app.* | Refatoração Lote-31 | TP-0151 | Testada (aguarda segurança) |
+| 214 | BK-0003 | coordenador | ✔ | Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-type | — | — | Não executada |
+| 215 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | BK-0003, TP-0006 | Bloqueada |
