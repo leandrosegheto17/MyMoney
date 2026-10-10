@@ -4,14 +4,15 @@ import { useAviso } from '../componentes/base/useAviso';
 import type { ErroDados } from '../dados/erros';
 import { useRecuperacaoSenha } from '../ganchos/useRecuperacaoSenha';
 import { useSalvarNovaSenha } from '../ganchos/useSalvarNovaSenha';
+import { TEXTO_SEM_CONEXAO, TEXTO_SERVIDOR_INDISPONIVEL } from '../rotulos/textosConexao';
 
 const LINK_EXPIRADO = 'Este link expirou. Peça outro em Entrar, em Esqueci minha senha.';
 
 function textoErroTopo(erro: ErroDados | null, linkExpirado: boolean): string | undefined {
   if (linkExpirado || (erro?.tipo === 'regra' && erro.codigo === 'link_expirado')) return LINK_EXPIRADO;
   if (!erro || (erro.tipo === 'regra' && erro.codigo === 'senha_fraca')) return undefined;
-  if (erro.tipo === 'rede') return 'Sem conexão.';
-  if (erro.tipo === 'indisponivel') return 'Servidor indisponível. Tente de novo em instantes.';
+  if (erro.tipo === 'rede') return TEXTO_SEM_CONEXAO;
+  if (erro.tipo === 'indisponivel') return TEXTO_SERVIDOR_INDISPONIVEL;
   return 'Não foi possível salvar a senha. Tente de novo.';
 }
 
