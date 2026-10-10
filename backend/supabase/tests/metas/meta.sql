@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
-select plan(19);
+select plan(26);
 
 -- Membros do seed 01-acesso: A = Leandro, B = Ana.
 insert into app.meta (id, lar_id, dono_id, nome, alvo_centavos, prazo, escopo) values
@@ -61,6 +61,22 @@ select lives_ok(
   $$update app.meta set nome = 'Editada por B' where id = 'f1000000-0000-4000-8000-000000000001'$$,
   'B altera a compartilhada criada por A');
 select throws_ok(
+  $$update app.meta set escopo = 'individual', dono_id = '00000000-0000-4000-8000-000000000102'
+    where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  '42501', null, 'B não transforma a conjunta de A em individual sua');
+select throws_ok(
+  $$update app.meta set escopo = 'individual' where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  '42501', null, 'B não altera o escopo da conjunta');
+select throws_ok(
+  $$update app.meta set dono_id = '00000000-0000-4000-8000-000000000102' where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  '42501', null, 'B não altera o dono da conjunta');
+select throws_ok(
+  $$update app.meta set lar_id = gen_random_uuid() where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  '42501', null, 'B não altera o lar da conjunta');
+select lives_ok(
+  $$update app.meta set alvo_centavos = 120000, prazo = '2027-02-01' where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  'B altera alvo e prazo da conjunta');
+select throws_ok(
   $$insert into app.meta (dono_id, nome, alvo_centavos, escopo)
     values ('00000000-0000-4000-8000-000000000101', 'Forjada', 1000, 'individual')$$,
   '42501', null, 'B não cria individual em nome de A');
@@ -68,12 +84,21 @@ select throws_ok(
   $$delete from app.meta where id = 'f1000000-0000-4000-8000-000000000001'$$,
   '42501', null, 'excluir meta é proibido');
 
+select testes.como_a();
+select results_eq(
+  $$select count(*)::int from app.meta where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  $$values (1)$$, 'A segue vendo a conjunta depois das tentativas de B');
+
 select testes.como_postgres();
 
 select is((select nome from app.meta where id = 'f1000000-0000-4000-8000-000000000002'),
   'Individual de A', 'a individual de A continua intacta');
 select is((select nome from app.meta where id = 'f1000000-0000-4000-8000-000000000001'),
   'Editada por B', 'a edição de B na compartilhada foi gravada');
+select results_eq(
+  $$select escopo, dono_id from app.meta where id = 'f1000000-0000-4000-8000-000000000001'$$,
+  $$values ('conjunto', '00000000-0000-4000-8000-000000000101'::uuid)$$,
+  'a conjunta de A segue conjunta e de A');
 
 select * from finish();
 rollback;
