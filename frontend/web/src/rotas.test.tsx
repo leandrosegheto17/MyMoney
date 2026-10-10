@@ -9,6 +9,7 @@ import { rotas } from './rotas';
 
 vi.mock('./ganchos/useSessao', () => ({ useSessao: () => ({ carregando: false, sessao: { user: { id: 'u1' } } }) }));
 vi.mock('./ganchos/useContexto', () => ({ useContexto: () => ({ data: { mes_corrente: '2026-10-01' } }) }));
+vi.mock('./ganchos/useInicializarMembro', () => ({ useInicializarMembro: vi.fn() }));
 
 function montar(caminho: string) {
   const router = createMemoryRouter(rotas, { initialEntries: [caminho] });

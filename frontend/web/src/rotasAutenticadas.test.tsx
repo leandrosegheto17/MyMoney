@@ -7,6 +7,7 @@ import { useContexto } from './ganchos/useContexto';
 
 vi.mock('./ganchos/useSessao', () => ({ useSessao: vi.fn() }));
 vi.mock('./ganchos/useContexto', () => ({ useContexto: vi.fn() }));
+vi.mock('./ganchos/useInicializarMembro', () => ({ useInicializarMembro: vi.fn() }));
 
 const sessaoFalsa = { user: { id: 'u1' }, access_token: 'token-falso' };
 
