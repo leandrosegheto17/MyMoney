@@ -26,3 +26,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Reexecutar após a janela, sem mudar nada
 - Status: Em aberto
+
+## Bloqueio 004 — 2026-10-10 (BK-0004)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: TP-0080
+- Descrição: Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexistente); Playwright não rodou (sem Chromium) e a lista aberta de formas (PENDENTE do plano) precisa de decisão de UX
+- Impacto se não resolvido: —
+- Sugestão: Executar TP-0038 antes e confirmar o desenho da lista aberta com o UX
+- Status: Em aberto
