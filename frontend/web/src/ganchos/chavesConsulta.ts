@@ -12,7 +12,12 @@ export const CHAVES = {
   ocorrenciasMes: ['ocorrencias_mes'],
   ocorrenciasDoMes: (mes: string) => ['ocorrencias_mes', mes],
   resumoMes: ['resumo_mes'],
+  orcamentoMes: ['orcamento_mes'],
+  orcamentoDoMes: (mes: string, escopo: string) => ['orcamento_mes', mes, escopo],
   lancamentosMes: ['lancamentos_mes'],
   lancamento: (id: string) => ['lancamento', id],
   dadosLancamentoAparelho: ['dados_lancamento', 'aparelho'],
 } as const;
+
+/** Totais que dependem dos lançamentos do mês: qualquer escrita de lançamento os invalida. */
+export const TOTAIS_DO_MES = [CHAVES.resumoMes, CHAVES.orcamentoMes] as const;

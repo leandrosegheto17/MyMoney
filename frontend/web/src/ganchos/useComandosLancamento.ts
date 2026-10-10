@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { alterarDataParcela, editarLancamento, excluirLancamento } from '../dados/comandos/lancamentos';
 import type { ErroDados } from '../dados/erros';
-import { CHAVES } from './chavesConsulta';
+import { CHAVES, TOTAIS_DO_MES } from './chavesConsulta';
 import { useComandoCadastro } from './useComandoCadastro';
 
 export { ehConfirmarDescarte } from '../dados/comandos/lancamentos';
 
 type ArgsData = Parameters<typeof alterarDataParcela>[0] & { lancamentoId: string };
 
-const LISTAS = [CHAVES.lancamentosMes, CHAVES.resumoMes] as const;
+const LISTAS = [CHAVES.lancamentosMes, ...TOTAIS_DO_MES] as const;
 
 export function useComandosLancamento() {
   const cliente = useQueryClient();
