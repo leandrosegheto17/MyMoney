@@ -5,15 +5,15 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 07:51
+Atualizado: 2026-10-10 07:52
 
-Resumo: Não executada 159 · Testada (aguarda segurança) 1 · Aprovada 1 · total 161
+Resumo: Não executada 159 · Aprovada 2 · total 161
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
 | # | Tarefa | Agente | Plano | Título | Lote | Dep | Estado |
 |---|---|---|---|---|---|---|---|
-| 1 | TP-0001 | executor | ✔ | Workspace pnpm na raiz | Lote 1 | — | Testada (aguarda segurança) |
+| 1 | TP-0001 | executor | ✔ | Workspace pnpm na raiz | Lote 1 | — | Aprovada |
 | 2 | TP-0002 | executor | ✔ | Supabase CLI local em backend/supabase [BD] | Lote 1 | TP-0001 | Não executada |
 | 3 | TP-0003 | executor | ✔ | Schemas app e api e privilégios padrão [BD] | Lote 1 | TP-0002 | Não executada |
 | 4 | TP-0004 | executor | ✔ | Utilitários de data do banco: app.hoje(), app.dia_no_mes(), app.inicio_mes() [BD] | Lote 1 | TP-0003 | Não executada |
