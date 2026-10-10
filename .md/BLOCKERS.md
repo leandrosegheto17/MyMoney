@@ -179,3 +179,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0045/TP-0047 na Dep da tarefa
 - Status: Em aberto
+
+## Bloqueio 021 — 2026-10-10 (BK-0021)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0090
+- Descrição: TP-0090 usa LinkMais.tsx (TP-0045), que ainda não existe e não está na Dep; mesma causa do BK-0007/BK-0008
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0045 na Dep do TP-0090
+- Status: Em aberto
