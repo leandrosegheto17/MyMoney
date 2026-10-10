@@ -5,20 +5,20 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 08:06
+Atualizado: 2026-10-10 08:08
 
-Resumo: Não executada 159 · Testada (aguarda segurança) 4 · Aprovada 2 · Bloqueada 1 · total 166
+Resumo: Não executada 160 · Aprovada 6 · Bloqueada 1 · total 167
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
 | # | Tarefa | Agente | Plano | Título | Lote | Dep | Estado |
 |---|---|---|---|---|---|---|---|
 | 1 | TP-0001 | executor | ✔ | Workspace pnpm na raiz | Lote 1 | — | Aprovada |
-| 2 | TP-0002 | executor | ✔ | Supabase CLI local em backend/supabase [BD] | Lote 1 | TP-0001 | Testada (aguarda segurança) |
+| 2 | TP-0002 | executor | ✔ | Supabase CLI local em backend/supabase [BD] | Lote 1 | TP-0001 | Aprovada |
 | 3 | TP-0003 | executor | ✔ | Schemas app e api e privilégios padrão [BD] | Lote 1 | TP-0002 | Não executada |
 | 4 | TP-0004 | executor | ✔ | Utilitários de data do banco: app.hoje(), app.dia_no_mes(), app.inicio_mes() [BD] | Lote 1 | TP-0003 | Não executada |
 | 5 | TP-0005 | executor | ✔ | Função api.ping() [BD] | Lote 1 | TP-0003 | Não executada |
-| 6 | TP-0006 | executor | ✔ | Worker de keep-alive (@mymoney/keepalive): código | Lote 1 | TP-0001 | Testada (aguarda segurança) |
+| 6 | TP-0006 | executor | ✔ | Worker de keep-alive (@mymoney/keepalive): código | Lote 1 | TP-0001 | Aprovada |
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Não executada |
 | 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Bloqueada |
 | 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Não executada |
@@ -34,7 +34,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 19 | TP-0018 | executor | ✔ | CI do banco | Lote 3 | TP-0007, TP-0016 | Não executada |
 | 20 | TP-0019 | executor | ✔ | Pacote @mymoney/contrato: tipos gerados e códigos de erro [BD] | Lote 4 | TP-0015, TP-0018 | Não executada |
 | 21 | TP-0020 | executor | ✔ | Tipos das respostas em JSON e das linhas das views | Lote 4 | TP-0019 | Não executada |
-| 22 | TP-0021 | executor | ✔ | Esqueleto @mymoney/web | Lote 4 | TP-0001 | Testada (aguarda segurança) |
+| 22 | TP-0021 | executor | ✔ | Esqueleto @mymoney/web | Lote 4 | TP-0001 | Aprovada |
 | 23 | TP-0022 | executor | ✔ | Regras de fronteira no lint do web | Lote 4 | TP-0021 | Não executada |
 | 24 | TP-0023 | executor | ✔ | Base visual e comparação visual | Lote 4 | TP-0021 | Não executada |
 | 25 | TP-0024 | executor | ✔ | formatacao/ | Lote 4 | TP-0021 | Não executada |
@@ -174,8 +174,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 159 | TP-0157 | executor | ✔ | E2E de integração: metas [BD] | Lote 32 | TP-0151, TP-0153, TP-0154, TP-0155, TP-0156 | Não executada |
 | 160 | TP-0158 | executor | ✔ | api.registrar_pagamento_cartao [BD] | Lote 33 | TP-0048, TP-0049, TP-0064 | Não executada |
 | 161 | TP-0159 | executor | ✔ | T21 Registrar pagamento do cartão | Lote 33 | TP-0035, TP-0036, TP-0073, TP-0158 | Não executada |
-| 162 | RTP-0001 | executor | ✔ | Prettier passa a checar os testes (remover exclusão em .prettierignore) | Refatoração Lote-1 | TP-0001 | Testada (aguarda segurança) |
+| 162 | RTP-0001 | executor | ✔ | Prettier passa a checar os testes (remover exclusão em .prettierignore) | Refatoração Lote-1 | TP-0001 | Aprovada |
 | 163 | RTP-0002 | executor | ✔ | README do backend: --no-backup do local:parar | Refatoração Lote-1 | TP-0002 | Não executada |
 | 164 | RTP-0003 | executor | ✔ | Prova do Docker limpo de local:subir/local:resetar | Refatoração Lote-1 | TP-0003 | Não executada |
 | 165 | RTP-0004 | executor | ✔ | Keepalive: typecheck cobrir o arquivo de teste | Refatoração Lote-1 | TP-0006 | Não executada |
-| 166 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Não executada |
+| 166 | RTP-0006 | executor | ✔ | Remover exceção minimumReleaseAgeExclude de workers-types | Refatoração Lote-1 | TP-0006 | Não executada |
+| 167 | RTP-0005 | executor | ✔ | Vitest: rotas.test.tsx lê arquivos de src/ sob jsdom (import.meta.url não é file:) | Refatoração Lote-4 | TP-0021 | Não executada |
