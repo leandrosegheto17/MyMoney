@@ -197,3 +197,12 @@
 - Impacto se não resolvido: —
 - Sugestão: Incluir TP-0081, TP-0089, TP-0090 e TP-0104 na Dep do TP-0141 e resolver as pendências de UX
 - Status: Em aberto
+
+## Bloqueio 023 — 2026-10-10 (BK-0023)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0153
+- Descrição: TP-0153 usa MetaCompacta.tsx e formatarMesCurto (TP-0090), BlocoInicio.tsx e formatacao/links.ts com linkMeta (TP-0089), que não existem; TP-0089/TP-0090 estão bloqueadas e fora da Dep
+- Impacto se não resolvido: —
+- Sugestão: Incluir TP-0089 e TP-0090 na Dep do TP-0153
+- Status: Em aberto
