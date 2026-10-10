@@ -71,7 +71,7 @@ select is((r ->> 'pagas')::int,
           'pagas = itens pagos da lista')
   from api.ocorrencias_mes('2027-03-01') as t(r);
 select is((r ->> 'previsto_a_pagar_centavos')::bigint,
-          (select sum((e ->> 'valor_previsto_centavos')::bigint) from jsonb_array_elements(r -> 'ocorrencias') e
+          (select sum((e ->> 'valor_previsto_centavos')::bigint)::bigint from jsonb_array_elements(r -> 'ocorrencias') e
            where e ->> 'situacao' <> 'paga'),
           'previsto_a_pagar = soma do previsto das não pagas')
   from api.ocorrencias_mes('2027-03-01') as t(r);
