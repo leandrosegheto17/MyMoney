@@ -233,3 +233,54 @@ TP-0146 aprovada em segurança: view `api.metas` com security_invoker, RLS efeti
 
 ## TP-0150 — DevSecOps — 2026-10-10
 TP-0150 aprovada em segurança (RN-08/G-05/G-02/G-03/G-10 conferidos por leitura do diff e paridade schema x migration; sem dependência nova nem dado pessoal novo; sem achado alto/crítico; pgTAP real e testes-api não executáveis aqui).
+
+## RTP-0022 — DevSecOps — 2026-10-10
+RTP-0022 segurança OK — troca de ids de teste para os do seed, sem segredo/dependência; G-05 agora exercitado de fato.
+
+## RTP-0024 — DevSecOps — 2026-10-10
+RTP-0024 sem achados de segurança; diff só de constantes de teste (ids do seed), sem segredo, dependência ou dado pessoal; isolamento de B provado no QA.
+
+## RTP-0026 — DevSecOps — 2026-10-10
+RTP-0026 aprovada em segurança (Sec OK): FK composto de dono e lar fecha o uso de categoria alheia em insert/update sem alterar políticas; sem achados.
+
+## RTP-0027 — DevSecOps — 2026-10-10
+RTP-0027 OK na segurança; o caso de B busca nome e ids das contas de A em todo o JSON (exceto `local`), sem achados novos (prettier já na RTP-0038).
+
+## RTP-0028 — DevSecOps — 2026-10-10
+RTP-0028 aprovada em segurança; troca de 2 constantes de teste para o id do seed, G-05 agora exercita a forma real de A, sem dependência, segredo ou dado pessoal.
+
+## RTP-0029 — DevSecOps — 2026-10-10
+RTP-0029 aprovada em segurança; diff só de testes, sem achados nem dependências novas.
+
+## RTP-0032 — DevSecOps — 2026-10-10
+RTP-0032 aprovada em segurança: limpeza só em host local (G-06), SQL parametrizado e escopado aos UUIDs das metas de teste, sem segredo, dependência nem acesso novo.
+
+## TP-0065 — DevSecOps — 2026-10-10
+TP-0065 aprovada em segurança; api.contas security_invoker, só leitura para authenticated, sem lar_id/dono_id, isolamento A/B coberto; sem achados.
+
+## TP-0066 — DevSecOps — 2026-10-10
+TP-0066 aprovada em segurança; função invoker, sem oráculo cross-tenant, grants corretos, sem achados novos (RTP-0033 do QA segue aberta).
+
+## TP-0068 — DevSecOps — 2026-10-10
+TP-0068 aprovada em segurança: view `security_invoker`, somente leitura para `authenticated`, sem `lar_id`/`dono_id`, isolamento por RLS de dono confirmado no código; sem achados nem RTP.
+
+## TP-0087 — DevSecOps — 2026-10-10
+TP-0087 aprovada em segurança (invoker, search_path vazio, anon sem execute, dono_id explícito, isolamento A/B coberto por teste); sem achados, sem RTP nova.
+
+## TP-0099 — DevSecOps — 2026-10-10
+TP-0099 APROVADA em segurança: única DEFINER correta (search_path vazio, filtros explícitos, grants só authenticated, G-05 uniforme, sem vazamento B→A em ataques por SQL como A/B/sem-membro/anon); 1 achado baixo (sem teto de valor) aberto como RTP-0039.
+
+## TP-0120 — DevSecOps — 2026-10-10
+TP-0120 aprovada em segurança: funções invoker com search_path vazio, RLS do lar respeitada, sem exposição a anon, sem achados.
+
+## TP-0121 — DevSecOps — 2026-10-10
+TP-0121 aprovada na segurança: view api.despesas_fixas com security_invoker, só select para authenticated, sem lar_id, RLS do lar herdada; nenhum achado.
+
+## TP-0122 — DevSecOps — 2026-10-10
+TP-0122 OK em segurança (invoker, search_path vazio, grants só authenticated, RLS do lar, G-05 uniforme, sem SQL dinâmico); sem achado novo, RTP-0036 do QA permanece.
+
+## TP-0136 — DevSecOps — 2026-10-10
+TP-0136 aprovada na segurança: invoker, search_path vazio, anon sem execute, filtro de dono explícito e isolamento A/B sem canal de inferência; sem achados nem RTP; vitest real do isolamento pendente para o deploy.
+
+## TP-0158 — DevSecOps — 2026-10-10
+TP-0158 aprovada em segurança (revisão do diff: invoker, search_path vazio, RLS+FKs compostos, execute só authenticated, sem vazamento entre membros, fora de totais I-14); nenhum achado novo.
