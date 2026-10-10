@@ -53,6 +53,11 @@ export function ListaFormas({ id, nome, rotulo, opcoes, valor, aoEscolher, aoFec
     }
   }
 
+  // O rótulo não é focável: sem isto o mousedown tira o foco da lista e ela fecha antes do click.
+  function aoPressionar(e: MouseEvent<HTMLDivElement>) {
+    e.preventDefault();
+  }
+
   function aoPerderFoco(e: FocusEvent<HTMLDivElement>) {
     const destino = e.relatedTarget as Node | null;
     if (destino && raiz.current?.contains(destino)) return;
@@ -66,6 +71,7 @@ export function ListaFormas({ id, nome, rotulo, opcoes, valor, aoEscolher, aoFec
       id={id}
       ref={raiz}
       className={estilos.lista}
+      onMouseDown={aoPressionar}
       onClick={aoClicar}
       onKeyDown={aoTeclar}
       onBlur={aoPerderFoco}

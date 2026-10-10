@@ -58,7 +58,7 @@ for (const tamanho of TAMANHOS) {
       await botaoForma(page).click();
       await semViolacoesGraves(page);
       await page.getByTestId('forma').screenshot({ path: join(PASTA_PRINTS, `vitrine-forma-aberta-${tamanho.nome}.png`) });
-      await page.getByRole('radio', { name: /Cartão de crédito XP/ }).click();
+      await page.getByTestId('forma').locator('label', { hasText: /Cartão de crédito XP/ }).click();
       await expect(botaoForma(page)).toHaveAccessibleName(/Cartão de crédito XP/);
       await expect(page.getByTestId('forma').getByRole('radio')).toHaveCount(0);
     });

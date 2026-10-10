@@ -130,6 +130,21 @@ describe('BotaoForma', () => {
     expect(botao()).toHaveAccessibleName('Forma de pagamento Cartão de crédito XP · Crédito');
   });
 
+  it('clicar no rótulo da opção (que não recebe foco) escolhe a forma e fecha', async () => {
+    const user = userEvent.setup();
+    const aoEscolher = vi.fn();
+    render(<Controlado opcoes={formas} inicial={PIX} aoEscolher={aoEscolher} />);
+
+    await user.click(botao());
+    const rotulo = opcao(/Cartão de crédito XP/).closest('label') as HTMLElement;
+    await user.click(rotulo);
+
+    expect(aoEscolher).toHaveBeenCalledTimes(1);
+    expect(aoEscolher).toHaveBeenCalledWith(XP);
+    expect(listaAberta()).toBe(false);
+    expect(botao()).toHaveAccessibleName('Forma de pagamento Cartão de crédito XP · Crédito');
+  });
+
   it('Esc fecha sem escolher e devolve o foco ao botão', async () => {
     const user = userEvent.setup();
     const aoEscolher = vi.fn();
