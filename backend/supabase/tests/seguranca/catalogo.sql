@@ -51,8 +51,12 @@ select is_empty(
      join pg_namespace n on n.oid = p.pronamespace
      where n.nspname in ('app', 'api')
        and p.prosecdef
-       and n.nspname || '.' || p.proname
-           not in ('api.editar_lancamento', 'app.membro_atual', 'app.lar_atual')
+       and not (
+         -- app.*: por assinatura (um overload com argumentos não passa)
+         p.oid::regprocedure::text in ('app.membro_atual()', 'app.lar_atual()')
+         -- api.editar_lancamento: por nome até o Lote 19 definir a assinatura; ao nascer, fixar aqui
+         or n.nspname || '.' || p.proname = 'api.editar_lancamento'
+       )
      order by 1 $$,
   'nenhuma função security definer fora da lista fechada'
 );
