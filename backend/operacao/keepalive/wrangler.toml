@@ -1,0 +1,10 @@
+name = "mymoney-keepalive"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+# SUPABASE_URL e SUPABASE_ANON_KEY são secrets (wrangler secret put), nunca [vars].
+
+[triggers]
+# 09:00 UTC = 06:00 em São Paulo (ADR-009).
+crons = ["0 9 * * *"]
