@@ -46,3 +46,26 @@ export function escreverMesNaUrl(params: URLSearchParams, mes: string): URLSearc
   copia.set('mes', mes);
   return copia;
 }
+
+function deslocarMes(mes: string, delta: number): string {
+  const indice = Number(mes.slice(0, 4)) * 12 + (Number(mes.slice(5, 7)) - 1) + delta;
+  const ano = Math.floor(indice / 12);
+  const numero = (indice % 12) + 1;
+  return `${String(ano).padStart(4, '0')}-${String(numero).padStart(2, '0')}`;
+}
+
+/** 'AAAA-MM' → mês anterior, atravessando a virada de ano. */
+export function mesAnterior(mes: string): string {
+  return deslocarMes(mes, -1);
+}
+
+/** 'AAAA-MM' → mês seguinte, atravessando a virada de ano. */
+export function mesSeguinte(mes: string): string {
+  return deslocarMes(mes, 1);
+}
+
+/** Caminho (com ou sem query) com `mes` trocado ou acrescentado, preservando os demais parâmetros. */
+export function comMes(caminho: string, mes: string): string {
+  const [base, busca = ''] = caminho.split('?');
+  return `${base}?${escreverMesNaUrl(new URLSearchParams(busca), mes).toString()}`;
+}
