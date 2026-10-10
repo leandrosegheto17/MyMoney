@@ -428,3 +428,30 @@ OK; 0 críticos, 1 não crítico (RTP-0063: senha da CONTRATO_DB_URL pode aparec
 
 ## TP-0109 — DevSecOps — 2026-10-10
 APROVADA; 0 críticos, 1 não crítico novo (RTP-0064 baixa: host-local.sh passa `?x=@localhost` e `?host=`), RTP-0060 mantida (média); testes 31/31, 19/19, ensaio 7/7 em banco descartável com shim; sem segredos/pull_request_target/dependência nova; CLI real e CI não verificados.
+
+## RTP-0056 — DevSecOps — 2026-10-10
+APROVADA — 1 linha mudou (saída descartada, CODIGO e asserções intactos, set -e preservado), teste executado verde (2 casos), sem segredo/URL/dependência; 0 achados.
+
+## RTP-0059 — DevSecOps — 2026-10-10
+APROVADA — diff de 1 linha de diretiva shellcheck, sem segredo/URL/dependência, `source` de host-local.sh intacto e sem path traversal; 0 críticos, 0 não críticos (revisão de leitura, nada executado).
+
+## RTP-0060 — DevSecOps — 2026-10-10
+APROVADA: perl só lê o texto, nomes hostis e ReDoS testados sem bypass, 62+24 testes ok; perl que falha só induzido por limite artificial de memória, RTP-0072 confirmada como defesa em profundidade (cobrir também symlink pendente); 0 críticos, 0 RTP novos.
+
+## RTP-0061 — DevSecOps — 2026-10-10
+OK; 0 críticos, 0 não críticos; diff de 1 linha de comentário, trava G-06 chamada antes de qualquer conexão, carregar.test.sh 10 casos verdes.
+
+## RTP-0062 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/1 não crítico (RTP-0074: --db-url vazio vira --linked); trava via exigir_host_local sem desvio, antes de qualquer uso da URL, G-14/CI intactos, 24+48 testes e 12 casos adversariais executados.
+
+## RTP-0063 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 1 não crítico (env herdado pelo filho -> RTP-0075); prova: 8 modos de falha com senha especial sem fragmento em stdout+stderr, sem shell, banco.ts fixo; vazamento parcial do mascarar segue em RTP-0071 (defesa em profundidade, stderr real não repete a URL).
+
+## RTP-0064 — DevSecOps — 2026-10-10
+APROVADA — leitura linha a linha + 46 casos próprios (case, IPv6, %00, host=/HOST=/hostaddr, `;`/`&`, userinfo, 0.0.0.0, 127.x, ::ffff:) sem bypass, falha fechada e senha fictícia nunca impressa; host-local 48/48, carregar e migrar 24/24 ok; ensaiar-migration.test.sh não executado (sem Docker); 0 achados.
+
+## TP-0020 — DevSecOps — 2026-10-10
+OK; 0 críticos, 0 não críticos; só tipos, privacidade do pagador preservada (pagamento?/data_ajustada? opcionais), mockup fictício, @types/node só acréscimo com integrity e sem exceção de idade, audit --prod limpo, typecheck e 65 testes verdes.
+
+## TP-0025 — DevSecOps — 2026-10-10
+TP-0025 APROVADA em segurança (59/59 testes, eslint e audit limpos, só anon via lerAmbiente, cliente interno, erros sem vazamento, redefinição neutra); sem achado novo, RTP-0066 já cobre o limite de taxa.

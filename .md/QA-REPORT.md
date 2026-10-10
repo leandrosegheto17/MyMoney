@@ -467,3 +467,6 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0065: `pagamento.forma` deveria acei
 
 ## TP-0025 — QA — 2026-10-10
 TP-0025 APROVADA no QA (59/59 testes, tsc e eslint limpos, dependências ok); `pedirRedefinicao` engole limite de taxa (RTP-0066); `cliente.test.ts` sessao-falsa depende da TP-0026 (aceitável).
+
+## RTP-0060 — QA — 2026-10-10
+APROVADA (rodada 2): bypass `$é$` e variantes de dollar-quote fechados, 62+24 testes e shellcheck ok; 0 críticos, 2 não críticos (RTP-0072 perl que falha em execução aprova, RTP-0073 teste com 417 linhas); RTP-0069/0070 resolvidas.
