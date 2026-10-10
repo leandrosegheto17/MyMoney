@@ -576,6 +576,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0056 | Lote 2 | shellcheck: variável SAIDA sem uso em migrar-job-migration.test.sh (SC2034) | Backend (operação) | QA de TP-0008; passo shellcheck do CI | shellcheck backend/operacao/deploy/testes/migrar-job-migration.test.sh sai com 0 (remover ou usar SAIDA); migrar-job-migration.test.sh segue verde | 0.5h | TP-0008 | - | backend/operacao/deploy/testes/migrar-job-migration.test.sh | bash backend/operacao/deploy/testes/migrar-job-migration.test.sh | Pendente |
+| RTP-0059 | Refatoração Lote-2 | shellcheck: SC1091 em ensaiar-migration.sh (host-local.sh não resolvido) | Backend (operação) | QA de TP-0008 (Rodada 3); passo shellcheck do CI | Com shellcheck -x (comando do passo do CI), backend/operacao/deploy/ensaiar-migration.sh sai 0 (adicionar '# shellcheck source-path=SCRIPTDIR' antes do source, como em migrar.sh); o teste do script segue verde | 0.5h | TP-0109 | Não | backend/operacao/deploy/ensaiar-migration.sh | shellcheck -x backend/operacao/deploy/ensaiar-migration.sh (exit 0) | Pendente |
 
 
 
