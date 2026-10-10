@@ -32,6 +32,8 @@ A fonte fica em `supabase/schemas/` (um arquivo por objeto); a migration é gera
 está em `[db.migrations] schema_paths` no `config.toml`: schemas, privilégios padrão, `app/**`,
 `api/**`. O glob `**` só pega arquivos em subpastas (`schemas/app/tabelas/x.sql`); arquivo solto
 direto em `schemas/app/` fica de fora, e `schema.sql` entra pelo caminho explícito.
+`app/tabelas/**` é lido antes de `app/**`, e função cujo corpo SQL lê tabela (as auxiliares de RLS) mora no
+arquivo da tabela: o `db diff` carrega arquivo só de função/política antes das tabelas e falha.
 
 Com `schema_paths` definido, o `db diff` compara as migrations com os arquivos declarativos
 (não com o banco local), então objeto criado direto no banco não aparece no diff.

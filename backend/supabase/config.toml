@@ -23,6 +23,7 @@ schema_paths = [
   "./schemas/app/schema.sql",
   "./schemas/api/schema.sql",
   "./schemas/privilegios_padrao.sql",
+  "./schemas/app/tabelas/**/*.sql",
   "./schemas/app/**/*.sql",
   "./schemas/api/**/*.sql",
 ]
