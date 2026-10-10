@@ -8,7 +8,7 @@ const TAMANHOS = [
   { nome: '1440x900', width: 1440, height: 900 },
 ];
 const DATA = new Date().toISOString().slice(0, 10);
-const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'TP-0080');
+const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'botao-forma');
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number]) {
   await page.setViewportSize({ width: tamanho.width, height: tamanho.height });

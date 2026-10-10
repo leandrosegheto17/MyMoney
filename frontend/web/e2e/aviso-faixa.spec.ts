@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { semViolacoesGraves } from './apoio/acessibilidade';
 
 const DATA = new Date().toISOString().slice(0, 10);
-const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'TP-0039');
+const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'aviso-faixa');
 
 const AVISOS = [
   { botao: 'Sucesso', texto: 'Lançamento salvo', regiao: 'status', arquivo: 'aviso-sucesso' },

@@ -7,7 +7,7 @@ import { semViolacoesGraves } from './apoio/acessibilidade';
 const VITRINE = '/e2e/vitrine/navegacao.html';
 const RAIZ = resolve(import.meta.dirname, '../../..');
 const MOCKUP = pathToFileURL(resolve(RAIZ, '.md/mockup/telas/lancamentos--sucesso.html')).href;
-const PASTA_PRINTS = resolve(RAIZ, '.md/.visual', new Date().toISOString().slice(0, 10), 'TP-0032');
+const PASTA_PRINTS = resolve(RAIZ, '.md/.visual', new Date().toISOString().slice(0, 10), 'navegacao');
 
 const CELULAR = { width: 390, height: 844 };
 const PC = { width: 1440, height: 900 };
