@@ -127,6 +127,8 @@ pnpm local:medir     # mediana de resumo_mes e lancamentos_mes + planos (auto_ex
   fixas) e 1 receita mensal por membro, tudo por `api.lancar_despesa`/`api.lancar_receita` como
   o próprio membro. Cria para Ana um Débito (`…0312`) e um Crédito (`…0313`, dia 15). Falha se o
   total de `app.parcela` sair de 5.500 a 6.500.
+  A carga termina com `analyze` nas tabelas tocadas, para a medição logo em seguida (`pnpm local:medir`)
+  ser estável sem esperar o autovacuum.
 - `medir.sql`: 1 aquecimento + 5 execuções por consulta, mediana em ms (meta < 500 ms), e planos
   de dentro das funções; sem permissão para `LOAD 'auto_explain'`, mostra o `explain analyze` da
   seleção de `app.parcelas_mes`.

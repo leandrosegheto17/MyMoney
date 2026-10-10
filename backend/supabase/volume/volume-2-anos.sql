@@ -104,3 +104,7 @@ end
 $$;
 
 commit;
+
+-- Estatísticas das tabelas tocadas: sem isso, logo após a carga (antes do autovacuum) o planner
+-- estima 1 linha em app.parcela e escolhe nested loops ruins; a medição fica refém do momento.
+analyze app.parcela, app.lancamento, app.categoria, app.lancamento_pagamento;
