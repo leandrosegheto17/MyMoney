@@ -40,8 +40,14 @@ function compararMetas(real: ItemMeta[], exemplos: ItemMeta[]): void {
 const mes = '2026-10-01';
 const META_ISOLAMENTO = 'f6b00000-0000-4000-8000-000000000151';
 const APORTE_ISOLAMENTO = 'f6b00000-0000-4000-8000-000000000b51';
-// Cinco anos à frente do mês corrente: fora da janela de ocorrências, portanto vazio em qualquer data.
-const mesSemDado = `${new Date().getUTCFullYear() + 5}-${String(new Date().getUTCMonth() + 1).padStart(2, '0')}-01`;
+
+// Cinco anos à frente do `hoje` do banco (fonte única `app.hoje()`): fora da janela de ocorrências.
+async function obterMesSemDado(): Promise<string> {
+  const { data, error } = await (await comoA()).rpc('contexto');
+  expect(error).toBeNull();
+  const [ano, mesNumero] = (data as { hoje: string }).hoje.split('-');
+  return `${Number(ano) + 5}-${mesNumero}-01`;
+}
 
 describe('api.resumo_mes', () => {
   it('A recebe o resumo no formato do exemplo', async () => {
@@ -74,6 +80,7 @@ describe('api.resumo_mes', () => {
   });
 
   it('mês sem dado tem a forma do exemplo vazio', async () => {
+    const mesSemDado = await obterMesSemDado();
     const { data, error } = await (await comoA()).rpc('resumo_mes', { p_mes: mesSemDado });
     expect(error).toBeNull();
     mesmaForma(data, vazio);
