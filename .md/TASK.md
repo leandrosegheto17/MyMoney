@@ -588,6 +588,12 @@ tarefa passa disso). Status inicial `Pendente`.
 | RTP-0061 | Refatoração Lote-21 | shellcheck: SC1091 em volume/carregar.sh (host-local.sh não resolvido com -x) | Backend (operação) | QA de TP-0109 (achado baixo); mesma causa da RTP-0059 | shellcheck -x backend/supabase/volume/carregar.sh sai 0 (acrescentar '# shellcheck source-path=SCRIPTDIR' antes do source, ou ajustar a diretiva source=); carregar.test.sh segue verde | 0.5h | TP-0109 | Não | backend/supabase/volume/carregar.sh | shellcheck -x backend/supabase/volume/carregar.sh (exit 0); bash backend/supabase/volume/testes/carregar.test.sh | Concluída · aguarda QA |
 | RTP-0064 | Refatoração Lote-21 | host-local.sh: validação de host contornável por query (@ e host=) | Backend (operação) | DevSecOps de TP-0109; G-06; ADR-011 §4 | exigir_host_local recusa 'postgresql://evil.example?x=@localhost' e 'postgresql://localhost/db?host=evil.example'; aceita 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'; casos novos em carregar.test.sh | 0.5h | TP-0109 | não | backend/operacao/comum/host-local.sh, backend/supabase/volume/testes/carregar.test.sh | bash backend/supabase/volume/testes/carregar.test.sh | Concluída · aguarda QA |
 
+### Refatoração Lote-5
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0066 | Lote 5 | pedirRedefinicao: não engolir erro de limite de taxa | Frontend | QA de TP-0025; UX T01; plano TP-0025 passo 5 | pedirRedefinicao só devolve resultado neutro para usuário inexistente; rede, indisponível e limite de taxa (429/over_email_send_rate_limit) lançam ErroDados; teste cobre os três | 1h | TP-0025 |  | frontend/web/src/dados/sessao.ts, frontend/web/src/dados/erros.ts, frontend/web/src/dados/sessao.test.ts | vitest src/dados/sessao.test.ts | Pendente |
+
+
 
 
 
