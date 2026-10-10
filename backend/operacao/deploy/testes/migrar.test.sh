@@ -211,6 +211,36 @@ recusar_db_url 'postgresql://evil.example/@localhost'
 caso "--db-url com host= na query é recusado antes do dump"
 recusar_db_url 'postgresql://postgres:segredo@127.0.0.1:54322/postgres?host=evil.example'
 
+recusar_db_url_sem_valor() {
+  preparar
+  executar "refteste" "$@"
+  afirmar_codigo_nao_zero "$CODIGO"
+  afirmar_nao_contem "$(simular_chamadas)" '^(supabase|git|gh) ' "não devia chamar git, gh nem supabase"
+}
+
+caso "--db-url '' (valor vazio) é recusado sem tocar git, gh nem supabase"
+recusar_db_url_sem_valor --db-url ''
+afirmar_contem "$SAIDA" '--db-url' "a mensagem devia citar --db-url"
+
+caso "--db-url sem argumento é recusado sem tocar git, gh nem supabase"
+recusar_db_url_sem_valor --db-url
+
+caso "--db-url= (vazio) é recusado sem tocar git, gh nem supabase"
+recusar_db_url_sem_valor --db-url=
+
+caso "--db-url ' ' (só espaços) é recusado sem tocar git, gh nem supabase"
+recusar_db_url_sem_valor --db-url ' '
+
+caso "--db-url vazio depois de uma URL local válida é recusado (última opção vale)"
+recusar_db_url_sem_valor --db-url 'postgresql://postgres:segredo@127.0.0.1:54322/postgres' --db-url ''
+
+caso "sem --db-url, --linked puro segue exigindo a confirmação digitada do ref"
+preparar
+executar "outro-ref"
+afirmar_codigo_nao_zero "$CODIGO"
+afirmar_sem_push_real
+afirmar_contem "$(chamadas_supabase | head -n 1)" '--linked' "dump devia usar --linked"
+
 caso "--db-url local legítima com usuário e senha segue para o dump"
 preparar
 executar "local" --db-url 'postgresql://postgres:segredo@127.0.0.1:54322/postgres'

@@ -27,19 +27,22 @@ abortar() {
 }
 
 DB_URL=''
+DB_URL_PASSADA=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --db-url)
       [ $# -ge 2 ] || abortar "--db-url pede um valor"
       DB_URL="$2"
+      DB_URL_PASSADA=1
       shift 2
       ;;
     *) abortar "argumento desconhecido: $1" ;;
   esac
 done
 
+# Passar --db-url (mesmo vazio) é pedir o ensaio local: nunca cai em --linked (produção).
 # Aceita só host local; a senha da URL nunca é impressa.
-if [ -n "$DB_URL" ]; then
+if [ "$DB_URL_PASSADA" -eq 1 ]; then
   exigir_host_local "$DB_URL" "a migração com --db-url" || exit 1
   ALVO=(--db-url "$DB_URL")
 else
@@ -97,7 +100,7 @@ echo "SQL que será aplicado (supabase db push --dry-run):"
 supabase_cli db push "${ALVO[@]}" --dry-run || abortar "falha no dry-run; nada foi aplicado"
 
 # (f) confirmação digitada
-if [ -n "$DB_URL" ]; then
+if [ "$DB_URL_PASSADA" -eq 1 ]; then
   REF="local"
 else
   [ -s backend/supabase/.temp/project-ref ] || abortar "projeto não vinculado; rode supabase link"
