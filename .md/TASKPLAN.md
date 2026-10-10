@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 20:57
+Atualizado: 2026-10-10 21:02
 
-Resumo: Não executada 58 · Em execução 2 · Testada (aguarda segurança) 9 · Aprovada 177 · Bloqueada 9 · total 255
+Resumo: Não executada 58 · Em execução 2 · Aprovada 186 · Bloqueada 9 · total 255
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -56,10 +56,10 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 41 | TP-0038 | executor | ✔ | rotulos/ | Lote 8 | TP-0020, TP-0021 | Aprovada |
 | 42 | TP-0039 | executor | ✔ | Aviso (toast) e Faixa | Lote 8 | TP-0023 | Aprovada |
 | 43 | TP-0040 | executor | ✔ | EstadoVazio, EstadoErro, Esqueleto e leitura com cache | Lote 8 | TP-0023, TP-0039 | Aprovada |
-| 44 | TP-0041 | executor | ✔ | SeletorMes | Lote 8 | TP-0024, TP-0033 | Testada (aguarda segurança) |
-| 45 | TP-0042 | executor | ✔ | SeloEscopo e SeloSituacao | Lote 8 | TP-0038 | Testada (aguarda segurança) |
+| 44 | TP-0041 | executor | ✔ | SeletorMes | Lote 8 | TP-0024, TP-0033 | Aprovada |
+| 45 | TP-0042 | executor | ✔ | SeloEscopo e SeloSituacao | Lote 8 | TP-0038 | Aprovada |
 | 46 | TP-0043 | executor | ✔ | ChipOpcao e GrupoChips | Lote 8 | TP-0023 | Aprovada |
-| 47 | TP-0044 | executor | ✔ | BarraProgresso, ValorDestaque e CartaoResumo | Lote 8 | TP-0038 | Testada (aguarda segurança) |
+| 47 | TP-0044 | executor | ✔ | BarraProgresso, ValorDestaque e CartaoResumo | Lote 8 | TP-0038 | Aprovada |
 | 48 | TP-0045 | executor | ✔ | T01 Entrar | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Não executada |
 | 49 | TP-0046 | executor | ✔ | T01b Redefinir senha | Lote 9 | TP-0026, TP-0033, TP-0034, TP-0039 | Não executada |
 | 50 | TP-0047 | executor | ✔ | T14 Ajustes | Lote 9 | TP-0026, TP-0033, TP-0037, TP-0039 | Não executada |
@@ -90,9 +90,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 75 | TP-0074 | executor | ✔ | T19 Categorias | Lote 14 | TP-0040, TP-0042, TP-0069 | Não executada |
 | 76 | TP-0076 | executor | ✔ | Dados do lançamento com cache no aparelho | Lote 15 | TP-0025, TP-0063 | Aprovada |
 | 77 | TP-0077 | executor | ✔ | Fila offline: núcleo (dados/fila) | Lote 15 | TP-0025, TP-0062 | Aprovada |
-| 78 | TP-0078 | executor | ✔ | Fila offline: gatilhos de envio e sessão | Lote 15 | TP-0077 | Testada (aguarda segurança) |
+| 78 | TP-0078 | executor | ✔ | Fila offline: gatilhos de envio e sessão | Lote 15 | TP-0077 | Aprovada |
 | 79 | TP-0079 | executor | ✔ | Puxar para atualizar | Lote 15 | TP-0023 | Aprovada |
-| 80 | TP-0080 | executor | ✔ | BotaoForma e ListaFormas | Lote 16 | TP-0023, TP-0038, TP-0043 | Testada (aguarda segurança) |
+| 80 | TP-0080 | executor | ✔ | BotaoForma e ListaFormas | Lote 16 | TP-0023, TP-0038, TP-0043 | Aprovada |
 | 81 | BK-0014 | coordenador | ✔ | TP-0081 move folgaTeclado.ts e remove a página EnsaioTeclado, criados pelo TP-0031 (Penden | — | — | Não executada |
 | 82 | TP-0081 | executor | ✔ | T03a Folha de lançamento montada e o "+" | Lote 16 | BK-0014, SPK-0001, TP-0032, TP-0033, TP-0035, TP-0036, TP-0076 | Bloqueada |
 | 83 | TP-0082 | executor | ✔ | T03b Grade de categorias | Lote 16 | TP-0042, TP-0043, TP-0081 | Não executada |
@@ -192,7 +192,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 177 | RTP-0052 | executor | ✔ | Tirar ID de tarefa do comentário de categorias-pendente.ts | Refatoração Lote-4 | RTP-0050 | Aprovada |
 | 178 | RTP-0063 | executor | ✔ | gerar.mjs: não vazar senha de CONTRATO_DB_URL nem usar shell no Windows | Refatoração Lote-4 | TP-0019 | Aprovada |
 | 179 | RTP-0071 | executor | ✔ | gerar.mjs: corrigir no-control-regex (lint) e mascarar senha com @ ou / crus em mascara... | Refatoração Lote-4 | RTP-0063 | Aprovada |
-| 180 | RTP-0075 | executor | ✔ | gerar.mjs: não repassar ao supabase mais variáveis de ambiente que o necessário | Refatoração Lote-4 | RTP-0071 | Testada (aguarda segurança) |
+| 180 | RTP-0075 | executor | ✔ | gerar.mjs: não repassar ao supabase mais variáveis de ambiente que o necessário | Refatoração Lote-4 | RTP-0071 | Aprovada |
 | 181 | RTP-0065 | executor | ✔ | Lancamento.pagamento.forma aceitar null (receita) | Refatoração Lote-4 | TP-0020 | Aprovada |
 | 182 | RTP-0009 | executor | ✔ | GrupoChips: erro focável e CSS do campo sem duplicar | Refatoração Lote-8 | TP-0043 | Aprovada |
 | 183 | RTP-0010 | executor | ✔ | Aviso/Faixa: spec Playwright com componentes reais e print | Refatoração Lote-8 | TP-0039 | Aprovada |
@@ -201,9 +201,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 186 | RTP-0080 | executor | ✔ | Testes das variantes extras de SeloSituacao (orçamento, atingida, aguardando, variável) | Refatoração Lote-8 | TP-0042 | Não executada |
 | 187 | RTP-0011 | executor | ✔ | Unificar @keyframes girar do PuxarParaAtualizar com o Botao | Refatoração Lote-15 | TP-0079 | Aprovada |
 | 188 | RTP-0019 | executor | ✔ | Remover classe morta estilo.salvando do Botao | Refatoração Lote-15 | RTP-0011 | Aprovada |
-| 189 | RTP-0076 | executor | ✔ | Fila: item com 401/JWT não vira falhou (fica aguardando) | Refatoração Lote-15 | TP-0077 | Testada (aguarda segurança) |
-| 190 | RTP-0077 | executor | ✔ | Fila: alinhar ItemFila ao fila-offline.json do mockup e teste satisfies | Refatoração Lote-15 | TP-0077 | Testada (aguarda segurança) |
-| 191 | RTP-0078 | executor | ✔ | Cache do aparelho: descartar registro de outro usuário | Refatoração Lote-15 | TP-0076 | Testada (aguarda segurança) |
+| 189 | RTP-0076 | executor | ✔ | Fila: item com 401/JWT não vira falhou (fica aguardando) | Refatoração Lote-15 | TP-0077 | Aprovada |
+| 190 | RTP-0077 | executor | ✔ | Fila: alinhar ItemFila ao fila-offline.json do mockup e teste satisfies | Refatoração Lote-15 | TP-0077 | Aprovada |
+| 191 | RTP-0078 | executor | ✔ | Cache do aparelho: descartar registro de outro usuário | Refatoração Lote-15 | TP-0076 | Aprovada |
 | 192 | RTP-0013 | executor | ✔ | Catálogo: lista fechada de security definer por assinatura | Refatoração Lote-3 | TP-0017 | Aprovada |
 | 193 | RTP-0016 | executor | ✔ | testes-api: formatar com Prettier os arquivos de casos | Refatoração Lote-3 | TP-0016 | Aprovada |
 | 194 | RTP-0020 | executor | ✔ | Catálogo: tirar a citação de lote do comentário de catalogo.sql | Refatoração Lote-3 | RTP-0013 | Aprovada |

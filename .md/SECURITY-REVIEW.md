@@ -506,3 +506,30 @@ APROVADA — 0 críticos, 0 não críticos; diff lido (escrita só por rpc, uuid
 
 ## TP-0152 — DevSecOps — 2026-10-10
 APROVADA; 0 críticos, 0 não críticos; escrita só por rpc tipada, sem conta alheia/console/dependência nova (revisão de diff + grep executado).
+
+## RTP-0075 — DevSecOps — 2026-10-10
+APROVADA — env do filho supabase por lista de permissão, provado por teste (35/35); 0 críticos, 0 não críticos; execução contra banco real não executada.
+
+## RTP-0076 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos/0 não críticos; diff lido (sem texto bruto/token guardado, item intacto no 401), vitest 32/32 executado, sem dependências novas.
+
+## RTP-0077 — DevSecOps — 2026-10-10
+APROVADA — diff é fixture sintético e teste de leitura local; sem dado sensível nem dependência nova; 0 achados (somente leitura, nada executado).
+
+## RTP-0078 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; `lerCache` apaga só o store `mymoney-cache` do outro usuário (fila intacta, G-17), 7 testes do cache passando, achado de baixa do TP-0076 coberto.
+
+## TP-0041 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; `mes` da URL validado por regex com padrão seguro, sem sink de DOM/rede/armazenamento, sem dependência nova; 43 testes vitest passando, SAST/DAST ficam para a auditoria de release.
+
+## TP-0042 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff lido (texto como nó React, sem HTML/rede/storage) e grep de sinks perigosos executado sem ocorrências; sem dependência nova.
+
+## TP-0044 — DevSecOps — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; diff sem style estático, sem dangerouslySetInnerHTML, sem cálculo de regra e sem dependência nova (grep executado), sem dado pessoal.
+
+## TP-0078 — DevSecOps — 2026-10-10
+APROVADA, 0 críticos/0 não críticos; esvaziamento só com sessão válida, nada apagado, isolamento por dono confirmado no diff, 26 testes executados passando, sem mudança de dependência.
+
+## TP-0080 — DevSecOps — 2026-10-10
+APROVADA; 0 críticos, 0 não críticos; diff lido e grep executado (sem HTML bruto, style inline, import de dados/ nem dependência nova); superfície de segurança nula.
