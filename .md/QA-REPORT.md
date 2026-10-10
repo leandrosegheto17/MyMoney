@@ -59,3 +59,6 @@ APROVADA — 0 críticos/0 não críticos; reset com migrations reais ok (ordem 
 
 ## TP-0013 — QA — 2026-10-10
 APROVADA — reset do zero + pgTAP acesso (estrutura/limites/auxiliares/visibilidade) e 00-privilegios verdes; 0 achados críticos, 0 não críticos (seed.sql é do TP-0014).
+
+## TP-0005 — QA — 2026-10-10
+APROVADA; 0 achados (críticos 0, não críticos 0); reset do zero + 20 testes pgTAP PASS, migration idêntica ao schema; curl sem apikey = 200 é comportamento do gateway local, fora do aceite.

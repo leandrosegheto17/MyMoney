@@ -38,3 +38,15 @@ APROVADA — audit limpo, gitleaks 0 em 7 arquivos, fontes locais sem CDN, sprit
 
 ## TP-0027 — DevSecOps — 2026-10-10
 APROVADA — sw.js sem runtimeCaching/dado de API, precache só app shell, sem script inline/eval próprio, pnpm audit limpo, gitleaks 0; semgrep não executado (fica no /deploy); 0 críticos, 0 não críticos.
+
+## RTP-0003 — DevSecOps — 2026-10-10
+APROVADA, 0 achados; config local com signup desligado e só schema api, gitleaks (arquivos e 30 commits) sem vazamento, nenhum .env versionado.
+
+## RTP-0007 — DevSecOps — 2026-10-10
+APROVADA, 0 achados; teste puro sem segredo, rede ou dependência nova; gitleaks limpo.
+
+## TP-0004 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos/0 não críticos; catálogo: invoker, search_path vazio, execute só para authenticated (anon/public=false), gitleaks limpo nos 4 arquivos.
+
+## TP-0013 — DevSecOps — 2026-10-10
+APROVADA — RLS enable+force, auxiliares security definer com search_path vazio e execute só authenticated, anon sem acesso, leitura/escrita cruzada e user_id negados (executado), limite de 2 membros e 1 lar recusados, gitleaks limpo; 0 achados críticos, 0 não críticos.
