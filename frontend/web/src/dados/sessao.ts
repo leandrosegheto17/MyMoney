@@ -82,10 +82,27 @@ export async function sair(): Promise<void> {
   await apagarCache();
 }
 
+/** O Auth já não reconhece a sessão (ou o endpoint): não há o que revogar, só limpar o aparelho. */
+const STATUS_SEM_SESSAO_NO_SERVIDOR = [401, 403, 404];
+
+/**
+ * Revoga todas as sessões no servidor com o JWT do próprio usuário, sem tocar na sessão local;
+ * só depois de confirmar remove a sessão deste aparelho. Sem rede, falha e mantém sessão e cache (ADR-013).
+ */
 export async function sairDeTodos(): Promise<void> {
   if (semRede()) return;
-  const { error } = await obterCliente().auth.signOut({ scope: 'global' });
-  conferir(error);
+  const sessao = await obterSessao();
+  if (!sessao) {
+    await apagarCache();
+    return;
+  }
+  const auth = obterCliente().auth;
+  const { error } = await auth.admin.signOut(sessao.access_token, 'global');
+  const status = (error as { status?: number } | null)?.status;
+  if (error && !(status !== undefined && STATUS_SEM_SESSAO_NO_SERVIDOR.includes(status))) {
+    throw traduzirErro(error);
+  }
+  conferir((await auth.signOut({ scope: 'local' })).error);
   await apagarCache();
 }
 
