@@ -557,3 +557,12 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0088: códigos de Auth que revelam a
 
 ## TP-0046 — DevSecOps — 2026-10-10
 APROVADA — token do link não vaza (sem log/título/storage próprio, hash tratado pelo supabase-js, teste "token não fica na URL" 15/15 verde), mensagens uniformes, `sair()` local após troca; 0 críticos, 0 não críticos; fluxo real com Auth e política do servidor pendentes para a auditoria de release.
+
+## RTP-0084 — DevSecOps — 2026-10-10
+APROVADA em segurança (revisão do diff, nada executado); 0 críticos, 0 não críticos novos; G-05 preservada, textos estáticos sem conteúdo bruto do servidor.
+
+## RTP-0085 — DevSecOps — 2026-10-10
+OK — revisão do diff: senha não vai a log/URL/storage/DOM, focarPrimeiroErro só foca, aoEnviar recebe apenas o form; 0 achados (nada executado).
+
+## RTP-0088 — DevSecOps — 2026-10-10
+APROVADA — 0 críticos, 1 não crítico (RTP-0090: user_sso_managed/phone_not_confirmed ainda diferenciam a conta); 3 códigos uniformizados, 47 testes executados verdes; timing do servidor não medido.
