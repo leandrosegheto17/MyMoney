@@ -72,7 +72,7 @@ select throws_ok($$ select api.definir_orcamento(null, '00000000-0000-4000-8000-
 select lives_ok($$ select api.definir_orcamento('2026-12-20', '00000000-0000-4000-8000-000000000402', 40000) $$, 'mês no meio é aceito');
 reset role;
 
-select is((select mes from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000402' and valor_centavos = 40000), '2026-12-01'::date, 'mês gravado é o dia 1');
+select is((select mes from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000402' and valor_centavos = 40000 and mes >= '2026-12-01'), '2026-12-01'::date, 'mês gravado é o dia 1');
 
 -- Categoria arquivada: não recebe valor, mas pode ter o orçamento removido
 update app.categoria set arquivada = true where id = '00000000-0000-4000-8000-000000000403';
