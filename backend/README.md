@@ -159,3 +159,40 @@ Ponto de atenção: o maior custo do `resumo_mes` não é a seleção do mês, e
 (~100 a 130 ms por conta), que relê `parcela_lar_id_data_idx` por lançamento. A margem para os 500 ms
 é de cerca de 27%; se a medição no Supabase local passar disso, registrar e escalar ao Coordenador
 (SDD §6, dívida de materialização) em vez de criar índice sem medir.
+
+## Migrar a produção (`operacao/deploy/migrar.sh`)
+
+Aplica as migrations no projeto Supabase de produção, depois de gravar uma cópia pontual.
+
+Pré-requisitos: `supabase link` feito (grava `supabase/.temp/project-ref`), `gh auth login`,
+`psql` para restaurar e a árvore limpa no commit já publicado, com o CI verde.
+
+```sh
+bash backend/operacao/deploy/migrar.sh
+```
+
+O script, nesta ordem: recusa árvore suja; recusa commit fora do remoto ou sem run verde do
+workflow `ci` (e sem cada job de `JOBS_EXIGIDOS`, lista no topo do script); grava
+`<data>-schema.sql` e `<data>-dados.sql` em `MYMONEY_COPIAS_DIR` (padrão `$HOME/mymoney-copias`,
+sempre fora do repositório); mostra o SQL de `supabase db push --dry-run`; pede que se digite o ref
+do projeto (sem entrada, aborta); aplica com `supabase db push --linked`; imprime como restaurar.
+
+### Restaurar a cópia
+
+```sh
+psql "$DATABASE_URL" -f ~/mymoney-copias/<data>-schema.sql
+psql "$DATABASE_URL" -f ~/mymoney-copias/<data>-dados.sql
+```
+
+`DATABASE_URL` é a string de conexão do painel do Supabase. As cópias têm dados reais: apague-as
+depois de confirmar a migração.
+
+### Ensaio contra o Supabase local
+
+1. `pnpm local:subir` e `pnpm local:resetar` (banco local limpo).
+2. Num commit publicado com CI verde e árvore limpa:
+   `bash backend/operacao/deploy/migrar.sh --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres`
+3. Digite `local` na confirmação. `--db-url` só aceita host `127.0.0.1` ou `localhost`.
+
+Testes do script (comandos externos simulados, nada toca produção):
+`bash backend/operacao/deploy/testes/migrar.test.sh`.
