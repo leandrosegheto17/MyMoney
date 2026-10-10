@@ -72,26 +72,16 @@ begin
           or coalesce(g.gasto_mes_centavos, 0) > 0
           or coalesce(g.comprometido_futuro_centavos, 0) > 0);
 
-  select coalesce(jsonb_agg(jsonb_build_object(
-           'meta_id', m.id, 'nome', m.nome, 'alvo_centavos', m.alvo_centavos,
-           'guardado_centavos', p.guardado_centavos, 'falta_centavos', p.falta_centavos,
-           'percentual', p.percentual, 'prazo', to_char(m.prazo, 'YYYY-MM'),
-           'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
-         order by p.atingida, m.nome), '[]'::jsonb)
+  select coalesce(jsonb_agg(i.item order by (i.item ->> 'atingida')::boolean, i.item ->> 'nome'), '[]'::jsonb)
     into v_metas_conjunto
     from app.meta m
-   cross join lateral app.progresso_meta(m.id) p
+   cross join lateral (select app.meta_item_json(m.id) as item) i
    where m.escopo = 'conjunto';
 
-  select coalesce(jsonb_agg(jsonb_build_object(
-           'meta_id', m.id, 'nome', m.nome, 'alvo_centavos', m.alvo_centavos,
-           'guardado_centavos', p.guardado_centavos, 'falta_centavos', p.falta_centavos,
-           'percentual', p.percentual, 'prazo', to_char(m.prazo, 'YYYY-MM'),
-           'mensal_necessario_centavos', p.mensal_necessario_centavos, 'atingida', p.atingida)
-         order by p.atingida, m.nome), '[]'::jsonb)
+  select coalesce(jsonb_agg(i.item order by (i.item ->> 'atingida')::boolean, i.item ->> 'nome'), '[]'::jsonb)
     into v_metas_individual
     from app.meta m
-   cross join lateral app.progresso_meta(m.id) p
+   cross join lateral (select app.meta_item_json(m.id) as item) i
    where m.escopo = 'individual' and m.dono_id = v_membro;
 
   select count(*)::integer,

@@ -9,7 +9,7 @@ select m.id,
        p.guardado_centavos,
        p.falta_centavos,
        p.percentual,
-       to_char(m.prazo, 'YYYY-MM') as prazo,
+       app.prazo_meta_texto(m.prazo) as prazo,
        p.mensal_necessario_centavos,
        p.atingida,
        p.por_local
