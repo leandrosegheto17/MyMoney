@@ -621,6 +621,12 @@ tarefa passa disso). Status inicial `Pendente`.
 | RTP-0085 | Refatoração Lote-9 | FormularioNovaSenha usa focarPrimeiroErro em vez de foco próprio | Frontend | CONVENCOES-DE-CODIGO regra 1 (reaproveitar); plano TP-0046 passo 3; origem: achado não crítico do QA de TP-0046 | FormularioNovaSenha foca o primeiro campo com erro via focarPrimeiroErro (TP-0034), sem refs/useEffect/contador de tentativa próprios; testes de RedefinirSenha e e2e redefinir-senha seguem verdes (foco na senha com 8 e 9 caracteres) | 1h | TP-0046 | - | frontend/web/src/componentes/FormularioNovaSenha.tsx | frontend/web/src/paginas/RedefinirSenha.test.tsx | Pendente |
 | RTP-0086 | Refatoração Lote-9 | T14: seta ausente no item 'Instalar o app' | Frontend | UX-SPEC T14 | O item 'Instalar o app' de Ajustes mostra a seta (icone dir) à direita como no mockup ajustes--sucesso.html; 'visual -- --tela T14' sem o ponto vermelho da seta no diff.png (QA TP-0047) | 0.5h | TP-0047 | - | frontend/web/src/componentes/base/ItemLink.tsx, frontend/web/src/paginas/Ajustes.tsx | Ajustes.test.tsx; visual T14 | Pendente |
 
+### Refatoração Lote-20
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0087 | Refatoração Lote-20 | Comparação visual do cabeçalho com SeletorMes (T02/T04/T06/T09) | QA | RTP-0082 item (b) | comparar-visual.mjs sem divergência no cabeçalho com SeletorMes na T04a (TP-0103) e demais telas que o usem; resultado registrado | 1h | TP-0103 | — | — | comparar-visual.mjs | Pendente |
+
+
 
 
 
