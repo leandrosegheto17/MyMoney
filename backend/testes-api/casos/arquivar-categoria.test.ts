@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { comCategorias } from '../src/categorias-pendente';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
@@ -19,13 +20,21 @@ describe('api.arquivar_categoria', () => {
     expect(criada.error).toBeNull();
     expect((await a.rpc('arquivar_categoria', { p_id: id })).error).toBeNull();
     expect((await a.rpc('arquivar_categoria', { p_id: id })).error).toBeNull();
-    const lida = await (await comoB()).from('categorias').select('arquivada').eq('id', id).single();
+    const lida = await comCategorias(await comoB())
+      .from('categorias')
+      .select('arquivada')
+      .eq('id', id)
+      .single();
     expect(lida.data?.arquivada).toBe(true);
   });
 
   it('B não arquiva a individual de A, que segue ativa', async () => {
     await esperarRegistroInvalido((await comoB()).rpc('arquivar_categoria', { p_id: INDIVIDUAL_DE_A }));
-    const lida = await (await comoA()).from('categorias').select('arquivada').eq('id', INDIVIDUAL_DE_A).single();
+    const lida = await comCategorias(await comoA())
+      .from('categorias')
+      .select('arquivada')
+      .eq('id', INDIVIDUAL_DE_A)
+      .single();
     expect(lida.data?.arquivada).toBe(false);
   });
 

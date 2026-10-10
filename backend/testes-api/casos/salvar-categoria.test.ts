@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { comCategorias } from '../src/categorias-pendente';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
@@ -19,14 +20,14 @@ describe('api.salvar_categoria', () => {
     });
     expect(criada.error).toBeNull();
     expect(criada.data).toBe(id);
-    const lida = await a.from('categorias').select('*').eq('id', id).single();
+    const lida = await comCategorias(a).from('categorias').select('*').eq('id', id).single();
     expect(lida.error).toBeNull();
     expect(lida.data).toMatchObject({ id, tipo: 'despesa', escopo: 'individual' });
   });
 
   it('B renomeia a conjunta do seed e devolve o nome', async () => {
     const b = await comoB();
-    const atual = await b.from('categorias').select('nome').eq('id', MERCADO_CONJUNTA).single();
+    const atual = await comCategorias(b).from('categorias').select('nome').eq('id', MERCADO_CONJUNTA).single();
     expect(atual.error).toBeNull();
     const nome = atual.data?.nome as string;
     const r1 = await b.rpc('salvar_categoria', {

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
+import { comCategorias } from '../src/categorias-pendente';
 import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
@@ -19,7 +20,7 @@ describe('api.excluir_categoria', () => {
     });
     expect(criada.error).toBeNull();
     expect((await a.rpc('excluir_categoria', { p_id: id })).error).toBeNull();
-    const lida = await a.from('categorias').select('id').eq('id', id);
+    const lida = await comCategorias(a).from('categorias').select('id').eq('id', id);
     expect(lida.data).toEqual([]);
   });
 
@@ -30,7 +31,10 @@ describe('api.excluir_categoria', () => {
 
   it('B não exclui a individual de A, que continua na lista de A', async () => {
     await esperarRegistroInvalido((await comoB()).rpc('excluir_categoria', { p_id: INDIVIDUAL_DE_A }));
-    const lida = await (await comoA()).from('categorias').select('id').eq('id', INDIVIDUAL_DE_A);
+    const lida = await comCategorias(await comoA())
+      .from('categorias')
+      .select('id')
+      .eq('id', INDIVIDUAL_DE_A);
     expect(lida.data).toHaveLength(1);
   });
 });
