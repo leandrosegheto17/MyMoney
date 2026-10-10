@@ -1,0 +1,20 @@
+import AxeBuilder from '@axe-core/playwright';
+import { expect, type Page } from '@playwright/test';
+
+const GRAVES = new Set(['serious', 'critical']);
+
+/** Roda o axe na página e falha se houver violação *serious* ou *critical* (G-19). */
+export async function semViolacoesGraves(page: Page, opcoes: { incluir?: string } = {}): Promise<void> {
+  let construtor = new AxeBuilder({ page });
+  if (opcoes.incluir) construtor = construtor.include(opcoes.incluir);
+  const { violations } = await construtor.analyze();
+  const graves = violations
+    .filter((v) => v.impact && GRAVES.has(v.impact))
+    .map((v) => ({
+      regra: v.id,
+      impacto: v.impact,
+      ajuda: v.help,
+      alvos: v.nodes.map((n) => n.target.join(' ')),
+    }));
+  expect(graves, 'violações graves de acessibilidade').toEqual([]);
+}

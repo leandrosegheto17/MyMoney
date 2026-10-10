@@ -1,0 +1,102 @@
+-- Apoio dos pgTAP: executar como um usuário (role + request.jwt.claims).
+-- Incluído dentro da transação de cada teste com `\ir ../apoio/executar_como.psql`,
+-- depois do `begin;` e do `create extension ... pgtap`; o `rollback` final descarta tudo.
+-- Extensão .psql para o `supabase test db` (pg_prove, .sql/.pg) não rodá-lo como teste.
+--
+-- Ids fixos, iguais aos do seed local de acesso:
+--   membros Leandro ...0101 e Ana ...0102; usuários do Auth ...00a1 (Leandro),
+--   ...00a2 (Ana) e ...00a3 (autenticado sem membro).
+
+create schema if not exists testes;
+grant usage on schema testes to authenticated, anon;
+
+-- O privilégio padrão do projeto tira `execute` de `public`; as funções do pgTAP
+-- precisam continuar chamáveis depois de trocar de papel.
+do $$
+declare v_funcao regprocedure;
+begin
+  for v_funcao in
+    select d.objid::regprocedure
+    from pg_depend d
+    join pg_extension e on e.oid = d.refobjid
+    where e.extname = 'pgtap' and d.classid = 'pg_proc'::regclass and d.deptype = 'e'
+  loop
+    execute format('grant execute on function %s to authenticated, anon', v_funcao);
+  end loop;
+end $$;
+
+create function testes.usuario_a() returns uuid language sql immutable
+  as $$ select '00000000-0000-4000-8000-0000000000a1'::uuid $$;
+create function testes.usuario_b() returns uuid language sql immutable
+  as $$ select '00000000-0000-4000-8000-0000000000a2'::uuid $$;
+create function testes.usuario_sem_membro() returns uuid language sql immutable
+  as $$ select '00000000-0000-4000-8000-0000000000a3'::uuid $$;
+create function testes.membro_a() returns uuid language sql immutable
+  as $$ select '00000000-0000-4000-8000-000000000101'::uuid $$;
+create function testes.membro_b() returns uuid language sql immutable
+  as $$ select '00000000-0000-4000-8000-000000000102'::uuid $$;
+
+-- Passa a executar como `authenticated` com o JWT do usuário.
+create function testes.como_usuario(p_user_id uuid, p_email text default null)
+returns void language plpgsql as $$
+begin
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object(
+      'sub', p_user_id,
+      'role', 'authenticated',
+      'aud', 'authenticated',
+      'email', p_email
+    )::text,
+    true
+  );
+  set local role authenticated;
+end $$;
+
+create function testes.como_a() returns void language sql
+  as $$ select testes.como_usuario(testes.usuario_a(), 'leandro@exemplo.com') $$;
+create function testes.como_b() returns void language sql
+  as $$ select testes.como_usuario(testes.usuario_b(), 'ana@exemplo.com') $$;
+create function testes.como_sem_membro() returns void language sql
+  as $$ select testes.como_usuario(testes.usuario_sem_membro(), 'sem.membro@exemplo.com') $$;
+
+create function testes.como_anon() returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
+  set local role anon;
+end $$;
+
+-- Volta ao papel da sessão (postgres), para preparar dados no meio do teste.
+create function testes.como_postgres() returns void language plpgsql as $$
+begin
+  perform set_config('request.jwt.claims', '', true);
+  reset role;
+end $$;
+
+-- Garante um usuário do Auth (não falha se o seed já o criou).
+create function testes.criar_usuario(p_id uuid, p_email text) returns void
+language sql as $$
+  insert into auth.users (id, email, aud, role)
+  values (p_id, p_email, 'authenticated', 'authenticated')
+  on conflict (id) do nothing;
+$$;
+
+-- Lar de teste com Leandro (A) e Ana (B) e o usuário autenticado sem membro,
+-- criado do zero dentro da transação (independe do que o seed tiver).
+-- Chamar como postgres, antes de trocar de papel.
+create function testes.preparar_lar() returns uuid language plpgsql as $$
+declare v_lar uuid := '00000000-0000-4000-8000-000000000100';
+begin
+  truncate app.membro, app.lar cascade;
+  perform testes.criar_usuario(testes.usuario_a(), 'leandro@exemplo.com');
+  perform testes.criar_usuario(testes.usuario_b(), 'ana@exemplo.com');
+  perform testes.criar_usuario(testes.usuario_sem_membro(), 'sem.membro@exemplo.com');
+  insert into app.lar (id, nome) values (v_lar, 'Casa de teste');
+  insert into app.membro (id, lar_id, user_id, nome)
+  values (testes.membro_a(), v_lar, testes.usuario_a(), 'Leandro');
+  insert into app.membro (id, lar_id, user_id, nome)
+  values (testes.membro_b(), v_lar, testes.usuario_b(), 'Ana');
+  return v_lar;
+end $$;
+
+grant execute on all functions in schema testes to authenticated, anon;
