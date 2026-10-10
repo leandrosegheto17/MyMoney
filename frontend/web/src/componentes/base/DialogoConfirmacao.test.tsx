@@ -242,6 +242,36 @@ describe('DialogoConfirmacao sobre a Folha', () => {
     }
   });
 
+  it('Esc com o diálogo aberto não fecha a folha por baixo', async () => {
+    const usuario = userEvent.setup();
+    const aoFecharFolha = vi.fn();
+    function Pilha() {
+      const [aberto, setAberto] = useState(false);
+      return (
+        <Folha aberta aoFechar={aoFecharFolha} titulo="Lançamento">
+          <button type="button" onClick={() => setAberto(true)}>
+            Abrir
+          </button>
+          <DialogoConfirmacao
+            aberto={aberto}
+            titulo="T"
+            texto="X"
+            rotuloConfirmar="Ok"
+            variante="neutra"
+            aoConfirmar={() => setAberto(false)}
+            aoCancelar={() => setAberto(false)}
+          />
+        </Folha>
+      );
+    }
+    render(<Pilha />);
+    await usuario.click(screen.getByRole('button', { name: 'Abrir' }));
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    await usuario.keyboard('{Escape}');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(aoFecharFolha).not.toHaveBeenCalled();
+  });
+
   it('fechar o diálogo mantém a folha aberta, com-folha no <html> e o foco no gatilho dentro da folha', async () => {
     const usuario = userEvent.setup();
     render(<FolhaComDialogo />);
