@@ -5,7 +5,7 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-10 20:19
+Atualizado: 2026-10-10 20:22
 
 Resumo: Não executada 61 · Em execução 1 · Executada (aguarda teste) 18 · Aprovada 160 · Bloqueada 1 · total 241
 
