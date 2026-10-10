@@ -1,7 +1,9 @@
+import path from 'node:path';
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { regrasFronteira } from './frontend/web/eslint.fronteiras.js';
 
 export default tseslint.config(
   {
@@ -13,6 +15,7 @@ export default tseslint.config(
       '.claude/',
       'backend/supabase/',
       '**/src/banco.ts',
+      'frontend/web/test/lint/arvore/',
     ],
   },
   js.configs.recommended,
@@ -24,5 +27,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
+  ...regrasFronteira(path.resolve('frontend/web/src'), process.cwd()),
+  { linterOptions: { reportUnusedDisableDirectives: 'error' } },
   prettier,
 );

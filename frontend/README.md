@@ -28,3 +28,9 @@ pnpm --filter @mymoney/web typecheck
 | `PORTA`                  | Porta do servidor de desenvolvimento (execuções em paralelo) |
 
 Tudo com prefixo `VITE_` vai para o bundle público: não coloque mais nada.
+
+## Regras de fronteira (lint)
+
+`frontend/web/eslint.fronteiras.js` impõe a direção de import entre camadas, restringe `@supabase/supabase-js`
+e `idb-keyval` a `dados/` e proíbe escrita direta (`.from(...).insert/update/upsert/delete`). Desligar uma
+dessas regras (`eslint-disable`) exige entrada em `BLOCKERS.md`.
