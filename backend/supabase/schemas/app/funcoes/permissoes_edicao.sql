@@ -1,7 +1,9 @@
 -- Módulo único de "quem pode mudar o quê" num lançamento (RN-06, RN-07; CA-08.2 a 08.4).
 -- Quem lançou é o pagador (RN-05), então pagador, dono e "quem lançou" = lancamento.dono_id:
 -- tudo liberado. Outro membro (só alcança conjunta) muda descrição, valor, data (não no
--- crédito) e categoria conjunta; nunca escopo, forma ou parcelas. Só devolve booleanos.
+-- crédito) e categoria conjunta; nunca escopo, forma ou parcelas. Lançamento ligado a uma
+-- ocorrência de despesa fixa (o pagamento da fixa) é só do pagador: o outro membro não muda
+-- nada (RN-06, I-20). Só devolve booleanos.
 -- Lê a parte privada (forma de pagamento) e revela se a conjunta é no crédito: só o dono das
 -- funções a executa, chamada por api.editar_lancamento. A visibilidade é checada de forma
 -- explícita, pois ali a RLS não protege. Quem decide o erro sem_permissao é o chamador.
@@ -35,6 +37,14 @@ begin
 
   if v_dono = v_membro then
     return query select true, true, true, true, true, true, true;
+    return;
+  end if;
+
+  if exists (select 1
+               from app.ocorrencia_fixa o
+              where o.lancamento_id = p_lancamento_id
+                and o.lar_id = app.lar_atual()) then
+    return query select false, false, false, false, false, false, false;
     return;
   end if;
 
