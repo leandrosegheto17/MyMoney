@@ -85,14 +85,9 @@ begin
             v_data,
             case when v_forma_tipo = 'credito' then v_forma_dia else null end);
 
-    if v_forma_tipo = 'credito' then
-      insert into app.parcela (lancamento_id, lar_id, escopo, dono_id, numero, valor_centavos, data)
-      select p_id, app.lar_atual(), v_escopo, v_membro, g.numero, g.valor_centavos, g.data
-      from app.gerar_parcelas(v_data, v_forma_dia, p_parcelas, p_valor_centavos) g;
-    else
-      insert into app.parcela (lancamento_id, lar_id, escopo, dono_id, numero, valor_centavos, data)
-      values (p_id, app.lar_atual(), v_escopo, v_membro, 1, p_valor_centavos, v_data);
-    end if;
+    insert into app.parcela (lancamento_id, lar_id, escopo, dono_id, numero, valor_centavos, data)
+    select p_id, app.lar_atual(), v_escopo, v_membro, c.numero, c.valor_centavos, c.data
+    from app.calcular_parcelas(v_forma_tipo, v_data, v_forma_dia, p_parcelas, p_valor_centavos) c;
   exception when unique_violation then
     -- Corrida do mesmo membro ou id de lançamento invisível a ele (G-05).
     v_repetido := app.lancamento_repetido(p_id);

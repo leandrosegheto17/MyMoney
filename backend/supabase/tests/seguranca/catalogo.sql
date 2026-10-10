@@ -54,8 +54,9 @@ select is_empty(
        and not (
          -- app.*: por assinatura (um overload com argumentos não passa)
          p.oid::regprocedure::text in ('app.membro_atual()', 'app.lar_atual()')
-         -- api.editar_lancamento: por nome enquanto a função não existe; ao criá-la, fixar a assinatura aqui
-         or n.nspname || '.' || p.proname = 'api.editar_lancamento'
+         -- api.editar_lancamento (ADR-003 §3): por assinatura
+         or p.oid::regprocedure::text =
+            'api.editar_lancamento(uuid,bigint,uuid,text,date,uuid,integer,boolean)'
        )
      order by 1 $$,
   'nenhuma função security definer fora da lista fechada'
