@@ -64,9 +64,13 @@ describe('entrar', () => {
     ['email_not_confirmed', 400],
     ['user_banned', 403],
     ['user_not_found', 400],
+    ['user_sso_managed', 422],
+    ['phone_not_confirmed', 400],
   ])('%s rejeita com o mesmo código de credenciais erradas', async (codigo, status) => {
     const { entrar } = await carregar(({ url }) =>
-      url.pathname.endsWith('/auth/v1/token') ? json({ code: status, error_code: codigo, msg: codigo }, status) : undefined,
+      url.pathname.endsWith('/auth/v1/token')
+        ? json({ code: status, error_code: codigo, msg: codigo }, status)
+        : undefined,
     );
     await expect(entrar('x@exemplo.com', 'senha')).rejects.toEqual({
       tipo: 'regra',

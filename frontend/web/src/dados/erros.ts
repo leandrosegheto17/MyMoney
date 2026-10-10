@@ -57,8 +57,14 @@ export function traduzirErro(e: unknown, status?: number): ErroDados {
   return { tipo: 'desconhecido' };
 }
 
-/** Códigos do Auth que, ao entrar, revelariam se a conta existe, está banida ou não confirmou o e-mail. */
-const CODIGOS_AUTH_QUE_REVELAM_CONTA = ['email_not_confirmed', 'user_banned', 'user_not_found'];
+/** Códigos do Auth que, ao entrar, revelariam que a conta existe (banida, não confirmada, gerida por SSO). */
+const CODIGOS_AUTH_QUE_REVELAM_CONTA = [
+  'email_not_confirmed',
+  'user_banned',
+  'user_not_found',
+  'user_sso_managed',
+  'phone_not_confirmed',
+];
 
 /** Como `traduzirErro`, mas falhas que distinguiriam a conta caem na mesma resposta de credenciais erradas. */
 export function traduzirErroDeEntrada(e: unknown): ErroDados {

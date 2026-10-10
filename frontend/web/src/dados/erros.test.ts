@@ -55,7 +55,7 @@ describe('traduzirErro', () => {
     expect(traduzirErro(e)).toEqual({ tipo: 'regra', codigo: 'credenciais_invalidas' });
   });
 
-  it.each(['email_not_confirmed', 'user_banned', 'user_not_found'])(
+  it.each(['email_not_confirmed', 'user_banned', 'user_not_found', 'user_sso_managed', 'phone_not_confirmed'])(
     'traduzirErroDeEntrada: %s vira credenciais_invalidas; traduzirErro segue desconhecido',
     (codigo) => {
       const e = new AuthApiError(codigo, 400, codigo);
