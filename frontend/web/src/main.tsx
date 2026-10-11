@@ -3,6 +3,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { clienteConsulta } from './clienteConsulta';
+import { semearFilaDeComparacao } from './dados/fila/semearComparacao';
 import { registrarSW } from './pwa/registrarSW';
 import { rotas } from './rotas';
 import './estilo/tokens.css';
@@ -13,10 +14,12 @@ if (!raiz) throw new Error('elemento #raiz ausente no index.html');
 
 registrarSW();
 
-createRoot(raiz).render(
-  <StrictMode>
-    <QueryClientProvider client={clienteConsulta}>
-      <RouterProvider router={createBrowserRouter(rotas)} />
-    </QueryClientProvider>
-  </StrictMode>,
-);
+void semearFilaDeComparacao().then(() => {
+  createRoot(raiz).render(
+    <StrictMode>
+      <QueryClientProvider client={clienteConsulta}>
+        <RouterProvider router={createBrowserRouter(rotas)} />
+      </QueryClientProvider>
+    </StrictMode>,
+  );
+});
