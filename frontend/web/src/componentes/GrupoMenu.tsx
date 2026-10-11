@@ -2,8 +2,15 @@ import { useId, type ReactNode } from 'react';
 import lista from './base/Lista.module.css';
 import estilo from './GrupoMenu.module.css';
 
+interface Props {
+  titulo: string;
+  children: ReactNode;
+  /** Conteúdo logo abaixo da lista (ex.: botão de criar). */
+  rodape?: ReactNode;
+}
+
 /** Seção de menu com título e lista; o nome da região é o título. */
-export function GrupoMenu({ titulo, children }: { titulo: string; children: ReactNode }) {
+export function GrupoMenu({ titulo, children, rodape }: Props) {
   const id = useId();
   return (
     <section className={estilo.grupo} aria-labelledby={id}>
@@ -11,6 +18,7 @@ export function GrupoMenu({ titulo, children }: { titulo: string; children: Reac
         {titulo}
       </h2>
       <ul className={`${lista.lista} ${estilo.lista}`}>{children}</ul>
+      {rodape}
     </section>
   );
 }

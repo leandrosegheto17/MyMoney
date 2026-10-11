@@ -7,6 +7,8 @@ export interface ItemNavegacao {
   icone: NomeIcone;
   /** Início casa só a rota exata; os demais casam também as sub-rotas. */
   exato?: boolean;
+  /** Rotas de outras seções que mantêm este item ativo (ex.: as despesas fixas pertencem ao Início). */
+  rotasAninhadas?: readonly string[];
   /** Telas com seletor de mês: o `mes` acompanha o usuário de uma para outra. */
   levaMes?: boolean;
   /** Presente só no trilho do PC. */
@@ -14,7 +16,7 @@ export interface ItemNavegacao {
 }
 
 export const ITENS_NAVEGACAO: readonly ItemNavegacao[] = [
-  { rota: '/', rotulo: 'Início', icone: 'casa', exato: true, levaMes: true },
+  { rota: '/', rotulo: 'Início', icone: 'casa', exato: true, levaMes: true, rotasAninhadas: ['/fixas'] },
   { rota: '/lancamentos', rotulo: 'Lançamentos', icone: 'lista', levaMes: true },
   { rota: '/orcamento', rotulo: 'Orçamento', icone: 'grafico', levaMes: true },
   { rota: '/metas', rotulo: 'Metas', icone: 'alvo' },

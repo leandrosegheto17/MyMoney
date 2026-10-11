@@ -7,12 +7,14 @@ interface Props {
   variante: 'principal' | 'secundario';
   icone?: NomeIcone;
   children: string;
+  /** Nome acessível quando precisa dizer mais que o texto (ex.: qual item). */
+  rotulo?: string;
 }
 
 /** Link de navegação com a aparência de `Botao`. */
-export function BotaoLink({ para, variante, icone, children }: Props) {
+export function BotaoLink({ para, variante, icone, children, rotulo }: Props) {
   return (
-    <Link to={para} className={`${estilo.botao} ${estilo[variante]}`}>
+    <Link to={para} aria-label={rotulo} className={`${estilo.botao} ${estilo[variante]}`}>
       {icone ? <Icone nome={icone} /> : null}
       {children}
     </Link>

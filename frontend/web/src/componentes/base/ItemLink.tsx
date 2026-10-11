@@ -5,6 +5,8 @@ import estilo from './Lista.module.css';
 type Props = {
   icone?: NomeIcone;
   rotulo: string;
+  /** Linha de apoio sob o rótulo. */
+  subtitulo?: string;
   /** Número exibido antes da seta. */
   contagem?: number;
   /** Valor à direita (substitui a seta) e nota curta antes dele. */
@@ -17,14 +19,23 @@ type Props = {
 } & ({ para: string; aoClicar?: never } | { aoClicar: () => void; para?: never });
 
 /** Item de `ul.lista`: link de navegação (`para`, com seta) ou botão (`aoClicar`). */
-export function ItemLink({ icone, rotulo, contagem, valor, nota, destrutivo, seta, para, aoClicar }: Props) {
+export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, destrutivo, seta, para, aoClicar }: Props) {
   const classe = destrutivo ? `${estilo.link} ${estilo.perigo}` : estilo.link;
-  const titulo = (
+  const rotuloComIcone = (
     <span className={estilo.titulo}>
       {icone ? <Icone nome={icone} /> : null}
       {rotulo}
     </span>
   );
+  const titulo =
+    subtitulo === undefined ? (
+      rotuloComIcone
+    ) : (
+      <span className={estilo.info}>
+        {rotuloComIcone}
+        <span className={estilo.sub}>{subtitulo}</span>
+      </span>
+    );
   if (para === undefined) {
     return (
       <li>
@@ -43,7 +54,7 @@ export function ItemLink({ icone, rotulo, contagem, valor, nota, destrutivo, set
     <li>
       <Link to={para} className={classe}>
         {titulo}
-        <span className={estilo.sub}>
+        <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
           {nota}
           {valor !== undefined ? <span className="valor">{valor}</span> : null}
           {contagem}
