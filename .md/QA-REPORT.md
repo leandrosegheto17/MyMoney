@@ -611,3 +611,33 @@ APROVADA: 0 críticos/0 não críticos novos; C1 resolvido pelo TP-0160, vitest 
 
 ## TP-0090 — QA — 2026-10-11
 APROVADA (rodada 2) — crítico corrigido (barra de MetaCompacta com display:block, 6px e largura proporcional comprovados no Chromium), 0 críticos novos, 0 RTP novas (RTP-0091/0092 seguem abertas); vitest 20/20, tsc e eslint OK.
+
+## RTP-0091 — QA — 2026-10-11
+APROVADA — 0 críticos, 1 não crítico (RTP-0101: margem de 4px abaixo da barra, mockup tem 0); vitest 36/36, tsc e eslint OK; ordem e estilos conferidos no Chromium contra o mockup, sem regressão do display:block/6px.
+
+## RTP-0092 — QA — 2026-10-11
+APROVADA — 0 críticos, 0 não críticos, 0 RTP novas; vitest 36/36, tsc e eslint OK; ícone dir (20px, aria-hidden, gap 4px, cor e peso) idêntico ao mockup no Chromium; edição de 1 linha em ResumoOrcamento/CartaoMetas fora do plano é necessária e inócua.
+
+## TP-0070 — QA — 2026-10-11
+DEVOLVIDA — 1 crítico (saldo renderizado dentro de `.sub` no ItemLink: cinza/menor/deslocado vs mockup, visível no diff do T15 sucesso apesar de 0,09%/0,48%), 0 não críticos; vitest do escopo, tsc e eslint limpos, visual vazio/carregando/erro 0-0,12%.
+
+## TP-0071 — QA — 2026-10-11
+DEVOLVIDA — 1 crítico (título "Saldo atual" cinza em vez de branco: `.total` perde para `.cartao h2`, visual 0,03%/0,12% mas divergência visível), 1 não crítico (CSS de título duplicado, RTP-0093); vitest 28 ok, tsc/eslint limpos.
+
+## TP-0089 — QA — 2026-10-11
+DEVOLVIDA; 3 achados críticos (erro 3,58%/10,79% porque o app não semeia a fila de comparação já prevista no telas.json/TP-0077; link "Ver" em negrito/44 px/sem sublinhado contra o mockup, que empurra a caixa de erro; rotasAutenticadas.test com 5 erros não tratados por `usePendentes` na `/`), 0 não críticos, carregando 0,00% OK.
+
+## TP-0101 — QA — 2026-10-11
+APROVADA - 0 críticos, 1 não crítico (RTP-0093: nome acessível da parcelada sem "parcela k de N"); estilos computados idênticos ao mockup, 88 unitários + 6 Playwright/axe passando, Icone.rotulo sem regressão.
+
+## TP-0105 — QA — 2026-10-11
+APROVADA — 0 críticos, 1 não crítico (RTP-0094: texto I-21 fixo em "valor total"); 315 testes OK (2 falhas são do TP-0118), e2e 8/8, estilos computados sem divergência; visual outro-membro 0,52%/1,35% e sucesso 13,12%/16,50% explicados só por "Excluir" (TP-0106) e "Alterar data" (TP-0118).
+
+## TP-0130 — QA — 2026-10-11
+APROVADA; 0 críticos, 1 não crítico (RTP-0095: "Previsto a pagar" 3 px deslocado + acabamentos); visual 0.00-0.10% e estilos computados idênticos, e2e 12/12, tsc/eslint limpos, sem regressão nos componentes tocados.
+
+## TP-0131 — QA — 2026-10-11
+APROVADA; 0 críticos, 1 não crítico (RTP-0096: ordem erro/ajuda e ajuda do valor no mockup fixa--erro, estado manual); vitest 81 ok, e2e 6/6, visual T07 sucesso 0.00% pc e celular, estilos computados idênticos.
+
+## TP-0154 — QA — 2026-10-11
+APROVADA; 0 críticos, 4 não críticos (RTP-0097 a RTP-0100); visual T11 8/8 dentro de 1% e estilos computados idênticos, exceto largura do resumo no vazio PC; retry global sem regressão.

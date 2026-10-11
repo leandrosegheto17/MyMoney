@@ -581,3 +581,24 @@ APROVADA: 0 críticos/0 não críticos; vitest 60/60, sem dependência, segredo,
 
 ## TP-0090 — DevSecOps — 2026-10-11
 OK — 0 críticos, 0 não críticos, 0 RTP novas; sem dependência nova, sem dangerouslySetInnerHTML/style estático/segredo/log/import de dados em grep executado; só formatação sobre dado da API.
+
+## RTP-0091 — DevSecOps — 2026-10-11
+OK — 0 críticos, 0 não críticos, 0 RTP novas; diff lido e grep executado (sem innerHTML/log/storage/segredo), sem dependência nova.
+
+## RTP-0092 — DevSecOps — 2026-10-11
+OK — 0 críticos, 0 não críticos, 0 RTP novas; ícone dir fixo e aria-hidden, sem innerHTML/log/storage/segredo (grep executado), sem dependência nova.
+
+## TP-0101 — DevSecOps — 2026-10-11
+APROVADA - 0 críticos, 0 não críticos; sem dependência nova, sem innerHTML/log/storage/segredo (grep executado), texto da API e `Icone.rotulo` escapados pelo React.
+
+## TP-0105 — DevSecOps — 2026-10-11
+APROVADA — 0 críticos, 0 não críticos novos (sem RTP); autorização real no servidor (editar_lancamento DEFINER + permissoes_edicao), cliente só oculta campos; sem innerHTML/segredo/log/storage/dependência nova; erros sem mensagem crua; I-21 só com clique explícito.
+
+## TP-0130 — DevSecOps — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos; autorização de desfazer/marcar é do servidor (RPC com dono explícito), sem segredo/log/innerHTML/dependência nova nem redirecionamento aberto nos arquivos compartilhados.
+
+## TP-0131 — DevSecOps — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos, nenhuma RTP; grep de sinks/segredos limpo, sem dependência nova, RPC/RLS revalidam valor, dia e categoria, id da rota validado por UUID.
+
+## TP-0154 — DevSecOps — 2026-10-11
+APROVADA; 0 críticos, 1 não crítico (RTP-0102); retry global sem mascarar autorização, uuid validado, G-05 igual para inexistente/alheia, sem innerHTML/segredo/dependência nova; vitest 15/15; SAST completo fica no /deploy.
