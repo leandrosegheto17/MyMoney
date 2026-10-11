@@ -3,6 +3,7 @@ import type { MovimentosMeta } from '@mymoney/contrato/respostas/movimentos-meta
 import { useLeituraComCache } from '../../ganchos/useLeituraComCache';
 import { useMeta } from '../../ganchos/useMetas';
 import { useMovimentosMeta } from '../../ganchos/useMovimentosMeta';
+import { ehUuid } from '../../dados/uuid';
 import type { LeituraComCache } from '../../tipos/leitura';
 
 export interface DetalheMeta {
@@ -27,9 +28,11 @@ export function useDetalheMeta(id: string) {
     atualizadoEm: Math.min(leituraMeta.atualizadoEm, leituraMovimentos.atualizadoEm),
   };
 
-  const naoExiste = [consultaMeta, consultaMovimentos].some(
-    (c) => c.data === undefined && c.error?.tipo === 'regra' && c.error.codigo === 'registro_invalido',
-  );
+  const naoExiste =
+    !ehUuid(id) ||
+    [consultaMeta, consultaMovimentos].some(
+      (c) => c.data === undefined && c.error?.tipo === 'regra' && c.error.codigo === 'registro_invalido',
+    );
   const recarregar = () => {
     void consultaMeta.refetch();
     void consultaMovimentos.refetch();

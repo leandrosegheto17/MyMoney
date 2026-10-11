@@ -252,6 +252,14 @@ describe('T11 Detalhe da meta: carregando e erro', () => {
     expect(screen.queryByRole('link', { name: 'Editar meta' })).not.toBeInTheDocument();
   });
 
+  it('id de rota que não é uuid não consulta o banco e mostra "Esta meta não existe mais"', async () => {
+    renderizar('abc');
+
+    const alerta = await screen.findByRole('alert');
+    expect(within(alerta).getByRole('heading', { name: 'Esta meta não existe mais' })).toBeInTheDocument();
+    expect(buscarMovimentosMeta).not.toHaveBeenCalled();
+  });
+
   it('erro de rede sem cache mostra o erro padrão', async () => {
     vi.mocked(buscarMeta).mockRejectedValue({ tipo: 'rede' });
     vi.mocked(buscarMovimentosMeta).mockRejectedValue({ tipo: 'rede' });
