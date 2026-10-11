@@ -146,7 +146,8 @@ async function capturar(navegador, viewport, url, opcoes) {
     await pagina.waitForSelector(opcoes.esperar, { timeout: 15000 }).catch(() => {});
   }
   await prepararPagina(pagina, opcoes.ocultar);
-  await pagina.waitForTimeout(300);
+  // Estado carregando: o app só mostra o esqueleto depois do atraso de 300 ms e do carregamento da rota.
+  await pagina.waitForTimeout(opcoes.pendente ? 1500 : 300);
   const png = await pagina.screenshot({ fullPage: true });
   await contexto.close();
   return png;

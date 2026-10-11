@@ -575,3 +575,9 @@ APROVADA — 0 críticos, 0 não críticos; diff lido (sem log do erro bruto, li
 
 ## TP-0160 — DevSecOps — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; sem service_role e sem log de token, revogação global chamada antes de limpar a sessão local, rede/5xx preservam sessão e cache; vitest sessao 39/39.
+
+## TP-0047 — DevSecOps — 2026-10-11
+APROVADA: 0 críticos/0 não críticos; vitest 60/60, sem dependência, segredo, log ou storage novo; sair local limpa o cache, global revoga no servidor e mantém a sessão sem rede; confirmação destrutiva presente.
+
+## TP-0090 — DevSecOps — 2026-10-11
+OK — 0 críticos, 0 não críticos, 0 RTP novas; sem dependência nova, sem dangerouslySetInnerHTML/style estático/segredo/log/import de dados em grep executado; só formatação sobre dado da API.

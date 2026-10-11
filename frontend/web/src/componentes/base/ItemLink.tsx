@@ -7,6 +7,9 @@ type Props = {
   rotulo: string;
   /** Número exibido antes da seta. */
   contagem?: number;
+  /** Valor à direita (substitui a seta) e nota curta antes dele. */
+  valor?: string;
+  nota?: string;
   /** Cor de ação destrutiva (via classe). */
   destrutivo?: boolean;
   /** Mostra a seta também no item de ação (o link sempre a mostra). */
@@ -14,7 +17,7 @@ type Props = {
 } & ({ para: string; aoClicar?: never } | { aoClicar: () => void; para?: never });
 
 /** Item de `ul.lista`: link de navegação (`para`, com seta) ou botão (`aoClicar`). */
-export function ItemLink({ icone, rotulo, contagem, destrutivo, seta, para, aoClicar }: Props) {
+export function ItemLink({ icone, rotulo, contagem, valor, nota, destrutivo, seta, para, aoClicar }: Props) {
   const classe = destrutivo ? `${estilo.link} ${estilo.perigo}` : estilo.link;
   const titulo = (
     <span className={estilo.titulo}>
@@ -41,8 +44,10 @@ export function ItemLink({ icone, rotulo, contagem, destrutivo, seta, para, aoCl
       <Link to={para} className={classe}>
         {titulo}
         <span className={estilo.sub}>
+          {nota}
+          {valor !== undefined ? <span className="valor">{valor}</span> : null}
           {contagem}
-          <Icone nome="dir" className={estilo.seta} />
+          {valor === undefined ? <Icone nome="dir" className={estilo.seta} /> : null}
         </span>
       </Link>
     </li>

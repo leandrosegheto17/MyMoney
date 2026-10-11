@@ -15,9 +15,9 @@ export function EstadoErro({
   aoTentarDeNovo,
 }: Props) {
   return (
-    <section className={`${estilos.estado} ${estilos['estado-erro']}`} role="alert">
+    <section className={`${estilos.estado} ${estilos['estado-erro']}`} role="alert" aria-labelledby="erro-titulo">
       <Icone nome="offline" />
-      <h2>{titulo}</h2>
+      <h2 id="erro-titulo">{titulo}</h2>
       <p>{texto}</p>
       <Botao variante="secundario" icone="recarregar" onClick={aoTentarDeNovo}>
         Tentar de novo

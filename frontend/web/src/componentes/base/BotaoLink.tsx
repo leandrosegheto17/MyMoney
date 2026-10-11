@@ -1,0 +1,20 @@
+import { Link } from 'react-router';
+import { Icone, type NomeIcone } from './Icone';
+import estilo from './Botao.module.css';
+
+interface Props {
+  para: string;
+  variante: 'principal' | 'secundario';
+  icone?: NomeIcone;
+  children: string;
+}
+
+/** Link de navegação com a aparência de `Botao`. */
+export function BotaoLink({ para, variante, icone, children }: Props) {
+  return (
+    <Link to={para} className={`${estilo.botao} ${estilo[variante]}`}>
+      {icone ? <Icone nome={icone} /> : null}
+      {children}
+    </Link>
+  );
+}

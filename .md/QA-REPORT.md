@@ -605,3 +605,9 @@ DEVOLVIDA — 1 crítico (barra de MetaCompacta invisível: span sem display:blo
 
 ## TP-0160 — QA — 2026-10-10
 APROVADA — 0 críticos, 0 não críticos; vitest sessao 39/39, tsc e eslint limpos; revoga no servidor antes de remover a sessão local, rede/5xx preservam sessão e cache, 401/403/404 limpam, sem service_role.
+
+## TP-0047 — QA — 2026-10-11
+APROVADA: 0 críticos/0 não críticos novos; C1 resolvido pelo TP-0160, vitest 39/39, visual T14 0,01%/0,05% OK (só contagens 2/3/7 pendentes do stakeholder); RTP-0086 (seta) entregue e verificado, falta o comando fechá-lo no TASK.md.
+
+## TP-0090 — QA — 2026-10-11
+APROVADA (rodada 2) — crítico corrigido (barra de MetaCompacta com display:block, 6px e largura proporcional comprovados no Chromium), 0 críticos novos, 0 RTP novas (RTP-0091/0092 seguem abertas); vitest 20/20, tsc e eslint OK.
