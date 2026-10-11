@@ -55,8 +55,16 @@ export const mapaRotas: RouteObject[] = [
         lazy: () => import('./paginas/DespesasFixas').then((m) => ({ Component: m.DespesasFixas })),
         handle: { titulo: 'Despesas fixas', ...comMes, ...estreito } satisfies HandleRota,
       },
-      pagina('/fixas/nova', 'Nova despesa fixa', estreito),
-      pagina('/fixas/:id', 'Despesa fixa', estreito),
+      {
+        path: '/fixas/nova',
+        lazy: () => import('./paginas/DespesaFixa').then((m) => ({ Component: m.DespesaFixa })),
+        handle: { titulo: 'Nova despesa fixa', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/fixas/:id',
+        lazy: () => import('./paginas/DespesaFixa').then((m) => ({ Component: m.DespesaFixa })),
+        handle: { titulo: 'Despesa fixa', ...estreito } satisfies HandleRota,
+      },
       pagina('/orcamento', 'Orçamento', comMes),
       pagina('/metas', 'Metas'),
       pagina('/metas/nova', 'Nova meta', estreito),
