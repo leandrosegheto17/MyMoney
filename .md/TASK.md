@@ -629,6 +629,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0087 | Refatoração Lote-20 | Comparação visual do cabeçalho com SeletorMes (T02/T04/T06/T09) | QA | RTP-0082 item (b) | comparar-visual.mjs sem divergência no cabeçalho com SeletorMes na T04a (TP-0103) e demais telas que o usem; resultado registrado | 1h | TP-0103 | — | — | comparar-visual.mjs | Pendente |
+| RTP-0093 | Refatoração Lote-20 | LinhaLancamento: nome acessível da parcelada lê 'parcela k de N' | Frontend | UX-SPEC §5, T04 | Nome acessível da linha parcelada traz 'parcela 2 de 3' (ex.: 'Fone bluetooth, parcela 2 de 3, Eu, R$ 80,00, 10 de outubro') em vez de '(2/3)'; o nome do pagador 'você' sai de um único ponto do componente; teste cobre a parcelada. Origem: QA de TP-0101. | 1h | TP-0101 | Não | frontend/web/src/componentes/LinhaLancamento.tsx, frontend/web/src/componentes/LinhaLancamento.test.tsx | LinhaLancamento.test.tsx | Pendente |
 
 ### Refatoração Lote-18
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
