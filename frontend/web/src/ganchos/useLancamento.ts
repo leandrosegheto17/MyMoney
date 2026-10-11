@@ -8,4 +8,6 @@ export const useLancamento = (id: string) =>
     queryKey: CHAVES.lancamento(id),
     queryFn: () => buscarLancamento(id),
     refetchOnWindowFocus: true,
+    // Erro de regra (inexistente ou alheio) não muda ao repetir: a tela mostra o estado na hora.
+    retry: (tentativas, erro) => erro.tipo !== 'regra' && tentativas < 3,
   });

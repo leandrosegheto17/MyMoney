@@ -45,7 +45,11 @@ export const mapaRotas: RouteObject[] = [
       { path: '/', element: <Inicio instalado={estaInstalado()} />, handle: { titulo: 'Início', ...comMes } satisfies HandleRota },
       { path: '/lancar', Component: Provisoria, handle: { titulo: 'Lançar' } satisfies HandleRota },
       pagina('/lancamentos', 'Lançamentos', comMes),
-      pagina('/lancamentos/:id', 'Lançamento', estreito),
+      {
+        path: '/lancamentos/:id',
+        lazy: () => import('./paginas/Lancamento').then((m) => ({ Component: m.Lancamento })),
+        handle: { titulo: 'Lançamento', ...estreito } satisfies HandleRota,
+      },
       pagina('/fixas', 'Despesas fixas', { ...comMes, ...estreito }),
       pagina('/fixas/nova', 'Nova despesa fixa', estreito),
       pagina('/fixas/:id', 'Despesa fixa', estreito),

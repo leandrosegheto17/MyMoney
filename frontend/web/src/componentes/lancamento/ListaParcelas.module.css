@@ -1,0 +1,21 @@
+.secao {
+  composes: cartao from '../CartaoConta.module.css';
+}
+
+.titulo {
+  composes: titulo from '../CartaoConta.module.css';
+}
+
+.lista > li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-minimo);
+  padding: var(--espaco-2) 0;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.lista > li:first-child {
+  border-top: 0;
+}
