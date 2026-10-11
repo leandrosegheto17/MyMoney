@@ -641,3 +641,51 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0096: ordem erro/ajuda e ajuda do va
 
 ## TP-0154 — QA — 2026-10-11
 APROVADA; 0 críticos, 4 não críticos (RTP-0097 a RTP-0100); visual T11 8/8 dentro de 1% e estilos computados idênticos, exceto largura do resumo no vazio PC; retry global sem regressão.
+
+## RTP-0093 — QA — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos; LinhaLancamento/ListaLancamentosMes/ListaParcelas/Lancamento passam, tsc e eslint limpos.
+
+## RTP-0094 — QA — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos; textoDescarte e Lancamento passam; observação: redação "Ao alterar a compra" pendente com o Coordenador.
+
+## RTP-0096 — QA — 2026-10-11
+APROVADA; 0 críticos/0 não críticos; fixa--erro 0,33% pc/0,76% celular, alturas iguais, mockup coerente, Campo/FormularioFixa intactos.
+
+## RTP-0097 — QA — 2026-10-11
+APROVADA; 0 críticos/0 não críticos; T11 vazio-pc 0,00%, visual 8/8, Meta.test 16/16.
+
+## RTP-0098 — QA — 2026-10-11
+APROVADA; 0 críticos/0 não críticos; `visual` sem --tela exit 0 com T11 8/8 e T16 OK.
+
+## RTP-0099 — QA — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos; clienteConsulta.test.ts passa (retry padrão coberto), código de produção intacto.
+
+## RTP-0100 — QA — 2026-10-11
+APROVADA; 0 críticos, 0 não críticos; TASK.md, TP-0154.md e UX-SPEC §6 consistentes entre si e com o mockup (lista).
+
+## RTP-0101 — QA — 2026-10-11
+APROVADA; 0 críticos/0 não críticos; distância barra->valores 0px nas metas, barra block/6px, ResumoOrcamento intacto.
+
+## RTP-0102 — QA — 2026-10-11
+APROVADA; 0 críticos/0 não críticos; id não-uuid não chama movimentos_meta e mostra "Esta meta não existe mais" (Meta.test cobre).
+
+## TP-0070 — QA — 2026-10-11
+APROVADA (rodada 2): C1 corrigido (estilos computados do saldo idênticos ao mockup no Chromium, T15 sucesso 0,00%), visual T15/T14/T06 ≤ 0,12% e alturas iguais, e2e contas+ajustes+fixas 24/24, vitest 307/307 e tsc limpos; 0 críticos, 1 não crítico (RTP-0103: teste da estrutura do saldo).
+
+## TP-0071 — QA — 2026-10-11
+APROVADA (rodada 2) — título "Saldo atual" branco, igual ao mockup (estilos computados e visual T16 0,00% PC/celular, alturas iguais); CSS duplicado removido; sem regressão em TP-0089/TP-0090 (vitest 284 ok, T02 carregando/erro 0,00%, e2e ok); e2e conta 8 ok; 0 críticos, 0 não críticos, nenhuma RTP.
+
+## TP-0089 — QA — 2026-10-11
+APROVADA (rodada 2); 0 achados críticos, 0 não críticos; erro 0,00% (PC e celular) com a fila semeada, "Ver" igual ao mockup, rotasAutenticadas.test sai com 0 e a semeadura não entra no build de produção (grep limpo); e2e 4/4.
+
+## TP-0103 — QA — 2026-10-11
+APROVADA; 0 críticos, 1 não crítico (RTP-0104: UX-SPEC/plano com `role=list` por grupo); vitest do escopo ok (4 falhas são TP-0104/TP-0095, "Primeiros passos" falha igual no commit pai), e2e 10/10, visual `erro` 0,00% e `sucesso`/`carregando` divergem só pela faixa de filtros (44 px) e fila do TP-0104, que fica com o 1%.
+
+## TP-0106 — QA — 2026-10-11
+TP-0106 APROVADA: 12/12 unitários (+39/39 com Lancamento/Formulario), e2e 6/6, T05 visual todos <=1% (sucesso 0,00/0,04%, outro-membro 0,01/0,07%), RPC autoriza no servidor; 0 críticos, 2 não críticos (RTP-0105 botão do diálogo sem estado ocupado, RTP-0106 testes dos textos 1 parcela/individual/receita).
+
+## TP-0118 — QA — 2026-10-11
+APROVADA; 0 críticos, 2 não críticos (RTP-0107 e2e @integracao depende do TP-0110; RTP-0108 datas parciais no fallback); 45 unitários, e2e 6/6, tsc/eslint limpos, visual T05 ≤ 0,07% em todos os estados.
+
+## TP-0132 — QA — 2026-10-11
+DEVOLVIDA: 1 crítica (eslint-disable de `react-hooks/exhaustive-deps` sem o plugin quebra o lint, `PagarFixaConectada.tsx:50`) e 2 não críticas (RTP-0109 mockup do erro, RTP-0110 comparador por recorte da folha); aceite, e2e 6/6, axe, foco, Esc, `ehUuid` e folha idêntica ao mockup (0,00 a 0,02%) OK.
