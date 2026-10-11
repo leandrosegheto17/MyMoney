@@ -50,16 +50,25 @@ export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, dest
       </li>
     );
   }
+  const fim =
+    valor === undefined ? (
+      <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
+        {contagem}
+        <Icone nome="dir" className={estilo.seta} />
+      </span>
+    ) : nota === undefined ? (
+      <span className="valor">{valor}</span>
+    ) : (
+      <span className={estilo.fim}>
+        <span className={estilo.sub}>{nota}</span>
+        <span className="valor">{valor}</span>
+      </span>
+    );
   return (
     <li>
       <Link to={para} className={classe}>
         {titulo}
-        <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
-          {nota}
-          {valor !== undefined ? <span className="valor">{valor}</span> : null}
-          {contagem}
-          {valor === undefined ? <Icone nome="dir" className={estilo.seta} /> : null}
-        </span>
+        {fim}
       </Link>
     </li>
   );
