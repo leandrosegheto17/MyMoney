@@ -663,6 +663,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0103 | Refatoração Lote-14 | ItemLink: teste que fixa o saldo como span.valor filho direto do link | Frontend | UX-SPEC T15; origem: achado não crítico do QA (rodada 2) do TP-0070 | Teste de ItemLink/ListaContas afirma que, com valor, o saldo é um span.valor filho direto do link (fora de .sub) e que, com nota+valor, a nota fica em .sub e o valor irmão dentro de span.fim; vitest verde e C1 do TP-0070 não pode voltar sem teste vermelho | 0.5h | TP-0070 | - | frontend/web/src/componentes/base/ItemLink.test.tsx | ItemLink.test.tsx | Pendente |
+| RTP-0111 | Refatoração Lote-14 | Limitar o tamanho do nome da conta (cliente e servidor) | Frontend + Backend | DevSecOps TP-0071 (achado baixo); G-05; validação de entrada | Nome acima de 80 caracteres é recusado em api.salvar_conta (valor_invalido) e por maxLength no FormularioConta, com mensagem no campo; teste de pgTAP e de componente novos; nome de até 80 segue salvando | 2h | TP-0071 | não | backend/supabase/schemas/api/funcoes/salvar_conta.sql, frontend/web/src/componentes/FormularioConta.tsx | tests/cadastros/salvar_conta.sql; Conta.test.tsx | Pendente |
 
 ### Refatoração Lote-24
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
