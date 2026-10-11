@@ -64,6 +64,23 @@ describe('BarraProgresso', () => {
     expect(screen.getByText('R$ 332,50 de R$ 300,00')).toBeVisible();
   });
 
+  it('topoSecundario fica antes da barra por padrão', () => {
+    render(<BarraProgresso percentual={50} situacao="dentro" rotulo="x" topo="t" topoSecundario="sec" />);
+
+    const barra = screen.getByRole('progressbar');
+    expect(screen.getByText('sec').compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('posicaoSecundario="depois": topo, barra e só então o secundário', () => {
+    render(
+      <BarraProgresso percentual={50} situacao="dentro" rotulo="x" topo="t" topoSecundario="sec" posicaoSecundario="depois" />,
+    );
+
+    const barra = screen.getByRole('progressbar');
+    expect(screen.getByText('t').compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByText('sec').compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+  });
+
   it('elemento span para uso dentro de link', () => {
     render(
       <a href="/metas/1">

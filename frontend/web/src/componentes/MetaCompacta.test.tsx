@@ -33,6 +33,18 @@ describe('MetaCompacta', () => {
     expect(within(link).queryByText(/^até /)).not.toBeInTheDocument();
   });
 
+  it('ordem: nome e %, barra, depois valores e "faltam"', () => {
+    montar(reserva, 'casa');
+
+    const nome = screen.getByText(reserva.nome);
+    const barra = screen.getByRole('progressbar');
+    const valores = screen.getByText('R$ 18.500,00 de R$ 30.000,00');
+    const faltam = screen.getByText('faltam R$ 11.500,00');
+    expect(nome.compareDocumentPosition(barra) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(barra.compareDocumentPosition(valores) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(valores.compareDocumentPosition(faltam) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('Viagem: linha de prazo e valor mensal', () => {
     montar(viagem, 'casa');
 

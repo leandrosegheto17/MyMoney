@@ -22,6 +22,8 @@ interface Props {
   /** Texto sempre visível acima da barra ("56%", "R$ X de R$ Y"); sem ele o valor está no texto ao redor. */
   topo?: ReactNode;
   topoSecundario?: ReactNode;
+  /** Onde o `topoSecundario` entra: antes da barra (padrão) ou logo abaixo dela. */
+  posicaoSecundario?: 'antes' | 'depois';
   /** `span` quando a barra fica dentro de um link. */
   elemento?: 'div' | 'span';
   /** Barra só ilustrativa: o texto ao redor já diz o valor. */
@@ -35,6 +37,7 @@ export function BarraProgresso({
   rotulo,
   topo,
   topoSecundario,
+  posicaoSecundario = 'antes',
   elemento: Elemento = 'div',
   decorativa = false,
 }: Props) {
@@ -49,15 +52,21 @@ export function BarraProgresso({
         'aria-valuemax': 100,
       };
 
+  const depois = posicaoSecundario === 'depois';
+  const secundario = topoSecundario ? (
+    <div className={`${estilos['orc-topo']} ${estilos['item-sub']} ${depois ? estilos['apos-barra'] : ''}`}>
+      {topoSecundario}
+    </div>
+  ) : null;
+
   return (
     <>
       {topo ? <div className={estilos['orc-topo']}>{topo}</div> : null}
-      {topoSecundario ? (
-        <div className={`${estilos['orc-topo']} ${estilos['item-sub']}`}>{topoSecundario}</div>
-      ) : null}
+      {depois ? null : secundario}
       <Elemento className={`${estilos.barra} ${estilos[CLASSE_POR_SITUACAO[situacao]]}`} {...acessibilidade}>
         <span style={largura} />
       </Elemento>
+      {depois ? secundario : null}
     </>
   );
 }

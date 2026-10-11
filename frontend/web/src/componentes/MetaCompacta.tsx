@@ -29,6 +29,7 @@ export function MetaCompacta({ meta, bloco, href }: Props) {
             {meta.atingida ? <SeloSituacao situacao="atingida" /> : <span className="valor">{meta.percentual}%</span>}
           </>
         }
+        posicaoSecundario="depois"
         topoSecundario={
           <>
             <span className="valor">
