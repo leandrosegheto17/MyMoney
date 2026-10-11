@@ -215,3 +215,12 @@
 - Impacto se não resolvido: T14 Ajustes não fecha; visual e demais critérios OK (RTP-0086 aberta para a seta de 'Instalar o app')
 - Sugestão: Decidir se sairDeTodos deve checar rede antes de chamar signOut/ou tratar o evento SIGNED_OUT local sem navegar; ajustar SDD/TP-0025 e reabrir o TP-0047
 - Status: Resolvido (2026-10-10): Resolvido pelo coordenador (2026-10-10): ADR-013 e TP-0160; TP-0047 depende dela
+
+## Bloqueio 025 — 2026-10-11 (BK-0025)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: RTP-0096
+- Descrição: Decidir se a ordem erro/ajuda do componente base Campo (todas as telas) e a ajuda do valor no FormularioFixa mudam para casar com o mockup fixa--erro, ou se o mockup é que muda (G-18); o plano da RTP pede essa decisão antes de mexer no Campo base
+- Impacto se não resolvido: Mudar o Campo afeta o visual de todas as telas com campo em erro; deixar como está mantém 22 px de diferença só no estado manual fixa--erro
+- Sugestão: Alinhar o mockup ao app (ajuda antes do erro, ajuda do valor sempre visível) e fechar a RTP sem tocar o Campo
+- Status: Em aberto
