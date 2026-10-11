@@ -1,7 +1,7 @@
-import { linkEnvios } from '../../formatacao/links';
-import { BotaoIcone } from '../base/BotaoIcone';
-import { SeletorMes } from '../SeletorMes';
-import estilos from './CabecalhoInicio.module.css';
+import { linkEnvios } from '../formatacao/links';
+import { BotaoIcone } from './base/BotaoIcone';
+import { SeletorMes } from './SeletorMes';
+import estilos from './CabecalhoMes.module.css';
 
 interface Props {
   /** 'AAAA-MM' */
@@ -9,12 +9,15 @@ interface Props {
   aoMudarMes: (mes: string) => void;
   /** Itens na fila de envio; o ícone só aparece com pelo menos um. */
   pendentes: number;
+  /** Texto lido antes do mês no h1 (ex.: "Lançamentos de "). */
+  prefixoOculto?: string;
 }
 
-export function CabecalhoInicio({ mes, aoMudarMes, pendentes }: Props) {
+/** Cabeçalho das telas do mês: seletor, ícone de envios pendentes (se houver) e ajustes. */
+export function CabecalhoMes({ mes, aoMudarMes, pendentes, prefixoOculto }: Props) {
   return (
     <header className={estilos.cabecalho}>
-      <SeletorMes mes={mes} aoMudar={aoMudarMes} />
+      <SeletorMes mes={mes} aoMudar={aoMudarMes} prefixoOculto={prefixoOculto} />
       <div className={estilos.acoes}>
         {pendentes > 0 ? (
           <BotaoIcone

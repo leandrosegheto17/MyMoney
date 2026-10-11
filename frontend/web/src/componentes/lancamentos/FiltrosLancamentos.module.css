@@ -1,0 +1,6 @@
+.filtros {
+  display: flex;
+  gap: var(--espaco-2);
+  overflow-x: auto;
+  padding: var(--espaco-1) 0 var(--espaco-2);
+}

@@ -3,6 +3,8 @@ import { buscarLancamentosMes, type FiltrosLancamentos } from '../dados/consulta
 import type { ErroDados } from '../dados/erros';
 import { CHAVES } from './chavesConsulta';
 
+export type FiltrosDaLista = FiltrosLancamentos;
+
 type Lista = Awaited<ReturnType<typeof buscarLancamentosMes>>;
 
 /** Trocar o filtro mantém a lista anterior até a nova chegar, sem voltar ao esqueleto. */

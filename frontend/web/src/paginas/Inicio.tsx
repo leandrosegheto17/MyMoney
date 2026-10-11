@@ -1,6 +1,6 @@
 import { PuxarParaAtualizar } from '../componentes/base/PuxarParaAtualizar';
+import { CabecalhoMes } from '../componentes/CabecalhoMes';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
-import { CabecalhoInicio } from '../componentes/inicio/CabecalhoInicio';
 import { ConteudoInicio } from '../componentes/inicio/ConteudoInicio';
 import { EsqueletoInicio } from '../componentes/inicio/EsqueletoInicio';
 import { FaixasInicio } from '../componentes/inicio/FaixasInicio';
@@ -59,7 +59,7 @@ export function Inicio({ instalado }: Props) {
 
   return (
     <>
-      <CabecalhoInicio mes={mes} aoMudarMes={definirMes} pendentes={pendentes} />
+      <CabecalhoMes mes={mes} aoMudarMes={definirMes} pendentes={pendentes} />
       {/* O gesto só vale com a página pronta: a região viva dele competiria com o anúncio de carregamento. */}
       {carregando ? principal : <PuxarParaAtualizar aoAtualizar={revalidar}>{principal}</PuxarParaAtualizar>}
     </>

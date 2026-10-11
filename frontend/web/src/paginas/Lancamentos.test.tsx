@@ -40,7 +40,7 @@ function resultado(parcial: Record<string, unknown>) {
 
 function SondaLocal() {
   const local = useLocation();
-  return <output data-testid="local">{local.pathname + local.search}</output>;
+  return <span data-testid="local">{local.pathname + local.search}</span>;
 }
 
 function renderizar(rota = '/lancamentos?mes=2026-10') {
@@ -65,6 +65,20 @@ function renderizar(rota = '/lancamentos?mes=2026-10') {
 }
 
 beforeEach(() => {
+  vi.stubGlobal(
+    'matchMedia',
+    (consulta: string) =>
+      ({
+        matches: false,
+        media: consulta,
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      }) as MediaQueryList,
+  );
   vi.mocked(useContexto).mockReturnValue(resultado({ data: resposta('contexto.json') }) as never);
   vi.mocked(useDadosLancamento).mockReturnValue(resultado({ data: resposta('dados-lancamento.json') }) as never);
   vi.mocked(usePendentes).mockReturnValue({ total: 0, aguardando: 0, falhas: 0, itens: [] } as never);
@@ -72,6 +86,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   vi.clearAllMocks();
 });

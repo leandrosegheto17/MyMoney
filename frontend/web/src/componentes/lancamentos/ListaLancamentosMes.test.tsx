@@ -64,10 +64,13 @@ describe('ListaLancamentosMes', () => {
     expect(titulos.at(-1)).toBe('Sábado, 10 de outubro');
   });
 
-  it('é uma lista acessível com os 15 itens', () => {
+  it('cada grupo tem uma lista acessível; juntas somam os 15 itens', () => {
     renderizar();
-    const lista = screen.getByRole('list');
-    expect(within(lista).getAllByRole('listitem')).toHaveLength(15);
+    const listas = screen.getAllByRole('list');
+    expect(listas).toHaveLength(9);
+    expect(listas.flatMap((l) => within(l).getAllByRole('listitem'))).toHaveLength(15);
+    const grupo = screen.getByRole('region', { name: 'Quinta, 8 de outubro' });
+    expect(within(within(grupo).getByRole('list')).getAllByRole('listitem')).toHaveLength(2);
   });
 
   it('cada linha leva ao detalhe do lançamento', () => {
