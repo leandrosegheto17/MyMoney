@@ -46,6 +46,28 @@ for (const tamanho of TAMANHOS) {
       await semViolacoesGraves(page);
     });
 
+    test('títulos dos cartões têm cor, peso e tamanho do mockup', async ({ page }) => {
+      await abrir(page, tamanho);
+      const estiloApp = (nome: string) =>
+        page.getByRole('heading', { name: nome }).evaluate((el) => {
+          const c = getComputedStyle(el);
+          return { cor: c.color, peso: c.fontWeight, tamanho: c.fontSize };
+        });
+      const app = { saldo: await estiloApp('Saldo atual'), ajuste: await estiloApp('Informar saldo real') };
+
+      const mockup = await page.context().newPage();
+      await mockup.setViewportSize({ width: tamanho.width, height: tamanho.height });
+      await mockup.goto(pathToFileURL(join(MOCKUP, 'telas', 'conta--sucesso.html')).href);
+      const estiloMockup = (nome: string) =>
+        mockup.locator('h2', { hasText: nome }).evaluate((el) => {
+          const c = getComputedStyle(el);
+          return { cor: c.color, peso: c.fontWeight, tamanho: c.fontSize };
+        });
+      expect(app.saldo).toEqual(await estiloMockup('Saldo atual'));
+      expect(app.ajuste).toEqual(await estiloMockup('Informar saldo real'));
+      expect(app.saldo.cor).not.toEqual(app.ajuste.cor);
+    });
+
     test('excluir: diálogo sem violações e, em uso, o estado de erro com Arquivar conta', async ({ page }) => {
       await abrir(page, tamanho);
 

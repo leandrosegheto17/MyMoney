@@ -11,10 +11,8 @@ interface Props {
 export function CartaoSaldo({ saldoCentavos }: Props) {
   const idTitulo = useId();
   return (
-    <section className={estiloCartao.cartao} aria-labelledby={idTitulo}>
-      <h2 id={idTitulo} className={`${estiloCartao.titulo} ${estiloCartao.total}`}>
-        Saldo atual
-      </h2>
+    <section className={`${estiloCartao.cartao} ${estiloCartao.total}`} aria-labelledby={idTitulo}>
+      <h2 id={idTitulo}>Saldo atual</h2>
       <ValorDestaque centavos={saldoCentavos} />
       <p className={estilo.formula}>
         Saldo inicial + receitas − Pix/Débito ± ajustes, aportes e pagamentos de cartão. Compras no crédito não mexem

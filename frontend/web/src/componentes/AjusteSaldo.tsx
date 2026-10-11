@@ -28,7 +28,7 @@ export function AjusteSaldo({
   const idTitulo = useId();
   return (
     <section className={estiloCartao.cartao} aria-labelledby={idTitulo}>
-      <h2 id={idTitulo} className={estiloCartao.titulo}>
+      <h2 id={idTitulo}>
         Informar saldo real
       </h2>
       <div className={estilo.formulario}>
