@@ -16,6 +16,8 @@ interface PropsLink {
   /** Destino de navegação: renderiza um link com a mesma aparência. */
   para: string;
   className?: string;
+  /** Número sobre o ícone (itens pendentes); o nome acessível já deve trazê-lo. */
+  contador?: number;
 }
 
 export function BotaoIcone(props: PropsBotao | PropsLink) {
@@ -25,6 +27,11 @@ export function BotaoIcone(props: PropsBotao | PropsLink) {
     return (
       <Link to={props.para} className={classe} aria-label={rotulo}>
         <Icone nome={icone} />
+        {props.contador === undefined ? null : (
+          <span className={styles.contador} aria-hidden="true">
+            {props.contador}
+          </span>
+        )}
       </Link>
     );
   }

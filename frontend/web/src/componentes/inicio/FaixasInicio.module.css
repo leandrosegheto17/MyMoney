@@ -1,0 +1,13 @@
+.ver {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-minimo);
+  padding: 0 var(--espaco-2);
+  font-weight: var(--peso-semi);
+  color: var(--cor-acao);
+  text-decoration: none;
+}
+
+.ver:hover {
+  text-decoration: underline;
+}

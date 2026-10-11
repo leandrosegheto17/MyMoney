@@ -17,6 +17,7 @@ export const CHAVES = {
   movimentosDaMeta: (metaId: string) => ['movimentos_meta', metaId],
   locaisGuardados: ['locais_guardados'],
   resumoMes: ['resumo_mes'],
+  resumoDoMes: (mes: string) => ['resumo_mes', mes],
   orcamentoMes: ['orcamento_mes'],
   orcamentoDoMes: (mes: string, escopo: string) => ['orcamento_mes', mes, escopo],
   lancamentosMes: ['lancamentos_mes'],

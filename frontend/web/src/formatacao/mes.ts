@@ -69,3 +69,8 @@ export function comMes(caminho: string, mes: string): string {
   const [base, busca = ''] = caminho.split('?');
   return `${base}?${escreverMesNaUrl(new URLSearchParams(busca), mes).toString()}`;
 }
+
+/** 'AAAA-MM' (ou 'AAAA-MM-01') → "outubro", sem o ano. */
+export function formatarNomeMes(mes: string): string {
+  return partesDoMes(mes).nome;
+}

@@ -1,0 +1,26 @@
+import type { Escopo } from '@mymoney/contrato/enums';
+
+const ESCOPO_NA_URL: Record<Escopo, 'casa' | 'eu'> = { conjunto: 'casa', individual: 'eu' };
+
+/** `mes` vem primeiro na URL; os demais parâmetros seguem a ordem recebida e os ausentes ficam de fora. */
+function montar(caminho: string, mes: string, parametros: Record<string, string | undefined> = {}): string {
+  const busca = new URLSearchParams({ mes });
+  for (const [nome, valor] of Object.entries(parametros)) if (valor !== undefined) busca.set(nome, valor);
+  return `${caminho}?${busca.toString()}`;
+}
+
+export const linkLancamentos = (a: { mes: string; escopo: Escopo; categoria?: string }) =>
+  montar('/lancamentos', a.mes, { escopo: ESCOPO_NA_URL[a.escopo], categoria: a.categoria });
+
+export const linkOrcamento = (a: { mes: string; escopo: Escopo }) =>
+  montar('/orcamento', a.mes, { escopo: ESCOPO_NA_URL[a.escopo] });
+
+/** `pagar` abre a tela de marcar como paga para a despesa fixa (D-14). */
+export const linkFixas = (a: { mes: string; pagar?: string }) => montar('/fixas', a.mes, { pagar: a.pagar });
+
+/** Folha de envios pendentes, lida pela própria tela quando existir. */
+export const linkEnvios = (mes: string) => montar('/', mes, { envios: '1' });
+
+export const linkMeta = (id: string) => `/metas/${id}`;
+export const linkConta = (id: string) => `/ajustes/contas/${id}`;
+export const linkForma = (id: string) => `/ajustes/formas/${id}`;
