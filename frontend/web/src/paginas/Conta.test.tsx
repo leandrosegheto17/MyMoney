@@ -24,10 +24,10 @@ vi.mock('../ganchos/useContas', async (importOriginal) => {
       useQuery({ queryKey: ['contas', id], queryFn: () => h.buscarConta(id), enabled: Boolean(id) }),
     usePreviaAjuste: (contaId: string | undefined, valor: number | undefined) => h.previa(contaId, valor),
     useComandosConta: () => ({
-      salvarConta: useMutation({ mutationFn: h.salvarConta }),
-      arquivarConta: useMutation({ mutationFn: h.arquivarConta }),
-      excluirConta: useMutation({ mutationFn: h.excluirConta }),
-      ajustarSaldo: useMutation({ mutationFn: h.ajustarSaldo }),
+      salvarConta: useMutation({ mutationFn: (v: never) => h.salvarConta(v) }),
+      arquivarConta: useMutation({ mutationFn: (v: never) => h.arquivarConta(v) }),
+      excluirConta: useMutation({ mutationFn: (v: never) => h.excluirConta(v) }),
+      ajustarSaldo: useMutation({ mutationFn: (v: never) => h.ajustarSaldo(v) }),
     }),
   };
 });

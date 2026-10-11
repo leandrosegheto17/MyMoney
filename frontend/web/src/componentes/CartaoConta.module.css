@@ -1,0 +1,23 @@
+.cartao {
+  composes: cartao from './base/CartaoResumo.module.css';
+}
+
+.cartao + .cartao {
+  margin-top: var(--espaco-3);
+}
+
+.titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto-2);
+}
+
+.total {
+  color: var(--cor-texto);
+}
