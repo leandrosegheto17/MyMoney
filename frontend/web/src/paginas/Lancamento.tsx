@@ -14,6 +14,7 @@ import { useContexto } from '../ganchos/useContexto';
 import { useDadosLancamento } from '../ganchos/useDadosLancamento';
 import { useLancamento } from '../ganchos/useLancamento';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
+import { useAlterarDataParcela } from './lancamento/useAlterarDataParcela';
 import { useExcluirLancamento } from './lancamento/useExcluirLancamento';
 import { destinoDaVolta, useSalvarLancamento } from './lancamento/useSalvarLancamento';
 
@@ -22,6 +23,7 @@ function DetalheLancamento({ lancamento }: { lancamento: DadosDoLancamento }) {
   const dados = useDadosLancamento().data?.dados;
   const salvar = useSalvarLancamento(lancamento.id);
   const exclusao = useExcluirLancamento(lancamento.id, salvar.destino);
+  const ajuste = useAlterarDataParcela(lancamento.id);
   if (salvar.naoExiste || exclusao.naoExiste) return <LancamentoNaoExiste />;
 
   const categorias = (lancamento.tipo === 'receita' ? dados?.categorias_receita : dados?.categorias_despesa) ?? [];
@@ -34,10 +36,15 @@ function DetalheLancamento({ lancamento }: { lancamento: DadosDoLancamento }) {
         formas={dados?.formas ?? []}
         aoSalvar={salvar.salvar}
         salvando={salvar.salvando}
-        erro={salvar.erro ?? exclusao.erro}
+        erro={salvar.erro ?? exclusao.erro ?? ajuste.erro}
         acoes={<ExcluirLancamento lancamento={lancamento} aoExcluir={exclusao.excluir} />}
       >
-        <ListaParcelas parcelas={lancamento.parcelas} numParcelas={lancamento.num_parcelas} />
+        <ListaParcelas
+          parcelas={lancamento.parcelas}
+          numParcelas={lancamento.num_parcelas}
+          editavel={lancamento.pagador.sou_eu && lancamento.pagamento?.forma?.tipo === 'credito'}
+          onAlterarData={ajuste.alterar}
+        />
       </FormularioLancamento>
       <DialogoConfirmacao
         aberto={salvar.aConfirmar !== null}
