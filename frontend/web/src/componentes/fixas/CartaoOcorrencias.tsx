@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type Ref } from 'react';
 import type { OcorrenciasMes } from '@mymoney/contrato/respostas/ocorrencias-mes';
 import { linkFixas } from '../../formatacao/links';
 import { formatarMoeda } from '../../formatacao/moeda';
@@ -15,6 +15,8 @@ interface Props {
   resumo: Pick<OcorrenciasMes, 'pagas' | 'total' | 'previsto_a_pagar_centavos'>;
   ocorrencias: readonly Ocorrencia[];
   aoDesfazer: (ocorrencia: Ocorrencia) => void;
+  /** Alvo do foco depois de marcar uma ocorrência como paga (o botão que abriu a folha some). */
+  refTitulo?: Ref<HTMLHeadingElement>;
 }
 
 function textoSelo(o: Ocorrencia): string | undefined {
@@ -23,7 +25,7 @@ function textoSelo(o: Ocorrencia): string | undefined {
 }
 
 /** A ordem e os totais vêm prontos da API; a tela só mostra. Só quem pagou desfaz (RN-06). */
-export function CartaoOcorrencias({ mes, resumo, ocorrencias, aoDesfazer }: Props) {
+export function CartaoOcorrencias({ mes, resumo, ocorrencias, aoDesfazer, refTitulo }: Props) {
   const idTitulo = useId();
 
   function acao(o: Ocorrencia) {
@@ -48,7 +50,7 @@ export function CartaoOcorrencias({ mes, resumo, ocorrencias, aoDesfazer }: Prop
 
   return (
     <section className={estilo.cartao} aria-labelledby={idTitulo}>
-      <h2 id={idTitulo} className={estilo.titulo}>
+      <h2 id={idTitulo} ref={refTitulo} tabIndex={-1} className={estilo.titulo}>
         Pagas: {resumo.pagas} de {resumo.total}
         <span className={estilo.previsto}>
           Previsto a pagar <span className="valor">{formatarMoeda(resumo.previsto_a_pagar_centavos)}</span>

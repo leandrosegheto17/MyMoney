@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { BotaoLink } from '../componentes/base/BotaoLink';
 import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
 import { DialogoConfirmacao } from '../componentes/base/DialogoConfirmacao';
@@ -18,6 +18,7 @@ import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { useMesDaUrl } from '../ganchos/useMesDaUrl';
 import { useOcorrenciasMes } from '../ganchos/useOcorrenciasMes';
 import { mensagemErro } from '../rotulos/mensagensErro';
+import { PagarFixaConectada } from './fixas/PagarFixaConectada';
 
 const NOVA = '/fixas/nova';
 
@@ -29,6 +30,7 @@ export function DespesasFixas() {
   const { desfazerPagamento } = useComandosFixas();
   const { mostrar } = useAviso();
   const [desfazendo, setDesfazendo] = useState<Ocorrencia | null>(null);
+  const tituloCartao = useRef<HTMLHeadingElement>(null);
 
   const ativos = modelos.data?.filter((m) => m.encerrada_em === null) ?? [];
 
@@ -55,33 +57,43 @@ export function DespesasFixas() {
           anuncioCarregando="Carregando as despesas fixas…"
           aoTentarDeNovo={() => void consulta.refetch()}
         >
-          {(dados) =>
-            dados.total === 0 && modelos.data !== undefined && ativos.length === 0 ? (
-              <EstadoVazio
-                icone="relogio"
-                titulo="Nenhuma despesa fixa cadastrada"
-                texto="Cadastre as contas que se repetem todo mês (aluguel, luz, internet). O app cria uma ocorrência por mês e avisa quando atrasar."
-                acao={<BotaoLink para={NOVA} variante="principal" icone="mais">Nova despesa fixa</BotaoLink>}
-              />
-            ) : (
-              <>
-                {dados.total === 0 ? (
-                  <LinhaVazia>Nenhuma despesa fixa neste mês</LinhaVazia>
-                ) : (
-                  <>
-                    {dados.pagas === dados.total ? <LinhaVazia>Todas pagas em {formatarNomeMes(mes)}</LinhaVazia> : null}
-                    <CartaoOcorrencias
-                      mes={mes}
-                      resumo={dados}
-                      ocorrencias={dados.ocorrencias}
-                      aoDesfazer={setDesfazendo}
-                    />
-                  </>
-                )}
-                <ModelosFixas mes={mes} modelos={ativos} />
-              </>
-            )
-          }
+          {(dados) => (
+            <>
+              <PagarFixaConectada mes={mes} ocorrencias={dados.ocorrencias} tituloCartao={tituloCartao} />
+              {dados.total === 0 && modelos.data !== undefined && ativos.length === 0 ? (
+                <EstadoVazio
+                  icone="relogio"
+                  titulo="Nenhuma despesa fixa cadastrada"
+                  texto="Cadastre as contas que se repetem todo mês (aluguel, luz, internet). O app cria uma ocorrência por mês e avisa quando atrasar."
+                  acao={
+                    <BotaoLink para={NOVA} variante="principal" icone="mais">
+                      Nova despesa fixa
+                    </BotaoLink>
+                  }
+                />
+              ) : (
+                <>
+                  {dados.total === 0 ? (
+                    <LinhaVazia>Nenhuma despesa fixa neste mês</LinhaVazia>
+                  ) : (
+                    <>
+                      {dados.pagas === dados.total ? (
+                        <LinhaVazia>Todas pagas em {formatarNomeMes(mes)}</LinhaVazia>
+                      ) : null}
+                      <CartaoOcorrencias
+                        mes={mes}
+                        resumo={dados}
+                        ocorrencias={dados.ocorrencias}
+                        aoDesfazer={setDesfazendo}
+                        refTitulo={tituloCartao}
+                      />
+                    </>
+                  )}
+                  <ModelosFixas mes={mes} modelos={ativos} />
+                </>
+              )}
+            </>
+          )}
         </EstadosDeLeitura>
       </main>
       <DialogoConfirmacao

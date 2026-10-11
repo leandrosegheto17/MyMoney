@@ -10,7 +10,7 @@ import { BotaoForma } from '../base/BotaoForma';
 import { CampoData } from '../base/CampoData';
 import { CampoTexto } from '../base/CampoTexto';
 import { CampoValor } from '../base/CampoValor';
-import { Icone } from '../base/Icone';
+import { Nota } from '../base/Nota';
 import { Selecao } from '../base/Selecao';
 import estilo from './FormularioLancamento.module.css';
 import { useFormularioLancamento } from './useFormularioLancamento';
@@ -109,9 +109,7 @@ export function FormularioLancamento({ lancamento, categorias, formas, aoSalvar,
         />
       ) : null}
       {pagamento === undefined ? (
-        <p className={estilo.nota}>
-          <Icone nome="aviso" /> {NOTA_RESTRITA}
-        </p>
+        <Nota icone>{NOTA_RESTRITA}</Nota>
       ) : null}
       {children}
       <div className={estilo.acoes}>

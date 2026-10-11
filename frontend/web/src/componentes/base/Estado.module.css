@@ -20,9 +20,18 @@
   color: var(--cor-estourado);
 }
 
+.semMargem {
+  margin-top: 0;
+}
+
 .estado h2 {
   font-size: var(--tam-titulo-cartao);
   font-weight: var(--peso-semi);
+}
+
+/* O h3 (estado dentro de folha) mantém o peso padrão do navegador, como no mockup. */
+.estado h3 {
+  font-size: var(--tam-titulo-cartao);
 }
 
 .estado p {
