@@ -211,6 +211,21 @@ describe('T11 Detalhe da meta: vazio', () => {
     expect(screen.queryByRole('region', { name: 'Onde está guardado' })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Histórico' })).not.toBeInTheDocument();
   });
+
+  it('sem movimentos a grade do resumo ocupa a largura toda', async () => {
+    prepararCarro();
+    renderizar(ID_CARRO);
+    const resumo = await screen.findByRole('region', { name: 'Faltam' });
+    expect(resumo.parentElement?.className).toMatch(/grade-cheia/);
+  });
+
+  it('com movimentos a grade segue em duas colunas', async () => {
+    prepararViagem();
+    renderizar();
+    const resumo = await screen.findByRole('region', { name: 'Faltam' });
+    expect(resumo.parentElement?.className).toMatch(/grade/);
+    expect(resumo.parentElement?.className).not.toMatch(/grade-cheia/);
+  });
 });
 
 describe('T11 Detalhe da meta: carregando e erro', () => {

@@ -29,7 +29,7 @@ function Conteudo({ meta, movimentos }: DetalheMeta) {
         <SeloEscopo escopo={meta.escopo} texto={conjunto ? 'Meta da casa' : 'Minha meta'} />
         {conjunto ? '· visível aos dois' : '· só você vê'}
       </p>
-      <div className={estilos.grade}>
+      <div className={vazio ? `${estilos.grade} ${estilos['grade-cheia']}` : estilos.grade}>
         <ResumoMeta
           meta={meta}
           acoes={
