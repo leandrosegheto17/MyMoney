@@ -158,7 +158,7 @@ describe('Lancamento (T05): salvar', () => {
     expect(await screen.findByTestId('local')).toHaveTextContent('/lancamentos');
   });
 
-  it('confirmar_descarte_ajustes abre o diálogo I-21 com o texto do mockup', async () => {
+  it('confirmar_descarte_ajustes abre o diálogo I-21 sem citar o valor total quando ele não muda', async () => {
     comandos.editar.mockRejectedValueOnce({ tipo: 'regra', codigo: 'confirmar_descarte_ajustes' });
     renderizar();
     mudarDescricao('Geladeira inox');
@@ -166,7 +166,7 @@ describe('Lancamento (T05): salvar', () => {
 
     const dialogo = await screen.findByRole('alertdialog', { name: 'Descartar ajuste de data?' });
     expect(dialogo).toHaveTextContent(
-      'A parcela 3/3 teve a data ajustada à mão (17/11). Ao mudar o valor total, as 3 parcelas são recalculadas pelo vencimento do cartão e esse ajuste será descartado.',
+      'A parcela 3/3 teve a data ajustada à mão (17/11). Ao alterar a compra, as 3 parcelas são recalculadas pelo vencimento do cartão e esse ajuste será descartado.',
     );
     expect(within(dialogo).getByRole('button', { name: 'Recalcular e salvar' })).toBeInTheDocument();
   });

@@ -49,7 +49,7 @@ function DetalheLancamento({ lancamento }: { lancamento: DadosDoLancamento }) {
       <DialogoConfirmacao
         aberto={salvar.aConfirmar !== null}
         titulo="Descartar ajuste de data?"
-        texto={textoDescarte(lancamento.parcelas)}
+        texto={textoDescarte(lancamento.parcelas, salvar.aConfirmar)}
         rotuloConfirmar="Recalcular e salvar"
         variante="neutra"
         aoConfirmar={salvar.confirmarDescarte}

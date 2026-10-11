@@ -1,4 +1,5 @@
 import type { Lancamento } from '@mymoney/contrato/respostas/lancamento';
+import type { CamposLancamento } from '../../dados/comandos/lancamentos';
 import { formatarDataCurta } from '../../formatacao/data';
 
 const lista = new Intl.ListFormat('pt-BR', { style: 'long', type: 'conjunction' });
@@ -6,11 +7,13 @@ const lista = new Intl.ListFormat('pt-BR', { style: 'long', type: 'conjunction' 
 /**
  * Texto do diálogo que pede confirmação antes de descartar datas de parcela ajustadas à mão.
  * Quem decide que há descarte é o servidor; aqui só se descreve o que a resposta mostra como ajustado.
+ * A frase cita o valor total só quando ele está entre os campos sendo salvos; senão fala da compra.
  */
-export function textoDescarte(parcelas: Lancamento['parcelas']): string {
+export function textoDescarte(parcelas: Lancamento['parcelas'], campos: CamposLancamento | null = null): string {
   const total = parcelas.length;
   const ajustadas = parcelas.filter((p) => p.data_ajustada);
-  const recalculo = `Ao mudar o valor total, as ${total} parcelas são recalculadas pelo vencimento do cartão`;
+  const mudanca = campos !== null && campos.valorTotalCentavos === undefined ? 'alterar a compra' : 'mudar o valor total';
+  const recalculo = `Ao ${mudanca}, as ${total} parcelas são recalculadas pelo vencimento do cartão`;
   if (ajustadas.length === 0) return `${recalculo} e os ajustes de data feitos à mão serão descartados.`;
 
   const nomes = lista.format(ajustadas.map((p) => `${p.numero}/${total}`));
