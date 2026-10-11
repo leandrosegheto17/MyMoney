@@ -36,4 +36,28 @@ describe('LinkMais', () => {
 
     expect(container.querySelector('[style]')).toBeNull();
   });
+
+  it('seta acrescenta ícone dir decorativo e o nome acessível segue só o texto', () => {
+    const { container } = render(
+      <MemoryRouter>
+        <LinkMais seta para="/orcamento">
+          Ver orçamento
+        </LinkMais>
+      </MemoryRouter>,
+    );
+
+    const link = screen.getByRole('link', { name: 'Ver orçamento' });
+    const icone = link.querySelector('svg');
+    expect(icone).not.toBeNull();
+    expect(icone).toHaveAttribute('aria-hidden', 'true');
+    expect(icone?.querySelector('use')?.getAttribute('href')).toBe('#i-dir');
+    expect(link.lastElementChild).toBe(icone);
+    expect(container.querySelector('[style]')).toBeNull();
+  });
+
+  it('sem seta não renderiza ícone', () => {
+    render(<LinkMais aoClicar={vi.fn()}>Esqueci minha senha</LinkMais>);
+
+    expect(screen.getByRole('button').querySelector('svg')).toBeNull();
+  });
 });

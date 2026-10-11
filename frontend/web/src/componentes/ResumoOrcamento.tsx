@@ -69,7 +69,7 @@ export function ResumoOrcamento({ titulo, bloco, orcamento, linkVer, textoVer, t
           />
         </div>
       ))}
-      <LinkMais para={linkVer}>{textoVer}</LinkMais>
+      <LinkMais seta para={linkVer}>{textoVer}</LinkMais>
     </CartaoResumo>
   );
 }

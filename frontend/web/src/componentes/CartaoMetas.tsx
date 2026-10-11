@@ -20,7 +20,7 @@ export function CartaoMetas({ titulo, bloco, metas, linkMeta, textoVazio, linkNo
       bloco={bloco}
       estado={metas.length === 0 ? 'vazio' : 'dado'}
       textoVazio={textoVazio}
-      acaoVazio={<LinkMais para={linkNova}>Nova meta</LinkMais>}
+      acaoVazio={<LinkMais seta para={linkNova}>Nova meta</LinkMais>}
     >
       {metas.map((m) => (
         <MetaCompacta key={m.meta_id} meta={m} bloco={bloco} href={linkMeta(m.meta_id)} />
