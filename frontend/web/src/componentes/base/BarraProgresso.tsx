@@ -54,7 +54,7 @@ export function BarraProgresso({
 
   const depois = posicaoSecundario === 'depois';
   const secundario = topoSecundario ? (
-    <div className={`${estilos['orc-topo']} ${estilos['item-sub']} ${depois ? estilos['apos-barra'] : ''}`}>
+    <div className={`${estilos['orc-topo']} ${estilos['item-sub']}`}>
       {topoSecundario}
     </div>
   ) : null;

@@ -32,7 +32,3 @@
   font-size: var(--tam-pequeno);
   color: var(--cor-texto-2);
 }
-
-.apos-barra {
-  margin-top: var(--espaco-1);
-}
