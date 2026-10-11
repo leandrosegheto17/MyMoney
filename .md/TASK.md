@@ -638,6 +638,12 @@ tarefa passa disso). Status inicial `Pendente`.
 | RTP-0091 | Refatoração Lote-18 | BarraProgresso: ordem do texto secundário (meta: topo, barra, depois valores e faltam) | Frontend | UX-SPEC T02; mockup inicio--sucesso.html linhas 144-157 (QA TP-0090) | Em MetaCompacta a barra aparece entre o topo (nome/%) e a linha 'R$ X de R$ Y · faltam R$ Z', como no mockup, sem quebrar a ordem dos destaques do ResumoOrcamento; teste cobre a ordem no DOM | 1h | TP-0090 | - | frontend/web/src/componentes/base/BarraProgresso.tsx, MetaCompacta.tsx | BarraProgresso.test.tsx, MetaCompacta.test.tsx | Concluída · aguarda QA |
 | RTP-0092 | Refatoração Lote-18 | LinkMais com ícone dir como no mockup (Ver orçamento / Nova meta) | Frontend | UX-SPEC T02; mockup inicio--sucesso.html a.link-mais (QA TP-0090) | LinkMais renderiza o ícone dir depois do texto, aria-hidden, como a.link-mais do mockup; teste do LinkMais cobre o ícone | 1h | TP-0090 | - | frontend/web/src/componentes/base/LinkMais.tsx | LinkMais.test.tsx | Concluída · aguarda QA |
 
+### Refatoração Lote-27
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0095 | Lote 27 | T06: espaço do 'Previsto a pagar' no título do cartão difere do mockup em 3 px e pequenos acabamentos | Frontend | UX-SPEC T06; G-18 | No título do cartão, 'Previsto a pagar R$ x' tem o mesmo recuo do mockup (span.item-sub é flex, largura 173,5 px contra 170,3 px na app) e some a divergência de pixels no sucesso; DespesasFixas.tsx sem cast 'as ErroDados' (usar onError como Ajustes.tsx) e sem linhas acima de 120 caracteres. Origem: QA do TP-0130 (não crítico, baixo). | 1h | TP-0130 | Não | frontend/web/src/componentes/fixas/CartaoOcorrencias.tsx, frontend/web/src/componentes/fixas/CartaoOcorrencias.module.css, frontend/web/src/paginas/DespesasFixas.tsx | DespesasFixas.test.tsx; npx vitest run src/paginas/DespesasFixas; pnpm --filter @mymoney/web visual -- --tela T06 | Pendente |
+
+
 
 
 
