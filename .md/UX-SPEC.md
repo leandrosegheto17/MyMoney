@@ -664,7 +664,7 @@ paisagem o app funciona, mas sem layout próprio.
 | T03 | Folha de até 90% da altura, botão fixo no rodapé da folha, acima do teclado (`visualViewport`). Grade de categorias 3×3 | Diálogo de 480 px. A grade continua 3×3 **(B3)** |
 | T04 | Lista por dia | Tabela com filtros em linha acima |
 | T09 | Cartão de total e lista com barras, empilhados | Duas colunas: cartão de total à esquerda e lista por categoria à direita **(B3: substitui a tabela; a barra de cada linha não cabia como coluna)** |
-| T11 | Histórico em lista | Resumo e "onde está guardado" lado a lado. Histórico em tabela |
+| T11 | Histórico em lista | Resumo e "onde está guardado" lado a lado. Histórico em lista, com a mesma estrutura do celular **(G-18: o mockup `meta--sucesso` é a fonte de verdade)** |
 | T15 a T20 e formulários | Lista e formulário em páginas separadas | Também páginas separadas, com conteúdo estreito (cerca de 720 px) **(B3: o mestre e detalhe saiu; para 2 a 5 itens por cadastro, ele dobraria telas e testes sem ganho)** |
 
 ---

@@ -223,4 +223,4 @@
 - Descrição: Decidir se a ordem erro/ajuda do componente base Campo (todas as telas) e a ajuda do valor no FormularioFixa mudam para casar com o mockup fixa--erro, ou se o mockup é que muda (G-18); o plano da RTP pede essa decisão antes de mexer no Campo base
 - Impacto se não resolvido: Mudar o Campo afeta o visual de todas as telas com campo em erro; deixar como está mantém 22 px de diferença só no estado manual fixa--erro
 - Sugestão: Alinhar o mockup ao app (ajuda antes do erro, ajuda do valor sempre visível) e fechar a RTP sem tocar o Campo
-- Status: Em aberto
+- Status: Resolvido (2026-10-11): Decidido pelo coordenador (2026-10-11): o mockup fixa--erro muda para casar com o app; Campo e FormularioFixa não mudam; RTP-0096 vira reconferência visual

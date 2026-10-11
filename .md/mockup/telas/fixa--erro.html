@@ -46,12 +46,12 @@
           <p class="campo-erro" id="descricao-erro"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Informe a descrição.</p>
         </div>
         <div class="campo"><label for="categoria">Categoria da casa</label><select id="categoria" class="entrada"><option selected>Contas da casa</option><option>Moradia</option><option>Mercado</option><option>Outros da casa</option></select></div>
-        <div class="campo campo-valor"><label for="valor">Valor previsto</label><input id="valor" class="entrada" inputmode="numeric" value="R$ 79,90"></div>
+        <div class="campo campo-valor"><label for="valor">Valor previsto</label><input id="valor" class="entrada" inputmode="numeric" value="R$ 79,90"><p class="campo-ajuda">Pode ser ajustado na hora de pagar.</p></div>
         <div class="campo">
           <label for="dia">Dia de vencimento</label>
-          <input id="dia" class="entrada" inputmode="numeric" value="32" aria-invalid="true" aria-describedby="dia-erro dia-ajuda">
-          <p class="campo-erro" id="dia-erro"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Use um dia de 1 a 31.</p>
+          <input id="dia" class="entrada" inputmode="numeric" value="32" aria-invalid="true" aria-describedby="dia-ajuda dia-erro">
           <p class="campo-ajuda" id="dia-ajuda">Em meses mais curtos, vale o último dia.</p>
+          <p class="campo-erro" id="dia-erro"><svg class="icone" aria-hidden="true"><use href="#i-alerta"/></svg>Use um dia de 1 a 31.</p>
         </div>
         <div class="acoes-formulario"><button class="botao botao-principal" type="submit">Salvar</button></div>
       </form>
