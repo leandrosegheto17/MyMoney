@@ -173,7 +173,7 @@ describe('ExcluirLancamento', () => {
     renderizar();
     fireEvent.click(within(abrirDialogo()).getByRole('button', { name: 'Excluir' }));
     expect(await screen.findByText('Este lançamento não existe mais')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Voltar para Lançamentos' })).toBeInTheDocument();
+    expect(within(screen.getByRole('alert')).getByRole('link', { name: 'Voltar para Lançamentos' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Salvar alterações' })).toBeNull();
   });
 });

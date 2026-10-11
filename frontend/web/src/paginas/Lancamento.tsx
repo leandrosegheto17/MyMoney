@@ -4,6 +4,7 @@ import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
 import { DialogoConfirmacao } from '../componentes/base/DialogoConfirmacao';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { EsqueletoLancamento } from '../componentes/lancamento/EsqueletoLancamento';
+import { ExcluirLancamento } from '../componentes/lancamento/ExcluirLancamento';
 import { FormularioLancamento } from '../componentes/lancamento/FormularioLancamento';
 import { LancamentoNaoExiste } from '../componentes/lancamento/LancamentoNaoExiste';
 import { ListaParcelas } from '../componentes/lancamento/ListaParcelas';
@@ -13,13 +14,15 @@ import { useContexto } from '../ganchos/useContexto';
 import { useDadosLancamento } from '../ganchos/useDadosLancamento';
 import { useLancamento } from '../ganchos/useLancamento';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
+import { useExcluirLancamento } from './lancamento/useExcluirLancamento';
 import { destinoDaVolta, useSalvarLancamento } from './lancamento/useSalvarLancamento';
 
 function DetalheLancamento({ lancamento }: { lancamento: DadosDoLancamento }) {
   const contexto = useContexto();
   const dados = useDadosLancamento().data?.dados;
   const salvar = useSalvarLancamento(lancamento.id);
-  if (salvar.naoExiste) return <LancamentoNaoExiste />;
+  const exclusao = useExcluirLancamento(lancamento.id, salvar.destino);
+  if (salvar.naoExiste || exclusao.naoExiste) return <LancamentoNaoExiste />;
 
   const categorias = (lancamento.tipo === 'receita' ? dados?.categorias_receita : dados?.categorias_despesa) ?? [];
   return (
@@ -31,7 +34,8 @@ function DetalheLancamento({ lancamento }: { lancamento: DadosDoLancamento }) {
         formas={dados?.formas ?? []}
         aoSalvar={salvar.salvar}
         salvando={salvar.salvando}
-        erro={salvar.erro}
+        erro={salvar.erro ?? exclusao.erro}
+        acoes={<ExcluirLancamento lancamento={lancamento} aoExcluir={exclusao.excluir} />}
       >
         <ListaParcelas parcelas={lancamento.parcelas} numParcelas={lancamento.num_parcelas} />
       </FormularioLancamento>
