@@ -39,6 +39,7 @@ export function ListaLancamentosMes({ itens, membroAtualId }: Props) {
                   item.parcela_numero,
                   item.total_parcelas,
                 )}
+                parcela={{ numero: item.parcela_numero, total: item.total_parcelas }}
                 categoria={item.categoria.nome}
                 variavel={item.categoria.variavel}
                 tipo={item.tipo}

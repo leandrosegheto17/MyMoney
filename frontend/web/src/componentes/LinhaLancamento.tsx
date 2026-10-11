@@ -20,14 +20,24 @@ interface Props {
   data: string;
   /** `souEu` é decidido por quem chama, comparando ids. */
   pagador?: { nome: string; souEu: boolean };
+  /** Parcela da linha; só a compra parcelada (total > 1) ganha "parcela k de N" no nome acessível. */
+  parcela?: { numero: number; total: number };
   /** Item da fila de envio, ainda fora do total. */
   aguardando?: boolean;
+}
+
+/** Título falado: troca o sufixo visual "(k/N)" por "parcela k de N" separado por vírgula. */
+function tituloFalado({ titulo, parcela }: Props): string[] {
+  if (parcela === undefined || parcela.total <= 1) return [titulo];
+  const sufixo = ` (${parcela.numero}/${parcela.total})`;
+  const base = titulo.endsWith(sufixo) ? titulo.slice(0, -sufixo.length) : titulo;
+  return [base, `parcela ${parcela.numero} de ${parcela.total}`];
 }
 
 /** Nome completo lido pelo leitor de tela (UX-SPEC §5): o texto visível das colunas não basta sozinho. */
 function nomeAcessivel(p: Props, pagador: string | undefined): string {
   return [
-    p.titulo,
+    ...tituloFalado(p),
     ROTULO_ESCOPO[p.escopo].texto,
     pagador === undefined ? null : `pago por ${pagador}`,
     formatarMoeda(p.valorCentavos),
@@ -45,13 +55,15 @@ export function LinhaLancamento(props: Props) {
   const rotuloEscopo = ROTULO_ESCOPO[escopo];
   const conjunta = escopo === 'conjunto';
   const nomePagador = pagador?.souEu ? 'Você' : pagador?.nome;
+  // No meio da frase falada, "Você" perde a maiúscula; nome próprio fica como está.
+  const pagadorFalado = pagador?.souEu ? 'você' : pagador?.nome;
   const receita = tipo === 'receita';
 
   return (
     <Link
       to={href}
       className={estilo['linha-lancamento']}
-      aria-label={nomeAcessivel(props, conjunta && pagador ? (pagador.souEu ? 'você' : pagador.nome) : undefined)}
+      aria-label={nomeAcessivel(props, conjunta ? pagadorFalado : undefined)}
     >
       <span className={`${estilo['col-data']} valor`}>{formatarDataCurta(data)}</span>
       <Icone

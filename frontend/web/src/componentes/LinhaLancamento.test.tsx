@@ -13,6 +13,7 @@ const BASE: Props = {
   href: '/lancamentos/00000000-0000-4000-8000-000000000515',
   escopo: 'individual',
   titulo: 'Fone bluetooth (2/3)',
+  parcela: { numero: 2, total: 3 },
   categoria: 'Lazer pessoal',
   variavel: true,
   tipo: 'despesa',
@@ -25,6 +26,7 @@ const MERCADO_CASA: Props = {
   href: '/lancamentos/00000000-0000-4000-8000-000000000540',
   escopo: 'conjunto',
   titulo: 'Mercado',
+  parcela: { numero: 1, total: 1 },
   categoria: 'Mercado',
   variavel: true,
   tipo: 'despesa',
@@ -133,6 +135,24 @@ describe('LinhaLancamento', () => {
     expect(
       screen.getByRole('link', { name: 'Mercado, Casa, pago por Ana, R$ 45,90, 12 de outubro' }),
     ).toBeInTheDocument();
+  });
+
+  it('nome acessível da parcelada lê "parcela k de N" no lugar do "(k/N)"', () => {
+    renderizar();
+    expect(
+      screen.getByRole('link', { name: 'Fone bluetooth, parcela 2 de 3, Eu, R$ 80,00, 10 de outubro' }),
+    ).toBeInTheDocument();
+  });
+
+  it('nome acessível à vista não diz "parcela"', () => {
+    const { link } = renderizar({ titulo: 'Almoço', parcela: { numero: 1, total: 1 } });
+    expect(link.getAttribute('aria-label')).toBe('Almoço, Eu, R$ 80,00, 10 de outubro');
+    expect(link.getAttribute('aria-label')).not.toMatch(/parcela/);
+  });
+
+  it('nome acessível da conjunta paga por mim diz "pago por você"', () => {
+    const { link } = renderizar({ ...MERCADO_CASA, pagador: { nome: 'Leandro', souEu: true } });
+    expect(link.getAttribute('aria-label')).toMatch(/pago por você,/);
   });
 
   it('nome acessível da receita acrescenta "receita"', () => {
