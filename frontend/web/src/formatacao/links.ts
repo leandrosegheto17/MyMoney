@@ -21,6 +21,8 @@ export const linkFixas = (a: { mes: string; pagar?: string }) => montar('/fixas'
 /** Folha de envios pendentes, lida pela própria tela quando existir. */
 export const linkEnvios = (mes: string) => montar('/', mes, { envios: '1' });
 
-export const linkMeta = (id: string) => `/metas/${id}`;
+/** `movimentar` abre a folha de aporte ou retirada sobre o detalhe da meta. */
+export const linkMeta = (id: string, a: { movimentar?: 'aporte' | 'retirada' } = {}) =>
+  a.movimentar === undefined ? `/metas/${id}` : `/metas/${id}?movimentar=${a.movimentar}`;
 export const linkConta = (id: string) => `/ajustes/contas/${id}`;
 export const linkForma = (id: string) => `/ajustes/formas/${id}`;

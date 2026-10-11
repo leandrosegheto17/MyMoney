@@ -10,6 +10,7 @@
 .casa { border-top: var(--borda-destaque-cartao) solid var(--cor-casa); }
 .eu { border-top: var(--borda-destaque-cartao) solid var(--cor-eu); }
 
+.cartao h2,
 .cartao h3 {
   display: flex;
   justify-content: space-between;
@@ -22,4 +23,5 @@
   color: var(--cor-texto-2);
 }
 
+.cartao-total h2,
 .cartao-total h3 { color: var(--cor-texto); }

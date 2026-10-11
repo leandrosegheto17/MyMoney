@@ -42,6 +42,11 @@ describe('formatacao/links', () => {
     );
   });
 
+  it('linkMeta acrescenta ?movimentar= só quando pedido', () => {
+    expect(linkMeta('m1', { movimentar: 'aporte' })).toBe('/metas/m1?movimentar=aporte');
+    expect(linkMeta('m1', { movimentar: 'retirada' })).toBe('/metas/m1?movimentar=retirada');
+  });
+
   it('linkMeta, linkConta e linkForma apontam para o detalhe', () => {
     expect(linkMeta('00000000-0000-4000-8000-000000000901')).toBe('/metas/00000000-0000-4000-8000-000000000901');
     expect(linkConta('00000000-0000-4000-8000-000000000201')).toBe(

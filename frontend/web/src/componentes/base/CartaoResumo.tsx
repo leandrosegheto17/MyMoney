@@ -6,6 +6,8 @@ import estilos from './CartaoResumo.module.css';
 interface Props {
   titulo: ReactNode;
   total?: boolean;
+  /** `section` com `h2` quando o cartão é uma seção da tela e não um item de grade (`article` com `h3`). */
+  secao?: boolean;
   /** Cor da borda do topo; o bloco em si é da tela. */
   bloco: 'casa' | 'eu';
   estado: 'dado' | 'vazio' | 'carregando';
@@ -22,6 +24,7 @@ const FORMA_PADRAO: readonly VarianteEsqueleto[] = ['titulo', 'valor', 'linha', 
 export function CartaoResumo({
   titulo,
   total = false,
+  secao = false,
   bloco,
   estado,
   textoVazio,
@@ -32,19 +35,22 @@ export function CartaoResumo({
   const idTitulo = useId();
   const classes = [estilos.cartao, estilos[bloco], total ? estilos['cartao-total'] : ''].filter(Boolean).join(' ');
 
+  const Raiz = secao ? 'section' : 'article';
+  const Titulo = secao ? 'h2' : 'h3';
+
   if (estado === 'carregando') {
     return (
-      <article className={classes} aria-hidden="true">
+      <Raiz className={classes} aria-hidden="true">
         {formaEsqueleto.map((variante, i) => (
           <Esqueleto key={i} variante={variante} />
         ))}
-      </article>
+      </Raiz>
     );
   }
 
   return (
-    <article className={classes} aria-labelledby={idTitulo}>
-      <h3 id={idTitulo}>{titulo}</h3>
+    <Raiz className={classes} aria-labelledby={idTitulo}>
+      <Titulo id={idTitulo}>{titulo}</Titulo>
       {estado === 'vazio' ? (
         <>
           <LinhaVazia>{textoVazio}</LinhaVazia>
@@ -53,6 +59,6 @@ export function CartaoResumo({
       ) : (
         children
       )}
-    </article>
+    </Raiz>
   );
 }

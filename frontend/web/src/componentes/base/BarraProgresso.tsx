@@ -19,8 +19,8 @@ interface Props {
   situacao: SituacaoBarra;
   /** Nome acessível da barra. */
   rotulo: string;
-  /** Texto sempre visível acima da barra ("56%", "R$ X de R$ Y"). */
-  topo: ReactNode;
+  /** Texto sempre visível acima da barra ("56%", "R$ X de R$ Y"); sem ele o valor está no texto ao redor. */
+  topo?: ReactNode;
   topoSecundario?: ReactNode;
   /** `span` quando a barra fica dentro de um link. */
   elemento?: 'div' | 'span';
@@ -51,7 +51,7 @@ export function BarraProgresso({
 
   return (
     <>
-      <div className={estilos['orc-topo']}>{topo}</div>
+      {topo ? <div className={estilos['orc-topo']}>{topo}</div> : null}
       {topoSecundario ? (
         <div className={`${estilos['orc-topo']} ${estilos['item-sub']}`}>{topoSecundario}</div>
       ) : null}

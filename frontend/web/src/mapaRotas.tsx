@@ -68,7 +68,11 @@ export const mapaRotas: RouteObject[] = [
       pagina('/orcamento', 'Orçamento', comMes),
       pagina('/metas', 'Metas'),
       pagina('/metas/nova', 'Nova meta', estreito),
-      pagina('/metas/:id', 'Meta'),
+      {
+        path: '/metas/:id',
+        lazy: () => import('./paginas/Meta').then((m) => ({ Component: m.Meta })),
+        handle: { titulo: 'Meta' } satisfies HandleRota,
+      },
       pagina('/metas/:id/editar', 'Editar meta', estreito),
       {
         path: '/ajustes',

@@ -1,7 +1,8 @@
 import estilos from './LinhasValores.module.css';
 
 interface Props {
-  linhas: readonly { rotulo: string; valor: string }[];
+  /** `texto`: o valor não é número (ex.: um mês) e usa a fonte do texto. */
+  linhas: readonly { rotulo: string; valor: string; texto?: boolean }[];
 }
 
 /** Pares rótulo/valor de um cartão; o valor já vem formatado. */
@@ -11,7 +12,7 @@ export function LinhasValores({ linhas }: Props) {
       {linhas.map((l) => (
         <div key={l.rotulo}>
           <dt>{l.rotulo}</dt>
-          <dd className="valor">{l.valor}</dd>
+          <dd className={l.texto ? undefined : 'valor'}>{l.valor}</dd>
         </div>
       ))}
     </dl>
