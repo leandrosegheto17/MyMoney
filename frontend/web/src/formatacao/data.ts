@@ -1,3 +1,5 @@
+import { formatarNomeMes } from './mes';
+
 const formatadorSaoPaulo = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Sao_Paulo',
   year: 'numeric',
@@ -13,6 +15,19 @@ export function formatarData(iso: string): string {
 /** 'YYYY-MM-DD' → 'dd/mm'. */
 export function formatarDataCurta(iso: string): string {
   return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+}
+
+/** 'YYYY-MM-DD' → "12 de outubro" (dia sem zero à esquerda), para o nome acessível. */
+export function formatarDataPorExtenso(iso: string): string {
+  return `${Number(iso.slice(8, 10))} de ${formatarNomeMes(iso)}`;
+}
+
+const DIAS_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+/** 'YYYY-MM-DD' → "Sábado, 10 de outubro". O dia da semana usa UTC para não depender do fuso da máquina. */
+export function formatarDiaSemana(iso: string): string {
+  const dia = new Date(Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))));
+  return `${DIAS_SEMANA[dia.getUTCDay()]}, ${formatarDataPorExtenso(iso)}`;
 }
 
 /** Data de hoje em America/Sao_Paulo como 'YYYY-MM-DD', independente do fuso da máquina. */

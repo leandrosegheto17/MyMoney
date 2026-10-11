@@ -33,12 +33,17 @@ export type NomeIcone =
 interface Props {
   nome: NomeIcone;
   className?: string;
+  /** Só quando o ícone é o único portador do significado (vira imagem com nome acessível). */
+  rotulo?: string;
 }
 
 /** Ícone decorativo: o significado vai no rótulo do botão, não no <svg>. */
-export function Icone({ nome, className }: Props) {
+export function Icone({ nome, className, rotulo }: Props) {
   return (
-    <svg className={className ? `icone ${className}` : 'icone'} aria-hidden="true">
+    <svg
+      className={className ? `icone ${className}` : 'icone'}
+      {...(rotulo === undefined ? { 'aria-hidden': true } : { role: 'img', 'aria-label': rotulo })}
+    >
       <use href={`#i-${nome}`} />
     </svg>
   );
