@@ -662,6 +662,13 @@ tarefa passa disso). Status inicial `Pendente`.
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RTP-0103 | Refatoração Lote-14 | ItemLink: teste que fixa o saldo como span.valor filho direto do link | Frontend | UX-SPEC T15; origem: achado não crítico do QA (rodada 2) do TP-0070 | Teste de ItemLink/ListaContas afirma que, com valor, o saldo é um span.valor filho direto do link (fora de .sub) e que, com nota+valor, a nota fica em .sub e o valor irmão dentro de span.fim; vitest verde e C1 do TP-0070 não pode voltar sem teste vermelho | 0.5h | TP-0070 | - | frontend/web/src/componentes/base/ItemLink.test.tsx | ItemLink.test.tsx | Pendente |
 
+### Refatoração Lote-24
+| ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RTP-0107 | Refatoração Lote-24 | E2E @integracao do ajuste de data da parcela (T05 → T04 e T02) | Frontend | CA-08.5; aceite do TP-0118 (e2e); origem: achado não crítico do QA do TP-0118 | e2e/integracao/ajuste-parcela.spec.ts @integracao contra o Supabase local, usando os ajudantes do TP-0110: como Leandro, compra crédito 3x; alterar a 2/3 para 2026-11-05 na T05; T04 de outubro sem a parcela e de novembro com ela; total Casa da T02 cai em outubro e sobe R$ 650,00 em novembro; selo 'data ajustada' na 2/3; como Ana, a T05 da mesma compra sem 'Alterar data' | 2h | TP-0110 |  | frontend/web/e2e/integracao/ajuste-parcela.spec.ts | ajuste-parcela.spec.ts | Pendente |
+| RTP-0108 | Refatoração Lote-24 | Alterar data da parcela: não salvar datas parciais digitadas no campo de fallback | Frontend | CA-08.5; G-05; origem: achado não crítico do QA do TP-0118 | ListaParcelas só chama onAlterarData ao confirmar a data (blur/Enter ou seletor fechado), não a cada onChange do campo de data; digitar o ano no campo visível (sem showPicker) não dispara chamadas intermediárias (ex.: 0002, 0020); teste unitário prova uma só chamada | 1h | TP-0118 |  | frontend/web/src/componentes/lancamento/ListaParcelas.tsx | ListaParcelas.test.tsx | Pendente |
+
+
 
 
 
