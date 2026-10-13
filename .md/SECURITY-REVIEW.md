@@ -617,3 +617,33 @@ OK; 0 críticos, 0 não críticos, sem RTP; RPC security invoker com RLS, `mes` 
 
 ## TP-0106 — DevSecOps — 2026-10-13
 TP-0106 APROVADA em segurança: RPC autoriza no servidor com `registro_invalido` único (sem enumeração), exclusão só pelo botão do diálogo, duplo envio barrado no hook, cache correto, sem innerHTML/segredo/dependência nova; 0 críticos, 1 não crítico (RTP-0112 uuid no comando; RTP-0105 já cobre estado ocupado).
+
+## RTP-0093 — DevSecOps — 2026-10-13
+APROVADA; 0 achados; diff só monta aria-label com dados já exibidos, sem sink perigoso (grep limpo), sem dependência nova.
+
+## RTP-0094 — DevSecOps — 2026-10-13
+APROVADA; 0 achados; diff só de texto de UI, sem superfície de segurança nem dependência nova (lido, nada executado).
+
+## RTP-0096 — DevSecOps — 2026-10-13
+APROVADA; 0 achados; diff só documental, sem código/dependência (Campo e FormularioFixa intactos), nenhuma RTP aberta.
+
+## RTP-0097 — DevSecOps — 2026-10-13
+APROVADA; 0 achados; diff só de className/CSS/teste, sem dependência nem dado pessoal; revisão de leitura, nada executado.
+
+## RTP-0098 — DevSecOps — 2026-10-13
+APROVADA; 0 críticos/0 não críticos; diff é só uma lista de ids em JSON, sem superfície de segurança (revisão de leitura, sem dependência alterada).
+
+## RTP-0099 — DevSecOps — 2026-10-13
+APROVADA; 0 críticos, 0 não críticos; diff só de teste, sem superfície de segurança nem dependências (revisão de leitura, nada executado).
+
+## RTP-0100 — DevSecOps — 2026-10-13
+APROVADA; 0 achados (diff só de docs e mockup estático, sem dependência nem dado pessoal); nada executado além da leitura do diff.
+
+## RTP-0101 — DevSecOps — 2026-10-13
+APROVADA; 0 achados; diff só remove CSS/classe de estilo, sem superfície de segurança nem dependência nova (revisão de leitura).
+
+## RTP-0102 — DevSecOps — 2026-10-13
+APROVADA COM DÉBITO; 0 críticos/1 baixo (RTP-0113: useMeta ainda consulta metas com id malformado); movimentos_meta guardado e G-05 preservado; Meta.test 17 passando.
+
+## TP-0118 — DevSecOps — 2026-10-13
+APROVADA; 0 críticos, 0 não críticos novos (RTP-0107/0108 já abertas pelo QA); escrita só via RPC em dados/ com validação de uuid, outro membro sem controle, erro genérico, sem fila; revisão de diff + 2 greps, sem dependências novas.
