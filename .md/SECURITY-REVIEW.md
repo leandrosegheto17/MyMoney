@@ -602,3 +602,18 @@ APROVADA; 0 críticos, 0 não críticos, nenhuma RTP; grep de sinks/segredos lim
 
 ## TP-0154 — DevSecOps — 2026-10-11
 APROVADA; 0 críticos, 1 não crítico (RTP-0102); retry global sem mascarar autorização, uuid validado, G-05 igual para inexistente/alheia, sem innerHTML/segredo/dependência nova; vitest 15/15; SAST completo fica no /deploy.
+
+## TP-0070 — DevSecOps — 2026-10-13
+OK (rodadas 1 e 2): contas lidas via view security_invoker/RLS, saldo do servidor sem soma no cliente, texto escapado sem innerHTML/style/log/storage, cache em memória limpo no sair, comparar-visual.mjs só com espera maior, sem dependência nova; 0 críticos, 0 não críticos, nenhuma RTP.
+
+## TP-0071 — DevSecOps — 2026-10-13
+OK (rodadas 1 e 2) — autorização e validação no servidor (RPC security invoker, dono do contexto, G-05), uuid na rota, prévia só simulada, exclusão com confirmação, sem innerHTML/segredo/dependência nova, asserções do teste intactas; 0 críticos, 1 baixo (nome sem limite de tamanho, RTP-0111); vitest 28 ok, tsc limpo.
+
+## TP-0089 — DevSecOps — 2026-10-13
+APROVADA (rodadas 1 e 2); 0 achados; `vite build` executado e grep no dist sem semeadura/token/sessão falsa; sem segredo, innerHTML, log/storage sensível, dependência nova ou redirecionamento aberto; mês da URL validado.
+
+## TP-0103 — DevSecOps — 2026-10-13
+OK; 0 críticos, 0 não críticos, sem RTP; RPC security invoker com RLS, `mes` validado por regex, texto escapado, sem innerHTML/storage/log/segredo/dependência nova (greps executados), filtros da URL ficam para o TP-0104.
+
+## TP-0106 — DevSecOps — 2026-10-13
+TP-0106 APROVADA em segurança: RPC autoriza no servidor com `registro_invalido` único (sem enumeração), exclusão só pelo botão do diálogo, duplo envio barrado no hook, cache correto, sem innerHTML/segredo/dependência nova; 0 críticos, 1 não crítico (RTP-0112 uuid no comando; RTP-0105 já cobre estado ocupado).
