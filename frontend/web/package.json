@@ -10,7 +10,7 @@
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "verificar-hosts": "node scripts/verificarHosts.mjs dist",
-    "visual":"node scripts/visual.mjs",
+    "visual": "node scripts/visual.mjs",
     "icones": "node scripts/gerar-icones.mjs"
   },
   "browserslist": [
