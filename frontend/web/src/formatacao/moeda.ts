@@ -18,3 +18,7 @@ export function formatarMoeda(centavos: number, opcoes: OpcoesMoeda = {}): strin
   if (centavos > 0 && opcoes.sinal) return `+ ${texto}`;
   return texto;
 }
+
+/** "R$ 2.418,70 de R$ 4.300,00": o realizado contra o orçado. */
+export const formatarRealizadoDeOrcado = (realizadoCentavos: number, orcadoCentavos: number): string =>
+  `${formatarMoeda(realizadoCentavos)} de ${formatarMoeda(orcadoCentavos)}`;

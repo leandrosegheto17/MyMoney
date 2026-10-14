@@ -4,7 +4,7 @@ import estilo from './Botao.module.css';
 
 interface Props {
   para: string;
-  variante: 'principal' | 'secundario';
+  variante: 'principal' | 'secundario' | 'texto';
   icone?: NomeIcone;
   children: string;
   /** Nome acessível quando precisa dizer mais que o texto (ex.: qual item). */

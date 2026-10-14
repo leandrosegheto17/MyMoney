@@ -1,4 +1,5 @@
 import type { FiltrosDaLista } from '../ganchos/useLancamentosMes';
+import { paraEscopoApi } from './escopoUrl';
 
 /** Filtros da lista como vivem na URL (`?escopo=casa&categoria=…&forma=…&variavel=1`). */
 export type FiltrosUrl = {
@@ -44,7 +45,7 @@ export const haFiltroAtivo = (filtros: FiltrosUrl): boolean => Object.keys(filtr
 /** Vocabulário da URL → o da consulta (`eu` é `individual`, `casa` é `conjunto`). */
 export function paraFiltrosApi(filtros: FiltrosUrl): FiltrosDaLista {
   return {
-    ...(filtros.escopo !== undefined && { escopo: filtros.escopo === 'eu' ? ('individual' as const) : ('conjunto' as const) }),
+    ...(filtros.escopo !== undefined && { escopo: paraEscopoApi(filtros.escopo) }),
     ...(filtros.categoria !== undefined && { categoriaId: filtros.categoria }),
     ...(filtros.forma !== undefined && { formaId: filtros.forma }),
     ...(filtros.variavel && { variavel: true as const }),

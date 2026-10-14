@@ -8,8 +8,6 @@ import { useInstalar } from './componentes/instalar/ContextoInstalar';
 import { dispensar, pedirInstalacao } from './pwa/instalacao';
 import { useInstalacao } from './pwa/useInstalacao';
 
-const carregarEmConstrucao = () => import('./paginas/EmConstrucao').then((m) => ({ Component: m.EmConstrucao }));
-
 /** `paginas/` não importa `pwa/`: a raiz liga o estado de instalação à área autenticada. */
 function AreaComInstalacao() {
   const { plataforma, instalado, temPrompt, mostrarFaixa } = useInstalacao();
@@ -32,12 +30,6 @@ function InicioInstalavel() {
 function AjustesInstalavel({ Ajustes }: { Ajustes: typeof import('./paginas/Ajustes').Ajustes }) {
   const { instalar } = useInstalar();
   return <Ajustes instalado={useInstalacao().instalado} aoInstalar={instalar} />;
-}
-
-/** Rota preguiçosa; cada tela troca o `lazy` pela sua página. */
-function pagina(path: string, titulo: string, opcoes: Omit<HandleRota, 'titulo'> = {}): RouteObject {
-  const handle: HandleRota = { titulo, ...opcoes };
-  return { path, lazy: carregarEmConstrucao, handle };
 }
 
 const estreito = { estreito: true };
@@ -94,7 +86,11 @@ export const mapaRotas: RouteObject[] = [
         lazy: () => import('./paginas/DespesaFixa').then((m) => ({ Component: m.DespesaFixa })),
         handle: { titulo: 'Despesa fixa', ...estreito } satisfies HandleRota,
       },
-      pagina('/orcamento', 'Orçamento', comMes),
+      {
+        path: '/orcamento',
+        lazy: () => import('./paginas/Orcamento').then((m) => ({ Component: m.Orcamento })),
+        handle: { titulo: 'Orçamento', ...comMes } satisfies HandleRota,
+      },
       {
         path: '/metas',
         lazy: () => import('./paginas/Metas').then((m) => ({ Component: m.Metas })),

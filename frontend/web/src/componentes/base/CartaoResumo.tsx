@@ -8,8 +8,8 @@ interface Props {
   total?: boolean;
   /** `section` com `h2` quando o cartão é uma seção da tela e não um item de grade (`article` com `h3`). */
   secao?: boolean;
-  /** Cor da borda do topo; o bloco em si é da tela. */
-  bloco: 'casa' | 'eu';
+  /** Cor da borda do topo (o bloco em si é da tela); sem ele o cartão não tem destaque. */
+  bloco?: 'casa' | 'eu';
   estado: 'dado' | 'vazio' | 'carregando';
   textoVazio: string;
   acaoVazio?: ReactNode;
@@ -33,7 +33,9 @@ export function CartaoResumo({
   children,
 }: Props) {
   const idTitulo = useId();
-  const classes = [estilos.cartao, estilos[bloco], total ? estilos['cartao-total'] : ''].filter(Boolean).join(' ');
+  const classes = [estilos.cartao, bloco ? estilos[bloco] : '', total ? estilos['cartao-total'] : '']
+    .filter(Boolean)
+    .join(' ');
 
   const Raiz = secao ? 'section' : 'article';
   const Titulo = secao ? 'h2' : 'h3';

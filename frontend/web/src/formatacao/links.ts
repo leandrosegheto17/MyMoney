@@ -1,6 +1,5 @@
 import type { Escopo } from '@mymoney/contrato/enums';
-
-const ESCOPO_NA_URL: Record<Escopo, 'casa' | 'eu'> = { conjunto: 'casa', individual: 'eu' };
+import { paraEscopoUrl } from './escopoUrl';
 
 /** `mes` vem primeiro na URL; os demais parâmetros seguem a ordem recebida e os ausentes ficam de fora. */
 function montar(caminho: string, mes: string, parametros: Record<string, string | undefined> = {}): string {
@@ -10,10 +9,10 @@ function montar(caminho: string, mes: string, parametros: Record<string, string 
 }
 
 export const linkLancamentos = (a: { mes: string; escopo: Escopo; categoria?: string }) =>
-  montar('/lancamentos', a.mes, { escopo: ESCOPO_NA_URL[a.escopo], categoria: a.categoria });
+  montar('/lancamentos', a.mes, { escopo: paraEscopoUrl(a.escopo), categoria: a.categoria });
 
-export const linkOrcamento = (a: { mes: string; escopo: Escopo }) =>
-  montar('/orcamento', a.mes, { escopo: ESCOPO_NA_URL[a.escopo] });
+export const linkOrcamento = (a: { mes: string; escopo: Escopo; editar?: string }) =>
+  montar('/orcamento', a.mes, { escopo: paraEscopoUrl(a.escopo), editar: a.editar });
 
 /** `pagar` abre a tela de marcar como paga para a despesa fixa (D-14). */
 export const linkFixas = (a: { mes: string; pagar?: string }) => montar('/fixas', a.mes, { pagar: a.pagar });
