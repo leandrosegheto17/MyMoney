@@ -6,16 +6,21 @@ import { SeloEscopo } from '../base/SeloEscopo';
 import estilosChip from '../base/Chips.module.css';
 import { ListaCategorias } from './ListaCategorias';
 
-type Categoria = DadosLancamento['categorias_despesa'][number];
+type Categoria = Pick<DadosLancamento['categorias_despesa'][number], 'id' | 'nome' | 'escopo'>;
 
 interface Props {
-  categorias: DadosLancamento['categorias_despesa'];
+  categorias: Categoria[];
   valor: string | null;
   aoMudar: (id: string) => void;
   erro?: string;
+  /** Legenda do grupo (padrão "Categoria"). */
+  rotulo?: string;
+  /** Receita: a grade mostra todas (até 9) e não tem "Outras…"; passando de 9, volta a 8 + "Outras…". */
+  semOutras?: boolean;
 }
 
 const NA_GRADE = 8;
+const NA_GRADE_SEM_OUTRAS = 9;
 
 const selo = (c: Categoria) => (
   <span className={estilosChip['chip-escopo']}>
@@ -24,11 +29,13 @@ const selo = (c: Categoria) => (
 );
 
 /** As 8 primeiras na ordem recebida (a API ordena por uso) e "Outras…" para o resto. */
-export function SecaoCategoria({ categorias, valor, aoMudar, erro }: Props) {
+export function SecaoCategoria({ categorias, valor, aoMudar, erro, rotulo = 'Categoria', semOutras = false }: Props) {
   const [listaAberta, setListaAberta] = useState(false);
   const botaoOutras = useRef<HTMLButtonElement>(null);
-  const naGrade = categorias.slice(0, NA_GRADE);
-  const escolhidaFora = categorias.slice(NA_GRADE).find((c) => c.id === valor);
+  const cabeTodas = semOutras && categorias.length <= NA_GRADE_SEM_OUTRAS;
+  const limite = cabeTodas ? categorias.length : NA_GRADE;
+  const naGrade = categorias.slice(0, limite);
+  const escolhidaFora = categorias.slice(limite).find((c) => c.id === valor);
 
   const fechar = () => {
     setListaAberta(false);
@@ -64,15 +71,16 @@ export function SecaoCategoria({ categorias, valor, aoMudar, erro }: Props) {
     <>
       <GrupoChips
         nome="categoria"
-        rotulo="Categoria"
+        rotulo={rotulo}
+        rotuloAfastado={semOutras}
         variante="grade"
         opcoes={naGrade.map((c) => ({ valor: c.id, conteudo: c.nome, complemento: selo(c) }))}
         valor={valor ?? ''}
         aoMudar={aoMudar}
         erro={erro}
-        extra={botao}
+        extra={cabeTodas ? undefined : botao}
       />
-      {listaAberta ? <ListaCategorias categorias={categorias} aoEscolher={escolher} aoFechar={fechar} /> : null}
+      {listaAberta && !cabeTodas ? <ListaCategorias categorias={categorias} aoEscolher={escolher} aoFechar={fechar} /> : null}
     </>
   );
 }

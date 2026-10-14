@@ -1,10 +1,12 @@
 import { useEffect, useRef, type Ref } from 'react';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
-import type { EntradaLancar, ResultadoLancar } from '../../ganchos/useLancarDespesa';
+import { TEXTO_NOTA_RECEITA } from '../../rotulos/textosConexao';
 import { AvisoErroTopo } from '../base/AvisoErroTopo';
+import { BotaoForma } from '../base/BotaoForma';
 import { CampoValor } from '../base/CampoValor';
 import { Faixa } from '../base/Faixa';
 import { Folha } from '../base/Folha';
+import { Nota } from '../base/Nota';
 import { Segmentado } from '../base/Segmentado';
 import { BotaoLancar } from './BotaoLancar';
 import { LancarVazio } from './LancarVazio';
@@ -12,6 +14,7 @@ import { MaisDetalhes } from './MaisDetalhes';
 import { SecaoCategoria } from './SecaoCategoria';
 import { SecaoForma } from './SecaoForma';
 import { SecaoParcelas } from './SecaoParcelas';
+import type { EntradaFolha, ResultadoFolha, TipoLancamento } from './tiposEnvio';
 import { useEnvioLancar } from './useEnvioLancar';
 import { useFormularioLancar, type EstadoLancar } from './useFormularioLancar';
 import estilo from './FolhaLancar.module.css';
@@ -21,8 +24,8 @@ interface Props {
   aoFechar: () => void;
   refValor: Ref<HTMLInputElement>;
   dados?: DadosLancamento;
-  /** Envia a despesa; sem ela a folha só valida. */
-  aoLancar?: (entrada: EntradaLancar) => Promise<ResultadoLancar>;
+  /** Envia a despesa ou a receita; sem ela a folha só valida. */
+  aoLancar?: (entrada: EntradaFolha) => Promise<ResultadoFolha>;
   /** Sem rede: a faixa avisa que o lançamento fica guardado no aparelho. */
   offline?: boolean;
   /** Valores para abrir a folha já preenchida; cada `chave` nova substitui o que estava digitado. */
@@ -31,7 +34,7 @@ interface Props {
 
 const TIPOS = [
   { valor: 'despesa', rotulo: 'Despesa' },
-  { valor: 'receita', rotulo: 'Receita', desabilitada: true },
+  { valor: 'receita', rotulo: 'Receita' },
 ];
 
 /** Folha de lançamento: fica montada e oculta para o "+" poder focar o valor no mesmo clique. */
@@ -51,29 +54,54 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offli
     aoLancar,
   });
   const tipoForma = dados?.formas.find((forma) => forma.id === estado.formaId)?.tipo ?? null;
-  const vazio = dados !== undefined && (dados.formas.length === 0 || dados.categorias_despesa.length === 0);
+  const receita = estado.tipo === 'receita';
+  const semContas = dados !== undefined && dados.contas.length === 0;
+  const vazio =
+    dados !== undefined &&
+    (receita ? semContas : dados.formas.length === 0 || dados.categorias_despesa.length === 0);
+
+  const detalhes = (
+    <MaisDetalhes
+      data={estado.data}
+      descricao={estado.descricao}
+      aoMudarData={(d) => mudar('data', d)}
+      aoMudarDescricao={(d) => mudar('descricao', d)}
+    />
+  );
 
   return (
     <Folha
       aberta={aberta}
       aoFechar={aoFechar}
-      titulo="Lançar"
+      titulo={receita ? 'Lançar receita' : 'Lançar'}
       tituloOculto={!vazio}
       montadaOculta
       ocupada={ocupado}
       topo={
-        vazio ? undefined : (
-          <Segmentado legenda="Tipo de lançamento" nome="tipo-lancamento" opcoes={TIPOS} valor="despesa" aoMudar={() => {}} />
+        vazio && !receita ? undefined : (
+          <Segmentado
+            legenda="Tipo de lançamento"
+            nome="tipo-lancamento"
+            opcoes={TIPOS}
+            valor={estado.tipo}
+            aoMudar={(tipo) => mudar('tipo', tipo as TipoLancamento)}
+          />
         )
       }
       rodape={
         vazio ? undefined : (
-          <BotaoLancar centavos={estado.valorCentavos} parcelas={estado.parcelas} ocupado={ocupado} ativo={aberta} />
+          <BotaoLancar
+            centavos={estado.valorCentavos}
+            parcelas={estado.parcelas}
+            tipo={estado.tipo}
+            ocupado={ocupado}
+            ativo={aberta}
+          />
         )
       }
     >
       {vazio && dados ? (
-        <LancarVazio dados={dados} aoFechar={aoFechar} />
+        <LancarVazio dados={dados} aoFechar={aoFechar} tipo={estado.tipo} />
       ) : (
         <>
           {offline ? <Faixa variante="offline" /> : null}
@@ -94,7 +122,30 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offli
               anunciarErro
               aoMudar={(v) => mudar('valorCentavos', v)}
             />
-            {dados ? (
+            {dados && receita ? (
+              <>
+                <SecaoCategoria
+                  categorias={dados.categorias_receita}
+                  rotulo="Categoria de receita"
+                  semOutras
+                  valor={estado.categoriaId}
+                  erro={erros.categoria}
+                  aoMudar={(id) => mudar('categoriaId', id)}
+                />
+                {estado.contaId ? (
+                  <BotaoForma
+                    id="conta"
+                    rotulo="Conta de destino"
+                    opcoes={dados.contas.map((c) => ({ id: c.id, nome: c.nome }))}
+                    valor={estado.contaId}
+                    aoEscolher={(id) => mudar('contaId', id)}
+                  />
+                ) : null}
+                {detalhes}
+                <Nota>{TEXTO_NOTA_RECEITA}</Nota>
+              </>
+            ) : null}
+            {dados && !receita ? (
               <>
                 <SecaoCategoria
                   categorias={dados.categorias_despesa}
@@ -104,12 +155,7 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offli
                 />
                 <SecaoForma formas={dados.formas} valor={estado.formaId} aoMudar={(id) => mudar('formaId', id)} />
                 <SecaoParcelas tipoForma={tipoForma} valor={estado.parcelas} aoMudar={(n) => mudar('parcelas', n)} />
-                <MaisDetalhes
-                  data={estado.data}
-                  descricao={estado.descricao}
-                  aoMudarData={(d) => mudar('data', d)}
-                  aoMudarDescricao={(d) => mudar('descricao', d)}
-                />
+                {detalhes}
               </>
             ) : null}
           </form>

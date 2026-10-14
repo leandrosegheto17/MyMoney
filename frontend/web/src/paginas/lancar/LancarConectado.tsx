@@ -4,7 +4,9 @@ import { FolhaLancar } from '../../componentes/lancar/FolhaLancar';
 import { textoAvisoLancamento } from '../../componentes/lancar/textoAvisoLancamento';
 import { useConectado } from '../../ganchos/useConectado';
 import { useDadosLancamento } from '../../ganchos/useDadosLancamento';
-import { useLancarDespesa, type EntradaLancar } from '../../ganchos/useLancarDespesa';
+import { useLancarDespesa } from '../../ganchos/useLancarDespesa';
+import { useLancarReceita } from '../../ganchos/useLancarReceita';
+import type { EntradaFolha, ResultadoFolha } from '../../componentes/lancar/tiposEnvio';
 
 interface Props {
   aberta: boolean;
@@ -22,11 +24,24 @@ const TEXTO_GUARDADO = 'Guardado no aparelho. Será enviado quando houver conex�
 export function LancarConectado({ aberta, aoFechar, refValor, correcao, aoAceitar }: Props) {
   const { data } = useDadosLancamento();
   const { lancar } = useLancarDespesa();
+  const { lancar: lancarReceita } = useLancarReceita();
   const { mostrar } = useAviso();
   const conectado = useConectado();
 
-  async function aoLancar(entrada: EntradaLancar) {
-    const resultado = await lancar(entrada);
+  async function aoLancar(entrada: EntradaFolha): Promise<ResultadoFolha> {
+    if (entrada.tipo === 'receita') {
+      // Sem rede a receita nem é tentada: ela não vai para a fila.
+      if (!conectado) return { tipo: 'sem_conexao' };
+      const { tipo: _tipo, ...campos } = entrada;
+      const resultado = await lancarReceita(campos);
+      if (resultado.tipo === 'sucesso') {
+        mostrar('sucesso', textoAvisoLancamento(resultado.resposta));
+        aoAceitar?.();
+      }
+      return resultado;
+    }
+    const { tipo: _tipo, ...despesa } = entrada;
+    const resultado = await lancar(despesa);
     if (resultado.tipo === 'sucesso') mostrar('sucesso', textoAvisoLancamento(resultado.resposta));
     if (resultado.tipo === 'guardado') mostrar('guardado', TEXTO_GUARDADO);
     if (resultado.tipo === 'sucesso' || resultado.tipo === 'guardado') aoAceitar?.();

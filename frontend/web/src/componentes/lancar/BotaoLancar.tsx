@@ -2,10 +2,12 @@ import { useEffect, type PointerEvent } from 'react';
 import { Botao } from '../base/Botao';
 import { observarFolga } from '../base/folgaTeclado';
 import { rotuloBotaoLancar } from './rotuloBotaoLancar';
+import type { TipoLancamento } from './tiposEnvio';
 
 interface Props {
   centavos: number;
   parcelas: number;
+  tipo?: TipoLancamento;
   /** Envio em andamento: o botão fica `aria-disabled` e mostra "Lançando…". */
   ocupado: boolean;
   /** Enquanto a folha está aberta, o rodapé acompanha a altura do teclado virtual. */
@@ -13,7 +15,7 @@ interface Props {
 }
 
 /** Botão fixo do rodapé; sempre habilitado: o que falta preencher é dito no envio. */
-export function BotaoLancar({ centavos, parcelas, ocupado, ativo }: Props) {
+export function BotaoLancar({ centavos, parcelas, tipo, ocupado, ativo }: Props) {
   useEffect(() => (ativo ? observarFolga(document.documentElement) : undefined), [ativo]);
 
   // Sem tirar o foco do campo, o teclado não fecha ao tocar no botão.
@@ -29,7 +31,7 @@ export function BotaoLancar({ centavos, parcelas, ocupado, ativo }: Props) {
       rotuloOcupado="Lançando…"
       onPointerDown={manterFoco}
     >
-      {rotuloBotaoLancar(centavos, parcelas)}
+      {rotuloBotaoLancar(centavos, parcelas, tipo)}
     </Botao>
   );
 }

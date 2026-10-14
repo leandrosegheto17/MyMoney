@@ -5,7 +5,7 @@ import { ORDEM_ESCOPO, ROTULO_ESCOPO } from '../../rotulos/escopo';
 import { filtrarCategorias } from './filtrarCategorias';
 import estilos from './ListaCategorias.module.css';
 
-type Categorias = DadosLancamento['categorias_despesa'];
+type Categorias = Pick<DadosLancamento['categorias_despesa'][number], 'id' | 'nome' | 'escopo'>[];
 
 interface Props {
   categorias: Categorias;

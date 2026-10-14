@@ -54,12 +54,12 @@ describe('FolhaLancar: estrutura', () => {
     expect(folha).toHaveAttribute('aria-modal', 'true');
   });
 
-  it('segmentado com Despesa marcada e Receita desabilitada', () => {
+  it('segmentado com Despesa marcada e Receita habilitada', () => {
     montar({ dados });
 
     const tipo = screen.getByRole('group', { name: 'Tipo de lançamento' });
     expect(within(tipo).getByRole('radio', { name: 'Despesa' })).toBeChecked();
-    expect(within(tipo).getByRole('radio', { name: 'Receita' })).toBeDisabled();
+    expect(within(tipo).getByRole('radio', { name: 'Receita' })).toBeEnabled();
   });
 
   it('não interfere no grupo de rádios "tipo" de outra tela montada ao lado', () => {

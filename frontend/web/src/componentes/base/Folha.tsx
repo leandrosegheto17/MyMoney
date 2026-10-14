@@ -48,7 +48,8 @@ export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOcult
 
   const aoPressionar = useCallback((evento: PointerEvent<HTMLElement>) => {
     const alvo = evento.target as Element;
-    if (!alvo.closest('[data-arraste]') || alvo.closest('button')) return;
+    // Controles do topo (botões e o segmentado) recebem o toque; capturar o ponteiro perderia o clique.
+    if (!alvo.closest('[data-arraste]') || alvo.closest('button, label')) return;
     if (window.matchMedia?.(LARGURA_PC).matches) return;
     arrasto.current = { inicio: evento.clientY, deslocamento: 0 };
     evento.currentTarget.setPointerCapture?.(evento.pointerId);

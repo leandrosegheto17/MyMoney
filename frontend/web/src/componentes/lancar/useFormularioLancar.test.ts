@@ -25,6 +25,8 @@ describe('useFormularioLancar: estado inicial', () => {
     const { result } = renderHook(() => useFormularioLancar());
 
     expect(result.current.estado).toEqual({
+      tipo: 'despesa',
+      contaId: null,
       valorCentavos: 0,
       categoriaId: null,
       formaId: null,

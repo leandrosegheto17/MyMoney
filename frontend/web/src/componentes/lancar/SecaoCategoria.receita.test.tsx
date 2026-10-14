@@ -21,7 +21,7 @@ describe('SecaoCategoria com semOutras (receita)', () => {
     render(<SecaoCategoria categorias={DADOS.categorias_receita} valor={null} aoMudar={vi.fn()} semOutras />);
 
     const radios = screen.getAllByRole('radio');
-    expect(radios.map((r) => r.closest('label')?.querySelector('.chip-nome')?.textContent ?? '')).toEqual([
+    expect(radios.map((r) => r.closest('label')?.querySelector('[class*="chip-nome"]')?.textContent ?? '')).toEqual([
       'Salário',
       'Extra',
       'Outros',

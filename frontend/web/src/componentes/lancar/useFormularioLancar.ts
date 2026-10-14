@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import { hojeEmSaoPaulo } from '../../formatacao/data';
+import { contaInicial } from './contaInicial';
 import { formaInicial } from './formaInicial';
+import type { TipoLancamento } from './tiposEnvio';
 
 export interface EstadoLancar {
   valorCentavos: number;
@@ -12,17 +14,25 @@ export interface EstadoLancar {
   descricao: string;
 }
 
+/** Estado da folha: os campos da despesa mais o tipo e a conta de destino da receita. */
+export interface EstadoFormulario extends EstadoLancar {
+  tipo: TipoLancamento;
+  contaId: string | null;
+}
+
 export interface ErrosLancar {
   valor?: string;
   categoria?: string;
 }
 
-const ERRO_CAMPO: Partial<Record<keyof EstadoLancar, keyof ErrosLancar>> = {
+const ERRO_CAMPO: Partial<Record<keyof EstadoFormulario, keyof ErrosLancar>> = {
   valorCentavos: 'valor',
   categoriaId: 'categoria',
 };
 
-const novoEstado = (): EstadoLancar => ({
+const novoEstado = (): EstadoFormulario => ({
+  tipo: 'despesa',
+  contaId: null,
   valorCentavos: 0,
   categoriaId: null,
   formaId: null,
@@ -33,10 +43,10 @@ const novoEstado = (): EstadoLancar => ({
 
 /** Estado de tela da folha de lançamento; a forma vem de `dados_lancamento` enquanto não for escolhida. */
 export function useFormularioLancar(dados?: DadosLancamento) {
-  const [estado, setEstado] = useState<EstadoLancar>(novoEstado);
+  const [estado, setEstado] = useState<EstadoFormulario>(novoEstado);
   const [erros, setErros] = useState<ErrosLancar>({});
 
-  function mudar<C extends keyof EstadoLancar>(campo: C, valor: EstadoLancar[C]) {
+  function mudar<C extends keyof EstadoFormulario>(campo: C, valor: EstadoFormulario[C]) {
     const campoComErro = ERRO_CAMPO[campo];
     if (campoComErro) setErros((atuais) => ({ ...atuais, [campoComErro]: undefined }));
     setEstado((atual) => {
@@ -45,6 +55,8 @@ export function useFormularioLancar(dados?: DadosLancamento) {
         const tipo = dados?.formas.find((f) => f.id === valor)?.tipo;
         if (tipo !== 'credito') proximo.parcelas = 1;
       }
+      // As listas de categoria de despesa e de receita são diferentes.
+      if (campo === 'tipo') proximo.categoriaId = null;
       return proximo;
     });
   }
@@ -58,9 +70,9 @@ export function useFormularioLancar(dados?: DadosLancamento) {
     return Object.keys(novos).length === 0;
   }
 
-  /** Depois de lançar: tudo volta ao início, menos a forma de pagamento. */
+  /** Depois de lançar: tudo volta ao início, menos o tipo, a forma de pagamento e a conta. */
   function limpar() {
-    setEstado((atual) => ({ ...novoEstado(), formaId: atual.formaId }));
+    setEstado((atual) => ({ ...novoEstado(), tipo: atual.tipo, formaId: atual.formaId, contaId: atual.contaId }));
     setErros({});
   }
 
@@ -68,6 +80,7 @@ export function useFormularioLancar(dados?: DadosLancamento) {
   function preencher(valores: EstadoLancar) {
     setErros({});
     setEstado({
+      ...novoEstado(),
       ...valores,
       categoriaId: dados && !dados.categorias_despesa.some((c) => c.id === valores.categoriaId) ? null : valores.categoriaId,
       formaId: dados && !dados.formas.some((f) => f.id === valores.formaId) ? null : valores.formaId,
@@ -75,5 +88,6 @@ export function useFormularioLancar(dados?: DadosLancamento) {
   }
 
   const formaId = estado.formaId ?? (dados ? formaInicial(dados) : null);
-  return { estado: { ...estado, formaId }, erros, mudar, validar, limpar, preencher };
+  const contaId = estado.contaId ?? (dados ? contaInicial(dados) : null);
+  return { estado: { ...estado, formaId, contaId }, erros, mudar, validar, limpar, preencher };
 }

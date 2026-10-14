@@ -4,7 +4,7 @@
 .rotulo {
   composes: rotulo from './Campo.module.css';
 }
-.rotulo-afastado {
+.rotulo.rotulo-afastado {
   margin-bottom: var(--espaco-2);
   padding: 0 2px;
 }

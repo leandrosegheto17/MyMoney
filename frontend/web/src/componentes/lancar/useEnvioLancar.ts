@@ -1,17 +1,26 @@
 import { flushSync } from 'react-dom';
 import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
-import type { EntradaLancar, ResultadoLancar } from '../../ganchos/useLancarDespesa';
 import { ROTULO_ERRO, TEXTO_ERRO_GENERICO } from '../../rotulos/erros';
+import { TEXTO_RECEITA_SEM_CONEXAO } from '../../rotulos/textosConexao';
 import { focarPrimeiroErro } from '../base/focarPrimeiroErro';
-import type { EstadoLancar } from './useFormularioLancar';
+import { montarEntrada } from './montarEntrada';
+import type { EntradaFolha, ResultadoFolha } from './tiposEnvio';
+import type { EstadoFormulario } from './useFormularioLancar';
 
 interface Entradas {
   dados?: DadosLancamento;
-  estado: EstadoLancar;
+  estado: EstadoFormulario;
   validar: () => boolean;
   limpar: () => void;
-  aoLancar?: (entrada: EntradaLancar) => Promise<ResultadoLancar>;
+  aoLancar?: (entrada: EntradaFolha) => Promise<ResultadoFolha>;
+}
+
+function textoDoErro(resultado: ResultadoFolha): string | undefined {
+  if (resultado.tipo === 'regra') return ROTULO_ERRO[resultado.codigo].texto;
+  if (resultado.tipo === 'erro') return TEXTO_ERRO_GENERICO;
+  if (resultado.tipo === 'sem_conexao') return TEXTO_RECEITA_SEM_CONEXAO;
+  return undefined;
 }
 
 /** Validação, envio e o que a folha faz com o resultado: limpar e focar o valor, ou mostrar o erro no topo. */
@@ -32,25 +41,16 @@ export function useEnvioLancar({ dados, estado, validar, limpar, aoLancar }: Ent
       if (formulario.current) focarPrimeiroErro(formulario.current);
       return;
     }
-    const categoria = dados.categorias_despesa.find((c) => c.id === estado.categoriaId);
-    const forma = dados.formas.find((f) => f.id === estado.formaId);
-    if (!aoLancar || !categoria || !forma) return;
+    const entrada = montarEntrada(dados, estado);
+    if (!aoLancar || !entrada) return;
 
     setErroTopo(undefined);
     setOcupado(true);
-    const resultado = await aoLancar({
-      valorCentavos: estado.valorCentavos,
-      categoriaId: categoria.id,
-      formaId: forma.id,
-      parcelas: estado.parcelas,
-      data: estado.data,
-      descricao: estado.descricao,
-      exibicao: { categoria_nome: categoria.nome, forma_nome: forma.nome, escopo: categoria.escopo },
-    }).catch((): ResultadoLancar => ({ tipo: 'erro' }));
+    const resultado = await aoLancar(entrada).catch((): ResultadoFolha => ({ tipo: 'erro' }));
     setOcupado(false);
 
-    if (resultado.tipo === 'regra') setErroTopo(ROTULO_ERRO[resultado.codigo].texto);
-    else if (resultado.tipo === 'erro') setErroTopo(TEXTO_ERRO_GENERICO);
+    const texto = textoDoErro(resultado);
+    if (texto) setErroTopo(texto);
     else {
       limpar();
       formulario.current?.querySelector<HTMLElement>('#valor')?.focus();

@@ -63,7 +63,7 @@ describe('FolhaLancar no modo receita', () => {
     await marcarReceita(usuario);
 
     const grupo = screen.getByRole('radiogroup', { name: 'Categoria de receita' });
-    const nomes = Array.from(grupo.querySelectorAll('.chip-nome')).map((n) => n.textContent);
+    const nomes = Array.from(grupo.querySelectorAll('[class*="chip-nome"]')).map((n) => n.textContent);
     expect(nomes).toEqual(['Salário', 'Extra', 'Outros']);
     expect(screen.queryByRole('button', { name: 'Outras…' })).toBeNull();
     expect(screen.queryByRole('radio', { name: /Mercado/ })).toBeNull();
@@ -129,7 +129,7 @@ describe('FolhaLancar no modo receita', () => {
 
     const alerta = await screen.findByRole('alert');
     expect(alerta).toHaveTextContent(TEXTO_SEM_CONEXAO);
-    expect(screen.getByLabelText('Valor')).toHaveValue(expect.stringMatching(/7\.500,00/));
+    expect(screen.getByLabelText('Valor')).toHaveDisplayValue(/7\.500,00/);
     expect(screen.getByRole('radio', { name: /Salário/ })).toBeChecked();
     expect(screen.getByRole('radio', { name: 'Receita' })).toBeChecked();
     expect(botaoConta('Nubank')).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('FolhaLancar no modo receita', () => {
     await usuario.click(screen.getByRole('button', { name: /^Lançar receita/ }));
 
     await waitFor(() => expect(screen.getByRole('radio', { name: /Salário/ })).not.toBeChecked());
-    expect(screen.getByLabelText('Valor')).toHaveValue(expect.stringMatching(/0,00/));
+    expect(screen.getByLabelText('Valor')).toHaveDisplayValue(/0,00/);
     expect(screen.getByRole('radio', { name: 'Receita' })).toBeChecked();
     expect(botaoConta('Nubank')).toBeInTheDocument();
     expect(document.activeElement).toBe(document.getElementById('valor'));

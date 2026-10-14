@@ -1,15 +1,33 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import { BotaoLink } from '../base/BotaoLink';
 import { EstadoVazio } from '../base/EstadoVazio';
+import type { TipoLancamento } from './tiposEnvio';
 
 interface Props {
   dados: DadosLancamento;
   /** Fecha a folha quando o link leva a outra tela. */
   aoFechar: () => void;
+  tipo?: TipoLancamento;
 }
 
-/** Sem forma de pagamento ou sem categoria ativa não há o que lançar: o caminho é cadastrar. */
-export function LancarVazio({ dados, aoFechar }: Props) {
+/** Sem forma de pagamento ou categoria ativa (despesa) ou sem conta (receita) não há o que lançar: o caminho é cadastrar. */
+export function LancarVazio({ dados, aoFechar, tipo = 'despesa' }: Props) {
+  if (tipo === 'receita') {
+    return (
+      <EstadoVazio
+        nivel={3}
+        semMargem
+        icone="cartao"
+        titulo="Cadastre uma conta para lançar receita"
+        texto="A receita entra no saldo de uma conta. Só você vê as suas contas."
+        acao={
+          <BotaoLink para="/ajustes/contas/nova" variante="principal" aoClicar={aoFechar}>
+            Cadastrar conta
+          </BotaoLink>
+        }
+      />
+    );
+  }
   if (dados.formas.length === 0) {
     return (
       <EstadoVazio
