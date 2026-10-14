@@ -287,3 +287,12 @@
 - Impacto se não resolvido: —
 - Sugestão: git checkout backend/supabase/config.toml se não for intencional
 - Status: Em aberto
+
+## Bloqueio 033 — 2026-10-14 (BK-0033)
+- Reportado por: coordenador (/revisar)
+- Escalado para: usuário
+- Artefato/trecho afetado: —
+- Descrição: Decidir se testes-api mantém tipos do schema escritos à mão (tipos-api.ts) e pg com SQL direto em app.* para limpeza, registrando no SDD §2 por ADR, ou passa a usar @mymoney/contrato/banco e limpeza só pela API
+- Impacto se não resolvido: Baixa: SDD e código divergem; duas fontes de tipo; nada quebra
+- Sugestão: Manter e atualizar o SDD (a API não tem exclusão de meta/fixa; trava de host local já existe); registrar em ADR curto
+- Status: Em aberto
