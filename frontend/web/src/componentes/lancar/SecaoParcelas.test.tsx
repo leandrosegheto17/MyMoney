@@ -86,6 +86,20 @@ describe('SecaoParcelas', () => {
     expect(aoMudar).toHaveBeenLastCalledWith(3);
   });
 
+  it('trocar para Pix e voltar a Crédito fecha o "Outro" e marca À vista', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<Controlado tipoForma="credito" />);
+    await user.click(within(grupo()).getByRole('button', { name: 'Outro' }));
+    expect(botaoMais()).toBeInTheDocument();
+
+    rerender(<Controlado tipoForma="pix" />);
+    rerender(<Controlado tipoForma="credito" />);
+
+    expect(within(grupo()).getByRole('radio', { name: 'À vista' })).toBeChecked();
+    expect(screen.queryByRole('button', { name: /aumentar/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /diminuir/i })).not.toBeInTheDocument();
+  });
+
   describe('"Outro": passo a passo de 1 a 24', () => {
     async function abrirOutro(aoMudar = vi.fn()) {
       const user = userEvent.setup();

@@ -19,8 +19,13 @@ const opcoes = FIXAS.map((n) => ({ valor: String(n), conteudo: n === 1 ? 'À vis
 
 /** Os limites 1 a 24 só guiam a entrada; quem garante o valor é o servidor. */
 export function SecaoParcelas({ tipoForma, valor, aoMudar }: Props) {
-  const [outro, setOutro] = useState(() => !FIXAS.includes(valor));
   if (tipoForma !== 'credito') return null;
+  return <ParcelasDoCredito valor={valor} aoMudar={aoMudar} />;
+}
+
+/** Montada só no Crédito: ao trocar de forma o "Outro" aberto é descartado junto com o componente. */
+function ParcelasDoCredito({ valor, aoMudar }: Omit<Props, 'tipoForma'>) {
+  const [outro, setOutro] = useState(() => !FIXAS.includes(valor));
 
   const passar = (n: number) => aoMudar(Math.min(MAXIMO, Math.max(MINIMO, n)));
 
