@@ -12,6 +12,7 @@ import estilos from '../componentes/metas/Meta.module.css';
 import { OndeGuardado } from '../componentes/metas/OndeGuardado';
 import { ResumoMeta } from '../componentes/metas/ResumoMeta';
 import { linkMeta } from '../formatacao/links';
+import { MovimentarMetaConectada } from './metas/MovimentarMetaConectada';
 import { useDetalheMeta, type DetalheMeta } from './metas/useDetalheMeta';
 
 function Conteudo({ meta, movimentos }: DetalheMeta) {
@@ -55,6 +56,7 @@ function Conteudo({ meta, movimentos }: DetalheMeta) {
       ) : (
         <HistoricoMeta movimentos={movimentos} />
       )}
+      <MovimentarMetaConectada meta={meta} />
     </>
   );
 }

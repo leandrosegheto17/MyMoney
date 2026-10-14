@@ -16,14 +16,16 @@ interface Props {
   aoMudar: (valor: string) => void;
   variante: 'grade' | 'linha';
   erro?: string;
+  /** Mais espaço entre o rótulo e as opções, como no formulário de movimento de meta. */
+  rotuloAfastado?: boolean;
 }
 
-export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, erro }: Props) {
+export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, erro, rotuloAfastado }: Props) {
   const idErro = useId();
   const alvo = opcoes.find((o) => o.valor === valor && !o.desabilitada) ?? opcoes.find((o) => !o.desabilitada);
   return (
     <fieldset role="radiogroup" className={estilos.campo} aria-describedby={erro ? idErro : undefined}>
-      <legend className={estilos.rotulo}>{rotulo}</legend>
+      <legend className={rotuloAfastado ? `${estilos.rotulo} ${estilos['rotulo-afastado']}` : estilos.rotulo}>{rotulo}</legend>
       <div className={variante === 'grade' ? estilos.chips : estilos['chips-linha']}>
         {opcoes.map((o) => (
           <ChipOpcao

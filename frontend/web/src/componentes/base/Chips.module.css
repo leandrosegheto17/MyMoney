@@ -4,6 +4,10 @@
 .rotulo {
   composes: rotulo from './Campo.module.css';
 }
+.rotulo-afastado {
+  margin-bottom: var(--espaco-2);
+  padding: 0 2px;
+}
 .campo-erro {
   composes: campo-erro from './Campo.module.css';
 }

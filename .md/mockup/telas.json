@@ -110,11 +110,14 @@
 
     { "id": "T13", "nome": "Aporte", "estado": "sucesso", "mockup": "telas/movimentar-meta--sucesso.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=aporte", "esperar": "#form-mov", "ocultar": [".conteudo"],
       "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" },
+                     { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta.json" },
                      { "url": "**/rest/v1/rpc/locais_guardados*", "arquivo": "respostas/locais-guardados.json" } ] },
     { "id": "T13", "nome": "Retirada", "estado": "retirada", "mockup": "telas/movimentar-meta--retirada.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=retirada", "esperar": "#form-mov", "ocultar": [".conteudo"],
-      "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" } ] },
+      "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" },
+                     { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta.json" } ] },
     { "id": "T13", "nome": "Retirada sem saldo", "estado": "vazio", "mockup": "telas/movimentar-meta--vazio.html", "rota": "/metas/00000000-0000-4000-8000-000000000905?movimentar=retirada", "esperar": "#vazio-titulo", "ocultar": [".conteudo"],
-      "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-carro.json" } ] },
+      "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-carro.json" },
+                     { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta-vazio.json" } ] },
 
     { "id": "T14", "nome": "Ajustes", "estado": "sucesso", "mockup": "telas/ajustes--sucesso.html", "rota": "/ajustes", "esperar": "#g-sessao" },
 

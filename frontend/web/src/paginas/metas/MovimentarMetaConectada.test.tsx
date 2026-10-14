@@ -26,7 +26,7 @@ vi.mock('../../dados/comandos/metas', async (importOriginal) => ({
 }));
 vi.mock('../../ganchos/useDadosLancamento', () => ({
   useDadosLancamento: () => ({
-    data: dadosLancamento.atual,
+    data: { dados: dadosLancamento.atual, doAparelho: false, salvoEm: 0 },
     isSuccess: true,
     isPending: false,
     isLoading: false,
@@ -264,7 +264,7 @@ describe('T13 retirada', () => {
 
     const dialogo = await folha();
     expect(within(dialogo).getByRole('radio', { name: 'Retirada' })).toBeChecked();
-    const origem = within(dialogo).getByRole('group', { name: 'De onde sai' });
+    const origem = within(dialogo).getByRole('radiogroup', { name: 'De onde sai' });
     const locais = within(origem).getAllByRole('radio');
     expect(locais).toHaveLength(2);
     expect(locais[0]).toHaveAccessibleName('Caixinha Nubank · R$ 4.200,00');
