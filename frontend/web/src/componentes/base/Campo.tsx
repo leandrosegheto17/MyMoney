@@ -6,6 +6,8 @@ export interface PropsCampoBase {
   rotulo: string;
   ajuda?: string;
   erro?: string;
+  /** O erro entra como `role="alert"`: o leitor de tela o anuncia assim que aparece. */
+  anunciarErro?: boolean;
   desabilitado?: boolean;
 }
 
@@ -19,13 +21,14 @@ interface Props {
   rotulo: string;
   ajuda?: string;
   erro?: string;
+  anunciarErro?: boolean;
   id?: string;
   /** Recebe o que o controle precisa para se ligar ao rótulo, à ajuda e ao erro. */
   children: (ligacao: LigacaoControle) => ReactNode;
 }
 
 /** Estrutura comum dos campos: rótulo visível, ajuda e erro ligados ao controle por aria-describedby. */
-export function Campo({ rotulo, ajuda, erro, id, children }: Props) {
+export function Campo({ rotulo, ajuda, erro, anunciarErro, id, children }: Props) {
   const idGerado = useId();
   const idControle = id ?? idGerado;
   const idErro = `${idControle}-erro`;
@@ -47,7 +50,7 @@ export function Campo({ rotulo, ajuda, erro, id, children }: Props) {
         </p>
       ) : null}
       {erro ? (
-        <p id={idErro} className={estilo.erro}>
+        <p id={idErro} className={estilo.erro} role={anunciarErro ? 'alert' : undefined}>
           <Icone nome="alerta" />
           {erro}
         </p>

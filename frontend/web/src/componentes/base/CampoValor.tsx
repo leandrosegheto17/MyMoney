@@ -14,7 +14,7 @@ interface Props extends Omit<PropsCampoBase, 'rotulo'> {
 }
 
 /** Entrada de dinheiro em centavos inteiros: os dígitos entram pela direita (ADR-004). */
-export function CampoValor({ centavos, aoMudar, rotulo = 'Valor', ajuda, erro, desabilitado, id, ref }: Props) {
+export function CampoValor({ centavos, aoMudar, rotulo = 'Valor', ajuda, erro, anunciarErro, desabilitado, id, ref }: Props) {
   const idValor = `${useId()}-valor`;
   const formatado = formatarMoeda(centavos);
 
@@ -45,7 +45,7 @@ export function CampoValor({ centavos, aoMudar, rotulo = 'Valor', ajuda, erro, d
 
   return (
     <div className={estilo.valor}>
-      <Campo rotulo={rotulo} ajuda={ajuda} erro={erro} id={id}>
+      <Campo rotulo={rotulo} ajuda={ajuda} erro={erro} anunciarErro={anunciarErro} id={id}>
         {(ligacao) => (
           <>
             <input

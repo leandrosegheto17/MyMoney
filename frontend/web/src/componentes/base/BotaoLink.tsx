@@ -9,12 +9,13 @@ interface Props {
   children: string;
   /** Nome acessível quando precisa dizer mais que o texto (ex.: qual item). */
   rotulo?: string;
+  aoClicar?: () => void;
 }
 
 /** Link de navegação com a aparência de `Botao`. */
-export function BotaoLink({ para, variante, icone, children, rotulo }: Props) {
+export function BotaoLink({ para, variante, icone, children, rotulo, aoClicar }: Props) {
   return (
-    <Link to={para} aria-label={rotulo} className={`${estilo.botao} ${estilo[variante]}`}>
+    <Link to={para} aria-label={rotulo} onClick={aoClicar} className={`${estilo.botao} ${estilo[variante]}`}>
       {icone ? <Icone nome={icone} /> : null}
       {children}
     </Link>

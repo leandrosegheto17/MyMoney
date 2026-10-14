@@ -53,7 +53,7 @@
 }
 
 .rodape {
-  padding: var(--espaco-3) var(--espaco-4) calc(var(--espaco-3) + env(safe-area-inset-bottom));
+  padding: var(--espaco-3) var(--espaco-4) calc(var(--espaco-3) + env(safe-area-inset-bottom) + var(--folga-teclado, 0px));
   border-top: 1px solid var(--cor-borda);
 }
 

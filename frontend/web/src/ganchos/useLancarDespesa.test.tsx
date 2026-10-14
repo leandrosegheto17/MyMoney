@@ -72,7 +72,9 @@ beforeEach(async () => {
   vi.setSystemTime(new Date('2026-10-09T15:00:00Z'));
 });
 
-afterEach(() => {
+afterEach(async () => {
+  // Deixa terminar o que o teste largou em andamento: senão a chamada cai no mock do teste seguinte.
+  for (let i = 0; i < 30; i++) await act(() => vi.advanceTimersByTimeAsync(100));
   vi.useRealTimers();
 });
 
@@ -85,6 +87,7 @@ describe('useLancarDespesa', () => {
     act(() => {
       promessa = result.current.lancar(ENTRADA);
     });
+    await esperarItens(1);
     await act(() => vi.advanceTimersByTimeAsync(1000));
 
     await expect(promessa).resolves.toMatchObject({ tipo: 'sucesso', resposta: credito });
@@ -184,6 +187,7 @@ describe('useLancarDespesa', () => {
     act(() => {
       void result.current.lancar(ENTRADA);
     });
+    await esperarItens(1);
     await act(() => vi.advanceTimersByTimeAsync(10_000));
 
     expect(await fila.listar()).toHaveLength(1);
@@ -198,7 +202,7 @@ describe('useLancarDespesa', () => {
       void result.current.lancar(ENTRADA);
       void result.current.lancar(ENTRADA);
     });
-    await act(() => vi.advanceTimersByTimeAsync(0));
+    await esperarItens(1);
     act(() => {
       void result.current.lancar(ENTRADA);
     });

@@ -18,13 +18,15 @@ interface Props {
   tituloOculto?: boolean;
   /** Conteúdo do topo, entre o título e o X de fechar. */
   topo?: ReactNode;
+  /** Envio em andamento: o diálogo anuncia `aria-busy`. */
+  ocupada?: boolean;
 }
 
 const LIMIAR_FECHAR_PX = 80;
 const LARGURA_PC = '(min-width: 1024px)';
 
 /** Bottom sheet no celular e diálogo de ~480 px no PC. Não fecha ao tocar no véu: protege o que foi digitado. */
-export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false, tituloOculto = false, topo }: Props) {
+export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false, tituloOculto = false, topo, ocupada }: Props) {
   const idTitulo = useId();
   const ref = useRef<HTMLElement>(null);
   const arrasto = useRef<{ inicio: number; deslocamento: number } | null>(null);
@@ -83,6 +85,7 @@ export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOcult
         className={styles.folha}
         role="dialog"
         aria-modal="true"
+        aria-busy={ocupada || undefined}
         aria-labelledby={idTitulo}
         onPointerDown={aoPressionar}
         onPointerMove={aoMover}
