@@ -13,7 +13,7 @@ import { EstadoVazio } from '../base/EstadoVazio';
 import { Folha } from '../base/Folha';
 import { Nota } from '../base/Nota';
 import { textoVencimento } from './textoVencimento';
-import estilo from './FolhaPagarFixa.module.css';
+import estilo from '../base/FolhaPagamento.module.css';
 
 const FORMULARIO = 'form-pagar';
 

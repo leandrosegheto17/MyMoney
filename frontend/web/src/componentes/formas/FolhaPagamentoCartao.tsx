@@ -9,7 +9,7 @@ import { focarPrimeiroErro } from '../base/focarPrimeiroErro';
 import { Folha } from '../base/Folha';
 import { Nota } from '../base/Nota';
 import { Selecao } from '../base/Selecao';
-import estilo from './FolhaPagamentoCartao.module.css';
+import estilo from '../base/FolhaPagamento.module.css';
 
 const FORMULARIO = 'form-pagto';
 
