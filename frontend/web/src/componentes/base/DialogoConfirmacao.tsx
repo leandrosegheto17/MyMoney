@@ -16,6 +16,8 @@ interface Props {
   variante: 'destrutiva' | 'neutra';
   iconeConfirmar?: NomeIcone;
   rotuloCancelar?: string;
+  /** Ação em curso: confirmar fica inerte (com giro, mantendo o rótulo) e cancelar/Esc são desligados. */
+  ocupado?: boolean;
   aoConfirmar: () => void;
   aoCancelar: () => void;
 }
@@ -32,6 +34,7 @@ export function DialogoConfirmacao({
   variante,
   iconeConfirmar,
   rotuloCancelar = 'Cancelar',
+  ocupado = false,
   aoConfirmar,
   aoCancelar,
 }: Props) {
@@ -40,7 +43,9 @@ export function DialogoConfirmacao({
   const ref = useRef<HTMLElement>(null);
   const refCancelar = useRef<HTMLButtonElement>(null);
 
-  useArmadilhaFoco(ref, aberto, aoCancelar);
+  useArmadilhaFoco(ref, aberto, () => {
+    if (!ocupado) aoCancelar();
+  });
 
   useLayoutEffect(() => {
     if (!aberto) return;
@@ -75,10 +80,16 @@ export function DialogoConfirmacao({
           {texto}
         </p>
         <div className={destrutiva ? styles.acoes : `${styles.acoes} ${styles.neutra}`}>
-          <Botao ref={refCancelar} variante="secundario" onClick={aoCancelar}>
+          <Botao ref={refCancelar} variante="secundario" disabled={ocupado} onClick={aoCancelar}>
             {rotuloCancelar}
           </Botao>
-          <Botao variante={destrutiva ? 'perigo' : 'principal'} icone={iconeConfirmar} onClick={aoConfirmar}>
+          <Botao
+            variante={destrutiva ? 'perigo' : 'principal'}
+            icone={iconeConfirmar}
+            salvando={ocupado}
+            rotuloOcupado={rotuloConfirmar}
+            onClick={aoConfirmar}
+          >
             {rotuloConfirmar}
           </Botao>
         </div>

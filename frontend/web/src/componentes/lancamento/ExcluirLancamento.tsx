@@ -13,6 +13,7 @@ interface Props {
 /** Botão "Excluir" e o diálogo que pede a confirmação; só o botão do diálogo chama `aoExcluir`. */
 export function ExcluirLancamento({ lancamento, aoExcluir }: Props) {
   const [aberto, setAberto] = useState(false);
+  const [excluindo, setExcluindo] = useState(false);
   const { titulo, texto } = textoExclusao({
     descricao: lancamento.descricao ?? null,
     categoria: lancamento.categoria.nome,
@@ -23,8 +24,13 @@ export function ExcluirLancamento({ lancamento, aoExcluir }: Props) {
   });
 
   async function confirmar() {
-    await aoExcluir();
-    setAberto(false);
+    setExcluindo(true);
+    try {
+      await aoExcluir();
+    } finally {
+      setExcluindo(false);
+      setAberto(false);
+    }
   }
 
   return (
@@ -39,6 +45,7 @@ export function ExcluirLancamento({ lancamento, aoExcluir }: Props) {
         rotuloConfirmar="Excluir"
         iconeConfirmar="lixo"
         variante="destrutiva"
+        ocupado={excluindo}
         aoConfirmar={() => void confirmar()}
         aoCancelar={() => setAberto(false)}
       />

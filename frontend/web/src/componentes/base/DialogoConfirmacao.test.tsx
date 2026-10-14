@@ -210,6 +210,45 @@ describe('DialogoConfirmacao: confirmação explícita', () => {
   });
 });
 
+describe('DialogoConfirmacao: ocupado', () => {
+  function renderizarOcupado() {
+    const aoConfirmar = vi.fn();
+    const aoCancelar = vi.fn();
+    render(
+      <DialogoConfirmacao
+        aberto
+        ocupado
+        titulo={TITULO}
+        texto={TEXTO}
+        rotuloConfirmar="Excluir"
+        variante="destrutiva"
+        aoConfirmar={aoConfirmar}
+        aoCancelar={aoCancelar}
+      />,
+    );
+    return { aoConfirmar, aoCancelar, dialogo: screen.getByRole('alertdialog') };
+  }
+
+  it('confirmar fica inerte com o mesmo nome acessível; cancelar desabilitado', async () => {
+    const usuario = userEvent.setup();
+    const { aoConfirmar, aoCancelar, dialogo } = renderizarOcupado();
+    const confirmar = within(dialogo).getByRole('button', { name: 'Excluir' });
+    expect(confirmar).toHaveAttribute('aria-disabled', 'true');
+    expect(within(dialogo).getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    await usuario.click(confirmar);
+    await usuario.click(within(dialogo).getByRole('button', { name: 'Cancelar' }));
+    expect(aoConfirmar).not.toHaveBeenCalled();
+    expect(aoCancelar).not.toHaveBeenCalled();
+  });
+
+  it('Esc não cancela enquanto ocupado', async () => {
+    const usuario = userEvent.setup();
+    const { aoCancelar } = renderizarOcupado();
+    await usuario.keyboard('{Escape}');
+    expect(aoCancelar).not.toHaveBeenCalled();
+  });
+});
+
 describe('DialogoConfirmacao sobre a Folha', () => {
   function FolhaComDialogo() {
     const [dialogo, setDialogo] = useState(false);

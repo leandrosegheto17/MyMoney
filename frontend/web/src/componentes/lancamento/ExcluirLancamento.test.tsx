@@ -150,6 +150,20 @@ describe('ExcluirLancamento', () => {
     expect(excluir).toHaveBeenCalledWith(ID);
   });
 
+  it('com a exclusão em curso, "Excluir" e "Cancelar" ficam desabilitados e o segundo clique não chama o comando', async () => {
+    excluir.mockReturnValue(new Promise(() => {}));
+    renderizar();
+    const dialogo = abrirDialogo();
+    const confirmar = within(dialogo).getByRole('button', { name: 'Excluir' });
+    fireEvent.click(confirmar);
+    await waitFor(() => expect(confirmar).toHaveAttribute('aria-disabled', 'true'));
+    expect(within(dialogo).getByRole('button', { name: 'Cancelar' })).toBeDisabled();
+    fireEvent.click(confirmar);
+    fireEvent.keyDown(dialogo, { key: 'Escape' });
+    expect(excluir).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+  });
+
   it('sucesso: aviso "Excluído" e volta à lista', async () => {
     excluir.mockResolvedValue(undefined);
     renderizar();
