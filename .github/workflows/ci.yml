@@ -152,15 +152,76 @@ jobs:
         run: pnpm local:ci
 
       - name: Variáveis da suíte (só URL e chave anon locais)
-        run: |
-          grep -E '^(TESTE_[A-Z_]+|SUPABASE_URL)=' backend/.env.example >> "$GITHUB_ENV"
-          anon=$(pnpm exec supabase status --workdir backend -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          test -n "$anon"
-          echo "::add-mask::$anon"
-          echo "SUPABASE_ANON_KEY=$anon" >> "$GITHUB_ENV"
+        uses: ./.github/actions/ambiente-supabase-local
 
       - name: Suíte de isolamento da API
         run: pnpm --filter @mymoney/testes-api test
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Variáveis (só URL e chave anon locais)
+        uses: ./.github/actions/ambiente-supabase-local
+
+      - name: Build do web (typecheck e Vite)
+        run: |
+          export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          pnpm --filter @mymoney/web build
+
+      - name: Navegador do Playwright (Chromium)
+        working-directory: frontend/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Os specs fingem o Supabase (rotas interceptadas) e dependem do modo do Vite:
+      # entrar e redefinir-senha exigem o app SEM modo de comparação; os demais, sessão falsa.
+      # Os @integracao precisam de .env.local e de usuário semeado e ficam de fora.
+      - name: e2e e axe sem sessão
+        working-directory: frontend/web
+        env:
+          VITE_SUPABASE_URL: https://comparacao.invalid
+          VITE_SUPABASE_ANON_KEY: chave-de-comparacao
+        run: pnpm exec playwright test e2e/entrar.spec.ts e2e/redefinir-senha.spec.ts
+
+      - name: e2e e axe com sessão falsa
+        working-directory: frontend/web
+        env:
+          VITE_MODO_COMPARACAO: sessao-falsa
+          VITE_SUPABASE_URL: https://comparacao.invalid
+          VITE_SUPABASE_ANON_KEY: chave-de-comparacao
+        run: |
+          specs=()
+          for f in e2e/*.spec.ts; do
+            case "$f" in e2e/entrar.spec.ts | e2e/redefinir-senha.spec.ts) ;; *) specs+=("$f") ;; esac
+          done
+          pnpm exec playwright test --grep-invert @integracao "${specs[@]}"
+
+      - name: Comparação visual com o mockup (limite de 1%)
+        run: pnpm --filter @mymoney/web visual --limite 1
+
+      - name: Diffs de pixel e relatório
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: visual-e-e2e
+          path: |
+            .md/.visual/
+            frontend/web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
   migration:
     name: migration

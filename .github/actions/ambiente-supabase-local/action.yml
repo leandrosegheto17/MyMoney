@@ -1,0 +1,14 @@
+name: Ambiente do Supabase local
+description: Exporta para os passos seguintes a URL local, os usuários de teste do seed e a chave anon local (mascarada). Exige o Supabase local já no ar.
+
+runs:
+  using: composite
+  steps:
+    - name: Variáveis (só URL e chave anon locais)
+      shell: bash
+      run: |
+        grep -E '^(TESTE_[A-Z_]+|SUPABASE_URL)=' backend/.env.example >> "$GITHUB_ENV"
+        anon=$(pnpm exec supabase status --workdir backend -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+        test -n "$anon"
+        echo "::add-mask::$anon"
+        echo "SUPABASE_ANON_KEY=$anon" >> "$GITHUB_ENV"
