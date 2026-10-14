@@ -1,4 +1,6 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
+import { ROTULO_TIPO_FORMA } from '../../rotulos/tipoForma';
+import { BotaoForma } from '../base/BotaoForma';
 
 interface Props {
   formas: DadosLancamento['formas'];
@@ -6,6 +8,15 @@ interface Props {
   aoMudar: (id: string) => void;
 }
 
-export function SecaoForma(_props: Props) {
-  return null;
+export function SecaoForma({ formas, valor, aoMudar }: Props) {
+  if (formas.length === 0 || valor === null) return null;
+  return (
+    <BotaoForma
+      id="forma"
+      rotulo="Forma de pagamento"
+      opcoes={formas.map((f) => ({ id: f.id, nome: f.nome, detalhe: ROTULO_TIPO_FORMA[f.tipo].texto }))}
+      valor={valor}
+      aoEscolher={aoMudar}
+    />
+  );
 }
