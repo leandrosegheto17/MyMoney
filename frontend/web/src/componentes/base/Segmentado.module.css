@@ -11,20 +11,20 @@
 }
 .grupo {
   display: grid;
-  justify-items: start;
-  gap: var(--espaco-2);
+  justify-items: stretch;
+  gap: var(--espaco-1);
   margin: 0;
   padding: 0;
   border: 0;
   min-width: 0;
 }
 .legenda {
-  padding: 0;
+  padding: 0 2px;
   margin-bottom: var(--espaco-2);
   font-weight: var(--peso-semi);
 }
 .ajuda {
-  margin: 0;
+  margin: var(--espaco-2) 0 0;
   font-size: var(--tam-pequeno);
   color: var(--cor-texto-2);
 }

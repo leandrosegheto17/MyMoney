@@ -1,8 +1,9 @@
 // Roda com o Vite em modo de sessão falsa e um Supabase falso (as respostas são interceptadas):
 //   VITE_MODO_COMPARACAO=sessao-falsa VITE_SUPABASE_URL=https://comparacao.invalid \
 //   VITE_SUPABASE_ANON_KEY=chave-de-comparacao pnpm exec playwright test e2e/meta-form.spec.ts
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { expect, test, type Page } from '@playwright/test';
 import { semViolacoesGraves } from './apoio/acessibilidade';
 
@@ -13,6 +14,7 @@ const TAMANHOS = [
 const MOCKUP = join(process.cwd(), '..', '..', '.md', 'mockup');
 const lerJson = (arquivo: string) => JSON.parse(readFileSync(join(MOCKUP, 'respostas', arquivo), 'utf8'));
 const json = (corpo: unknown, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(corpo) });
+const PASTA_PRINTS = join(MOCKUP, '..', '.visual', new Date().toISOString().slice(0, 10), 'TP-0155');
 const ID = '00000000-0000-4000-8000-000000000902';
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], caminho: string) {
@@ -44,6 +46,39 @@ for (const tamanho of TAMANHOS) {
       await expect(page.locator('#alvo')).toHaveAttribute('aria-describedby', /alvo-erro/);
       await expect(page.getByText('Informe um valor-alvo maior que zero.')).toBeVisible();
       await semViolacoesGraves(page);
+    });
+
+    test('erro: mesma geometria do mockup (escopo na largura toda, mesma altura)', async ({ page, context }) => {
+      mkdirSync(PASTA_PRINTS, { recursive: true });
+      await abrir(page, tamanho, '/metas/nova');
+      await page.locator('#nome').fill('Carro novo');
+      await page.locator('#prazo').fill('2028-12');
+      await page.getByRole('button', { name: 'Criar meta' }).click();
+      await expect(page.locator('#alvo-erro')).toBeVisible();
+
+      const mockup = await context.newPage();
+      await mockup.setViewportSize({ width: tamanho.width, height: tamanho.height });
+      await mockup.goto(pathToFileURL(join(MOCKUP, 'telas', 'meta-form--erro.html')).href);
+      await mockup.evaluate(() => document.fonts.ready);
+
+      const medir = (p: Page) =>
+        p.evaluate(() => {
+          const caixa = (e: Element | null) => {
+            const r = e?.getBoundingClientRect();
+            return r ? { y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) } : null;
+          };
+          return {
+            altura: document.documentElement.scrollHeight,
+            segmentado: caixa(document.querySelector('[role="radio"], input[type="radio"]')?.closest('label')?.parentElement ?? null),
+            botao: caixa([...document.querySelectorAll('button')].find((b) => b.textContent?.includes('Criar meta')) ?? null),
+          };
+        });
+      const app = await medir(page);
+      const modelo = await medir(mockup);
+      await page.screenshot({ path: join(PASTA_PRINTS, `erro-${tamanho.nome}--app.png`), fullPage: true });
+      await mockup.screenshot({ path: join(PASTA_PRINTS, `erro-${tamanho.nome}--mockup.png`), fullPage: true });
+
+      expect(app).toEqual(modelo);
     });
 
     test('teclado: setas trocam o escopo', async ({ page }) => {
