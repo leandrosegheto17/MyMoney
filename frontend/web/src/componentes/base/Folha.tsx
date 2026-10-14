@@ -14,13 +14,17 @@ interface Props {
   rodape?: ReactNode;
   /** Fechada, continua no DOM (oculta e inacessível), preservando o estado interno. */
   montadaOculta?: boolean;
+  /** O título continua nomeando o diálogo, mas só para tecnologia assistiva. */
+  tituloOculto?: boolean;
+  /** Conteúdo do topo, entre o título e o X de fechar. */
+  topo?: ReactNode;
 }
 
 const LIMIAR_FECHAR_PX = 80;
 const LARGURA_PC = '(min-width: 1024px)';
 
 /** Bottom sheet no celular e diálogo de ~480 px no PC. Não fecha ao tocar no véu: protege o que foi digitado. */
-export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false }: Props) {
+export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false, tituloOculto = false, topo }: Props) {
   const idTitulo = useId();
   const ref = useRef<HTMLElement>(null);
   const arrasto = useRef<{ inicio: number; deslocamento: number } | null>(null);
@@ -75,6 +79,7 @@ export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOcult
       <Veu />
       <section
         ref={ref}
+        hidden={!aberta}
         className={styles.folha}
         role="dialog"
         aria-modal="true"
@@ -86,9 +91,10 @@ export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOcult
       >
         <div className={`${styles.alca} ${styles.zonaArraste}`} data-arraste aria-hidden="true" />
         <div className={`${styles.topo} ${styles.zonaArraste}`} data-arraste>
-          <h2 id={idTitulo} className={styles.titulo}>
+          <h2 id={idTitulo} className={tituloOculto ? 'visualmente-oculto' : styles.titulo}>
             {titulo}
           </h2>
+          {topo}
           <BotaoIcone icone="fechar" rotulo="Fechar" onClick={aoFechar} />
         </div>
         <div className={styles.corpo}>{children}</div>

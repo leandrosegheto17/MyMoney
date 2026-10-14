@@ -3,7 +3,6 @@ import { AreaAutenticada } from './paginas/AreaAutenticada';
 import { AreaPublica } from './paginas/AreaPublica';
 import { NaoEncontrada } from './paginas/NaoEncontrada';
 import { Inicio } from './paginas/Inicio';
-import { Provisoria } from './paginas/Provisoria';
 import type { HandleRota } from './ganchos/useTituloDaPagina';
 import { estaInstalado } from './pwa/modoInstalado';
 
@@ -43,7 +42,7 @@ export const mapaRotas: RouteObject[] = [
     element: <AreaAutenticada />,
     children: [
       { path: '/', element: <Inicio instalado={estaInstalado()} />, handle: { titulo: 'Início', ...comMes } satisfies HandleRota },
-      { path: '/lancar', Component: Provisoria, handle: { titulo: 'Lançar' } satisfies HandleRota },
+      { path: '/lancar', element: <Inicio instalado={estaInstalado()} />, handle: { titulo: 'Lançar' } satisfies HandleRota },
       {
         path: '/lancamentos',
         lazy: () => import('./paginas/Lancamentos').then((m) => ({ Component: m.Lancamentos })),

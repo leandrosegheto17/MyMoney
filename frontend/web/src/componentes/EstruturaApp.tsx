@@ -12,7 +12,9 @@ interface Props {
 
 /** Moldura das telas autenticadas: trilho (PC), conteúdo e barra inferior (celular). */
 export function EstruturaApp({ aoLancar, mes, estreito = false, children }: Props) {
-  const classe = estreito ? `${estilos.conteudo} ${estilos['conteudo-estreito']}` : estilos.conteudo;
+  // A classe `conteudo` sem módulo é o gancho estável da comparação visual (ocultar o fundo atrás da folha).
+  const base = `${estilos.conteudo} conteudo`;
+  const classe = estreito ? `${base} ${estilos['conteudo-estreito']}` : base;
   return (
     <div className={estilos.app}>
       <TrilhoNavegacao aoLancar={aoLancar} mes={mes} />
