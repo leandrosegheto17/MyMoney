@@ -59,6 +59,12 @@
   font-size: inherit;
   color: inherit;
 }
+.direita {
+  display: grid;
+  justify-items: end;
+  gap: var(--espaco-1);
+  text-align: right;
+}
 .fim {
   display: flex;
   align-items: center;

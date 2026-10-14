@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Icone, type NomeIcone } from './Icone';
 import estilo from './Lista.module.css';
@@ -12,6 +13,8 @@ type Props = {
   /** Valor à direita (substitui a seta) e nota curta antes dele. */
   valor?: string;
   nota?: string;
+  /** Conteúdo livre à direita do link (substitui valor, nota e seta). */
+  direita?: ReactNode;
   /** Cor de ação destrutiva (via classe). */
   destrutivo?: boolean;
   /** Mostra a seta também no item de ação (o link sempre a mostra). */
@@ -19,7 +22,7 @@ type Props = {
 } & ({ para: string; aoClicar?: never } | { aoClicar: () => void; para?: never });
 
 /** Item de `ul.lista`: link de navegação (`para`, com seta) ou botão (`aoClicar`). */
-export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, destrutivo, seta, para, aoClicar }: Props) {
+export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, direita, destrutivo, seta, para, aoClicar }: Props) {
   const classe = destrutivo ? `${estilo.link} ${estilo.perigo}` : estilo.link;
   const rotuloComIcone = (
     <span className={estilo.titulo}>
@@ -51,7 +54,9 @@ export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, dest
     );
   }
   const fim =
-    valor === undefined ? (
+    direita !== undefined ? (
+      direita
+    ) : valor === undefined ? (
       <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
         {contagem}
         <Icone nome="dir" className={estilo.seta} />

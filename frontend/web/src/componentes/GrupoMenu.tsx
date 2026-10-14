@@ -7,11 +7,14 @@ interface Props {
   children: ReactNode;
   /** Conteúdo logo abaixo da lista (ex.: botão de criar). */
   rodape?: ReactNode;
+  /** Id fixo do título (âncora); sem ele, é gerado. */
+  idTitulo?: string;
 }
 
 /** Seção de menu com título e lista; o nome da região é o título. */
-export function GrupoMenu({ titulo, children, rodape }: Props) {
-  const id = useId();
+export function GrupoMenu({ titulo, children, rodape, idTitulo }: Props) {
+  const idGerado = useId();
+  const id = idTitulo ?? idGerado;
   return (
     <section className={estilo.grupo} aria-labelledby={id}>
       <h2 id={id} className={estilo.titulo}>
