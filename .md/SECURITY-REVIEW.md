@@ -758,3 +758,24 @@ APROVADA (rodada 2) — 0 achados; `?escopo` em whitelist, `:id` validado como u
 
 ## TP-0159 — DevSecOps — 2026-10-14
 APROVADA; 0 críticos, 0 não críticos; RPC valida membro, valor, forma/conta do dono e idempotência no servidor, API test 4/4 contra Supabase local, sem dependência nova.
+
+## TP-0009 — DevSecOps — 2026-10-14
+APROVADA, 0 críticos e 0 não críticos; G-14 coberto por 8/8 testes executados, G-15 sem segredo (grep e histórico limpos, ref não é segredo), sem ref/URL hard-coded nem senha em argumento, dump fora do repo; alerta externo: config.toml não commitado com enable_signup=true.
+
+## RTP-0116 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só CSS/teste, sem dependência nem dado pessoal, nada executado além da leitura.
+
+## RTP-0130 — DevSecOps — 2026-10-14
+APROVADA — validação de faixa de data no servidor, sem vazamento nem regressão de permissão; 0 achados de segurança, nenhuma RTP nova.
+
+## RTP-0132 — DevSecOps — 2026-10-14
+OK; 0 críticos, 0 não críticos; diff só de CSS/imports, sem dependência nem dado sensível (revisão de leitura, nada executado).
+
+## RTP-0135 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; só asserção e2e, sem impacto de segurança (revisão de leitura do diff).
+
+## TP-0083 — DevSecOps — 2026-10-14
+APROVADA em segurança — 0 críticos, 0 não críticos; diff lido (sem HTML cru, sem cálculo de data/parcela no cliente, limite 1–24 só como guia, sem import de dados/, sem dependência nova); nada executado além da leitura do diff.
+
+## TP-0141 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; escopo da URL em lista fechada, sem XSS/cálculo/import de dados na tela, sem dependência nova (revisão do diff, grep executado).
