@@ -106,6 +106,8 @@ function ValorAberto({ mes, escopo, alvo, tituloCartao, aoFechar }: PropsAberto)
       } else {
         definirErro(falha);
         if (falha.tipo === 'regra') void cliente.invalidateQueries({ queryKey: CHAVES.orcamentoMes });
+        // A folha pode desmontar quando o refetch não traz mais a categoria; o aviso global sobrevive a isso.
+        if (falha.tipo === 'regra' && falha.codigo === 'registro_invalido') mostrar('erro', mensagemErro(falha));
       }
     } finally {
       definirOcupada(null);

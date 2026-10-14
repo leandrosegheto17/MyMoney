@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useSyncExternalStore } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Orcamento } from '../Orcamento';
@@ -258,5 +259,39 @@ describe('Folha de valor do orçamento: erros', () => {
         ),
       ).toBe(true),
     );
+  });
+
+  it('registro_invalido com refetch sem a categoria: a folha some, ?editar= sai e a mensagem fica no aviso global', async () => {
+    comandos.definirOrcamento.mockRejectedValue({ tipo: 'regra', codigo: 'registro_invalido' });
+    const usuario = userEvent.setup();
+    let refeita = false;
+    const ouvintes = new Set<() => void>();
+    vi.mocked(useOrcamentoMes).mockImplementation(((mes: string) => {
+      useSyncExternalStore(
+        (ouvinte) => {
+          ouvintes.add(ouvinte);
+          return () => ouvintes.delete(ouvinte);
+        },
+        () => refeita,
+      );
+      if (refeita) {
+        const vazio = resposta<{ sem_orcamento: { categoria_id: string }[] }>('orcamento-mes-vazio');
+        const semAlvo = vazio.sem_orcamento.filter((c) => c.categoria_id !== ID_CONTAS_DA_CASA);
+        return consultaPronta({ ...vazio, sem_orcamento: semAlvo });
+      }
+      return consultaPronta(resposta(mes === '2026-11' ? 'orcamento-mes-vazio' : 'orcamento-mes'));
+    }) as never);
+    const { espiaInvalidar } = renderizarPagina(CAMINHO_CONTAS);
+    espiaInvalidar.mockImplementation((() => {
+      refeita = true;
+      ouvintes.forEach((ouvinte) => ouvinte());
+      return Promise.resolve();
+    }) as never);
+
+    await usuario.click(within(folha()).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId('local')).not.toHaveTextContent('editar='));
+    expect(mostrarAviso).toHaveBeenCalledWith('erro', 'Não encontramos este item. Ele pode ter sido removido');
   });
 });
