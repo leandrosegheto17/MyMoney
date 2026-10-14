@@ -1,6 +1,6 @@
 import type { VarianteEsqueleto } from '../base/Esqueleto';
 import { CartaoResumo } from '../base/CartaoResumo';
-import { BlocoInicio } from './BlocoInicio';
+import { Bloco } from '../Bloco';
 
 const CASA: VarianteEsqueleto[][] = [
   ['titulo', 'valor', 'linha', 'linha-curta'],
@@ -27,12 +27,12 @@ function Cartoes({ bloco, formas }: { bloco: 'casa' | 'eu'; formas: VarianteEsqu
 export function EsqueletoInicio({ nome }: { nome?: string }) {
   return (
     <>
-      <BlocoInicio bloco="casa" carregando>
+      <Bloco bloco="casa" titulo="Casa" carregando>
         <Cartoes bloco="casa" formas={CASA} />
-      </BlocoInicio>
-      <BlocoInicio bloco="eu" nome={nome} carregando>
+      </Bloco>
+      <Bloco bloco="eu" titulo="Eu" nome={nome} carregando>
         <Cartoes bloco="eu" formas={EU} />
-      </BlocoInicio>
+      </Bloco>
     </>
   );
 }

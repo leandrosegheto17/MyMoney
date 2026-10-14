@@ -4,7 +4,8 @@ import estilos from './Estado.module.css';
 
 interface Props {
   icone: NomeIcone;
-  titulo: string;
+  /** Sem título quando a seção que o contém já é nomeada (ex.: seção de uma lista). */
+  titulo?: string;
   texto?: string;
   acao?: ReactNode;
   /** `alert` quando o estado substitui o conteúdo da tela por um erro (ex.: item que não existe mais). */
@@ -22,10 +23,10 @@ export function EstadoVazio({ icone, titulo, texto, acao, papel, nivel = 2, semM
     <section
       className={`${estilos.estado}${semMargem ? ` ${estilos.semMargem}` : ''}`}
       role={papel}
-      aria-labelledby={idTitulo}
+      aria-labelledby={titulo ? idTitulo : undefined}
     >
       <Icone nome={icone} />
-      <Titulo id={idTitulo}>{titulo}</Titulo>
+      {titulo ? <Titulo id={idTitulo}>{titulo}</Titulo> : null}
       {texto ? <p>{texto}</p> : null}
       {acao}
     </section>

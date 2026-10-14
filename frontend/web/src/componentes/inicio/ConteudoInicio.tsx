@@ -1,5 +1,5 @@
 import type { ResumoMes } from '@mymoney/contrato/respostas/resumo-mes';
-import { BlocoInicio } from './BlocoInicio';
+import { Bloco } from '../Bloco';
 import { CasaFixas } from './CasaFixas';
 import { CasaMetas } from './CasaMetas';
 import { CasaOrcamento } from './CasaOrcamento';
@@ -44,7 +44,7 @@ export function ConteudoInicio({ resumo, mes, nome, temConta, temForma, instalad
   return (
     <>
       <PrimeirosPassos temConta={temConta} temForma={temForma} instalado={instalado} />
-      <BlocoInicio bloco="casa">
+      <Bloco bloco="casa" titulo="Casa">
         <CasaTotal conjunto={conjunto} mes={mes} mesVazio={mesVazio} rodapeVazio={<MesVazio mes={mes} />} />
         {mesVazio ? null : <CasaQuemPagou conjunto={conjunto} mes={mes} />}
         <CasaFixas conjunto={conjunto} mes={mes} />
@@ -52,8 +52,8 @@ export function ConteudoInicio({ resumo, mes, nome, temConta, temForma, instalad
         {mesVazio ? null : <CasaPorCategoria conjunto={conjunto} mes={mes} />}
         {mesVazio ? null : <CasaResultado conjunto={conjunto} mes={mes} />}
         <CasaMetas conjunto={conjunto} mes={mes} />
-      </BlocoInicio>
-      <BlocoInicio bloco="eu" nome={nome}>
+      </Bloco>
+      <Bloco bloco="eu" titulo="Eu" nome={nome}>
         <EuTotal individual={individual} mes={mes} mesVazio={mesVazio} />
         {mesVazio ? null : <EuReceitas individual={individual} mes={mes} />}
         {mesVazio ? null : <EuOrcamento individual={individual} mes={mes} />}
@@ -61,7 +61,7 @@ export function ConteudoInicio({ resumo, mes, nome, temConta, temForma, instalad
         <EuContas individual={individual} mes={mes} />
         {mesVazio ? null : <EuCartoes individual={individual} mes={mes} />}
         <EuMetas individual={individual} mes={mes} />
-      </BlocoInicio>
+      </Bloco>
     </>
   );
 }

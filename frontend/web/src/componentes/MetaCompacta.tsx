@@ -1,9 +1,9 @@
 import { Link } from 'react-router';
 import type { ResumoMeta } from '@mymoney/contrato/respostas/resumo-mes';
-import { formatarMesCurto } from '../formatacao/mes';
+import { situacaoBarraMeta, textoPrazoMeta } from '../formatacao/metas';
 import { formatarMoeda } from '../formatacao/moeda';
 import { BarraProgresso } from './base/BarraProgresso';
-import { SeloSituacao } from './base/SeloSituacao';
+import { TopoMeta } from './metas/TopoMeta';
 import estilos from './MetaCompacta.module.css';
 
 interface Props {
@@ -22,13 +22,8 @@ export function MetaCompacta({ meta, bloco, href }: Props) {
         elemento="span"
         rotulo={meta.nome}
         percentual={meta.percentual}
-        situacao={meta.atingida ? 'atingida' : bloco}
-        topo={
-          <>
-            <span className={estilos['item-titulo']}>{meta.nome}</span>
-            {meta.atingida ? <SeloSituacao situacao="atingida" /> : <span className="valor">{meta.percentual}%</span>}
-          </>
-        }
+        situacao={situacaoBarraMeta(meta.atingida, bloco)}
+        topo={<TopoMeta nome={meta.nome} percentual={meta.percentual} atingida={meta.atingida} />}
         posicaoSecundario="depois"
         topoSecundario={
           <>
@@ -40,9 +35,7 @@ export function MetaCompacta({ meta, bloco, href }: Props) {
         }
       />
       {meta.prazo !== null && mensal !== null ? (
-        <span className={estilos['item-sub']}>
-          até {formatarMesCurto(meta.prazo)} · {formatarMoeda(mensal)} por mês
-        </span>
+        <span className={estilos['item-sub']}>{textoPrazoMeta({ prazo: meta.prazo, mensal_necessario_centavos: mensal })}</span>
       ) : null}
     </Link>
   );

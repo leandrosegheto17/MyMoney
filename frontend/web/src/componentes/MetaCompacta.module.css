@@ -17,10 +17,6 @@
   display: block;
 }
 
-.item-titulo {
-  font-weight: var(--peso-medio);
-}
-
 .item-sub {
   display: block;
   font-size: var(--tam-pequeno);
