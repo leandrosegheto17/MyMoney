@@ -54,6 +54,12 @@ describe('FolhaLancar: estrutura', () => {
     expect(folha).toHaveAttribute('aria-modal', 'true');
   });
 
+  it('ao abrir, o foco inicial fica no valor', () => {
+    montar({ dados });
+
+    expect(screen.getByLabelText('Valor')).toHaveFocus();
+  });
+
   it('segmentado com Despesa marcada e Receita habilitada', () => {
     montar({ dados });
 

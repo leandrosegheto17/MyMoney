@@ -20,13 +20,15 @@ interface Props {
   topo?: ReactNode;
   /** Envio em andamento: o diálogo anuncia `aria-busy`. */
   ocupada?: boolean;
+  /** Seletor do elemento que recebe o foco ao abrir; sem ele (ou sem achá-lo), o primeiro focável. */
+  focoInicial?: string;
 }
 
 const LIMIAR_FECHAR_PX = 80;
 const LARGURA_PC = '(min-width: 1024px)';
 
 /** Bottom sheet no celular e diálogo de ~480 px no PC. Não fecha ao tocar no véu: protege o que foi digitado. */
-export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false, tituloOculto = false, topo, ocupada }: Props) {
+export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOculta = false, tituloOculto = false, topo, ocupada, focoInicial }: Props) {
   const idTitulo = useId();
   const ref = useRef<HTMLElement>(null);
   const arrasto = useRef<{ inicio: number; deslocamento: number } | null>(null);
@@ -38,13 +40,16 @@ export function Folha({ aberta, aoFechar, titulo, children, rodape, montadaOcult
     const gatilho = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     travar();
     const folha = ref.current;
-    if (folha && !folha.contains(document.activeElement)) focaveisEm(folha)[0]?.focus();
+    if (folha && !folha.contains(document.activeElement)) {
+      const alvo = focoInicial ? folha.querySelector<HTMLElement>(focoInicial) : null;
+      (alvo ?? focaveisEm(folha)[0])?.focus();
+    }
     return () => {
       liberar();
       ref.current?.style.removeProperty('--arraste');
       if (gatilho?.isConnected) gatilho.focus();
     };
-  }, [aberta]);
+  }, [aberta, focoInicial]);
 
   const aoPressionar = useCallback((evento: PointerEvent<HTMLElement>) => {
     const alvo = evento.target as Element;

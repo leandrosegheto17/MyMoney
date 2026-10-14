@@ -72,7 +72,7 @@ export function SecaoCategoria({ categorias, valor, aoMudar, erro, rotulo = 'Cat
       <GrupoChips
         nome="categoria"
         rotulo={rotulo}
-        rotuloAfastado={semOutras}
+        rotuloAfastado
         variante="grade"
         opcoes={naGrade.map((c) => ({ valor: c.id, conteudo: c.nome, complemento: selo(c) }))}
         valor={valor ?? ''}

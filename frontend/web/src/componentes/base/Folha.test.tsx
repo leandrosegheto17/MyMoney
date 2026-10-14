@@ -139,6 +139,28 @@ describe('Folha: foco', () => {
     expect(document.activeElement).toBe(focaveis(dialogo)[0]);
   });
 
+  it('com focoInicial, o foco vai ao elemento do seletor; sem achá-lo, ao 1º focável', () => {
+    const { rerender } = render(
+      <Folha aberta aoFechar={vi.fn()} titulo="T" focoInicial="#alvo">
+        <button type="button">Primeiro</button>
+        <input id="alvo" aria-label="Alvo" />
+      </Folha>,
+    );
+    expect(screen.getByLabelText('Alvo')).toHaveFocus();
+
+    rerender(
+      <Folha aberta={false} aoFechar={vi.fn()} titulo="T" focoInicial="#nao-existe">
+        <button type="button">Primeiro</button>
+      </Folha>,
+    );
+    rerender(
+      <Folha aberta aoFechar={vi.fn()} titulo="T" focoInicial="#nao-existe">
+        <button type="button">Primeiro</button>
+      </Folha>,
+    );
+    expect(screen.getByRole('button', { name: 'Fechar' })).toHaveFocus();
+  });
+
   it('ao fechar com Esc, o foco volta ao gatilho', async () => {
     const usuario = userEvent.setup();
     render(<ComGatilho />);

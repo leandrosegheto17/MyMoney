@@ -76,6 +76,7 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offli
       titulo={receita ? 'Lançar receita' : 'Lançar'}
       tituloOculto={!vazio}
       montadaOculta
+      focoInicial="#valor"
       ocupada={ocupado}
       topo={
         vazio && !receita ? undefined : (
