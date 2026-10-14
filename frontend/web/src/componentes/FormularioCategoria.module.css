@@ -1,0 +1,21 @@
+.formulario {
+  composes: formulario from './FormularioConta.module.css';
+}
+
+.acoes {
+  composes: acoes from './FormularioConta.module.css';
+}
+
+.grupo {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-2);
+}
+
+.rotulo {
+  composes: rotulo from './base/CampoLeitura.module.css';
+}
+
+.ajuda {
+  composes: ajuda from './base/CampoLeitura.module.css';
+}

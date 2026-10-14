@@ -6,7 +6,7 @@
   min-height: var(--alvo-minimo);
 }
 .texto {
-  display: grid;
+  display: block;
 }
 .ajuda {
   font-size: var(--tam-pequeno);

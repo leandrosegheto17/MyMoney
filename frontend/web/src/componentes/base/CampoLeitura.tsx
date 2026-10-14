@@ -1,9 +1,9 @@
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import estilo from './CampoLeitura.module.css';
 
 interface Props {
   rotulo: string;
-  texto: string;
+  texto: ReactNode;
   ajuda?: string;
 }
 

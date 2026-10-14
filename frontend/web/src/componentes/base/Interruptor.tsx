@@ -15,7 +15,12 @@ export function Interruptor({ rotulo, ajuda, desabilitado, ref, ...resto }: Prop
     <label className={estilo.interruptor} onClick={desabilitado ? (e) => e.preventDefault() : undefined}>
       <span className={estilo.texto}>
         {rotulo}
-        {ajuda ? <small className={estilo.ajuda}>{ajuda}</small> : null}
+        {ajuda ? (
+          <>
+            <br />
+            <small className={estilo.ajuda}>{ajuda}</small>
+          </>
+        ) : null}
       </span>
       <input {...resto} ref={ref} type="checkbox" role="switch" disabled={desabilitado} />
     </label>

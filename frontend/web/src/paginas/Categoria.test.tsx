@@ -21,9 +21,9 @@ vi.mock('../ganchos/useCategorias', async (importOriginal) => {
     useCategoria: (id: string) =>
       useQuery({ queryKey: ['categorias', id], queryFn: () => h.buscarCategoria(id), enabled: Boolean(id) }),
     useComandosCategoria: () => ({
-      salvarCategoria: useMutation({ mutationFn: h.salvarCategoria }),
-      arquivarCategoria: useMutation({ mutationFn: h.arquivarCategoria }),
-      excluirCategoria: useMutation({ mutationFn: h.excluirCategoria }),
+      salvarCategoria: useMutation({ mutationFn: (v: Record<string, unknown>) => h.salvarCategoria(v) }),
+      arquivarCategoria: useMutation({ mutationFn: (v: string) => h.arquivarCategoria(v) }),
+      excluirCategoria: useMutation({ mutationFn: (v: string) => h.excluirCategoria(v) }),
     }),
   };
 });

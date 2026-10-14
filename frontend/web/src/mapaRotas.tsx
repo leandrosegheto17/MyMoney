@@ -122,8 +122,16 @@ export const mapaRotas: RouteObject[] = [
         lazy: () => import('./paginas/Categorias').then((m) => ({ Component: m.Categorias })),
         handle: { titulo: 'Categorias', ...estreito } satisfies HandleRota,
       },
-      pagina('/ajustes/categorias/nova', 'Nova categoria', estreito),
-      pagina('/ajustes/categorias/:id', 'Categoria', estreito),
+      {
+        path: '/ajustes/categorias/nova',
+        lazy: () => import('./paginas/Categoria').then((m) => ({ Component: m.Categoria })),
+        handle: { titulo: 'Nova categoria', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/ajustes/categorias/:id',
+        lazy: () => import('./paginas/Categoria').then((m) => ({ Component: m.Categoria })),
+        handle: { titulo: 'Categoria', ...estreito } satisfies HandleRota,
+      },
       { path: '*', Component: NaoEncontrada, handle: { titulo: 'Página não encontrada' } satisfies HandleRota },
     ],
   },
