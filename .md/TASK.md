@@ -446,7 +446,7 @@ tarefa passa disso). Status inicial `Pendente`.
 | ID | Lote | Tarefa | Chapéu | Origem | Critério de Aceite | Est | Depende de | Paralelizável com | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | TP-0158 | Lote 33 | `api.registrar_pagamento_cartao` [BD] | Backend | RF-19 (Could); RN-13; I-14 | Valor, data, conta de origem e forma de Crédito do próprio membro; grava `movimento_conta` (pagamento de cartão) que debita a conta e não entra em nenhum total, orçamento ou resultado (pgTAP); [API padrão] | 2.5h | TP-0048, TP-0049, TP-0064 | — | Concluída · QA ✔ · Sec ✔ |
-| TP-0159 | Lote 33 | T21 Registrar pagamento do cartão | Frontend | RF-19; UX-SPEC T21 | Folha sobre a T18 (`?pagamento=1`): valor, data, conta (padrão a conta de pagamento do cartão), nota "Sai da conta. Não conta como despesa"; sem conta: atalho para cadastrar; comando em `dados/`. [Tela padrão] T21 auto `sucesso`, `vazio` | 3h | TP-0035, TP-0036, TP-0073, TP-0158 | — | Concluída · QA ✔ · Sec ✔ |
+| TP-0159 | Lote 33 | T21 Registrar pagamento do cartão | Frontend | RF-19; UX-SPEC T21 | Folha sobre a T18 (`?pagamento=1`): valor, data, conta (padrão a conta de pagamento do cartão), nota "Sai do saldo da conta. Não conta como despesa em nenhum total, porque as compras já contaram."; sem conta: atalho para cadastrar; comando em `dados/`. [Tela padrão] T21 auto `sucesso`, `vazio` | 3h | TP-0035, TP-0036, TP-0073, TP-0158 | — | Concluída · QA ✔ · Sec ✔ |
 
 ### Refatoração Lote-1
 | ID | Lote | Título | Chapéu | Reqs | Aceite | Est | Dep | Par | Arquivos | Testes e diretrizes | Status |
