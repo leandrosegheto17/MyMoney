@@ -647,3 +647,57 @@ APROVADA COM DÉBITO; 0 críticos/1 baixo (RTP-0113: useMeta ainda consulta meta
 
 ## TP-0118 — DevSecOps — 2026-10-13
 APROVADA; 0 críticos, 0 não críticos novos (RTP-0107/0108 já abertas pelo QA); escrita só via RPC em dados/ com validação de uuid, outro membro sem controle, erro genérico, sem fila; revisão de diff + 2 greps, sem dependências novas.
+
+## RTP-0087 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 1 baixo (RTP-0131: config.toml local com enable_signup=true, fora do diff); sem código/dependência alterados e artefatos visuais gitignored, sessão falsa, sem segredo.
+
+## RTP-0103 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; diff só adiciona teste com fixtures sintéticas, sem produção/dependência/segredo; revisão de leitura, nada executado.
+
+## RTP-0104 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só em .md (UX-SPEC §5 T04 e TP-0103), sem código/dependência/segredo e sem enfraquecer requisito de segurança.
+
+## RTP-0105 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; duplo envio barrado no Botao (aria-disabled + guarda no handler) e Esc/Cancelar inertes durante a chamada, autorização segue no servidor, sem dependência nova (revisão de diff, nada executado).
+
+## RTP-0106 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; diff só de teste (dados fictícios), sem produção/dependência/segredo.
+
+## RTP-0111 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; salvar_conta mantém invoker/search_path fixo/grants só authenticated, limite 80 no servidor com erro estável, pgTAP 107 arquivos PASS e catálogo confirmado no banco local.
+
+## TP-0072 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; view security_invoker, sem somatório, sem style inline/innerHTML, sem dependência nova (revisão do diff + grep).
+
+## TP-0073 — DevSecOps — 2026-10-14
+APROVADA; 0 achados (diff revisado, sem dependência nova, `p_conta_id: null` coerente com o servidor, tipo imutável e RLS no servidor); executado só grep + 33 testes, sondas ativas ficam para a auditoria de release.
+
+## TP-0075 — DevSecOps — 2026-10-14
+APROVADA; 0 achados (sem crítico/não crítico); tipo/escopo imutáveis, `nome_repetido` sem vazamento entre membros, `:id` validado como uuid, sem dependência nova nem `style` inline; 23 testes passando.
+
+## TP-0091 — DevSecOps — 2026-10-14
+APROVADA em segurança (revisão do diff); 0 achados de segurança, nenhuma RTP nova (RTP-0117 do QA segue aberta); Casa só consome `conjunto`, nomes escapados pelo React, sem dependência alterada.
+
+## TP-0092 — DevSecOps — 2026-10-14
+APROVADA; 0 achados de segurança (revisão do diff: só dados da casa, textos escapados pelo React, ids via URLSearchParams/uuid, sem dependência nova); nada executado além de grep/diff.
+
+## TP-0093 — DevSecOps — 2026-10-14
+APROVADA — 0 achados de segurança; bloco Eu usa só `individual` (restrito ao membro no servidor), sem XSS nem dado do outro membro, `LinhasValores.receita` inofensivo, sem dependência nova; SAST/teste ativo ficam para o /deploy.
+
+## TP-0095 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; revisão de diff: `?instalar=1` fixo e lido só com `=== '1'` (sem uso inseguro), mês vazio sem exposição de dado, sem innerHTML, sem dependência nova; nada executado além de grep/diff.
+
+## TP-0104 — DevSecOps — 2026-10-14
+APROVADA; 0 achados (filtros da URL validados por whitelist/UUID, rodapé da fila só leitura e filtrado por dono, sem dependência nova); vitest 16 ok, grep de sinks perigosos limpo.
+
+## TP-0107 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; revisão do diff + ESLint e greps de fronteira/inline/links limpos, localStorage guarda só a marca de dispensa, sem dependência nova.
+
+## TP-0132 — DevSecOps — 2026-10-14
+APROVADA: 0 crítico/alto/médio, 1 baixo (RTP-0130: data do pagamento sem faixa no servidor); `?pagar=` validado por uuid+ocorrência carregada, regra/forma/valor no servidor (API 6/6 executado), duplo envio barrado no cliente e no servidor.
+
+## TP-0153 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; separação casa/eu garantida pela RLS/view (não pelo cliente), nome da meta como texto, sem dependência nova; grep e 15 testes executados.
+
+## TP-0156 — DevSecOps — 2026-10-14
+APROVADA; 0 achados (sem crítico/alto/médio/baixo); validação, autorização de meta/conta e limite de retirada são do RPC no servidor, conta só no corpo do RPC, sem dependência nova, sem dangerouslySetInnerHTML, telas.json só com dados fictícios.
