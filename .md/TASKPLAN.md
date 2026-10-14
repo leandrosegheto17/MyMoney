@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 14:20
+Atualizado: 2026-10-14 15:06
 
-Resumo: Não executada 33 · Em execução 1 · Executada (aguarda teste) 4 · Aprovada 283 · Bloqueada 4 · total 325
+Resumo: Não executada 28 · Em execução 1 · Executada (aguarda teste) 9 · Aprovada 283 · Bloqueada 4 · total 325
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -22,7 +22,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 7 | BK-0001 | coordenador | ✔ | Decidir como o gitleaks no histórico (35 achados: JWTs de exemplo em commit antigo e .clau | — | — | Aprovada |
 | 8 | TP-0007 | executor | ✔ | CI base no GitHub Actions | Lote 1 | BK-0001, TP-0001 | Aprovada |
 | 9 | TP-0008 | executor | ✔ | Script backend/operacao/deploy/migrar.sh [BD] | Lote 2 | TP-0002, TP-0007 | Aprovada |
-| 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Em execução |
+| 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Executada (aguarda teste) |
 | 11 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | TP-0009 | Não executada |
 | 12 | TP-0011 | executor | ✔ | Primeira migration em produção (schemas, utilitários e ping) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Não executada |
 | 13 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Não executada |
@@ -234,7 +234,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 219 | RTP-0040 | executor | ✔ | Caso testes-api de encerrar-despesa-fixa: apagar as fixas que cria | Refatoração Lote-25 | RTP-0036, TP-0123 | Aprovada |
 | 220 | RTP-0042 | executor | ✔ | Caso testes-api de ocorrencias-mes: corrigir erro de tipo (typecheck) | Refatoração Lote-25 | TP-0124 | Aprovada |
 | 221 | RTP-0037 | executor | ✔ | Caso testes-api de registrar_pagamento_cartao: corrigir erro de tipo (typecheck) | Refatoração Lote-33 | TP-0158 | Aprovada |
-| 222 | RTP-0132 | executor | ✔ | T21/T19: CSS .formulario/.item-sub/.item-titulo duplicado entre FolhaPagamentoCartao e... | Refatoração Lote-33 | TP-0159 | Não executada |
+| 222 | RTP-0132 | executor | ✔ | T21/T19: CSS .formulario/.item-sub/.item-titulo duplicado entre FolhaPagamentoCartao e... | Refatoração Lote-33 | TP-0159 | Executada (aguarda teste) |
 | 223 | RTP-0133 | executor | ✔ | T21: alinhar a UX-SPEC e o aceite ao texto da nota do mockup (decisão do Coordenador) | Refatoração Lote-33 | TP-0159 | Não executada |
 | 224 | RTP-0044 | executor | ✔ | Caso testes-api de pagar-ocorrencia: apagar as fixas e os lançamentos que cria | Refatoração Lote-26 | TP-0125 | Aprovada |
 | 225 | RTP-0045 | executor | ✔ | garantir_ocorrencias: limitar o mês gerado por resumo_mes/ocorrencias_mes a uma janela... | Refatoração Lote-26 | TP-0127 | Aprovada |
@@ -258,11 +258,11 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 243 | RTP-0073 | executor | ✔ | checar-aditiva.test.sh: dividir o arquivo de teste (417 linhas) por comportamento | Refatoração Lote-21 | RTP-0060 | Aprovada |
 | 244 | RTP-0124 | executor | ✔ | Mockup: página instalar--android-passos (passos manuais do Android sem prompt) | Refatoração Lote-21 | TP-0107 | Aprovada |
 | 245 | RTP-0125 | executor | ✔ | Testes da T22: checar variante e alvo mínimo pelas classes reais dos módulos CSS | Refatoração Lote-21 | TP-0107 | Aprovada |
-| 246 | RTP-0135 | executor | ✔ | e2e da T22: medir altura >= 44 px dos botões da faixa de instalar | Refatoração Lote-21 | RTP-0125 | Não executada |
+| 246 | RTP-0135 | executor | ✔ | e2e da T22: medir altura >= 44 px dos botões da faixa de instalar | Refatoração Lote-21 | RTP-0125 | Executada (aguarda teste) |
 | 247 | RTP-0066 | executor | ✔ | pedirRedefinicao: não engolir erro de limite de taxa | Lote 5 | TP-0025 | Aprovada |
 | 248 | RTP-0083 | executor | ✔ | Trava do modo de comparação cobre qualquer modo de build | Refatoração Lote-5 | TP-0026 | Aprovada |
 | 249 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Aprovada |
-| 250 | RTP-0116 | executor | ✔ | Página por trás da folha aberta não pode esticar a captura (altura de T03 celular) | Refatoração Lote-16 | TP-0081 | Não executada |
+| 250 | RTP-0116 | executor | ✔ | Página por trás da folha aberta não pode esticar a captura (altura de T03 celular) | Refatoração Lote-16 | TP-0081 | Executada (aguarda teste) |
 | 251 | RTP-0084 | executor | ✔ | T01 Entrar: formatação e textos de erro duplicados | Refatoração Lote-9 | TP-0045 | Aprovada |
 | 252 | RTP-0085 | executor | ✔ | FormularioNovaSenha usa focarPrimeiroErro em vez de foco próprio | Refatoração Lote-9 | TP-0046 | Aprovada |
 | 253 | RTP-0086 | executor | ✔ | T14: seta ausente no item 'Instalar o app' | Refatoração Lote-9 | TP-0047 | Aprovada |
@@ -287,7 +287,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 272 | RTP-0120 | executor | ✔ | EuPorCategoria: vazio por lista, texto do vazio testado e axe do bloco Eu | Refatoração Lote-18 | TP-0093 | Aprovada |
 | 273 | RTP-0121 | executor | ✔ | T02 vazio: fechar o visual do celular e registrar o axe após TP-0094 | Lote 18 | TP-0094 | Não executada |
 | 274 | RTP-0122 | executor | ✔ | Passo 'Instale o app' dos Primeiros passos: destino definitivo (T22) | Lote 18 | TP-0095 | Aprovada |
-| 275 | RTP-0095 | executor | — | T06: espaço do 'Previsto a pagar' no título do cartão difere do mockup em 3 px e pequen... | Lote 27 | TP-0130 | Não executada |
+| 275 | RTP-0095 | executor | ✔ | T06: espaço do 'Previsto a pagar' no título do cartão difere do mockup em 3 px e pequen... | Lote 27 | TP-0130 | Não executada |
 | 276 | BK-0025 | coordenador | ✔ | Decidir se a ordem erro/ajuda do componente base Campo (todas as telas) e a ajuda do valor | — | — | Aprovada |
 | 277 | RTP-0096 | executor | ✔ | T07 estado de erro: reconferir a comparação visual de fixa--erro após o mockup ser alin... | Refatoração Lote-27 | BK-0025, TP-0131 | Aprovada |
 | 278 | RTP-0109 | executor | ✔ | T08 estado de erro: alinhar o mockup pagar-fixa--erro à UX-SPEC (ajuda da forma e nota... | Refatoração Lote-27 | TP-0132 | Aprovada |
@@ -300,17 +300,17 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 285 | RTP-0100 | executor | ✔ | Alinhar aceite e UX-SPEC §6 do histórico da T11 no PC ao mockup (lista) | Refatoração Lote-32 | TP-0154 | Aprovada |
 | 286 | RTP-0102 | executor | ✔ | T11: não consultar movimentos_meta com id de meta malformado | Refatoração Lote-32 | TP-0154 | Aprovada |
 | 287 | RTP-0113 | executor | ✔ | T11: useMeta não consulta metas com id malformado | Refatoração Lote-32 | RTP-0102 | Aprovada |
-| 288 | RTP-0126 | executor | ✔ | Registrar T12 em telas-implementadas.json | Refatoração Lote-32 | TP-0155 | Não executada |
+| 288 | RTP-0126 | executor | ✔ | Registrar T12 em telas-implementadas.json | Refatoração Lote-32 | TP-0155 | Executada (aguarda teste) |
 | 289 | RTP-0127 | executor | ✔ | T13 retirada: estado auto do mockup sem valor/conta preenchidos | Refatoração Lote-32 | TP-0156 | Aprovada |
 | 290 | RTP-0128 | executor | ✔ | Extrair o parâmetro de URL da folha (?movimentar=, ?pagar=) para um gancho comum | Refatoração Lote-32 | TP-0156 | Aprovada |
 | 291 | RTP-0129 | executor | ✔ | Registrar T13 em telas-implementadas.json | Refatoração Lote-32 | TP-0156 | Aprovada |
-| 292 | RTP-0137 | executor | ✔ | Registrar T08, T10, T19, T20, T21 e T22 em telas-implementadas.json | Refatoração Lote-32 | TP-0153 | Não executada |
+| 292 | RTP-0137 | executor | ✔ | Registrar T08, T10, T19, T20, T21 e T22 em telas-implementadas.json | Refatoração Lote-32 | TP-0153 | Em execução |
 | 293 | RTP-0103 | executor | ✔ | ItemLink: teste que fixa o saldo como span.valor filho direto do link | Refatoração Lote-14 | TP-0070 | Aprovada |
 | 294 | RTP-0111 | executor | ✔ | Limitar o tamanho do nome da conta (cliente e servidor) | Refatoração Lote-14 | TP-0071 | Aprovada |
 | 295 | RTP-0114 | executor | ✔ | T18: legenda visível do tipo no formulário de nova forma | Refatoração Lote-14 | TP-0073 | Aprovada |
 | 296 | RTP-0115 | executor | ✔ | T20 Categoria: Segmentado e Interruptor fiéis ao mockup categoria--erro | Refatoração Lote-14 | TP-0075 | Aprovada |
-| 297 | RTP-0107 | executor | — | E2E @integracao do ajuste de data da parcela (T05 → T04 e T02) | Refatoração Lote-24 | TP-0110 | Não executada |
-| 298 | RTP-0108 | executor | — | Alterar data da parcela: não salvar datas parciais digitadas no campo de fallback | Refatoração Lote-24 | TP-0118 | Não executada |
+| 297 | RTP-0107 | executor | ✔ | E2E @integracao do ajuste de data da parcela (T05 → T04 e T02) | Refatoração Lote-24 | TP-0110 | Não executada |
+| 298 | RTP-0108 | executor | ✔ | Alterar data da parcela: não salvar datas parciais digitadas no campo de fallback | Refatoração Lote-24 | TP-0118 | Não executada |
 | 299 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 300 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
 | 301 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
