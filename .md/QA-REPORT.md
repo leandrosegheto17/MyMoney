@@ -905,3 +905,12 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0147: envios--* fora do comparar-vis
 
 ## TP-0116 — QA — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico (RTP-0148); vitest 441/441, Playwright 6/6 com PNGs idênticos ao mockup (0,00%/0,09%), T03 inicial 0,31%/0,79% e vazio OK, e2e @integracao reproduzido 2x.
+
+## RTP-0147 — QA — 2026-10-14
+APROVADA — T23 sucesso/erro em pc e celular OK no comparador (0,41–0,57%, alturas iguais, só o anel de foco no X difere); 0 críticos, 1 não crítico (index.html ainda marca T23 como manual, RTP-0150).
+
+## RTP-0148 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; 2 rodadas do spec passam e resumo_mes idêntico antes/depois (sem resíduo), limpeza só em localhost com chave anon.
+
+## RTP-0149 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 5/5, e2e recusa exemplo.invalid sem gravar e passa no Supabase local.

@@ -836,3 +836,12 @@ APROVADA; 0 críticos, 0 não críticos; isolamento por dono em listar/reativar/
 
 ## TP-0116 — DevSecOps — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico (RTP-0149: e2e @integracao sem trava de host local); revisão do diff e grep executados, sem fila/IndexedDB nem credencial real versionada, gitleaks/semgrep não executados.
+
+## RTP-0147 — DevSecOps — 2026-10-14
+APROVADA — diff só JSON do mockup (mapa T23 e resposta 400 falsa genérica), sem segredo/dado pessoal/código de app; 0 críticos, 0 não críticos (revisão de leitura, nada executado).
+
+## RTP-0148 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; limpeza só em localhost, só chave anon + JWT do usuário de teste, sem service_role nem credencial versionada (revisão de diff + git check-ignore/grep).
+
+## RTP-0149 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; trava recusa localhost.evil.com/userinfo@host (executado), sem senha padrão nem .env versionado.
