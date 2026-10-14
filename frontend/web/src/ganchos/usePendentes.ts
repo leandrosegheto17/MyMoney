@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { fila } from '../dados/fila/fila';
 import type { ItemFila } from '../dados/fila/tipos';
 
+export type { ItemFila };
+
 export type Pendentes = { total: number; aguardando: number; falhas: number; itens: ItemFila[] };
 
 const ZERO: Pendentes = { total: 0, aguardando: 0, falhas: 0, itens: [] };

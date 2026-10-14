@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { escreverFiltrosNaUrl, lerFiltrosDaUrl, paraFiltrosApi } from './filtrosLancamentos';
+import { escreverFiltrosNaUrl, lerFiltrosDaUrl, paraFiltrosApi, textoVazioFiltrado } from './filtrosLancamentos';
 
 const DEBITO_ITAU = '00000000-0000-4000-8000-000000000302';
 const MERCADO = '00000000-0000-4000-8000-000000000401';
@@ -70,5 +70,29 @@ describe('paraFiltrosApi', () => {
 
   it('sem filtros: objeto vazio', () => {
     expect(paraFiltrosApi({})).toEqual({});
+  });
+});
+
+describe('textoVazioFiltrado', () => {
+  const GENERICA = 'Nenhum lançamento em outubro com esses filtros.';
+
+  it('usa a frase própria só para casa + forma', () => {
+    expect(textoVazioFiltrado({ escopo: 'casa', forma: DEBITO_ITAU }, 'outubro', 'Débito Itaú')).toBe(
+      'Em outubro, você não pagou despesas da casa com o Débito Itaú.',
+    );
+  });
+
+  it.each([
+    ['categoria', { categoria: MERCADO }],
+    ['variável', { variavel: true as const }],
+    ['Eu', { escopo: 'eu' as const }],
+    ['casa com categoria e forma', { escopo: 'casa' as const, forma: DEBITO_ITAU, categoria: MERCADO }],
+  ])('usa a frase genérica com o filtro %s', (_nome, filtros) => {
+    expect(textoVazioFiltrado(filtros, 'outubro', 'Débito Itaú')).toBe(GENERICA);
+  });
+
+  it('usa a frase genérica em casa sem forma e quando o nome da forma é desconhecido', () => {
+    expect(textoVazioFiltrado({ escopo: 'casa' }, 'outubro', undefined)).toBe(GENERICA);
+    expect(textoVazioFiltrado({ escopo: 'casa', forma: DEBITO_ITAU }, 'outubro', undefined)).toBe(GENERICA);
   });
 });

@@ -2,7 +2,7 @@ import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamen
 import { hojeEmSaoPaulo } from '../../formatacao/data';
 import { formatarTituloLancamento } from '../../formatacao/lancamento';
 import { linkEnvios } from '../../formatacao/links';
-import type { ItemFila } from '../../dados/fila/tipos';
+import type { ItemFila } from '../../ganchos/usePendentes';
 import { LinhaLancamento } from '../LinhaLancamento';
 import { GrupoDia } from './GrupoDia';
 
