@@ -56,7 +56,7 @@
       <label><input type="radio" name="tipo" value="aporte">Aporte</label>
       <label><input type="radio" name="tipo" value="retirada" checked>Retirada</label>
     </fieldset>
-    <div class="campo campo-valor"><label for="valor">Valor</label><input id="valor" class="entrada" inputmode="numeric" value="R$ 1.000,00"></div>
+    <div class="campo campo-valor"><label for="valor">Valor</label><input id="valor" class="entrada" inputmode="numeric" value="R$ 0,00"></div>
     <fieldset class="campo" style="margin:0;padding:0;border:0">
       <legend class="rotulo" style="margin-bottom:var(--espaco-2)">De onde sai</legend>
       <div class="chips-linha">
@@ -64,7 +64,7 @@
         <label class="chip"><input type="radio" name="local" value="cdb"><span>CDB Banco Inter · <span class="valor">R$ 2.000,00</span></span></label>
       </div>
     </fieldset>
-    <div class="campo"><label for="conta">Conta de destino (opcional)</label><select id="conta" class="entrada"><option>Nenhuma</option><option selected>Nubank</option><option>Itaú</option></select><p class="campo-ajuda">Credita o saldo da conta. Só você vê a conta.</p></div>
+    <div class="campo"><label for="conta">Conta de destino (opcional)</label><select id="conta" class="entrada"><option>Nenhuma</option><option>Nubank</option><option>Itaú</option></select><p class="campo-ajuda">Credita o saldo da conta. Só você vê a conta.</p></div>
     <div class="campo"><label for="data">Data</label><input id="data" class="entrada" type="date" value="2026-10-09"></div>
   </form>
   <div class="folha-rodape"><button class="botao botao-principal" type="submit" form="form-mov">Confirmar retirada</button></div>
