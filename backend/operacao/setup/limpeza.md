@@ -4,13 +4,13 @@ Registro da limpeza feita com `backend/operacao/setup/limpar-supabase.sh`. Nada 
 
 | Campo | Valor |
 |---|---|
-| Data | _a preencher_ |
-| Região conferida (`regiao`) | _a preencher_ |
-| Ref do projeto (antigo ou novo, se recriado) | _a preencher_ |
-| Caminho/nome do dump (fora do repositório) | _a preencher_ |
-| SHA-256 do dump | _a preencher_ |
-| Itens em `pg_restore --list` | _a preencher_ |
-| Caminho seguido | _reset em sa-east-1 / projeto recriado em sa-east-1_ |
+| Data | 2026-10-14 |
+| Região conferida (`regiao`) | projeto antigo: `us-west-2` (Oregon), conferida no painel; projeto novo: `sa-east-1`, confirmada pelo usuário no painel |
+| Ref do projeto (antigo ou novo, se recriado) | novo: `yrmvvronuxsaciratiwm` (antigo `xrcxbzrglndetrrhavhc`, excluído) |
+| Caminho/nome do dump (fora do repositório) | não há: backup dispensado pelo usuário (projeto antigo só tinha dados descartáveis, 29,5 MB) |
+| SHA-256 do dump | não se aplica |
+| Itens em `pg_restore --list` | não se aplica |
+| Caminho seguido | projeto excluído e recriado (região antiga era `us-west-2`, diferente de `sa-east-1`) |
 
 ## Roteiro
 
@@ -23,9 +23,9 @@ Com `supabase link` feito em `backend/supabase` e `PGHOST`, `PGUSER`, `PGPASSWOR
 
 ## Verificação no painel
 
-- [ ] `public` sem tabelas
-- [ ] Auth sem usuários
-- [ ] Storage sem bucket
-- [ ] Sem Edge Function
+- [x] `public` sem tabelas
+- [x] Auth sem usuários
+- [x] Storage sem bucket
+- [x] Sem Edge Function
 
 Observação: a URL e as chaves de um projeto recriado vão para o gerenciador de senhas e o `.env` local, nunca para este arquivo. Os ref e a região registrados aqui são usados pelas tarefas de migrations e de deploy.
