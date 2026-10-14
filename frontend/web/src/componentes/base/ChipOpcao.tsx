@@ -6,6 +6,8 @@ interface Props {
   nome: string;
   valor: string;
   conteudo: ReactNode;
+  /** Fica abaixo do nome, fora do limite de 2 linhas (ex.: selo de escopo). */
+  complemento?: ReactNode;
   marcado: boolean;
   desabilitado?: boolean;
   /** Só a grade mostra o ícone de marcado; na linha vale a borda de 2 px + fundo. */
@@ -15,7 +17,7 @@ interface Props {
   aoMudar: (valor: string) => void;
 }
 
-export function ChipOpcao({ nome, valor, conteudo, marcado, desabilitado, comIcone, invalido, aoMudar }: Props) {
+export function ChipOpcao({ nome, valor, conteudo, complemento, marcado, desabilitado, comIcone, invalido, aoMudar }: Props) {
   return (
     <label className={estilos.chip}>
       <input
@@ -28,6 +30,7 @@ export function ChipOpcao({ nome, valor, conteudo, marcado, desabilitado, comIco
         onChange={() => aoMudar(valor)}
       />
       <span className={estilos['chip-nome']}>{conteudo}</span>
+      {complemento}
       {comIcone && marcado ? <Icone nome="marcado" className={estilos['chip-marcado']} /> : null}
     </label>
   );

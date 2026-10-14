@@ -8,6 +8,7 @@
   display: flex;
   flex-direction: column;
   background: var(--cor-superficie-elevada);
+  --chip-fundo: var(--cor-superficie-elevada);
   border-radius: var(--raio-folha) var(--raio-folha) 0 0;
   box-shadow: var(--sombra-folha);
   translate: 0 var(--arraste, 0px);

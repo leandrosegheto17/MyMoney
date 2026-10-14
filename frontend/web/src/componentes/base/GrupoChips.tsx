@@ -5,6 +5,7 @@ import estilos from './Chips.module.css';
 export interface OpcaoChip {
   valor: string;
   conteudo: ReactNode;
+  complemento?: ReactNode;
   desabilitada?: boolean;
 }
 
@@ -15,12 +16,14 @@ interface Props {
   valor: string;
   aoMudar: (valor: string) => void;
   variante: 'grade' | 'linha';
+  /** Último item da grade que não é rádio (ex.: botão "Outras…"). */
+  extra?: ReactNode;
   erro?: string;
   /** Mais espaço entre o rótulo e as opções, como no formulário de movimento de meta. */
   rotuloAfastado?: boolean;
 }
 
-export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, erro, rotuloAfastado }: Props) {
+export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, extra, erro, rotuloAfastado }: Props) {
   const idErro = useId();
   const alvo = opcoes.find((o) => o.valor === valor && !o.desabilitada) ?? opcoes.find((o) => !o.desabilitada);
   return (
@@ -33,6 +36,7 @@ export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, err
             nome={nome}
             valor={o.valor}
             conteudo={o.conteudo}
+            complemento={o.complemento}
             marcado={o.valor === valor}
             desabilitado={o.desabilitada}
             comIcone={variante === 'grade'}
@@ -40,6 +44,7 @@ export function GrupoChips({ nome, rotulo, opcoes, valor, aoMudar, variante, err
             aoMudar={aoMudar}
           />
         ))}
+        {extra}
       </div>
       {erro ? (
         <p id={idErro} className={estilos['campo-erro']}>
