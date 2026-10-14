@@ -123,6 +123,29 @@ describe('api.pagar_ocorrencia', () => {
     );
   });
 
+  it('data fora da faixa plausível é recusada; hoje é aceita e o reenvio segue idempotente', async () => {
+    const ocorrencia = await ocorrenciaPendente();
+    const a = await comoA();
+    for (const p_data of ['9999-12-31', '1900-01-01']) {
+      const recusada = await a.rpc('pagar_ocorrencia', {
+        p_id: randomUUID(),
+        p_ocorrencia_id: ocorrencia,
+        p_forma_id: PIX_DE_A,
+        p_data,
+      });
+      expect(recusada.error?.message).toContain('valor_invalido');
+    }
+    const id = randomUUID();
+    pagamentosCriados.push(id);
+    const hoje = new Date().toISOString().slice(0, 10);
+    const args = { p_id: id, p_ocorrencia_id: ocorrencia, p_forma_id: PIX_DE_A, p_data: hoje };
+    const pago = await a.rpc('pagar_ocorrencia', args);
+    expect(pago.error).toBeNull();
+    const reenvio = await a.rpc('pagar_ocorrencia', args);
+    expect(reenvio.error).toBeNull();
+    expect((reenvio.data as unknown as { ja_existia: boolean }).ja_existia).toBe(true);
+  });
+
   it('usuário sem membro recebe registro_invalido', async () => {
     const sessao: Sessao = await comoSemMembro();
     await esperarRegistroInvalido(

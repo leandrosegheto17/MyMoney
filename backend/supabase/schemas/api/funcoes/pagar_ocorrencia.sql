@@ -1,7 +1,7 @@
 -- Paga uma ocorrência de despesa fixa à vista (CA-12.1, 12.2, 12.2a): cria o lançamento
 -- conjunto do pagador ligado à ocorrência, com 1 parcela no vencimento da ocorrência (I-20,
 -- ADR-005 §3) e a parte privada (forma, conta, data do pagamento) só do pagador. Valor padrão
--- é o previsto e data padrão é hoje. Pix/Débito afetam o saldo pela data da operação; Crédito
+-- é o previsto e data padrão é hoje; data fora de 2000-01-01..hoje+30 dias é valor_invalido. Pix/Débito afetam o saldo pela data da operação; Crédito
 -- guarda o dia de vencimento da forma e não toca nenhuma conta. Idempotente pelo id (G-17).
 -- A resposta não carrega forma, conta nem data do pagamento (RN-04).
 create or replace function api.pagar_ocorrencia(
@@ -63,6 +63,9 @@ begin
     raise exception 'valor_invalido';
   end if;
   v_data := coalesce(p_data, app.hoje());
+  if v_data < date '2000-01-01' or v_data > app.hoje() + 30 then
+    raise exception 'valor_invalido';
+  end if;
 
   begin
     insert into app.lancamento (id, lar_id, tipo, escopo, dono_id, categoria_id, descricao,
