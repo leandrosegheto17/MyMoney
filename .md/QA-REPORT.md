@@ -758,3 +758,63 @@ DEVOLVIDA — 1 crítico (Segmentado do escopo na criação não ocupa a largura
 
 ## TP-0156 — QA — 2026-10-14
 APROVADA; 0 críticos, 3 não críticos (RTP-0127 mockup retirada preenchido, RTP-0128 duplicação do parâmetro de URL, RTP-0129 telas-implementadas); vitest 335 e e2e 10/10 passando, troca de tipo e envio conferidos no shell real, aporte/vazio visual <=0,55%, retirada 1,46%/1,88% só por valor/conta preenchidos no mockup.
+
+## RTP-0109 — QA — 2026-10-14
+APROVADA — mockup pagar-fixa--erro alinhado à UX-SPEC T08 e à folha do app (alturas iguais, <=1%), e2e erro celular/PC passando; 0 críticos, 0 não críticos.
+
+## RTP-0110 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; T08/T13/T21 <= 1% com mesma altura, controles T04/T06 sem regressão, recorte inexistente gera ERRO (mutação revertida).
+
+## RTP-0114 — QA — 2026-10-14
+APROVADA — 0 críticos, 0 não críticos; legenda "Tipo" visível e altura igual ao mockup (celular e PC), diferença só do anel de foco; vitest 22/22, e2e forma 6/6.
+
+## RTP-0115 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; erro pc/celular iguais ao mockup (só anel de foco) e T20 sucesso 0,00%.
+
+## RTP-0117 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; PNGs de T02/T16 byte-idênticos antes/depois (rename puro), divergência T02 sucesso preexistente (BK-0026), vitest 121/121.
+
+## RTP-0118 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 7/7 e eslint limpo, mês do vazio vem de mes (testado com 2026-11).
+
+## RTP-0119 — QA — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; vitest 10 ok, e2e 6 ok (axe T02 sucesso), mutação do título "N de total" derruba os 2 testes novos.
+
+## RTP-0120 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 11 ok e e2e inicio 6 ok (axe `sucesso` pc/celular cobre o bloco Eu).
+
+## RTP-0122 — QA — 2026-10-14
+APROVADA — 0 críticos, 0 não críticos; href do passo Instale testado e o ProvedorInstalar trata `/ajustes?instalar=1` (27 testes verdes).
+
+## RTP-0123 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 44/44, eslint e tsc limpos, RodapeFila sem import de dados/.
+
+## RTP-0124 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; folha do mockup igual à do app (texto idêntico, 390x844 e 1440x900 conferidos nos PNGs), listada no index e na UX-SPEC T22.
+
+## RTP-0125 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0135: e2e da altura >= 44 px); vitest 22/22 e mutação de variante e de `.acoes` derrubou o teste.
+
+## RTP-0127 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; `pnpm visual --tela T13` todos <=1% com mesma altura (retirada 0,76% PC / 0,90% celular, resíduo só anel de foco e antialias), mockup coerente com a UX-SPEC T13.
+
+## RTP-0128 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 186 ok, tsc/eslint limpos, 22 e2e passando; gancho único, sem cópia nos 3 componentes.
+
+## RTP-0129 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0137: registrar T08/T10/T19/T20/T21/T22 no JSON); pnpm visual 26 linhas OK, T13 de 0,24% a 0,90% (retirada celular perto do limite de 1%).
+
+## RTP-0130 — QA — 2026-10-14
+DEVOLVIDA — API 7/7 e contrato/migration OK, mas pgTAP regrediu (formas/gasto_cartao_fixa.sql 14-19, datas futuras agora recusadas); 1 crítico, 2 não críticos (RTP-0136: min/max e mensagem de data na folha).
+
+## TP-0074 — QA — 2026-10-14
+APROVADA (rodada 2) — 3 críticos anteriores resolvidos (rádios `tipo-categoria`, sem chevron nos itens sem selo, visual T19 ≤ 0.12% nos 8 casos com mesma altura), e2e 8/8, 0 críticos, 0 não críticos, nenhuma RTP.
+
+## TP-0081 — QA — 2026-10-14
+APROVADA (rodada 2) — 0 críticos, 0 não críticos novos; `name="tipo-lancamento"` confirmado no navegador em categorias, formas/nova e metas/nova; e2e e vitest do aceite passam (2 vermelhos reservados ao TP-0083; RTP-0116 já aberta).
+
+## TP-0155 — QA — 2026-10-14
+APROVADA (rodada 2) — 0 críticos, 0 não críticos novos; geometria de `meta-form--erro` igual ao mockup (celular e PC), T12 sucesso 0,00%, `forma--erro`/`categoria--erro` sem regressão, vitest 42/42, e2e 20/20.
+
+## TP-0159 — QA — 2026-10-14
+APROVADA; 0 críticos, 2 não críticos (RTP-0132 CSS duplicado, RTP-0133 texto da nota UX-SPEC × mockup); testes 65/65, e2e 6/6, visual T21 0,25-0,45% com mesma altura (PNGs abertos).
