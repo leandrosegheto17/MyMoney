@@ -13,15 +13,21 @@ export function EuPorCategoria({ individual, mes }: PropsEu) {
       estado={vazio ? 'vazio' : 'dado'}
       textoVazio="Nenhuma despesa sua no mês."
     >
-      <ListaPorCategoria
-        itens={individual.por_categoria}
-        linkPara={(categoria) => linkLancamentos({ mes, escopo: 'individual', categoria })}
-      />
-      <p className={estilos['lista-sub']}>Minha parte na casa</p>
-      <ListaPorCategoria
-        itens={individual.minha_parte_por_categoria}
-        linkPara={(categoria) => linkLancamentos({ mes, escopo: 'conjunto', categoria })}
-      />
+      {individual.por_categoria.length > 0 && (
+        <ListaPorCategoria
+          itens={individual.por_categoria}
+          linkPara={(categoria) => linkLancamentos({ mes, escopo: 'individual', categoria })}
+        />
+      )}
+      {individual.minha_parte_por_categoria.length > 0 && (
+        <>
+          <p className={estilos['lista-sub']}>Minha parte na casa</p>
+          <ListaPorCategoria
+            itens={individual.minha_parte_por_categoria}
+            linkPara={(categoria) => linkLancamentos({ mes, escopo: 'conjunto', categoria })}
+          />
+        </>
+      )}
     </CartaoResumo>
   );
 }

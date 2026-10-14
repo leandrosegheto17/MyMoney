@@ -8,10 +8,10 @@ import { EuPorCategoria } from './EuPorCategoria';
 
 const resumo = lerResposta<ResumoMes>('resumo-mes.json');
 
-function montar() {
+function montar(individual: ResumoMes['individual'] = resumo.individual) {
   return render(
     <MemoryRouter>
-      <EuPorCategoria individual={resumo.individual} mes="2026-10" />
+      <EuPorCategoria individual={individual} mes="2026-10" />
     </MemoryRouter>,
   );
 }
@@ -68,5 +68,30 @@ describe('EuPorCategoria', () => {
       'href',
       linkLancamentos({ mes: '2026-10', escopo: 'individual', categoria: '00000000-0000-4000-8000-000000000413' }),
     );
+  });
+
+  it('só a lista própria: sem "Minha parte na casa" nem segunda lista', () => {
+    montar({ ...resumo.individual, minha_parte_por_categoria: [] });
+
+    expect(within(cartao()).getAllByRole('list')).toHaveLength(1);
+    expect(within(cartao()).queryByText('Minha parte na casa')).not.toBeInTheDocument();
+    expect(within(cartao()).getAllByRole('link')).toHaveLength(4);
+  });
+
+  it('só a parte na casa: sem primeira lista, com o subtítulo', () => {
+    montar({ ...resumo.individual, por_categoria: [] });
+
+    const listas = within(cartao()).getAllByRole('list');
+    expect(listas).toHaveLength(1);
+    expect(within(cartao()).getByText('Minha parte na casa')).toBeInTheDocument();
+    expect(within(listas[0]).getAllByRole('link')).toHaveLength(4);
+  });
+
+  it('as duas vazias: texto do vazio e nenhuma lista', () => {
+    montar({ ...resumo.individual, por_categoria: [], minha_parte_por_categoria: [] });
+
+    expect(within(cartao()).getByText('Nenhuma despesa sua no mês.')).toBeInTheDocument();
+    expect(within(cartao()).queryByRole('list')).not.toBeInTheDocument();
+    expect(within(cartao()).queryByText('Minha parte na casa')).not.toBeInTheDocument();
   });
 });
