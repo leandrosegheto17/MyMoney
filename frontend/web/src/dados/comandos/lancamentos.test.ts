@@ -180,6 +180,14 @@ describe('excluirLancamento', () => {
 
     await expect(excluirLancamento(ID_GELADEIRA)).rejects.toEqual({ tipo: 'rede' });
   });
+
+  it('id que não é uuid dá registro_invalido sem requisição', async () => {
+    await expect(excluirLancamento('abc')).rejects.toEqual({
+      tipo: 'regra',
+      codigo: 'registro_invalido',
+    });
+    expect(fetchSimulado).not.toHaveBeenCalled();
+  });
 });
 
 describe('alterarDataParcela', () => {

@@ -40,6 +40,7 @@ export const ehConfirmarDescarte = (erro: ErroDados | null | undefined): boolean
   erro?.tipo === 'regra' && erro.codigo === 'confirmar_descarte_ajustes';
 
 export const excluirLancamento = async (id: string): Promise<void> => {
+  if (!ehUuid(id)) throw { tipo: 'regra', codigo: 'registro_invalido' } satisfies ErroDados;
   await chamarRpc('excluir_lancamento', { p_id: id });
 };
 
