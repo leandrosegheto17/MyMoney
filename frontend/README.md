@@ -35,6 +35,18 @@ serve T01 e T01b; `sessao-falsa` injeta o usuário de `auth-usuario.json`, sem c
 2026-10-09. Só existe em desenvolvimento: o build de produção falha se ela estiver definida. Não a coloque em
 `.env.example`, `.env.local` nem na Vercel.
 
+## Hospedagem (`frontend/web/vercel.json`)
+
+Rewrite de toda rota para `/index.html` (a Vercel serve antes o arquivo que existir) e cabeçalhos de segurança:
+CSP estrita (`default-src 'self'`, sem `unsafe-inline`/`unsafe-eval`, `frame-ancestors 'none'`, `connect-src` só
+`'self'` e o Supabase de produção), HSTS de 2 anos, `nosniff`, `Referrer-Policy: no-referrer` e `Permissions-Policy`
+restritiva. Se o projeto Supabase for recriado, troque o ref em `connect-src` e em
+`backend/operacao/setup/limpeza.md` (os testes leem o ref de lá). Acrescentar host à CSP é exceção da G-20 e segue a
+governança de exceções.
+
+`pnpm --filter @mymoney/web verificar-hosts [pasta]` (depois do build) falha se o `dist/` tiver literal `http(s)://`
+de host que não seja o Supabase de produção.
+
 ## Regras de fronteira (lint)
 
 `frontend/web/eslint.fronteiras.js` impõe a direção de import entre camadas, restringe `@supabase/supabase-js`

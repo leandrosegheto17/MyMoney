@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
-    "visual": "node scripts/visual.mjs",
+    "verificar-hosts": "node scripts/verificarHosts.mjs dist",
+    "visual":"node scripts/visual.mjs",
     "icones": "node scripts/gerar-icones.mjs"
   },
   "browserslist": [
