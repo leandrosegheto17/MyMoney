@@ -3,7 +3,7 @@ import lista from './base/Lista.module.css';
 import estilo from './GrupoMenu.module.css';
 
 interface Props {
-  titulo: string;
+  titulo: ReactNode;
   children: ReactNode;
   /** Conteúdo logo abaixo da lista (ex.: botão de criar). */
   rodape?: ReactNode;
