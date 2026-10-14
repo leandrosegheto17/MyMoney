@@ -24,6 +24,11 @@ function textoSelo(o: Ocorrencia): string | undefined {
   return `Paga por ${o.pagador.sou_eu ? 'você' : o.pagador.nome}`;
 }
 
+function valorMostrado(o: Ocorrencia): number {
+  if (o.situacao !== 'paga') return o.valor_previsto_centavos;
+  return o.valor_pago_centavos ?? o.valor_previsto_centavos;
+}
+
 /** A ordem e os totais vêm prontos da API; a tela só mostra. Só quem pagou desfaz (RN-06). */
 export function CartaoOcorrencias({ mes, resumo, ocorrencias, aoDesfazer, refTitulo }: Props) {
   const idTitulo = useId();
@@ -64,7 +69,7 @@ export function CartaoOcorrencias({ mes, resumo, ocorrencias, aoDesfazer, refTit
             categoria={o.categoria}
             situacao={o.situacao}
             vencimento={o.vencimento}
-            valorCentavos={o.situacao === 'paga' ? (o.valor_pago_centavos ?? o.valor_previsto_centavos) : o.valor_previsto_centavos}
+            valorCentavos={valorMostrado(o)}
             textoSelo={textoSelo(o)}
             acao={acao(o)}
           />

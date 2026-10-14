@@ -18,6 +18,10 @@
   color: var(--cor-texto);
 }
 .previsto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espaco-2);
   font-size: var(--tam-pequeno);
   color: var(--cor-texto-2);
 }

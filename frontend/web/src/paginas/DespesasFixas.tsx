@@ -5,7 +5,6 @@ import { DialogoConfirmacao } from '../componentes/base/DialogoConfirmacao';
 import { EstadoVazio } from '../componentes/base/EstadoVazio';
 import { LinhaVazia } from '../componentes/base/LinhaVazia';
 import { useAviso } from '../componentes/base/useAviso';
-import type { ErroDados } from '../dados/erros';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { CartaoOcorrencias, type Ocorrencia } from '../componentes/fixas/CartaoOcorrencias';
 import { EsqueletoFixas } from '../componentes/fixas/EsqueletoFixas';
@@ -21,6 +20,9 @@ import { mensagemErro } from '../rotulos/mensagensErro';
 import { PagarFixaConectada } from './fixas/PagarFixaConectada';
 
 const NOVA = '/fixas/nova';
+const TEXTO_VAZIO =
+  'Cadastre as contas que se repetem todo mês (aluguel, luz, internet). ' +
+  'O app cria uma ocorrência por mês e avisa quando atrasar.';
 
 export function DespesasFixas() {
   const [mes, definirMes] = useMesDaUrl();
@@ -34,16 +36,14 @@ export function DespesasFixas() {
 
   const ativos = modelos.data?.filter((m) => m.encerrada_em === null) ?? [];
 
-  async function confirmarDesfazer() {
+  function confirmarDesfazer() {
     const alvo = desfazendo;
     setDesfazendo(null);
     if (!alvo) return;
-    try {
-      await desfazerPagamento.mutateAsync(alvo.id);
-      mostrar('sucesso', 'Pagamento desfeito');
-    } catch (erro) {
-      mostrar('erro', mensagemErro(erro as ErroDados));
-    }
+    desfazerPagamento.mutate(alvo.id, {
+      onSuccess: () => mostrar('sucesso', 'Pagamento desfeito'),
+      onError: (erro) => mostrar('erro', mensagemErro(erro)),
+    });
   }
 
   return (
@@ -64,7 +64,7 @@ export function DespesasFixas() {
                 <EstadoVazio
                   icone="relogio"
                   titulo="Nenhuma despesa fixa cadastrada"
-                  texto="Cadastre as contas que se repetem todo mês (aluguel, luz, internet). O app cria uma ocorrência por mês e avisa quando atrasar."
+                  texto={TEXTO_VAZIO}
                   acao={
                     <BotaoLink para={NOVA} variante="principal" icone="mais">
                       Nova despesa fixa
@@ -102,7 +102,7 @@ export function DespesasFixas() {
         texto="A ocorrência volta a Pendente e o lançamento do pagamento é excluído."
         rotuloConfirmar="Desfazer pagamento"
         variante="destrutiva"
-        aoConfirmar={() => void confirmarDesfazer()}
+        aoConfirmar={confirmarDesfazer}
         aoCancelar={() => setDesfazendo(null)}
       />
     </>
