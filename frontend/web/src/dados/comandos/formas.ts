@@ -17,3 +17,19 @@ export const excluirForma = async (id: string): Promise<void> => {
 export const definirPreferida = async (id: string, preferida: boolean): Promise<void> => {
   await chamarRpc('definir_preferida', { p_id: id, p_preferida: preferida });
 };
+
+/** O `id` é gerado uma vez por abertura da folha: o reenvio depois de uma falha de rede é idempotente. */
+export const registrarPagamentoCartao = (d: {
+  id: string;
+  formaId: string;
+  contaId: string;
+  valorCentavos: number;
+  data: string;
+}) =>
+  chamarRpc('registrar_pagamento_cartao', {
+    p_id: d.id,
+    p_forma_id: d.formaId,
+    p_conta_id: d.contaId,
+    p_valor_centavos: d.valorCentavos,
+    p_data: d.data,
+  });

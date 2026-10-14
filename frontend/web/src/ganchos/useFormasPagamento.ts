@@ -1,5 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { arquivarForma, definirPreferida, excluirForma, salvarForma } from '../dados/comandos/formas';
+import {
+  arquivarForma,
+  definirPreferida,
+  excluirForma,
+  registrarPagamentoCartao,
+  salvarForma,
+} from '../dados/comandos/formas';
 import { buscarForma, buscarFormas } from '../dados/consultas/formas';
 import type { ErroDados } from '../dados/erros';
 import { CHAVES } from './chavesConsulta';
@@ -28,5 +34,7 @@ export function useComandosForma() {
       (v: { id: string; preferida: boolean }) => definirPreferida(v.id, v.preferida),
       afetadas,
     ),
+    /** Mexe no saldo da conta e no resumo do mês; o gasto do cartão não muda, então as formas ficam de fora. */
+    registrarPagamentoCartao: useComandoCadastro(registrarPagamentoCartao, [CHAVES.contas, CHAVES.resumoMes], true),
   };
 }

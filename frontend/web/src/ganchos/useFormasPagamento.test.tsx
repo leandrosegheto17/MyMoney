@@ -14,6 +14,7 @@ vi.mock('../dados/comandos/formas', () => ({
   arquivarForma: vi.fn(),
   excluirForma: vi.fn(),
   definirPreferida: vi.fn(),
+  registrarPagamentoCartao: vi.fn(),
 }));
 
 const consultas = await import('../dados/consultas/formas');

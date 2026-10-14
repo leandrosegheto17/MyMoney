@@ -8,6 +8,7 @@ import { QuadroCartao } from '../../componentes/QuadroCartao';
 import { useContas } from '../../ganchos/useContas';
 import { useContexto } from '../../ganchos/useContexto';
 import { formatarNomeMes } from '../../formatacao/mes';
+import { PagamentoCartaoConectada } from '../formas/PagamentoCartaoConectada';
 import estilo from './EdicaoForma.module.css';
 import { useAcoesForma } from './useAcoesForma';
 
@@ -74,6 +75,7 @@ export function EdicaoForma({ forma }: { forma: LinhaFormasPagamento }) {
           </>
         )}
       </FormularioForma>
+      <PagamentoCartaoConectada forma={forma} />
       <DialogoConfirmacao
         aberto={confirmando}
         titulo="Excluir esta forma?"
