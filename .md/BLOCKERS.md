@@ -260,3 +260,30 @@
 - Impacto se não resolvido: T22 fica sem comparação visual automática
 - Sugestão: —
 - Status: Em aberto
+
+## Bloqueio 030 — 2026-10-14 (BK-0030)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: TP-0010
+- Descrição: Tarefa [U]: aplicar/confirmar no painel de produção Supabase os itens de Auth/API e informar o domínio *.vercel.app; rodar interativo
+- Impacto se não resolvido: Segura TP-0010 e dependentes
+- Sugestão: /executar --tarefa TP-0010 em sessão interativa; revisar config.toml (enable_signup=true local divergente)
+- Status: Em aberto
+
+## Bloqueio 031 — 2026-10-14 (BK-0031)
+- Reportado por: Executor
+- Escalado para: Coordenador
+- Artefato/trecho afetado: TP-0094
+- Descrição: Visual T02 'sucesso' não fecha (9,91% PC / 17,54% celular): mockup sem a faixa '1 lançamento aguardando envio' que o app mostra; decidir se o mockup ganha a faixa ou o app a omite na Início com dados (G-18)
+- Impacto se não resolvido: —
+- Sugestão: Coordenador ajusta mockup inicio--sucesso ou UX-SPEC/TP-0089
+- Status: Em aberto
+
+## Bloqueio 032 — 2026-10-14 (BK-0032)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0131
+- Descrição: Confirmar se enable_signup=true local em backend/supabase/config.toml é intencional (reverter para false ou ligar a uma tarefa)
+- Impacto se não resolvido: —
+- Sugestão: git checkout backend/supabase/config.toml se não for intencional
+- Status: Em aberto

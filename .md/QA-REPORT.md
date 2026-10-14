@@ -848,3 +848,36 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0140: EmConstrucao.tsx órfão); vit
 
 ## RTP-0137 — QA — 2026-10-14
 APROVADA — 5 telas (T08, T10, T19, T20, T21) registradas e OK no visual completo (≤ 0,91%, mesmas alturas); 0 críticos, 1 não crítico (alegação errada sobre T22 no plano; causa real coberta por RTP-0141); sem RTP nova.
+
+## RTP-0006 — QA — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; install frozen-lockfile código 0 sem a exceção e keepalive 13/13.
+
+## RTP-0095 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 14/14 e visual T06 0,00% em todos os estados (pc/celular), sem ErroDados nem linha >120.
+
+## RTP-0108 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 29/29 verde (digitação parcial = 0 chamadas, blur/Enter/seletor = 1); e2e Playwright não executável (6/6 caem na tela de login, falha de ambiente também em casos não relacionados).
+
+## RTP-0133 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (linha do TP-0159 no TASK.md ainda com a nota curta, aberta RTP-0142); UX-SPEC T21 alinhada ao mockup/folha e visual T21 OK (<= 0,45%).
+
+## RTP-0136 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0143: prettier em data.ts e max recalculado a cada render); 31 testes passando.
+
+## RTP-0138 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; shellcheck sem SC1017, `.sh` de operação i/lf w/lf, testes 8/0 falhas.
+
+## RTP-0139 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; SecaoParcelas.test.tsx 10/10 e o diff desmonta o estado `outro` ao sair do Crédito.
+
+## RTP-0140 — QA — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; grep vazio, tsc --noEmit limpo, mapaRotas 53/53.
+
+## TP-0028 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0144); 15 testes passando e cabeçalhos conferidos; verificar-hosts sai 1 no build real por decisão pendente do Gestor (G-20), não bloqueia o aceite.
+
+## TP-0084 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0145: T03 `inicial` 7,21% celular/1,65% PC por deslocamento de ~3 px e foco em Despesa, não pelo botão); `vazio` 0%/0,03%, 63 testes ok.
+
+## TP-0142 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0146: aviso registro_invalido some se o refetch remover a categoria); vitest 28/28, e2e 5/5, visual T09 folha 0,47%/0,55% com PNGs abertos.

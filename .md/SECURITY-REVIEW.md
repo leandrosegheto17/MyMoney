@@ -779,3 +779,39 @@ APROVADA em segurança — 0 críticos, 0 não críticos; diff lido (sem HTML cr
 
 ## TP-0141 — DevSecOps — 2026-10-14
 APROVADA; 0 críticos, 0 não críticos; escopo da URL em lista fechada, sem XSS/cálculo/import de dados na tela, sem dependência nova (revisão do diff, grep executado).
+
+## RTP-0006 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; diff lido remove a exceção de minimumReleaseAge sem nova exceção nem dependência nova (nada executado por este chapéu).
+
+## RTP-0095 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff lido (CSS + tratamento de erro no cliente via mensagemErro), sem dependência nova nem superfície de segurança; nada executado além da leitura.
+
+## RTP-0108 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; revisão de diff apenas (nada executado), sem import/style inline/HTML cru novos e sem dependência nova, chamadas intermediárias ao rpc eliminadas.
+
+## RTP-0133 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só de texto em UX-SPEC (lido, nada executado), sem impacto de segurança.
+
+## RTP-0136 — DevSecOps — 2026-10-14
+APROVADA em segurança (revisão de diff, nada executado); 0 críticos, 0 não críticos; validação continua no servidor.
+
+## RTP-0137 — DevSecOps — 2026-10-14
+APROVADA — diff é só lista estática de IDs de tela em JSON, sem impacto de segurança; 0 críticos, 0 não críticos; nada executado (revisão de leitura).
+
+## RTP-0138 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só `.gitattributes` (config de EOL), revisão de leitura, sem execução nem dependência nova.
+
+## RTP-0139 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só de estado local de UI, sem dependência nova nem superfície de segurança (revisão de leitura, nada executado).
+
+## RTP-0140 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; remoção de componente estático sem impacto de segurança, grep sem referências restantes.
+
+## TP-0028 — DevSecOps — 2026-10-14
+APROVADA em segurança; 0 críticos, 0 não críticos novos; CSP/HSTS/nosniff/no-referrer/Permissions-Policy conferidos no diff, ref confirmado em limpeza.md e 15 testes executados passando; teste ativo em deploy fica para o /deploy.
+
+## TP-0084 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff lido (fila/idempotência, erros só por rótulo, sem HTML cru/style/dependência nova) e 40 testes do gancho e dos rótulos executados ok; SAST e teste ativo ficam para o `/deploy`.
+
+## TP-0142 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; revisão do diff (lida, nada de segurança executado): só mês/categoria/valor enviados, abre só para id já na resposta, registro_invalido genérico (G-05), sem dependência nova.
