@@ -24,8 +24,13 @@ interface Props {
   tituloCartao: RefObject<HTMLHeadingElement | null>;
 }
 
+const DATA_FORA_DO_PERIODO = 'Data fora do período permitido';
+
+/** No pagamento, `valor_invalido` vem da data fora do período (o valor já é validado na folha). */
 function textoDoErro(erro: ErroDados): string {
-  return erro.tipo === 'rede' ? SEM_CONEXAO : mensagemErro(erro);
+  if (erro.tipo === 'rede') return SEM_CONEXAO;
+  if (erro.tipo === 'regra' && erro.codigo === 'valor_invalido') return DATA_FORA_DO_PERIODO;
+  return mensagemErro(erro);
 }
 
 /** Abre a folha para o `?pagar=<id>` quando é de uma ocorrência do mês ainda não paga; senão tira o parâmetro. */

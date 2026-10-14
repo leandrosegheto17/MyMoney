@@ -1,6 +1,7 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import type { SituacaoOcorrencia } from '@mymoney/contrato/enums';
 import type { FormEvent } from 'react';
+import { periodoDePagamento } from '../../formatacao/data';
 import { formatarMoeda } from '../../formatacao/moeda';
 import { ROTULO_TIPO_FORMA } from '../../rotulos/tipoForma';
 import { AvisoErroTopo } from '../base/AvisoErroTopo';
@@ -61,6 +62,7 @@ export function FolhaPagarFixa({
   aoFechar,
 }: Props) {
   const semFormas = formas.length === 0;
+  const periodo = periodoDePagamento();
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
@@ -108,7 +110,13 @@ export function FolhaPagarFixa({
             aoMudar={aoMudarValor}
             ajuda={`Previsto: ${formatarMoeda(ocorrencia.valor_previsto_centavos)}`}
           />
-          <CampoData rotulo="Data do pagamento" value={data} onChange={(e) => aoMudarData(e.target.value)} />
+          <CampoData
+            rotulo="Data do pagamento"
+            value={data}
+            min={periodo.min}
+            max={periodo.max}
+            onChange={(e) => aoMudarData(e.target.value)}
+          />
           <Nota>
             Se pagar no cartão de crédito: conta em {nomeMes} na casa e aparece no cartão no próximo vencimento.
           </Nota>

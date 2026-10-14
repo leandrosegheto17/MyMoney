@@ -1,5 +1,15 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { formatarData, hojeEmSaoPaulo } from './data';
+import { formatarData, hojeEmSaoPaulo, periodoDePagamento } from './data';
+
+describe('periodoDePagamento', () => {
+  it.each([
+    ['2026-10-09T15:00:00Z', '2026-11-08'],
+    ['2026-12-15T01:00:00Z', '2027-01-13'],
+    ['2028-02-10T12:00:00Z', '2028-03-11'],
+  ])('em %s o máximo é %s', (agora, max) => {
+    expect(periodoDePagamento(new Date(agora))).toEqual({ min: '2000-01-01', max });
+  });
+});
 
 const tzOriginal = process.env.TZ;
 

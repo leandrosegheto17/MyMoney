@@ -165,6 +165,14 @@ describe('Folha "Marcar como paga": abertura e padrões', () => {
     expect(within(dialogo).getByRole('button', { name: 'Confirmar pagamento' })).toBeInTheDocument();
   });
 
+  it('o campo de data limita o período a 2000-01-01 até hoje + 30 dias', () => {
+    renderizarPagina(CAMINHO_INTERNET);
+
+    const data = within(folha()).getByLabelText('Data do pagamento');
+    expect(data).toHaveAttribute('min', '2000-01-01');
+    expect(data).toHaveAttribute('max', '2026-11-08');
+  });
+
   it('trocar para o cartão de crédito mantém a nota', async () => {
     const usuario = userEvent.setup();
     renderizarPagina(CAMINHO_INTERNET);
@@ -243,6 +251,16 @@ describe('Folha "Marcar como paga": confirmar', () => {
     expect(comandos.pagarOcorrencia.mock.calls[0][0]).toMatchObject(esperado);
     expect(comandos.pagarOcorrencia.mock.calls[1][0]).toMatchObject(esperado);
     await waitFor(() => expect(mostrarAviso).toHaveBeenCalledWith('sucesso', 'Marcada como paga'));
+  });
+
+  it('recusa valor_invalido no pagamento mostra o texto de data', async () => {
+    comandos.pagarOcorrencia.mockRejectedValue({ tipo: 'regra', codigo: 'valor_invalido' });
+    const usuario = userEvent.setup();
+    renderizarPagina(CAMINHO_INTERNET);
+
+    await usuario.click(within(folha()).getByRole('button', { name: 'Confirmar pagamento' }));
+
+    expect(await within(folha()).findByRole('alert')).toHaveTextContent('Data fora do período permitido');
   });
 
   it('recusa de regra (já paga pelo outro) mostra o aviso de topo e invalida ocorrencias_mes', async () => {

@@ -36,7 +36,18 @@ export function hojeEmSaoPaulo(agora: Date = new Date()): string {
   return `${partes.year}-${partes.month}-${partes.day}`;
 }
 
-const formatadorHora = new Intl.DateTimeFormat('pt-BR', {
+const PRIMEIRA_DATA_DE_PAGAMENTO = '2000-01-01';
+const DIAS_A_FRENTE_DO_PAGAMENTO = 30;
+
+/** Período que o servidor aceita para a data de um pagamento: de 2000-01-01 até hoje + 30 dias (São Paulo). */
+export function periodoDePagamento(agora: Date = new Date()): { min: string; max: string } {
+  const hoje = hojeEmSaoPaulo(agora);
+  const limite = new Date(Date.UTC(Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7)) - 1, Number(hoje.slice(8, 10))));
+  limite.setUTCDate(limite.getUTCDate() + DIAS_A_FRENTE_DO_PAGAMENTO);
+  return { min: PRIMEIRA_DATA_DE_PAGAMENTO, max: limite.toISOString().slice(0, 10) };
+}
+
+const formatadorHora =new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
   hour: '2-digit',
   minute: '2-digit',
