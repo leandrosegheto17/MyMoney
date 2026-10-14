@@ -701,3 +701,60 @@ APROVADA; 0 achados; separação casa/eu garantida pela RLS/view (não pelo clie
 
 ## TP-0156 — DevSecOps — 2026-10-14
 APROVADA; 0 achados (sem crítico/alto/médio/baixo); validação, autorização de meta/conta e limite de retirada são do RPC no servidor, conta só no corpo do RPC, sem dependência nova, sem dangerouslySetInnerHTML, telas.json só com dados fictícios.
+
+## RTP-0109 — DevSecOps — 2026-10-14
+APROVADA — diff só HTML estático do mockup, sem script/recurso externo/segredo/dado real (lido, não executado); 0 críticos, 0 não críticos.
+
+## RTP-0110 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; `recorte` só vai para `locator()` (sem eval/rede/child_process novos), escrita só em `.md/.visual`, `telas.json` sem segredo/dado real (revisão de leitura).
+
+## RTP-0114 — DevSecOps — 2026-10-14
+APROVADA — 0 críticos, 0 não críticos; diff de uma linha de apresentação (prop booleana), sem sink de XSS, dependência ou mudança de submissão (revisão de leitura; nada executado).
+
+## RTP-0115 — DevSecOps — 2026-10-14
+APROVADA; 0 achados (diff só de apresentação, sem sinks de XSS, sem dependência, submissão inalterada; ajuda omitida não é mensagem de segurança); verificação por leitura + busca de padrões.
+
+## RTP-0117 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; rename puro de CSS e imports, sem sinks (style=/dangerouslySetInnerHTML/url()), sem dependência nem dado real.
+
+## RTP-0118 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; mês vem da prop `mes`, formatado e renderizado como texto JSX, sem sinks de XSS nem dependência nova.
+
+## RTP-0119 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; diff só de testes com fixtures fictícias e rotas interceptadas, sem segredos, dependência ou código de produção.
+
+## RTP-0120 — DevSecOps — 2026-10-14
+APROVADA em segurança; 0 achados (só renderização condicional sobre dados do próprio membro, sem XSS/dependência); verificação por leitura do diff, nada executado.
+
+## RTP-0122 — DevSecOps — 2026-10-14
+APROVADA — 0 achados; diff só de teste, href constante e ProvedorInstalar só lê `instalar === '1'` (revisão de leitura, nada executado).
+
+## RTP-0123 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só de tipo/teste, sem dependência nova, sem sink XSS, sem alteração do que a fila local guarda (revisão de leitura, nada executado).
+
+## RTP-0124 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; HTML estático do mockup sem script, sem segredo/dado real e sem link externo (fonte do Google é convenção herdada do mockup), UX-SPEC sem enfraquecer segurança; verificado por leitura do diff e grep.
+
+## RTP-0125 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; diff só de testes (LIDO), sem código de produção/dependência/segredo/dado real; nada executado por não haver superfície.
+
+## RTP-0127 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; diff de 2 linhas em mockup HTML estático, sem script/recurso externo/segredo/dado real (revisão de leitura, nada executado).
+
+## RTP-0128 — DevSecOps — 2026-10-14
+APROVADA; 0 achados; gancho sem navegação/HTML, validação (ehUuid, whitelist, '1') mantida em cada consumidor, demais parâmetros preservados; revisão de leitura, sem dependência nova.
+
+## RTP-0129 — DevSecOps — 2026-10-14
+APROVADA; 0 achados de segurança (diff só acrescenta id "T13" em lista JSON; JSON validado por parse), nenhuma RTP aberta.
+
+## TP-0074 — DevSecOps — 2026-10-14
+APROVADA — whitelist de `?tipo=`, nomes como texto, `seta={false}` do ItemLink só visual, sem dependência nova; 0 críticos, 0 não críticos, nenhuma RTP.
+
+## TP-0081 — DevSecOps — 2026-10-14
+APROVADA — 0 críticos, 0 não críticos; folha oculta fora do alcance de teclado/leitor (hidden no div externo), nada financeiro em storage, estado some ao sair, sem dependência nova, /ensaio-teclado removida sem resquício.
+
+## TP-0155 — DevSecOps — 2026-10-14
+APROVADA (rodada 2) — 0 achados; `?escopo` em whitelist, `:id` validado como uuid, escopo não enviado na edição e regras/autorização no RPC `salvar_meta`; sem `dangerouslySetInnerHTML` nem dependência nova.
+
+## TP-0159 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; RPC valida membro, valor, forma/conta do dono e idempotência no servidor, API test 4/4 contra Supabase local, sem dependência nova.
