@@ -7,7 +7,17 @@ import type { Page } from '@playwright/test';
 
 const HOSTS_LOCAIS = new Set(['127.0.0.1', 'localhost']);
 
-function lerAmbiente(): { url: string; chave: string } {
+/** True só se o hostname da URL (já interpretada, sem userinfo) é 127.0.0.1 ou localhost. */
+export function ehHostLocal(url: string | undefined): boolean {
+  try {
+    return url !== undefined && HOSTS_LOCAIS.has(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+/** Variáveis de `.env.local`, sobrepostas pelas do processo. */
+export function lerEnvLocal(): Record<string, string | undefined> {
   const arquivo = join(process.cwd(), '.env.local');
   const linhas = Object.fromEntries(
     readFileSync(arquivo, 'utf8')
@@ -16,8 +26,13 @@ function lerAmbiente(): { url: string; chave: string } {
       .filter((m): m is RegExpMatchArray => m !== null)
       .map((m) => [m[1], m[2].replace(/^["']|["']$/g, '')]),
   );
-  const url = process.env.VITE_SUPABASE_URL ?? linhas.VITE_SUPABASE_URL;
-  const chave = process.env.VITE_SUPABASE_ANON_KEY ?? linhas.VITE_SUPABASE_ANON_KEY;
+  return { ...linhas, ...process.env };
+}
+
+function lerAmbiente(): { url: string; chave: string } {
+  const env = lerEnvLocal();
+  const url = env.VITE_SUPABASE_URL;
+  const chave = env.VITE_SUPABASE_ANON_KEY;
   if (!url || !chave) throw new Error('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY ausentes em .env.local');
   return { url, chave };
 }
@@ -36,7 +51,7 @@ export function registrarLancamentosCriados(page: Page): string[] {
 export async function excluirLancamentosLocais(ids: string[], email: string, senha: string): Promise<void> {
   if (ids.length === 0) return;
   const { url, chave } = lerAmbiente();
-  if (!HOSTS_LOCAIS.has(new URL(url).hostname)) throw new Error(`Limpeza recusada: ${url} não é um host local`);
+  if (!ehHostLocal(url)) throw new Error(`Limpeza recusada: ${url} não é um host local`);
 
   const login = await fetch(`${url}/auth/v1/token?grant_type=password`, {
     method: 'POST',

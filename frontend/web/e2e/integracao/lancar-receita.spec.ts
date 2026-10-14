@@ -1,12 +1,14 @@
 // @integracao: usa o Supabase local (só localhost) e o usuário Leandro do seed.
 //   pnpm local:subir   (ou `supabase start --workdir backend`)
 //   PORTA=5292 pnpm exec playwright test --grep @integracao e2e/integracao/lancar-receita.spec.ts
-// A URL e a chave vêm de .env.local; a senha do seed, de TESTE_SENHA (padrão do backend/.env.example).
+// A URL e a chave vêm de .env.local; e-mail e senha do seed, de TESTE_EMAIL_A e TESTE_SENHA
+// (valores em backend/.env.example, exportados no ambiente). Host não local ou variável ausente
+// derruba o spec antes de qualquer gravação.
 import { expect, test, type Page } from '@playwright/test';
-import { excluirLancamentosLocais, registrarLancamentosCriados } from '../apoio/limpeza-local';
+import { excluirLancamentosLocais, lerEnvLocal, registrarLancamentosCriados } from '../apoio/limpeza-local';
+import { lerAmbienteIntegracao } from './apoio/ambiente';
 
-const EMAIL = process.env.TESTE_EMAIL_A ?? 'leandro@exemplo.com';
-const SENHA = process.env.TESTE_SENHA ?? 'senha-local-123';
+const { emailA: EMAIL, senha: SENHA } = lerAmbienteIntegracao(lerEnvLocal());
 
 const emCentavos = (texto: string) => {
   const numero = texto.replace(/[^\d,-]/g, '').replace(',', '.');

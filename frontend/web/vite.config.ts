@@ -84,7 +84,7 @@ export default defineConfig({
       {
         // jsdom troca a classe URL global e quebra `readFileSync(new URL(...))`.
         extends: true,
-        test: { name: 'arquivos', environment: 'node', include: ['test/**/*.test.ts', 'scripts/**/*.test.mjs'] },
+        test: { name: 'arquivos', environment: 'node', include: ['test/**/*.test.ts', 'e2e/**/*.test.ts', 'scripts/**/*.test.mjs'] },
       },
     ],
   },
