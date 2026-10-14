@@ -1,5 +1,16 @@
+import { linkMeta } from '../../formatacao/links';
+import { CartaoMetas } from '../CartaoMetas';
 import type { PropsCasa } from './tipos';
 
-export function CasaMetas(_props: PropsCasa) {
-  return null;
+export function CasaMetas({ conjunto }: PropsCasa) {
+  return (
+    <CartaoMetas
+      titulo="Metas da casa"
+      bloco="casa"
+      metas={conjunto.metas}
+      linkMeta={(id) => linkMeta(id)}
+      textoVazio="Nenhuma meta da casa."
+      linkNova="/metas/nova"
+    />
+  );
 }
