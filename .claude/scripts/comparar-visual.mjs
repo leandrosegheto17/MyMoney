@@ -48,6 +48,8 @@
 // "recorte": { "mockup": "<seletor>", "app": "<seletor>" } (opcional, por tela) compara só o
 // elemento indicado em cada lado, ignorando o que está atrás (usado nas folhas: a página de
 // fundo é real no app e vazia no mockup). Com recorte, ".conteudo" deixa de ser ocultado.
+// "userAgent": "<string>" (opcional, por tela) define o user agent só do lado da aplicação (usado quando
+// o app muda conforme a plataforma, como a folha de instalar no iOS/Android).
 // Respostas da tela têm prioridade sobre as globais. "pendente": true nunca responde
 // (mantém a tela em "carregando"). Caminhos são relativos à pasta do telas.json.
 //
@@ -141,7 +143,10 @@ async function registrarRespostas(pagina, respostas, pastaConfig) {
 }
 
 async function capturar(navegador, viewport, url, opcoes) {
-  const contexto = await navegador.newContext({ viewport, deviceScaleFactor: 1, reducedMotion: "reduce" });
+  const contexto = await navegador.newContext({
+    viewport, deviceScaleFactor: 1, reducedMotion: "reduce",
+    ...(opcoes.userAgent ? { userAgent: opcoes.userAgent } : {}),
+  });
   const pagina = await contexto.newPage();
   if (opcoes.respostas?.length) await registrarRespostas(pagina, opcoes.respostas, opcoes.pastaConfig);
   await pagina.goto(url, { waitUntil: opcoes.pendente ? "domcontentloaded" : "networkidle" });
@@ -299,7 +304,7 @@ async function main() {
             ocultar, esperar: null, pastaConfig, recorte: recorte?.mockup,
           });
           const pngApp = await capturar(navegador, viewport, baseUrl + tela.rota, {
-            ocultar, esperar: pendente ? null : tela.esperar, respostas, pendente, pastaConfig, recorte: recorte?.app,
+            ocultar, esperar: pendente ? null : tela.esperar, respostas, pendente, pastaConfig, recorte: recorte?.app, userAgent: tela.userAgent,
           });
           const r = await diferenca(navegador, pngMockup, pngApp, limiar);
           writeFileSync(join(saida, `${rotulo}--mockup.png`), pngMockup);

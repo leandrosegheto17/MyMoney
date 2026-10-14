@@ -25,7 +25,7 @@
 - Descrição: Aguardar 2026-10-11 ~01:26Z (janela minimumReleaseAge de 1 dia de @cloudflare/workers-types@5.20261010.1) e reexecutar /executar --tarefa RTP-0006
 - Impacto se não resolvido: —
 - Sugestão: Reexecutar após a janela, sem mudar nada
-- Status: Em aberto
+- Status: Resolvido (2026-10-14): Janela minimumReleaseAge vencida; latest do npm posterior a 5.20261010.1. Ver Resolução em BK-0003.md
 
 ## Bloqueio 004 — 2026-10-10 (BK-0004)
 - Reportado por: Executor
@@ -232,7 +232,7 @@
 - Descrição: T02 sucesso: mockup inicio--sucesso.html não mostra a faixa 'N lançamentos aguardando envio' que o app exibe com 1 item na fila; decidir se o estado mostra ou omite a faixa (mockup/UX-SPEC, G-18)
 - Impacto se não resolvido: Visual sucesso da T02 não fecha (9,91% pc / 17,54% celular); código da TP-0094 pronto e commitado
 - Sugestão: Alinhar o mockup inicio--sucesso.html (e UX-SPEC §T02) à faixa do app, ou omitir a faixa no sucesso
-- Status: Em aberto
+- Status: Resolvido (2026-10-14): Faixa de fila adicionada ao mockup inicio--sucesso.html. Ver Resolução em BK-0026.md
 
 ## Bloqueio 027 — 2026-10-14 (BK-0027)
 - Reportado por: Executor
@@ -241,7 +241,7 @@
 - Descrição: TP-0133 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (ainda não executadas) e não depende delas: lacuna de dependência; decidir ordem ou extrair o apoio; PENDENTE do passo 3 (relógio no banco) também
 - Impacto se não resolvido: TP-0133 não executável; E2E do ciclo da despesa fixa parado
 - Sugestão: Adicionar TP-0110 à Dep da TP-0133 e reordenar o lote, ou extrair ambiente/entrarComo/marcador para tarefa própria
-- Status: Em aberto
+- Status: Resolvido (2026-10-14): TP-0133 passa a depender de TP-0110 e TP-0111. Ver Resolução em BK-0027.md
 
 ## Bloqueio 028 — 2026-10-14 (BK-0028)
 - Reportado por: Executor
@@ -250,4 +250,13 @@
 - Descrição: TP-0157 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (não executadas) e não depende delas — mesma causa do BK-0027; decidir ordem ou extrair o apoio
 - Impacto se não resolvido: E2E de integração de metas parado
 - Sugestão: Resolver junto com o BK-0027: TP-0110/TP-0111 antes e Dep nas TP-0133/TP-0157
+- Status: Resolvido (2026-10-14): TP-0157 passa a depender de TP-0110 e TP-0111. Ver Resolução em BK-0028.md
+
+## Bloqueio 029 — 2026-10-14 (BK-0029)
+- Reportado por: Executor
+- Escalado para: Coordenador
+- Artefato/trecho afetado: —
+- Descrição: Acrescentar a tela T22 (faixa/folha de instalar) em .md/mockup/telas.json para que o comparador visual a gere; depois registrar T22 em frontend/web/e2e/telas-implementadas.json (pendência da RTP-0137)
+- Impacto se não resolvido: T22 fica sem comparação visual automática
+- Sugestão: —
 - Status: Em aberto
