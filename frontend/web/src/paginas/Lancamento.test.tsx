@@ -235,6 +235,7 @@ describe('Lancamento (T05): alterar data de parcela', () => {
     fireEvent.click(botao);
     const campo = (botao.closest('li') as HTMLElement).querySelector('input[type="date"]') as HTMLInputElement;
     fireEvent.change(campo, { target: { value: data } });
+    fireEvent.blur(campo);
   }
 
   it('sucesso: aviso "Data da parcela alterada" e o que foi digitado no formulário continua', async () => {

@@ -64,9 +64,81 @@ describe('ListaParcelas: pagador no crédito (editável)', () => {
     const campo = linha.querySelector('input[type="date"]') as HTMLInputElement;
     expect(campo).not.toBeNull();
     fireEvent.change(campo, { target: { value: '2026-11-05' } });
+    fireEvent.blur(campo);
 
     await waitFor(() => expect(onAlterarData).toHaveBeenCalledWith(ID_PARCELA_2, '2026-11-05'));
     expect(onAlterarData).toHaveBeenCalledTimes(1);
+  });
+
+  describe('campo de data visível (sem seletor nativo)', () => {
+    function abrirCampo() {
+      const r = renderizar(PAGADOR, true);
+      const botao = screen.getByRole('button', { name: 'Alterar data da parcela 2 de 3' });
+      fireEvent.click(botao);
+      const campo = screen.getByLabelText('Nova data da parcela 2 de 3') as HTMLInputElement;
+      campo.focus();
+      return { ...r, campo };
+    }
+
+    it('digitar o ano não dispara chamadas intermediárias; o blur confirma uma só vez', async () => {
+      const { campo, onAlterarData } = abrirCampo();
+      for (const v of ['0002-11-05', '0020-11-05', '2026-11-05']) fireEvent.change(campo, { target: { value: v } });
+      expect(onAlterarData).not.toHaveBeenCalled();
+      fireEvent.blur(campo);
+      await waitFor(() => expect(onAlterarData).toHaveBeenCalledWith(ID_PARCELA_2, '2026-11-05'));
+      expect(onAlterarData).toHaveBeenCalledTimes(1);
+    });
+
+    it('Enter confirma uma vez', async () => {
+      const { campo, onAlterarData } = abrirCampo();
+      fireEvent.change(campo, { target: { value: '2026-11-05' } });
+      fireEvent.keyDown(campo, { key: 'Enter' });
+      await waitFor(() => expect(onAlterarData).toHaveBeenCalledWith(ID_PARCELA_2, '2026-11-05'));
+      expect(onAlterarData).toHaveBeenCalledTimes(1);
+    });
+
+    it('Escape descarta o digitado e não chama', () => {
+      const { campo, onAlterarData } = abrirCampo();
+      fireEvent.change(campo, { target: { value: '2026-11-05' } });
+      fireEvent.keyDown(campo, { key: 'Escape' });
+      fireEvent.blur(campo);
+      expect(onAlterarData).not.toHaveBeenCalled();
+      expect(campo.value).toBe('2026-10-10');
+    });
+
+    it('blur com valor vazio ou igual ao atual não chama', () => {
+      const { campo, onAlterarData } = abrirCampo();
+      fireEvent.change(campo, { target: { value: '' } });
+      fireEvent.blur(campo);
+      fireEvent.change(campo, { target: { value: '2026-10-10' } });
+      fireEvent.blur(campo);
+      expect(onAlterarData).not.toHaveBeenCalled();
+    });
+
+    it('o campo fechado fica oculto para tecnologia assistiva', () => {
+      renderizar(PAGADOR, true);
+      const campo = screen.getByLabelText('Nova data da parcela 2 de 3');
+      expect(campo.closest('[aria-hidden="true"]')).not.toBeNull();
+      fireEvent.click(screen.getByRole('button', { name: 'Alterar data da parcela 2 de 3' }));
+      expect(campo.closest('[aria-hidden="true"]')).toBeNull();
+    });
+  });
+
+  it('seletor nativo: um change confirma na hora, e o blur seguinte não repete', async () => {
+    const original = HTMLInputElement.prototype.showPicker;
+    HTMLInputElement.prototype.showPicker = vi.fn();
+    try {
+      const { onAlterarData } = renderizar(PAGADOR, true);
+      fireEvent.click(screen.getByRole('button', { name: 'Alterar data da parcela 2 de 3' }));
+      const campo = document.querySelector('li:nth-child(2) input[type="date"]') as HTMLInputElement;
+      campo.focus();
+      fireEvent.change(campo, { target: { value: '2026-11-05' } });
+      fireEvent.blur(campo);
+      await waitFor(() => expect(onAlterarData).toHaveBeenCalledWith(ID_PARCELA_2, '2026-11-05'));
+      expect(onAlterarData).toHaveBeenCalledTimes(1);
+    } finally {
+      HTMLInputElement.prototype.showPicker = original;
+    }
   });
 
   it('enquanto salva, o controle da linha fica ocupado', async () => {
@@ -77,6 +149,7 @@ describe('ListaParcelas: pagador no crédito (editável)', () => {
     fireEvent.click(botao);
     const campo = (botao.closest('li') as HTMLElement).querySelector('input[type="date"]') as HTMLInputElement;
     fireEvent.change(campo, { target: { value: '2026-11-05' } });
+    fireEvent.blur(campo);
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Alterar data da parcela 2 de 3' })).toHaveAttribute(
