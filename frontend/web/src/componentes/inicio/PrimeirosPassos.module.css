@@ -1,0 +1,56 @@
+.primeiros-passos {
+  min-width: 0;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-top: var(--borda-destaque-cartao) solid var(--cor-primaria);
+  border-radius: var(--raio-cartao);
+  padding: var(--espaco-4);
+  box-shadow: var(--sombra-cartao);
+}
+
+.titulo {
+  margin-bottom: var(--espaco-2);
+  font-size: var(--tam-titulo-cartao);
+  font-weight: var(--peso-medio);
+  color: var(--cor-texto);
+}
+
+.texto {
+  color: var(--cor-texto-2);
+  font-size: var(--tam-pequeno);
+}
+
+.passos {
+  display: grid;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-3);
+  list-style: none;
+  padding: 0;
+}
+
+.passos li {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  min-height: var(--alvo-minimo);
+}
+
+.passo-num {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-neutro-fundo);
+  font-weight: var(--peso-forte);
+}
+
+.passo-feito .passo-num {
+  background: var(--cor-dentro-fundo);
+  color: var(--cor-dentro);
+}
+
+.passos li > a {
+  margin: 0;
+}

@@ -1,8 +1,20 @@
+import { formatarNomeMes } from '../../formatacao/mes';
+import { BotaoLink } from '../base/BotaoLink';
+import { LinhaVazia } from '../base/LinhaVazia';
+
 interface Props {
   /** 'AAAA-MM' */
   mes: string;
 }
 
-export function MesVazio(_props: Props) {
-  return null;
+/** Conteúdo do total do casal quando o mês não tem lançamentos. */
+export function MesVazio({ mes }: Props) {
+  return (
+    <>
+      <LinhaVazia>Nada lançado em {formatarNomeMes(mes)} ainda.</LinhaVazia>
+      <BotaoLink para="/lancar" variante="secundario" icone="mais">
+        Lançar
+      </BotaoLink>
+    </>
+  );
 }

@@ -14,6 +14,7 @@ import { EuOrcamento } from './EuOrcamento';
 import { EuPorCategoria } from './EuPorCategoria';
 import { EuReceitas } from './EuReceitas';
 import { EuTotal } from './EuTotal';
+import { MesVazio } from './MesVazio';
 import { PrimeirosPassos } from './PrimeirosPassos';
 
 interface Props {
@@ -26,28 +27,39 @@ interface Props {
   instalado: boolean;
 }
 
+/** Mês sem lançamento: nenhuma categoria com total e nenhuma receita, segundo o que a API entregou. */
+function semLancamentos({ conjunto, individual }: ResumoMes): boolean {
+  return (
+    conjunto.por_categoria.length === 0 &&
+    individual.por_categoria.length === 0 &&
+    individual.minha_parte_por_categoria.length === 0 &&
+    individual.receitas_centavos === 0
+  );
+}
+
 /** Os dois blocos da Início; cada seção recebe só a fatia da resposta que lhe cabe. */
 export function ConteudoInicio({ resumo, mes, nome, temConta, temForma, instalado }: Props) {
   const { conjunto, individual } = resumo;
+  const mesVazio = semLancamentos(resumo);
   return (
     <>
       <PrimeirosPassos temConta={temConta} temForma={temForma} instalado={instalado} />
       <BlocoInicio bloco="casa">
-        <CasaTotal conjunto={conjunto} mes={mes} mesVazio={false} />
-        <CasaQuemPagou conjunto={conjunto} mes={mes} />
+        <CasaTotal conjunto={conjunto} mes={mes} mesVazio={mesVazio} rodapeVazio={<MesVazio mes={mes} />} />
+        {mesVazio ? null : <CasaQuemPagou conjunto={conjunto} mes={mes} />}
         <CasaFixas conjunto={conjunto} mes={mes} />
         <CasaOrcamento conjunto={conjunto} mes={mes} />
-        <CasaPorCategoria conjunto={conjunto} mes={mes} />
-        <CasaResultado conjunto={conjunto} mes={mes} />
+        {mesVazio ? null : <CasaPorCategoria conjunto={conjunto} mes={mes} />}
+        {mesVazio ? null : <CasaResultado conjunto={conjunto} mes={mes} />}
         <CasaMetas conjunto={conjunto} mes={mes} />
       </BlocoInicio>
       <BlocoInicio bloco="eu" nome={nome}>
-        <EuTotal individual={individual} mes={mes} mesVazio={false} />
-        <EuReceitas individual={individual} mes={mes} />
-        <EuOrcamento individual={individual} mes={mes} />
-        <EuPorCategoria individual={individual} mes={mes} />
+        <EuTotal individual={individual} mes={mes} mesVazio={mesVazio} />
+        {mesVazio ? null : <EuReceitas individual={individual} mes={mes} />}
+        {mesVazio ? null : <EuOrcamento individual={individual} mes={mes} />}
+        {mesVazio ? null : <EuPorCategoria individual={individual} mes={mes} />}
         <EuContas individual={individual} mes={mes} />
-        <EuCartoes individual={individual} mes={mes} />
+        {mesVazio ? null : <EuCartoes individual={individual} mes={mes} />}
         <EuMetas individual={individual} mes={mes} />
       </BlocoInicio>
     </>
