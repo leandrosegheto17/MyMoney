@@ -39,7 +39,10 @@ describe('PrimeirosPassos', () => {
       'href',
       '/ajustes/formas/nova',
     );
-    expect(screen.getByRole('link', { name: 'Instale o app no celular' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Instale o app no celular' })).toHaveAttribute(
+      'href',
+      '/ajustes?instalar=1',
+    );
   });
 
   it('com conta: passo 1 feito, com "(feito)" no nome acessível', () => {
