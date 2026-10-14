@@ -108,6 +108,18 @@ async function descartar(id: string, opcoes: { confirmado: true }): Promise<void
   emitir({ tipo: 'mudou' });
 }
 
+/** Devolve à espera os itens com falha do dono atual, mantendo `id` e `p_id` (o reenvio segue idempotente). Não envia. */
+async function reativarFalhas(): Promise<void> {
+  const dono = await donoAtual();
+  if (!dono) return;
+  const falhas = (await lerTodos()).filter((i) => i.dono === dono && i.situacao === 'falhou');
+  for (const falha of falhas) {
+    const { motivo: _motivo, ...resto } = falha;
+    await gravarItem({ ...resto, situacao: 'aguardando' });
+  }
+  if (falhas.length > 0) emitir({ tipo: 'mudou' });
+}
+
 function assinar(ouvinte: (evento: EventoFila) => void): () => void {
   ouvintes.add(ouvinte);
   return () => {
@@ -115,4 +127,4 @@ function assinar(ouvinte: (evento: EventoFila) => void): () => void {
   };
 }
 
-export const fila = { enfileirar, esvaziar, listar, descartar, assinar };
+export const fila = { enfileirar, esvaziar, listar, descartar, reativarFalhas, assinar };

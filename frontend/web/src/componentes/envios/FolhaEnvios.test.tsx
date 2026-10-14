@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
+import estiloBotao from '../base/Botao.module.css';
 import { FolhaEnvios } from './FolhaEnvios';
 
 const { mostrar } = vi.hoisted(() => ({ mostrar: vi.fn() }));
@@ -111,7 +112,7 @@ describe('FolhaEnvios — item com falha', () => {
     );
     const corrigir = within(linha).getByRole('button', { name: CORRIGIR });
     expect(corrigir).toHaveTextContent('Corrigir');
-    expect(temClasse(corrigir, 'botao-secundario')).toBe(true);
+    expect(corrigir.classList.contains(estiloBotao.secundario)).toBe(true);
   });
 
   it('texto de topo do estado com falha', () => {
@@ -197,7 +198,7 @@ describe('FolhaEnvios — Tentar agora', () => {
   it('o rodapé usa o botão principal com o ícone recarregar', () => {
     render(<FolhaEnvios {...props()} />);
     const botao = within(folha()).getByRole('button', { name: 'Tentar agora' });
-    expect(temClasse(botao, 'botao-principal')).toBe(true);
+    expect(botao.classList.contains(estiloBotao.principal)).toBe(true);
     expect(botao.querySelector('use[href="#i-recarregar"]')).not.toBeNull();
   });
 });

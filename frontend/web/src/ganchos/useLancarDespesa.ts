@@ -24,6 +24,11 @@ export type ResultadoLancar =
   /** Não coube na fila (sem sessão ou fila cheia): nada foi gravado. */
   | { tipo: 'erro' };
 
+/** Itens que uma chamada de `lancar` está esperando; quem avisa o resultado é ela, não o aviso de envio em segundo plano. */
+const aguardandoResposta = new Set<string>();
+
+export const estaAguardandoLancamento = (id: string) => aguardandoResposta.has(id);
+
 async function enviar(entrada: EntradaLancar): Promise<ResultadoLancar> {
   // A contagem dos 3 s começa no toque, antes de gravar na fila.
   let temporizador: ReturnType<typeof setTimeout> | undefined;
@@ -49,6 +54,7 @@ async function enviar(entrada: EntradaLancar): Promise<ResultadoLancar> {
     return { tipo: 'erro' };
   }
 
+  aguardandoResposta.add(item.id);
   let resposta: LancarDespesa | undefined;
   const cancelar = fila.assinar((evento) => {
     if (evento.tipo === 'enviado' && evento.item.id === item.id) resposta = evento.resposta;
@@ -73,6 +79,7 @@ async function enviar(entrada: EntradaLancar): Promise<ResultadoLancar> {
     return await Promise.race([tentativa, limite]);
   } finally {
     clearTimeout(temporizador);
+    aguardandoResposta.delete(item.id);
   }
 }
 

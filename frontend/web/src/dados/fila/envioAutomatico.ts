@@ -3,6 +3,12 @@ import { fila } from './fila';
 
 const INTERVALO_PADRAO_MS = 30_000;
 
+/** Uma rodada agora, se houver sessão válida; resolve quando a fila termina de esvaziar. */
+export async function enviarAgora(): Promise<void> {
+  if ((await garantirSessaoValida()) !== 'valida') return;
+  await fila.esvaziar();
+}
+
 /**
  * Esvazia a fila ao abrir, ao voltar a rede, ao voltar à aba e a cada intervalo enquanto houver
  * item aguardando (ADR-007). Sem sessão válida nada é enviado nem tocado. Devolve o `parar`.
@@ -13,8 +19,7 @@ export function iniciarEnvioAutomatico({ intervaloMs = INTERVALO_PADRAO_MS } = {
 
   async function rodada() {
     if (!ativo) return;
-    if ((await garantirSessaoValida()) !== 'valida' || !ativo) return;
-    await fila.esvaziar();
+    await enviarAgora();
   }
   const disparar = () => void rodada().catch(() => undefined);
 

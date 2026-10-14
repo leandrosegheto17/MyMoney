@@ -1,4 +1,4 @@
-import type { Ref } from 'react';
+import { useEffect, useRef, type Ref } from 'react';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import type { EntradaLancar, ResultadoLancar } from '../../ganchos/useLancarDespesa';
 import { AvisoErroTopo } from '../base/AvisoErroTopo';
@@ -13,7 +13,7 @@ import { SecaoCategoria } from './SecaoCategoria';
 import { SecaoForma } from './SecaoForma';
 import { SecaoParcelas } from './SecaoParcelas';
 import { useEnvioLancar } from './useEnvioLancar';
-import { useFormularioLancar } from './useFormularioLancar';
+import { useFormularioLancar, type EstadoLancar } from './useFormularioLancar';
 import estilo from './FolhaLancar.module.css';
 
 interface Props {
@@ -25,6 +25,8 @@ interface Props {
   aoLancar?: (entrada: EntradaLancar) => Promise<ResultadoLancar>;
   /** Sem rede: a faixa avisa que o lançamento fica guardado no aparelho. */
   offline?: boolean;
+  /** Valores para abrir a folha já preenchida; cada `chave` nova substitui o que estava digitado. */
+  correcao?: { chave: number; valores: EstadoLancar };
 }
 
 const TIPOS = [
@@ -33,8 +35,14 @@ const TIPOS = [
 ];
 
 /** Folha de lançamento: fica montada e oculta para o "+" poder focar o valor no mesmo clique. */
-export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offline }: Props) {
-  const { estado, erros, mudar, validar, limpar } = useFormularioLancar(dados);
+export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offline, correcao }: Props) {
+  const { estado, erros, mudar, validar, limpar, preencher } = useFormularioLancar(dados);
+  const chaveAplicada = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (!correcao || chaveAplicada.current === correcao.chave) return;
+    chaveAplicada.current = correcao.chave;
+    preencher(correcao.valores);
+  });
   const { formulario, ocupado, erroTopo, aoEnviar, aoTeclar } = useEnvioLancar({
     dados,
     estado,

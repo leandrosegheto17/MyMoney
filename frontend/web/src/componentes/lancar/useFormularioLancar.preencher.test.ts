@@ -11,10 +11,7 @@ const CORRECAO = {
   descricao: 'Padaria',
 };
 
-function valores(atual: unknown): Record<string, unknown> {
-  const r = atual as Record<string, unknown>;
-  return (r.valores as Record<string, unknown>) ?? r;
-}
+const valores = (atual: ReturnType<typeof useFormularioLancar>) => atual.estado;
 
 describe('useFormularioLancar.preencher', () => {
   it('preenche todos os campos de uma vez (abrir a T03 a partir da T23)', () => {

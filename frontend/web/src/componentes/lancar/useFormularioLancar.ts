@@ -64,6 +64,16 @@ export function useFormularioLancar(dados?: DadosLancamento) {
     setErros({});
   }
 
+  /** Troca todos os campos (abrir a folha a partir de um item da fila). Categoria ou forma que não existem mais ficam em branco. */
+  function preencher(valores: EstadoLancar) {
+    setErros({});
+    setEstado({
+      ...valores,
+      categoriaId: dados && !dados.categorias_despesa.some((c) => c.id === valores.categoriaId) ? null : valores.categoriaId,
+      formaId: dados && !dados.formas.some((f) => f.id === valores.formaId) ? null : valores.formaId,
+    });
+  }
+
   const formaId = estado.formaId ?? (dados ? formaInicial(dados) : null);
-  return { estado: { ...estado, formaId }, erros, mudar, validar, limpar };
+  return { estado: { ...estado, formaId }, erros, mudar, validar, limpar, preencher };
 }
