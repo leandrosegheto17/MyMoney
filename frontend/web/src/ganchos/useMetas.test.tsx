@@ -69,10 +69,19 @@ describe('useMeta', () => {
     vi.mocked(buscarMeta).mockRejectedValue({ tipo: 'regra', codigo: 'registro_invalido' });
     const { wrapper } = criarAmbiente();
 
-    const { result } = renderHook(() => useMeta('abc'), { wrapper });
+    const { result } = renderHook(() => useMeta(ID_VIAGEM), { wrapper });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toMatchObject({ tipo: 'regra', codigo: 'registro_invalido' });
+  });
+
+  it('id que não é uuid não consulta o banco', () => {
+    const { wrapper } = criarAmbiente();
+
+    const { result } = renderHook(() => useMeta('abc'), { wrapper });
+
+    expect(result.current.fetchStatus).toBe('idle');
+    expect(buscarMeta).not.toHaveBeenCalled();
   });
 });
 

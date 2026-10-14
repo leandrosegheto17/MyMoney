@@ -257,6 +257,7 @@ describe('T11 Detalhe da meta: carregando e erro', () => {
 
     const alerta = await screen.findByRole('alert');
     expect(within(alerta).getByRole('heading', { name: 'Esta meta não existe mais' })).toBeInTheDocument();
+    expect(buscarMeta).not.toHaveBeenCalled();
     expect(buscarMovimentosMeta).not.toHaveBeenCalled();
   });
 

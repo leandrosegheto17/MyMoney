@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { buscarMeta, buscarMetas } from '../dados/consultas/metas';
 import type { ErroDados } from '../dados/erros';
+import { ehUuid } from '../dados/uuid';
 import { CHAVES } from './chavesConsulta';
 
 type Lista = Awaited<ReturnType<typeof buscarMetas>>;
@@ -13,5 +14,6 @@ export const useMeta = (id: string) =>
   useQuery<Modelo, ErroDados>({
     queryKey: CHAVES.meta(id),
     queryFn: () => buscarMeta(id),
+    enabled: ehUuid(id),
     refetchOnWindowFocus: true,
   });
