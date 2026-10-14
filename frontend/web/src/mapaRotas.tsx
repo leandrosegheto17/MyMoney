@@ -107,8 +107,16 @@ export const mapaRotas: RouteObject[] = [
         lazy: () => import('./paginas/FormasPagamento').then((m) => ({ Component: m.FormasPagamento })),
         handle: { titulo: 'Formas de pagamento', ...estreito } satisfies HandleRota,
       },
-      pagina('/ajustes/formas/nova', 'Nova forma de pagamento', estreito),
-      pagina('/ajustes/formas/:id', 'Forma de pagamento', estreito),
+      {
+        path: '/ajustes/formas/nova',
+        lazy: () => import('./paginas/FormaPagamento').then((m) => ({ Component: m.FormaPagamento })),
+        handle: { titulo: 'Nova forma de pagamento', ...estreito } satisfies HandleRota,
+      },
+      {
+        path: '/ajustes/formas/:id',
+        lazy: () => import('./paginas/FormaPagamento').then((m) => ({ Component: m.FormaPagamento })),
+        handle: { titulo: 'Forma de pagamento', ...estreito } satisfies HandleRota,
+      },
       pagina('/ajustes/categorias', 'Categorias', estreito),
       pagina('/ajustes/categorias/nova', 'Nova categoria', estreito),
       pagina('/ajustes/categorias/:id', 'Categoria', estreito),

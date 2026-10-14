@@ -24,10 +24,10 @@ vi.mock('../ganchos/useFormasPagamento', async (importOriginal) => {
     useForma: (id: string) =>
       useQuery({ queryKey: ['formas_pagamento', id], queryFn: () => h.buscarForma(id), enabled: Boolean(id) }),
     useComandosForma: () => ({
-      salvarForma: useMutation({ mutationFn: h.salvarForma }),
-      definirPreferida: useMutation({ mutationFn: h.definirPreferida }),
-      arquivarForma: useMutation({ mutationFn: h.arquivarForma }),
-      excluirForma: useMutation({ mutationFn: h.excluirForma }),
+      salvarForma: useMutation({ mutationFn: (v: never) => h.salvarForma(v) }),
+      definirPreferida: useMutation({ mutationFn: (v: never) => h.definirPreferida(v) }),
+      arquivarForma: useMutation({ mutationFn: (v: never) => h.arquivarForma(v) }),
+      excluirForma: useMutation({ mutationFn: (v: never) => h.excluirForma(v) }),
     }),
   };
 });

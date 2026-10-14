@@ -1,6 +1,10 @@
 import { chamarRpc, type ArgsRpc } from './rpc';
 
-export const salvarForma = (args: ArgsRpc<'salvar_forma'>) => chamarRpc('salvar_forma', args);
+/** `p_conta_id` nulo limpa a conta de pagamento padrão do cartão (o banco aceita `null`). */
+export type ArgsSalvarForma = Omit<ArgsRpc<'salvar_forma'>, 'p_conta_id'> & { p_conta_id?: string | null };
+
+export const salvarForma = (args: ArgsSalvarForma) =>
+  chamarRpc('salvar_forma', args as ArgsRpc<'salvar_forma'>);
 
 export const arquivarForma = async (id: string): Promise<void> => {
   await chamarRpc('arquivar_forma', { p_id: id });
