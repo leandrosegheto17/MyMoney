@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 16:54
+Atualizado: 2026-10-14 16:56
 
-Resumo: Não executada 19 · Em execução 1 · Aprovada 319 · Bloqueada 3 · total 342
+Resumo: Não executada 18 · Em execução 1 · Aprovada 320 · Bloqueada 3 · total 342
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -235,7 +235,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 220 | RTP-0034 | executor | ✔ | Caso testes-api de resumo-mes: despesa de isolamento fica no seed compartilhado | Refatoração Lote-17 | TP-0087 | Aprovada |
 | 221 | RTP-0041 | executor | ✔ | Volume de 2 anos: rodar ANALYZE ao fim da carga para medir com estatísticas | Refatoração Lote-17 | TP-0088 | Aprovada |
 | 222 | RTP-0147 | executor | ✔ | Cobrir envios--sucesso e envios--erro na comparação visual por pixel (QA TP-0108) | Refatoração Lote-21 | TP-0108 | Aprovada |
-| 223 | RTP-0150 | executor | ✔ | Atualizar index.html do mockup: envios--sucesso e envios--erro (e instalar--ios/android... | Refatoração Lote-17 | RTP-0147 | Não executada |
+| 223 | RTP-0150 | executor | ✔ | Atualizar index.html do mockup: envios--sucesso e envios--erro (e instalar--ios/android... | Refatoração Lote-17 | RTP-0147 | Aprovada |
 | 224 | RTP-0032 | executor | ✔ | Casos testes-api que criam metas poluem o seed compartilhado e deixam metas.test.ts dep... | Refatoração Lote 31 | TP-0150 | Aprovada |
 | 225 | RTP-0033 | executor | ✔ | Caso testes-api de ajustar_saldo: usar os ids do seed | Refatoração Lote-13 | TP-0066 | Aprovada |
 | 226 | RTP-0035 | executor | ✔ | Caso testes-api de editar-lancamento: limpar o que cria e provar o editor | Refatoração Lote-19 | TP-0099 | Aprovada |
