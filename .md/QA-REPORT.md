@@ -818,3 +818,30 @@ APROVADA (rodada 2) — 0 críticos, 0 não críticos novos; geometria de `meta-
 
 ## TP-0159 — QA — 2026-10-14
 APROVADA; 0 críticos, 2 não críticos (RTP-0132 CSS duplicado, RTP-0133 texto da nota UX-SPEC × mockup); testes 65/65, e2e 6/6, visual T21 0,25-0,45% com mesma altura (PNGs abertos).
+
+## TP-0009 — QA — 2026-10-14
+APROVADA, 0 críticos e 1 não crítico (RTP-0138: fim de linha CRLF nos .sh sem .gitattributes); 8/8 testes verdes; desvio do pg_dump autorizado pelo usuário e registrado em limpeza.md; verificação do painel por declaração do usuário.
+
+## RTP-0135 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; e2e instalar 6/6 passando com asserção de altura >= 44 px (mutação não executada).
+
+## RTP-0116 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; T03 celular/pc com altura app = mockup (844/900, antes 1029), vitest 24 ok, divergência de pixels restante é o rodapé da TP-0084.
+
+## RTP-0130 — QA — 2026-10-14
+APROVADA (rodada 2) — pgTAP 1799/1799 PASS, API 11/11, contrato em dia; 0 críticos, 2 não críticos já em RTP-0136 (min/max e mensagem de data na folha).
+
+## RTP-0132 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; CSS único compartilhado, visual T21/T08 4/4 e T19 8/8 <=0,45% com alturas iguais.
+
+## TP-0082 — QA — 2026-10-14
+APROVADA — 25 testes unitários e 4 e2e passando, grade idêntica ao mockup em celular e PC (divergência só vertical, de tarefas irmãs); 0 críticos, 0 não críticos.
+
+## TP-0083 — QA — 2026-10-14
+APROVADA — 0 críticos, 1 não crítico (RTP-0139: estado "Outro" persiste ao trocar de forma); vitest e Playwright (celular/PC) verdes; visual T03 diverge só pelo rodapé "Lançar" de TP-0084, forma e Mais detalhes idênticos ao mockup.
+
+## RTP-0126 — QA — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; T12 sucesso pc e celular 0,00% (limite 1%), alturas iguais ao mockup.
+
+## TP-0141 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0140: EmConstrucao.tsx órfão); vitest da tarefa verde, e2e 11/11, visual T09 0,00% nos 4 estados x 2 tamanhos.
