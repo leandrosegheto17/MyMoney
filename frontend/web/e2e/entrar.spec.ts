@@ -11,7 +11,7 @@ const TAMANHOS = [
   { nome: 'pc', width: 1440, height: 900 },
 ];
 const DATA = new Date().toISOString().slice(0, 10);
-const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'TP-0045');
+const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'entrar');
 const URL_TOKEN = '**/auth/v1/token*';
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number]) {

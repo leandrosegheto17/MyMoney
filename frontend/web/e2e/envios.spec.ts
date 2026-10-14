@@ -9,7 +9,7 @@ import { semViolacoesGraves } from './apoio/acessibilidade';
 
 const MOCKUP = join(process.cwd(), '..', '..', '.md', 'mockup');
 const ler = (arquivo: string) => readFileSync(join(MOCKUP, 'respostas', arquivo), 'utf8');
-const PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', process.env.DATA_PRINTS ?? 'sem-data', 'TP-0108');
+const PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', process.env.DATA_PRINTS ?? 'sem-data', 'envios');
 
 const ERRO_ARQUIVADA = JSON.stringify({ code: 'P0001', message: 'categoria_arquivada', details: null, hint: null });
 

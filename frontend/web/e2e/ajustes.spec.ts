@@ -12,7 +12,7 @@ const TAMANHOS = [
 ];
 const DATA = new Date().toISOString().slice(0, 10);
 const RAIZ = join(process.cwd(), '..', '..');
-const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'TP-0047');
+const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'ajustes');
 const CONTEXTO = readFileSync(join(RAIZ, '.md', 'mockup', 'respostas', 'contexto.json'), 'utf8');
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number]) {

@@ -11,7 +11,7 @@ const TAMANHOS = [
   { nome: 'pc', width: 1440, height: 900 },
 ];
 const DATA = new Date().toISOString().slice(0, 10);
-const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'TP-0046');
+const PASTA_PRINTS = join(process.cwd(), '..', '..', '.md', '.visual', DATA, 'redefinir-senha');
 const LINK_EXPIRADO = '/redefinir-senha#error=access_denied&error_code=otp_expired';
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], caminho = '/redefinir-senha') {

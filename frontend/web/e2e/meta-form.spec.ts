@@ -14,7 +14,7 @@ const TAMANHOS = [
 const MOCKUP = join(process.cwd(), '..', '..', '.md', 'mockup');
 const lerJson = (arquivo: string) => JSON.parse(readFileSync(join(MOCKUP, 'respostas', arquivo), 'utf8'));
 const json = (corpo: unknown, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(corpo) });
-const PASTA_PRINTS = join(MOCKUP, '..', '.visual', new Date().toISOString().slice(0, 10), 'TP-0155');
+const PASTA_PRINTS = join(MOCKUP, '..', '.visual', new Date().toISOString().slice(0, 10), 'meta-form');
 const ID = '00000000-0000-4000-8000-000000000902';
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], caminho: string) {

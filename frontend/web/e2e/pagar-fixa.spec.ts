@@ -13,7 +13,7 @@ const TAMANHOS = [
 const RAIZ = join(process.cwd(), '..', '..');
 const RESPOSTAS = join(RAIZ, '.md', 'mockup', 'respostas');
 const ler = (arquivo: string) => readFileSync(join(RESPOSTAS, arquivo), 'utf8');
-const PASTA_PRINTS = join(RAIZ, '.md', '.visual', new Date().toISOString().slice(0, 10), 'TP-0132');
+const PASTA_PRINTS = join(RAIZ, '.md', '.visual', new Date().toISOString().slice(0, 10), 'pagar-fixa');
 const ID_INTERNET = '00000000-0000-4000-8000-000000000804';
 
 async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], formas = 'dados-lancamento.json') {

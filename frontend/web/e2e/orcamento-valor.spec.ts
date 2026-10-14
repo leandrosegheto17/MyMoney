@@ -10,7 +10,7 @@ const TAMANHOS = [
 ];
 const DATA = new Date().toISOString().slice(0, 10);
 const RAIZ = join(process.cwd(), '..', '..');
-const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'TP-0142');
+const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'orcamento-valor');
 const RESPOSTAS = join(RAIZ, '.md', 'mockup', 'respostas');
 const ler = (arquivo: string) => readFileSync(join(RESPOSTAS, arquivo), 'utf8');
 const CAMINHO = '/orcamento?mes=2026-10&escopo=casa&editar=00000000-0000-4000-8000-000000000404';

@@ -12,7 +12,7 @@ const TAMANHOS = [
 ];
 const DATA = new Date().toISOString().slice(0, 10);
 const RAIZ = join(process.cwd(), '..', '..');
-const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'TP-0156');
+const PASTA_PRINTS = join(RAIZ, '.md', '.visual', DATA, 'movimentar-meta');
 const lerJson = (arquivo: string) => JSON.parse(readFileSync(join(RAIZ, '.md', 'mockup', 'respostas', arquivo), 'utf8'));
 const json = (corpo: unknown, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(corpo) });
 const ID_VIAGEM = '00000000-0000-4000-8000-000000000902';
