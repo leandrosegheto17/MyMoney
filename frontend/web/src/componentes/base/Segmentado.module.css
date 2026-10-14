@@ -9,6 +9,25 @@
   margin: 0;
   padding: 0;
 }
+.grupo {
+  display: grid;
+  justify-items: start;
+  gap: var(--espaco-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.legenda {
+  padding: 0;
+  margin-bottom: var(--espaco-2);
+  font-weight: var(--peso-semi);
+}
+.ajuda {
+  margin: 0;
+  font-size: var(--tam-pequeno);
+  color: var(--cor-texto-2);
+}
 .segmentado label {
   display: grid;
   place-items: center;

@@ -100,13 +100,21 @@ export const mapaRotas: RouteObject[] = [
         lazy: () => import('./paginas/Metas').then((m) => ({ Component: m.Metas })),
         handle: { titulo: 'Metas' } satisfies HandleRota,
       },
-      pagina('/metas/nova', 'Nova meta', estreito),
+      {
+        path: '/metas/nova',
+        lazy: () => import('./paginas/MetaFormulario').then((m) => ({ Component: m.MetaFormulario })),
+        handle: { titulo: 'Nova meta', ...estreito } satisfies HandleRota,
+      },
       {
         path: '/metas/:id',
         lazy: () => import('./paginas/Meta').then((m) => ({ Component: m.Meta })),
         handle: { titulo: 'Meta' } satisfies HandleRota,
       },
-      pagina('/metas/:id/editar', 'Editar meta', estreito),
+      {
+        path: '/metas/:id/editar',
+        lazy: () => import('./paginas/MetaFormulario').then((m) => ({ Component: m.MetaFormulario })),
+        handle: { titulo: 'Editar meta', ...estreito } satisfies HandleRota,
+      },
       {
         path: '/ajustes',
         lazy: () =>
