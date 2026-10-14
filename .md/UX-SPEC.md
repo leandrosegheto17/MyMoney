@@ -74,7 +74,7 @@ corrija o mockup ou o texto antes de aprovar; nunca deixe para o Executor decidi
 | T17 / T18 | `formas--sucesso`, `--vazio`, `--carregando`, `--erro`, `forma--sucesso` (auto); `forma--erro` | `/ajustes/formas`, `/ajustes/formas/:id` |
 | T19 / T20 | `categorias--sucesso`, `--vazio`, `--carregando`, `--erro`, `categoria--sucesso` (auto); `categoria--erro` | `/ajustes/categorias?tipo=`, `/ajustes/categorias/:id` |
 | T21 | `pagamento-cartao--sucesso`, `--vazio` (auto) | `/ajustes/formas/:id?pagamento=1` |
-| T22 | `instalar--ios`, `instalar--android` | (faixa na T02 + folha) |
+| T22 | `instalar--ios`, `instalar--android`, `instalar--android-passos` | (faixa na T02 + folha; `instalar--android-passos` é a folha do Android sem prompt) |
 | T23 | `envios--sucesso`, `envios--erro` | (folha a partir do ícone de pendentes) |
 | Padrão | `formulario--salvando` (botão "Salvando…" de todo formulário) | — |
 
