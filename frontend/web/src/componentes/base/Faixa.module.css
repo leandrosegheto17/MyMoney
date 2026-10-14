@@ -26,8 +26,12 @@
   color: var(--cor-estourado);
 }
 
+/* As ações participam da quebra de linha da faixa como itens soltos. */
 .acoes {
-  display: flex;
-  align-items: center;
-  gap: var(--espaco-2);
+  display: contents;
+}
+
+/* Botão principal da faixa fica no alvo mínimo, não na altura de botão principal de formulário. */
+.acoes > button {
+  min-height: var(--alvo-minimo);
 }

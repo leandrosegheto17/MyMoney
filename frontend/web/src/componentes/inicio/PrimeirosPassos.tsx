@@ -1,4 +1,5 @@
 import { LinkMais } from '../base/LinkMais';
+import passos from '../base/Passos.module.css';
 import estilos from './PrimeirosPassos.module.css';
 
 interface Props {
@@ -17,7 +18,7 @@ interface Passo {
 export function PrimeirosPassos({ temConta, temForma, instalado }: Props) {
   if (temConta && temForma) return null;
 
-  const passos: Passo[] = [
+  const itens: Passo[] = [
     { texto: 'Cadastre uma conta', para: '/ajustes/contas/nova', feito: temConta },
     { texto: 'Cadastre uma forma de pagamento', para: '/ajustes/formas/nova', feito: temForma },
     { texto: 'Instale o app no celular', para: '/ajustes?instalar=1', feito: instalado },
@@ -32,10 +33,10 @@ export function PrimeirosPassos({ temConta, temForma, instalado }: Props) {
         Para lançar o primeiro gasto, cadastre uma conta e uma forma de pagamento. As categorias iniciais já foram
         criadas.
       </p>
-      <ol className={estilos.passos}>
-        {passos.map((passo, i) => (
-          <li key={passo.para} className={passo.feito ? estilos['passo-feito'] : undefined}>
-            <span className={estilos['passo-num']} aria-hidden="true">
+      <ol className={`${passos.passos} ${estilos.lista}`}>
+        {itens.map((passo, i) => (
+          <li key={passo.para} className={passo.feito ? passos['passo-feito'] : undefined}>
+            <span className={passos['passo-num']} aria-hidden="true">
               {i + 1}
             </span>
             <LinkMais para={passo.para}>

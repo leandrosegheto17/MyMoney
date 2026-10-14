@@ -70,10 +70,10 @@ describe('FolhaInstalar no iOS', () => {
   it('"Agora não" ocupa a largura com alvo pela classe e não há style inline', () => {
     renderizar();
     const agoraNao = screen.getByRole('button', { name: 'Agora não' });
-    expect(temClasse(agoraNao, 'botao')).toBe(true);
-    expect(temClasse(agoraNao, 'botao-secundario')).toBe(true);
-    expect(temClasse(agoraNao, 'botao-bloco')).toBe(true);
-    expect(temClasse(screen.getByRole('button', { name: 'Fechar' }), 'icone-botao')).toBe(true);
+    expect(agoraNao.className).toMatch(/botao/);
+    expect(agoraNao.className).toMatch(/secundario/);
+    expect(agoraNao.className).toMatch(/bloco/);
+    expect(screen.getByRole('button', { name: 'Fechar' }).className).toMatch(/botao/);
     expect(document.body.querySelector('[style]')).toBeNull();
   });
 

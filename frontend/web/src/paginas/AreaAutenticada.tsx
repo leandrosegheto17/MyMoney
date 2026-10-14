@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, type ComponentProps } from 'react';
 import { flushSync } from 'react-dom';
 import { Navigate, Outlet, useSearchParams } from 'react-router';
+import { ProvedorInstalar } from '../componentes/instalar/ProvedorInstalar';
 import { RegiaoAvisos } from '../componentes/base/RegiaoAvisos';
 import { EstruturaApp } from '../componentes/EstruturaApp';
 import { lerMesDaUrl } from '../formatacao/mes';
@@ -38,8 +39,10 @@ function Estrutura() {
   );
 }
 
+type PropsInstalar = Omit<ComponentProps<typeof ProvedorInstalar>, 'children'>;
+
 /** Guarda de navegação: sem sessão vai para /entrar; a proteção dos dados é o RLS. */
-export function AreaAutenticada() {
+export function AreaAutenticada(instalacao: PropsInstalar) {
   const { carregando, sessao } = useSessao();
   useInicializarMembro(sessao?.user.id);
   useEnvioAutomatico();
@@ -47,7 +50,9 @@ export function AreaAutenticada() {
   if (!sessao) return <Navigate to="/entrar" replace />;
   return (
     <RegiaoAvisos>
-      <Estrutura />
+      <ProvedorInstalar {...instalacao}>
+        <Estrutura />
+      </ProvedorInstalar>
     </RegiaoAvisos>
   );
 }

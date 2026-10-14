@@ -4,9 +4,35 @@ import { AreaPublica } from './paginas/AreaPublica';
 import { NaoEncontrada } from './paginas/NaoEncontrada';
 import { Inicio } from './paginas/Inicio';
 import type { HandleRota } from './ganchos/useTituloDaPagina';
-import { estaInstalado } from './pwa/modoInstalado';
+import { useInstalar } from './componentes/instalar/ContextoInstalar';
+import { dispensar, pedirInstalacao } from './pwa/instalacao';
+import { useInstalacao } from './pwa/useInstalacao';
 
 const carregarEmConstrucao = () => import('./paginas/EmConstrucao').then((m) => ({ Component: m.EmConstrucao }));
+
+/** `paginas/` não importa `pwa/`: a raiz liga o estado de instalação à área autenticada. */
+function AreaComInstalacao() {
+  const { plataforma, instalado, temPrompt, mostrarFaixa } = useInstalacao();
+  return (
+    <AreaAutenticada
+      plataforma={plataforma}
+      instalado={instalado}
+      temPrompt={temPrompt}
+      mostrarFaixa={mostrarFaixa}
+      aoPedirPrompt={() => void pedirInstalacao().catch(() => {})}
+      aoDispensar={dispensar}
+    />
+  );
+}
+
+function InicioInstalavel() {
+  return <Inicio instalado={useInstalacao().instalado} />;
+}
+
+function AjustesInstalavel({ Ajustes }: { Ajustes: typeof import('./paginas/Ajustes').Ajustes }) {
+  const { instalar } = useInstalar();
+  return <Ajustes instalado={useInstalacao().instalado} aoInstalar={instalar} />;
+}
 
 /** Rota preguiçosa; cada tela troca o `lazy` pela sua página. */
 function pagina(path: string, titulo: string, opcoes: Omit<HandleRota, 'titulo'> = {}): RouteObject {
@@ -39,10 +65,10 @@ export const mapaRotas: RouteObject[] = [
     ],
   },
   {
-    element: <AreaAutenticada />,
+    element: <AreaComInstalacao />,
     children: [
-      { path: '/', element: <Inicio instalado={estaInstalado()} />, handle: { titulo: 'Início', ...comMes } satisfies HandleRota },
-      { path: '/lancar', element: <Inicio instalado={estaInstalado()} />, handle: { titulo: 'Lançar' } satisfies HandleRota },
+      { path: '/', element: <InicioInstalavel />, handle: { titulo: 'Início', ...comMes } satisfies HandleRota },
+      { path: '/lancar', element: <InicioInstalavel />, handle: { titulo: 'Lançar' } satisfies HandleRota },
       {
         path: '/lancamentos',
         lazy: () => import('./paginas/Lancamentos').then((m) => ({ Component: m.Lancamentos })),
@@ -81,8 +107,7 @@ export const mapaRotas: RouteObject[] = [
         path: '/ajustes',
         lazy: () =>
           import('./paginas/Ajustes').then((m) => ({
-            // `paginas/` não importa `pwa/`: a raiz entrega se o app já está instalado.
-            Component: () => <m.Ajustes instalado={estaInstalado()} aoInstalar={() => {}} />,
+            Component: () => <AjustesInstalavel Ajustes={m.Ajustes} />,
           })),
         handle: { titulo: 'Ajustes', ...estreito } satisfies HandleRota,
       },

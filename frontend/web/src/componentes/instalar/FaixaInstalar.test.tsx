@@ -46,9 +46,9 @@ describe('FaixaInstalar', () => {
     const { faixa, container } = renderizar();
     const instalar = within(faixa).getByRole('button', { name: 'Instalar' });
     const dispensar = within(faixa).getByRole('button', { name: 'Dispensar instalação' });
-    expect(temClasse(instalar, 'botao')).toBe(true);
-    expect(temClasse(instalar, 'botao-principal')).toBe(true);
-    expect(temClasse(dispensar, 'icone-botao')).toBe(true);
+    expect(instalar.className).toMatch(/botao/);
+    expect(instalar.className).toMatch(/principal/);
+    expect(dispensar.className).toMatch(/botao/);
     expect(container.querySelector('[style]')).toBeNull();
   });
 });

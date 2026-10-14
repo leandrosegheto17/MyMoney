@@ -2,6 +2,7 @@ import { PuxarParaAtualizar } from '../componentes/base/PuxarParaAtualizar';
 import { CabecalhoMes } from '../componentes/CabecalhoMes';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { ConteudoInicio } from '../componentes/inicio/ConteudoInicio';
+import { useInstalar } from '../componentes/instalar/ContextoInstalar';
 import { EsqueletoInicio } from '../componentes/inicio/EsqueletoInicio';
 import { FaixasInicio } from '../componentes/inicio/FaixasInicio';
 import { textoErroInicio } from '../componentes/inicio/textoErroInicio';
@@ -28,12 +29,13 @@ export function Inicio({ instalado }: Props) {
   const { total: pendentes } = usePendentes();
   const conectado = useConectado();
   const revalidar = useRevalidarPagina();
+  const { faixa: faixaInstalar } = useInstalar();
   const carregando = leitura.situacao === 'carregando';
   const erro = textoErroInicio(consulta.error, mes);
 
   const principal = (
     <main aria-busy={carregando}>
-      <FaixasInicio mes={mes} conectado={conectado} pendentes={pendentes} />
+      <FaixasInicio mes={mes} conectado={conectado} pendentes={pendentes} faixaInstalar={faixaInstalar} />
       <EstadosDeLeitura
         leitura={leitura}
         esqueleto={<EsqueletoInicio nome={nome} />}
