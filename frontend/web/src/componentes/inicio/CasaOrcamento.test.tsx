@@ -35,4 +35,15 @@ describe('CasaOrcamento', () => {
     expect(screen.getByRole('link', { name: /Definir orçamento/ })).toHaveAttribute('href', destino);
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
+
+  it('vazio em outro mês: usa o nome do mês recebido', () => {
+    render(
+      <MemoryRouter>
+        <CasaOrcamento conjunto={vazio.conjunto} mes="2026-11" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText('Sem orçamento em novembro.')).toBeInTheDocument();
+    expect(screen.queryByText('Sem orçamento em outubro.')).not.toBeInTheDocument();
+  });
 });

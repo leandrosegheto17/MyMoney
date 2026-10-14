@@ -13,7 +13,7 @@ export function CasaOrcamento({ conjunto, mes }: PropsCasa) {
       orcamento={conjunto.orcamento}
       linkVer={destino}
       textoVer="Ver orçamento"
-      textoVazio="Sem orçamento em outubro."
+      textoVazio={`Sem orçamento em ${formatarNomeMes(mes)}.`}
       acaoVazio={
         <LinkMais seta para={destino}>
           Definir orçamento
