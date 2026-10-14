@@ -1,5 +1,16 @@
+import { linkMeta } from '../../formatacao/links';
+import { CartaoMetas } from '../CartaoMetas';
 import type { PropsEu } from './tipos';
 
-export function EuMetas(_props: PropsEu) {
-  return null;
+export function EuMetas({ individual }: PropsEu) {
+  return (
+    <CartaoMetas
+      titulo="Minhas metas"
+      bloco="eu"
+      metas={individual.metas}
+      linkMeta={(id) => linkMeta(id)}
+      textoVazio="Nenhuma meta ainda."
+      linkNova="/metas/nova"
+    />
+  );
 }
