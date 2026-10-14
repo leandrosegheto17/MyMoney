@@ -47,7 +47,6 @@ export function PagarFixaConectada({ mes, ocorrencias, tituloCartao }: Props) {
 
   useEffect(() => {
     if (id !== null && !ocorrencia) removerParametro();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, ocorrencia]);
 
   if (!ocorrencia) return null;
