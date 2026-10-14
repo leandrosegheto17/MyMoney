@@ -689,3 +689,72 @@ APROVADA; 0 críticos, 2 não críticos (RTP-0107 e2e @integracao depende do TP-
 
 ## TP-0132 — QA — 2026-10-11
 DEVOLVIDA: 1 crítica (eslint-disable de `react-hooks/exhaustive-deps` sem o plugin quebra o lint, `PagarFixaConectada.tsx:50`) e 2 não críticas (RTP-0109 mockup do erro, RTP-0110 comparador por recorte da folha); aceite, e2e 6/6, axe, foco, Esc, `ehUuid` e folha idêntica ao mockup (0,00 a 0,02%) OK.
+
+## RTP-0087 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; T04 e T06 (16 estados pc/celular) com cabeçalho SeletorMes sem divergência, reexecutado e PNGs abertos; T02 só diverge no corpo (já com dono) e T09 ainda não usa o seletor.
+
+## RTP-0103 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 3/3 verde e mutação (valor em .sub) derrubou o teste, código revertido.
+
+## RTP-0104 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; UX-SPEC §5 T04 e plano do TP-0103 descrevem um role=list por grupo de dia, coerente com GrupoDia.tsx e ListaLancamentosMes.test.tsx.
+
+## RTP-0105 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; 308 testes dos consumidores de DialogoConfirmacao passando, aria-disabled/Cancelar disabled/Esc inerte comprovados, sem duplo envio.
+
+## RTP-0106 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; os 2 testes novos falham sob mutação de `textoExclusao.ts`, 4/4 passando.
+
+## RTP-0111 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; 81 recusados e 80 aceitos no cliente (vitest 15 ok) e no servidor (pgTAP 107 arquivos PASS), sem drift de migration, contrato em dia.
+
+## RTP-0112 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; id não-uuid recusa localmente com registro_invalido sem RPC (16/16 e consumidor 7/7).
+
+## RTP-0113 — QA — 2026-10-14
+APROVADA; 0 criticos, 0 nao criticos; 40 testes passando, id malformado nao consulta metas e id valido consulta.
+
+## TP-0072 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; unit 10/10, e2e 8/8, visual T17 4 estados x 2 tamanhos <= 0,12% com PNGs conferidos.
+
+## TP-0073 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0114: legenda "Tipo" oculta no estado forma--erro); visual T18 sucesso 0,00% pc/celular, 86 testes e 6 e2e passando.
+
+## TP-0074 — QA — 2026-10-14
+DEVOLVIDA — 2 críticos (rádios `name="tipo"` colidem com o FolhaLancar do shell e deixam o seletor sem opção marcada; chevron indevido em itens sem selo), visual celular 1.21%/1.39%/1.49% acima de 1%, 0 não críticos, nenhuma RTP.
+
+## TP-0075 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0115: segmentado/ajuda do interruptor divergem do mockup `categoria--erro`); visual sucesso 0,00% celular/PC, e2e 6/6 no shell real sem colisão de `name`.
+
+## TP-0081 — QA — 2026-10-14
+DEVOLVIDA — 1 crítico (Segmentado name="tipo" da folha sempre montada desmarca o filtro de tipo em /ajustes/categorias) e 1 não crítico (RTP-0116, altura 1029 no celular causada pelo fundo atrás da folha); testes e e2e do aceite passam, visual diverge só pelos filhos de TP-0082/0083/0084.
+
+## TP-0091 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0117, import do CSS de CartaoSaldo); 15 testes verdes, axe T02 sucesso 0 violações pc/celular, 4 cartões conferem com o mockup (diff total só pela grade incompleta, fecha no TP-0094).
+
+## TP-0092 — QA — 2026-10-14
+APROVADA; 0 críticos, 2 não críticos (RTP-0118 mês fixo "outubro" + import sem uso/eslint, RTP-0119 teste do "N de total" e axe); testes da tarefa 14/14, seções Casa conferidas no PNG, visual completo fecha na TP-0094.
+
+## TP-0093 — QA — 2026-10-14
+APROVADA — 0 críticos, 1 não crítico (RTP-0120: sub-lista vazia, texto do vazio sem teste, axe do sucesso não rodado); 19 testes passando e as 3 seções Eu conferidas no PNG (diff geral fecha no TP-0094).
+
+## TP-0095 — QA — 2026-10-14
+APROVADA; 0 críticos, 2 não críticos (RTP-0121 visual vazio celular após TP-0094 + axe no e2e; RTP-0122 destino do "Instale" provisório); vitest 27/27, vazio PC 0,46% OK, celular 19,28% só pelos cartões Contas/Metas (stubs TP-0094), axe vazio sem violações graves.
+
+## TP-0104 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0123: tipo ItemFila importado de dados/ e frase genérica do vazio sem teste); vitest 361 ok, e2e 13/13, visual T04 ≤ 0,15% com alturas iguais.
+
+## TP-0107 — QA — 2026-10-14
+APROVADA; 0 críticos, 2 não críticos (RTP-0124 página do mockup do Android sem prompt, RTP-0125 testes de classe frouxos); evidência: 10 e2e verdes, axe limpo, PNGs 390/1440 iguais ao mockup.
+
+## TP-0132 — QA — 2026-10-14
+APROVADA (rodada 2): lint zerado (crítica resolvida), vitest 386/386 e tsc OK; 0 críticas, 0 novas não críticas (RTP-0109 e RTP-0110 já abertas); aceite/e2e/visual da rodada 1 mantidos.
+
+## TP-0153 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; visual T10 8/8 OK (<= 0.07%), e2e 12/12 e testes de Metas/Início passando (falhas só de Eu*/escopoUrl de outras tarefas).
+
+## TP-0155 — QA — 2026-10-14
+DEVOLVIDA — 1 crítico (Segmentado do escopo na criação não ocupa a largura toda como no mockup `meta-form--erro`, +4px de altura), 1 não crítico (RTP-0126: registrar T12 em telas-implementadas.json); visual T12 sucesso 0,00%, vitest 77/77, e2e 6/6.
+
+## TP-0156 — QA — 2026-10-14
+APROVADA; 0 críticos, 3 não críticos (RTP-0127 mockup retirada preenchido, RTP-0128 duplicação do parâmetro de URL, RTP-0129 telas-implementadas); vitest 335 e e2e 10/10 passando, troca de tipo e envio conferidos no shell real, aporte/vazio visual <=0,55%, retirada 1,46%/1,88% só por valor/conta preenchidos no mockup.
