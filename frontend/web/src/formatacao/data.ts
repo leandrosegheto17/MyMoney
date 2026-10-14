@@ -47,7 +47,7 @@ export function periodoDePagamento(agora: Date = new Date()): { min: string; max
   return { min: PRIMEIRA_DATA_DE_PAGAMENTO, max: limite.toISOString().slice(0, 10) };
 }
 
-const formatadorHora =new Intl.DateTimeFormat('pt-BR', {
+const formatadorHora = new Intl.DateTimeFormat('pt-BR', {
   timeZone: 'America/Sao_Paulo',
   hour: '2-digit',
   minute: '2-digit',

@@ -1,6 +1,6 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import type { SituacaoOcorrencia } from '@mymoney/contrato/enums';
-import type { FormEvent } from 'react';
+import { useMemo, type FormEvent } from 'react';
 import { periodoDePagamento } from '../../formatacao/data';
 import { formatarMoeda } from '../../formatacao/moeda';
 import { ROTULO_TIPO_FORMA } from '../../rotulos/tipoForma';
@@ -62,7 +62,7 @@ export function FolhaPagarFixa({
   aoFechar,
 }: Props) {
   const semFormas = formas.length === 0;
-  const periodo = periodoDePagamento();
+  const periodo = useMemo(() => periodoDePagamento(), []);
 
   function enviar(evento: FormEvent) {
     evento.preventDefault();
