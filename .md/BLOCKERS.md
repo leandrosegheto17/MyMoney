@@ -224,3 +224,12 @@
 - Impacto se não resolvido: Mudar o Campo afeta o visual de todas as telas com campo em erro; deixar como está mantém 22 px de diferença só no estado manual fixa--erro
 - Sugestão: Alinhar o mockup ao app (ajuda antes do erro, ajuda do valor sempre visível) e fechar a RTP sem tocar o Campo
 - Status: Resolvido (2026-10-11): Decidido pelo coordenador (2026-10-11): o mockup fixa--erro muda para casar com o app; Campo e FormularioFixa não mudam; RTP-0096 vira reconferência visual
+
+## Bloqueio 026 — 2026-10-14 (BK-0026)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0094
+- Descrição: T02 sucesso: mockup inicio--sucesso.html não mostra a faixa 'N lançamentos aguardando envio' que o app exibe com 1 item na fila; decidir se o estado mostra ou omite a faixa (mockup/UX-SPEC, G-18)
+- Impacto se não resolvido: Visual sucesso da T02 não fecha (9,91% pc / 17,54% celular); código da TP-0094 pronto e commitado
+- Sugestão: Alinhar o mockup inicio--sucesso.html (e UX-SPEC §T02) à faixa do app, ou omitir a faixa no sucesso
+- Status: Em aberto
