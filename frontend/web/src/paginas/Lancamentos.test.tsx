@@ -80,7 +80,7 @@ beforeEach(() => {
       }) as MediaQueryList,
   );
   vi.mocked(useContexto).mockReturnValue(resultado({ data: resposta('contexto.json') }) as never);
-  vi.mocked(useDadosLancamento).mockReturnValue(resultado({ data: resposta('dados-lancamento.json') }) as never);
+  vi.mocked(useDadosLancamento).mockReturnValue(resultado({ data: { dados: resposta('dados-lancamento.json'), doAparelho: false, salvoEm: 0 } }) as never);
   vi.mocked(usePendentes).mockReturnValue({ total: 0, aguardando: 0, falhas: 0, itens: [] } as never);
   vi.mocked(useLancamentosMes).mockReturnValue(resultado({ data: resposta('lancamentos-mes.json') }) as never);
 });

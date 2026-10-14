@@ -43,7 +43,7 @@ describe('usePendentes', () => {
   it('começa em zero com a fila vazia', async () => {
     const { usePendentes } = await carregar();
     const { result } = renderHook(() => usePendentes());
-    await waitFor(() => expect(result.current).toEqual({ total: 0, aguardando: 0, falhas: 0 }));
+    await waitFor(() => expect(result.current).toMatchObject({ total: 0, aguardando: 0, falhas: 0 }));
   });
 
   it('enfileirar soma; falha conta em falhas; envio zera', async () => {
@@ -51,11 +51,11 @@ describe('usePendentes', () => {
     const { result } = renderHook(() => usePendentes());
 
     await act(() => fila.enfileirar(ARGS, EXIBICAO));
-    await waitFor(() => expect(result.current).toEqual({ total: 1, aguardando: 1, falhas: 0 }));
+    await waitFor(() => expect(result.current).toMatchObject({ total: 1, aguardando: 1, falhas: 0 }));
 
     lancarDespesa.mockRejectedValueOnce({ tipo: 'regra', codigo: 'categoria_arquivada' });
     await act(() => fila.esvaziar());
-    await waitFor(() => expect(result.current).toEqual({ total: 1, aguardando: 0, falhas: 1 }));
+    await waitFor(() => expect(result.current).toMatchObject({ total: 1, aguardando: 0, falhas: 1 }));
 
     await act(async () => {
       const [item] = await fila.listar();
@@ -65,7 +65,7 @@ describe('usePendentes', () => {
     lancarDespesa.mockResolvedValue(lerResposta('lancar-despesa-credito.json'));
     await act(() => fila.esvaziar());
 
-    await waitFor(() => expect(result.current).toEqual({ total: 0, aguardando: 0, falhas: 0 }));
+    await waitFor(() => expect(result.current).toMatchObject({ total: 0, aguardando: 0, falhas: 0 }));
   });
 
   it('não conta itens de outro membro', async () => {

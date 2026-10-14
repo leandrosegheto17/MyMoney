@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { fila } from '../dados/fila/fila';
+import type { ItemFila } from '../dados/fila/tipos';
 
-export type Pendentes = { total: number; aguardando: number; falhas: number };
+export type Pendentes = { total: number; aguardando: number; falhas: number; itens: ItemFila[] };
 
-const ZERO: Pendentes = { total: 0, aguardando: 0, falhas: 0 };
+const ZERO: Pendentes = { total: 0, aguardando: 0, falhas: 0, itens: [] };
+
+const assinatura = (itens: ItemFila[]) => itens.map((i) => `${i.id}:${i.situacao}:${i.motivo ?? ''}`).join('|');
 
 /** Itens da fila do membro atual; os de outro membro nunca entram na conta. */
 export function usePendentes(): Pendentes {
@@ -15,9 +18,9 @@ export function usePendentes(): Pendentes {
       if (!ativo) return;
       const aguardando = itens.filter((i) => i.situacao === 'aguardando').length;
       setPendentes((atual) =>
-        atual.total === itens.length && atual.aguardando === aguardando
+        assinatura(atual.itens) === assinatura(itens)
           ? atual
-          : { total: itens.length, aguardando, falhas: itens.length - aguardando },
+          : { total: itens.length, aguardando, falhas: itens.length - aguardando, itens },
       );
     };
     void atualizar();

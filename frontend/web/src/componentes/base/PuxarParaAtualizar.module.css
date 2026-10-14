@@ -1,5 +1,6 @@
 .raiz {
   position: relative;
+  background: var(--cor-fundo);
   overscroll-behavior-y: contain;
 }
 
