@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type RefObject } from 'react';
-import { useSearchParams } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
 import type { Ocorrencia } from '../../componentes/fixas/CartaoOcorrencias';
 import { FolhaPagarFixa } from '../../componentes/fixas/FolhaPagarFixa';
@@ -12,6 +11,7 @@ import { CHAVES } from '../../ganchos/chavesConsulta';
 import { useComandosFixas } from '../../ganchos/useComandosFixas';
 import { useContexto } from '../../ganchos/useContexto';
 import { useDadosLancamento } from '../../ganchos/useDadosLancamento';
+import { useParametroDaFolha } from '../../ganchos/useParametroDaFolha';
 import { mensagemErro } from '../../rotulos/mensagensErro';
 
 const SEM_CONEXAO =
@@ -30,20 +30,10 @@ function textoDoErro(erro: ErroDados): string {
 
 /** Abre a folha para o `?pagar=<id>` quando é de uma ocorrência do mês ainda não paga; senão tira o parâmetro. */
 export function PagarFixaConectada({ mes, ocorrencias, tituloCartao }: Props) {
-  const [params, definirParams] = useSearchParams();
-  const id = params.get('pagar');
+  const [id, definirParametro] = useParametroDaFolha('pagar');
   const ocorrencia =
     id !== null && ehUuid(id) ? ocorrencias.find((o) => o.id === id && o.situacao !== 'paga') : undefined;
-
-  const removerParametro = () =>
-    definirParams(
-      (atual) => {
-        const novo = new URLSearchParams(atual);
-        novo.delete('pagar');
-        return novo;
-      },
-      { replace: true },
-    );
+  const removerParametro = () => definirParametro(null);
 
   useEffect(() => {
     if (id !== null && !ocorrencia) removerParametro();

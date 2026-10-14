@@ -1,7 +1,6 @@
 import type { TipoMovimentoMeta } from '@mymoney/contrato/enums';
 import type { LinhaMetas } from '@mymoney/contrato/respostas/metas';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
 import { FolhaMovimentarMeta, type DadosMovimento } from '../../componentes/metas/FolhaMovimentarMeta';
 import type { ErroDados } from '../../dados/erros';
@@ -10,6 +9,7 @@ import { formatarMoeda } from '../../formatacao/moeda';
 import { useComandosMetas } from '../../ganchos/useComandosMetas';
 import { useDadosLancamento } from '../../ganchos/useDadosLancamento';
 import { useLocaisGuardados } from '../../ganchos/useLocaisGuardados';
+import { useParametroDaFolha } from '../../ganchos/useParametroDaFolha';
 import { mensagemErro } from '../../rotulos/mensagensErro';
 
 const PARAMETRO = 'movimentar';
@@ -24,20 +24,8 @@ function tipoDaUrl(valor: string | null): TipoMovimentoMeta | null {
 
 /** Abre a folha para `?movimentar=aporte|retirada`; qualquer outro valor é retirado da URL. */
 export function MovimentarMetaConectada({ meta }: { meta: LinhaMetas }) {
-  const [params, definirParams] = useSearchParams();
-  const bruto = params.get(PARAMETRO);
+  const [bruto, mudarParametro] = useParametroDaFolha(PARAMETRO);
   const tipo = tipoDaUrl(bruto);
-
-  const mudarParametro = (novo: TipoMovimentoMeta | null) =>
-    definirParams(
-      (atual) => {
-        const proximo = new URLSearchParams(atual);
-        if (novo) proximo.set(PARAMETRO, novo);
-        else proximo.delete(PARAMETRO);
-        return proximo;
-      },
-      { replace: true },
-    );
 
   useEffect(() => {
     if (bruto !== null && tipo === null) mudarParametro(null);

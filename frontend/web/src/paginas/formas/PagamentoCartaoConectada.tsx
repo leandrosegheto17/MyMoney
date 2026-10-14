@@ -1,31 +1,21 @@
 import type { LinhaFormasPagamento } from '@mymoney/contrato/respostas/formas-pagamento';
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
 import { FolhaPagamentoCartao, type DadosPagamento } from '../../componentes/formas/FolhaPagamentoCartao';
 import type { ErroDados } from '../../dados/erros';
 import { hojeEmSaoPaulo } from '../../formatacao/data';
 import { useContas } from '../../ganchos/useContas';
 import { useComandosForma } from '../../ganchos/useFormasPagamento';
+import { useParametroDaFolha } from '../../ganchos/useParametroDaFolha';
 import { mensagemErro } from '../../rotulos/mensagensErro';
 
 const PARAMETRO = 'pagamento';
 
 /** Abre a folha para `?pagamento=1` num cartão de crédito; qualquer outro caso retira o parâmetro da URL. */
 export function PagamentoCartaoConectada({ forma }: { forma: LinhaFormasPagamento }) {
-  const [params, definirParams] = useSearchParams();
-  const bruto = params.get(PARAMETRO);
+  const [bruto, definirParametro] = useParametroDaFolha(PARAMETRO);
   const aberta = bruto === '1' && forma.tipo === 'credito';
-
-  const removerParametro = () =>
-    definirParams(
-      (atual) => {
-        const novo = new URLSearchParams(atual);
-        novo.delete(PARAMETRO);
-        return novo;
-      },
-      { replace: true },
-    );
+  const removerParametro = () => definirParametro(null);
 
   useEffect(() => {
     if (bruto !== null && !aberta) removerParametro();
