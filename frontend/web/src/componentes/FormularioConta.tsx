@@ -4,6 +4,9 @@ import { CampoValor } from './base/CampoValor';
 import { focarPrimeiroErro } from './base/focarPrimeiroErro';
 import estilo from './FormularioConta.module.css';
 
+/** Mesmo limite que `api.salvar_conta` aplica ao nome. */
+const LIMITE_NOME_CONTA = 80;
+
 interface Props {
   nomeInicial: string;
   saldoInicialCentavos: number;
@@ -33,6 +36,11 @@ export function FormularioConta({ nomeInicial, saldoInicialCentavos, erroSaldoIn
       setTentativasInvalidas((n) => n + 1);
       return;
     }
+    if (nomeLimpo.length > LIMITE_NOME_CONTA) {
+      setErroNome(`O nome pode ter no máximo ${LIMITE_NOME_CONTA} caracteres`);
+      setTentativasInvalidas((n) => n + 1);
+      return;
+    }
     setErroNome(undefined);
     aoSalvar(nomeLimpo, saldoInicial);
   }
@@ -43,6 +51,7 @@ export function FormularioConta({ nomeInicial, saldoInicialCentavos, erroSaldoIn
         rotulo="Nome"
         value={nome}
         autoComplete="off"
+        maxLength={LIMITE_NOME_CONTA}
         onChange={(e) => {
           setNome(e.target.value);
           setErroNome(undefined);

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
-select plan(19);
+select plan(21);
 
 select testes.preparar_lar();
 
@@ -53,6 +53,10 @@ select throws_ok($$select api.salvar_conta('e1000000-0000-4000-8000-000000000204
   'P0001', 'valor_invalido', 'nome vazio é recusado');
 select throws_ok($$select api.salvar_conta('e1000000-0000-4000-8000-000000000204', '   ')$$,
   'P0001', 'valor_invalido', 'nome só com espaços é recusado');
+select throws_ok(format($$select api.salvar_conta('e1000000-0000-4000-8000-000000000204', %L)$$, repeat('a', 81)),
+  'P0001', 'valor_invalido', 'nome com 81 caracteres é recusado');
+select lives_ok(format($$select api.salvar_conta('e1000000-0000-4000-8000-000000000206', %L)$$, repeat('a', 80)),
+  'nome com 80 caracteres é aceito');
 select throws_ok($$select api.salvar_conta(null, 'Sem id')$$,
   'P0001', 'valor_invalido', 'id nulo é recusado');
 

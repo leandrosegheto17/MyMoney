@@ -1,4 +1,5 @@
 -- Cria ou edita uma conta do chamador, idempotente pelo id gerado no cliente.
+-- Nome: 1 a 80 caracteres depois do btrim.
 -- Saldo inicial nulo vira 0; negativo é aceito (conta no vermelho). Não mexe em `arquivada`.
 -- Dono e lar vêm das auxiliares (defaults da tabela), nunca de parâmetro. Id que já existe
 -- mas pertence a outro membro (a RLS esconde) recebe o mesmo erro de "não existe".
@@ -21,7 +22,7 @@ begin
     raise exception 'registro_invalido';
   end if;
 
-  if p_id is null or v_nome is null or v_nome = '' then
+  if p_id is null or v_nome is null or v_nome = '' or char_length(v_nome) > 80 then
     raise exception 'valor_invalido';
   end if;
 
