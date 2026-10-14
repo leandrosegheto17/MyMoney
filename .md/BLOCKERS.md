@@ -242,3 +242,12 @@
 - Impacto se não resolvido: TP-0133 não executável; E2E do ciclo da despesa fixa parado
 - Sugestão: Adicionar TP-0110 à Dep da TP-0133 e reordenar o lote, ou extrair ambiente/entrarComo/marcador para tarefa própria
 - Status: Em aberto
+
+## Bloqueio 028 — 2026-10-14 (BK-0028)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0157
+- Descrição: TP-0157 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (não executadas) e não depende delas — mesma causa do BK-0027; decidir ordem ou extrair o apoio
+- Impacto se não resolvido: E2E de integração de metas parado
+- Sugestão: Resolver junto com o BK-0027: TP-0110/TP-0111 antes e Dep nas TP-0133/TP-0157
+- Status: Em aberto
