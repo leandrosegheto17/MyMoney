@@ -482,7 +482,7 @@ ficam na §6. Nos layouts abaixo, **"Casa"** é o rótulo de interface para *Con
 
 **T21 Pagamento do cartão** (folha, Could). Ação principal: **Registrar**.
 - Valor, data e conta de origem (padrão: a conta de pagamento do cartão).
-- Nota: "Sai da conta. Não conta como despesa".
+- Nota: "Sai do saldo da conta. Não conta como despesa em nenhum total, porque as compras já contaram."
 
 **T22 Instalar o app**. Ação principal: **Instalar** (Android) ou seguir os passos (iOS).
 - **Faixa em T02:** "Instale o MyMoney para lançar mais rápido" com Instalar e Dispensar.
