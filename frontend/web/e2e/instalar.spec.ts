@@ -67,6 +67,13 @@ test.describe('Android', () => {
     await expect(faixa(page)).toContainText('Instale o MyMoney para lançar mais rápido.');
     await semViolacoesGraves(page);
 
+    // Alvo mínimo de toque (44 px) medido no layout real.
+    const caixaInstalar = await faixa(page).getByRole('button', { name: 'Instalar' }).boundingBox();
+    const caixaDispensar = await faixa(page).getByRole('button', { name: 'Dispensar instalação' }).boundingBox();
+    expect(caixaInstalar?.height).toBeGreaterThanOrEqual(44);
+    expect(caixaDispensar?.height).toBeGreaterThanOrEqual(44);
+    expect(caixaDispensar?.width).toBeGreaterThanOrEqual(44);
+
     // O prompt é guardado depois do load.
     await page.waitForTimeout(400);
     await faixa(page).getByRole('button', { name: 'Instalar' }).click();
