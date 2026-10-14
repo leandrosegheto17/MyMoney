@@ -62,6 +62,22 @@ describe('FolhaLancar: estrutura', () => {
     expect(within(tipo).getByRole('radio', { name: 'Receita' })).toBeDisabled();
   });
 
+  it('não interfere no grupo de rádios "tipo" de outra tela montada ao lado', () => {
+    render(
+      <MemoryRouter>
+        <fieldset>
+          <input type="radio" name="tipo" value="despesa" aria-label="Despesas" defaultChecked />
+          <input type="radio" name="tipo" value="receita" aria-label="Receitas" />
+        </fieldset>
+        <FolhaLancar aberta={false} aoFechar={vi.fn()} refValor={createRef<HTMLInputElement>()} dados={dados} />
+      </MemoryRouter>,
+    );
+
+    const radios = document.querySelectorAll<HTMLInputElement>('input[type="radio"][name="tipo"]');
+    expect(Array.from(radios).map((r) => r.checked)).toEqual([true, false]);
+    expect(document.querySelector('input[name="tipo-lancamento"][value="despesa"]')).toBeChecked();
+  });
+
   it('o X "Fechar" chama aoFechar', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const { aoFechar } = montar({ dados });

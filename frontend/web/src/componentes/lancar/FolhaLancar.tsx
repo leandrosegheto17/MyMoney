@@ -34,7 +34,7 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados }: Props) {
       titulo="Lançar"
       tituloOculto
       montadaOculta
-      topo={<Segmentado legenda="Tipo de lançamento" nome="tipo" opcoes={TIPOS} valor="despesa" aoMudar={() => {}} />}
+      topo={<Segmentado legenda="Tipo de lançamento" nome="tipo-lancamento" opcoes={TIPOS} valor="despesa" aoMudar={() => {}} />}
     >
       <form id="form-lancar" className={estilo.formulario} onSubmit={(evento) => evento.preventDefault()}>
         <CampoValor id="valor" ref={refValor} centavos={estado.valorCentavos} aoMudar={(v) => mudar('valorCentavos', v)} />
