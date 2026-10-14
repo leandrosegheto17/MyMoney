@@ -66,10 +66,10 @@
       "respostas": [ { "url": "**/rest/v1/despesas_fixas*", "arquivo": "respostas/despesa-fixa.json" },
                      { "url": "**/rest/v1/categorias*", "arquivo": "respostas/categorias.json" } ] },
 
-    { "id": "T08", "nome": "Marcar fixa como paga", "estado": "sucesso", "mockup": "telas/pagar-fixa--sucesso.html", "rota": "/fixas?mes=2026-10&pagar=00000000-0000-4000-8000-000000000804", "esperar": "#form-pagar", "ocultar": [".conteudo"],
+    { "id": "T08", "nome": "Marcar fixa como paga", "estado": "sucesso", "mockup": "telas/pagar-fixa--sucesso.html", "rota": "/fixas?mes=2026-10&pagar=00000000-0000-4000-8000-000000000804", "esperar": "#form-pagar", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/rpc/ocorrencias_mes*", "arquivo": "respostas/ocorrencias-mes.json" },
                      { "url": "**/rest/v1/despesas_fixas*", "arquivo": "respostas/despesas-fixas.json" } ] },
-    { "id": "T08", "nome": "Marcar fixa como paga", "estado": "vazio", "mockup": "telas/pagar-fixa--vazio.html", "rota": "/fixas?mes=2026-10&pagar=00000000-0000-4000-8000-000000000804", "esperar": "#vazio-titulo", "ocultar": [".conteudo"],
+    { "id": "T08", "nome": "Marcar fixa como paga", "estado": "vazio", "mockup": "telas/pagar-fixa--vazio.html", "rota": "/fixas?mes=2026-10&pagar=00000000-0000-4000-8000-000000000804", "esperar": "#vazio-titulo", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/rpc/ocorrencias_mes*", "arquivo": "respostas/ocorrencias-mes.json" },
                      { "url": "**/rest/v1/rpc/dados_lancamento*", "arquivo": "respostas/dados-lancamento-sem-formas.json" } ] },
 
@@ -82,7 +82,7 @@
       "respostas": [ { "url": "**/rest/v1/rpc/orcamento_mes*", "pendente": true } ] },
     { "id": "T09", "nome": "Orçamento do mês", "estado": "erro", "mockup": "telas/orcamento--erro.html", "rota": "/orcamento?mes=2026-10&escopo=casa", "esperar": "#erro-titulo",
       "respostas": [ { "url": "**/rest/v1/rpc/orcamento_mes*", "status": 503, "arquivo": "respostas/erro-servico.json" } ] },
-    { "id": "T09", "nome": "Editar valor do orçamento", "estado": "sucesso", "mockup": "telas/orcamento-valor--sucesso.html", "rota": "/orcamento?mes=2026-10&escopo=casa&editar=00000000-0000-4000-8000-000000000404", "esperar": "#form-orc", "ocultar": [".conteudo"],
+    { "id": "T09", "nome": "Editar valor do orçamento", "estado": "sucesso", "mockup": "telas/orcamento-valor--sucesso.html", "rota": "/orcamento?mes=2026-10&escopo=casa&editar=00000000-0000-4000-8000-000000000404", "esperar": "#form-orc", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/rpc/orcamento_mes*", "arquivo": "respostas/orcamento-mes.json" } ] },
 
     { "id": "T10", "nome": "Metas", "estado": "sucesso", "mockup": "telas/metas--sucesso.html", "rota": "/metas", "esperar": "#t-eu",
@@ -108,14 +108,14 @@
     { "id": "T12", "nome": "Editar meta", "estado": "sucesso", "mockup": "telas/meta-form--sucesso.html", "rota": "/metas/00000000-0000-4000-8000-000000000902/editar", "esperar": "#nome",
       "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" } ] },
 
-    { "id": "T13", "nome": "Aporte", "estado": "sucesso", "mockup": "telas/movimentar-meta--sucesso.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=aporte", "esperar": "#form-mov", "ocultar": [".conteudo"],
+    { "id": "T13", "nome": "Aporte", "estado": "sucesso", "mockup": "telas/movimentar-meta--sucesso.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=aporte", "esperar": "#form-mov", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" },
                      { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta.json" },
                      { "url": "**/rest/v1/rpc/locais_guardados*", "arquivo": "respostas/locais-guardados.json" } ] },
-    { "id": "T13", "nome": "Retirada", "estado": "retirada", "mockup": "telas/movimentar-meta--retirada.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=retirada", "esperar": "#form-mov", "ocultar": [".conteudo"],
+    { "id": "T13", "nome": "Retirada", "estado": "retirada", "mockup": "telas/movimentar-meta--retirada.html", "rota": "/metas/00000000-0000-4000-8000-000000000902?movimentar=retirada", "esperar": "#form-mov", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-detalhe.json" },
                      { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta.json" } ] },
-    { "id": "T13", "nome": "Retirada sem saldo", "estado": "vazio", "mockup": "telas/movimentar-meta--vazio.html", "rota": "/metas/00000000-0000-4000-8000-000000000905?movimentar=retirada", "esperar": "#vazio-titulo", "ocultar": [".conteudo"],
+    { "id": "T13", "nome": "Retirada sem saldo", "estado": "vazio", "mockup": "telas/movimentar-meta--vazio.html", "rota": "/metas/00000000-0000-4000-8000-000000000905?movimentar=retirada", "esperar": "#vazio-titulo", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/metas*", "arquivo": "respostas/meta-carro.json" },
                      { "url": "**/rest/v1/rpc/movimentos_meta*", "arquivo": "respostas/movimentos-meta-vazio.json" } ] },
 
@@ -156,10 +156,10 @@
     { "id": "T20", "nome": "Categoria", "estado": "sucesso", "mockup": "telas/categoria--sucesso.html", "rota": "/ajustes/categorias/00000000-0000-4000-8000-000000000401", "esperar": "#nome",
       "respostas": [ { "url": "**/rest/v1/categorias*", "arquivo": "respostas/categoria-mercado.json" } ] },
 
-    { "id": "T21", "nome": "Pagamento do cartão", "estado": "sucesso", "mockup": "telas/pagamento-cartao--sucesso.html", "rota": "/ajustes/formas/00000000-0000-4000-8000-000000000303?pagamento=1", "esperar": "#form-pagto", "ocultar": [".conteudo"],
+    { "id": "T21", "nome": "Pagamento do cartão", "estado": "sucesso", "mockup": "telas/pagamento-cartao--sucesso.html", "rota": "/ajustes/formas/00000000-0000-4000-8000-000000000303?pagamento=1", "esperar": "#form-pagto", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/formas_pagamento*", "arquivo": "respostas/forma-xp.json" },
                      { "url": "**/rest/v1/contas*", "arquivo": "respostas/contas.json" } ] },
-    { "id": "T21", "nome": "Pagamento do cartão", "estado": "vazio", "mockup": "telas/pagamento-cartao--vazio.html", "rota": "/ajustes/formas/00000000-0000-4000-8000-000000000303?pagamento=1", "esperar": "#vazio-titulo", "ocultar": [".conteudo"],
+    { "id": "T21", "nome": "Pagamento do cartão", "estado": "vazio", "mockup": "telas/pagamento-cartao--vazio.html", "rota": "/ajustes/formas/00000000-0000-4000-8000-000000000303?pagamento=1", "esperar": "#vazio-titulo", "recorte": { "mockup": "section.folha", "app": "[role=dialog]" },
       "respostas": [ { "url": "**/rest/v1/formas_pagamento*", "arquivo": "respostas/forma-xp.json" },
                      { "url": "**/rest/v1/contas*", "arquivo": "respostas/contas-vazio.json" } ] }
   ]
