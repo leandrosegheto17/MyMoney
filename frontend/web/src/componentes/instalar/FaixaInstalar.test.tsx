@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { FaixaInstalar } from './FaixaInstalar';
+import botao from '../base/Botao.module.css';
+import botaoIcone from '../base/BotaoIcone.module.css';
+import faixaCss from '../base/Faixa.module.css';
 
 function temClasse(el: Element, nome: string) {
   return [...el.classList].some((c) => c === nome || c.startsWith(`_${nome}_`));
@@ -46,9 +49,13 @@ describe('FaixaInstalar', () => {
     const { faixa, container } = renderizar();
     const instalar = within(faixa).getByRole('button', { name: 'Instalar' });
     const dispensar = within(faixa).getByRole('button', { name: 'Dispensar instalação' });
-    expect(instalar.className).toMatch(/botao/);
-    expect(instalar.className).toMatch(/principal/);
-    expect(dispensar.className).toMatch(/botao/);
+    expect(instalar.classList.contains(botao.botao)).toBe(true);
+    expect(instalar.classList.contains(botao.principal)).toBe(true);
+    expect(dispensar.classList.contains(botaoIcone.botao)).toBe(true);
+    // O min-height do alvo mínimo vem de `.acoes > button`: os botões são filhos diretos de `.acoes`.
+    for (const b of [instalar, dispensar]) {
+      expect(b.parentElement?.classList.contains(faixaCss.acoes)).toBe(true);
+    }
     expect(container.querySelector('[style]')).toBeNull();
   });
 });

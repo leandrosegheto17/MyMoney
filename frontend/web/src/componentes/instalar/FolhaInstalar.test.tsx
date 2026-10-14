@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { FolhaInstalar } from './FolhaInstalar';
+import botao from '../base/Botao.module.css';
+import botaoIcone from '../base/BotaoIcone.module.css';
 
 type Props = Parameters<typeof FolhaInstalar>[0];
 
@@ -70,10 +72,10 @@ describe('FolhaInstalar no iOS', () => {
   it('"Agora não" ocupa a largura com alvo pela classe e não há style inline', () => {
     renderizar();
     const agoraNao = screen.getByRole('button', { name: 'Agora não' });
-    expect(agoraNao.className).toMatch(/botao/);
-    expect(agoraNao.className).toMatch(/secundario/);
-    expect(agoraNao.className).toMatch(/bloco/);
-    expect(screen.getByRole('button', { name: 'Fechar' }).className).toMatch(/botao/);
+    expect(agoraNao.classList.contains(botao.botao)).toBe(true);
+    expect(agoraNao.classList.contains(botao.secundario)).toBe(true);
+    expect(agoraNao.classList.contains(botao.bloco)).toBe(true);
+    expect(screen.getByRole('button', { name: 'Fechar' }).classList.contains(botaoIcone.botao)).toBe(true);
     expect(document.body.querySelector('[style]')).toBeNull();
   });
 
