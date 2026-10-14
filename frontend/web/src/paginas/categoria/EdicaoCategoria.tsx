@@ -1,8 +1,6 @@
 import type { LinhaCategorias } from '@mymoney/contrato/respostas/categorias';
-import { useState } from 'react';
+import { AcoesEdicao } from '../../componentes/AcoesEdicao';
 import { AvisoErroTopo } from '../../componentes/base/AvisoErroTopo';
-import { Botao } from '../../componentes/base/Botao';
-import { DialogoConfirmacao } from '../../componentes/base/DialogoConfirmacao';
 import { FormularioCategoria } from '../../componentes/FormularioCategoria';
 import { useAcoesCategoria } from './useAcoesCategoria';
 
@@ -11,7 +9,6 @@ const TEXTO_EM_USO =
 
 export function EdicaoCategoria({ categoria }: { categoria: LinhaCategorias }) {
   const acoes = useAcoesCategoria(categoria.id, categoria.tipo);
-  const [confirmando, setConfirmando] = useState(false);
 
   return (
     <>
@@ -27,44 +24,14 @@ export function EdicaoCategoria({ categoria }: { categoria: LinhaCategorias }) {
         erroNome={acoes.erroNome}
         aoSalvar={acoes.salvar}
       >
-        {acoes.emUso ? (
-          <>
-            <Botao variante="principal" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar categoria
-            </Botao>
-            <Botao variante="secundario" onClick={acoes.cancelarEmUso}>
-              Cancelar
-            </Botao>
-          </>
-        ) : (
-          <>
-            <Botao variante="principal" tipo="submit" salvando={acoes.salvando}>
-              Salvar
-            </Botao>
-            <Botao variante="secundario" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar
-            </Botao>
-            {categoria.pode_excluir ? (
-              <Botao variante="perigo" icone="lixo" onClick={() => setConfirmando(true)}>
-                Excluir
-              </Botao>
-            ) : null}
-          </>
-        )}
+        <AcoesEdicao
+          acoes={acoes}
+          podeExcluir={categoria.pode_excluir}
+          rotuloArquivarEmUso="Arquivar categoria"
+          tituloExclusao="Excluir esta categoria?"
+          textoExclusao="A categoria será excluída de vez e não dá para desfazer."
+        />
       </FormularioCategoria>
-      <DialogoConfirmacao
-        aberto={confirmando}
-        titulo="Excluir esta categoria?"
-        texto="A categoria será excluída de vez e não dá para desfazer."
-        rotuloConfirmar="Excluir"
-        variante="destrutiva"
-        iconeConfirmar="lixo"
-        aoConfirmar={() => {
-          setConfirmando(false);
-          acoes.excluir();
-        }}
-        aoCancelar={() => setConfirmando(false)}
-      />
     </>
   );
 }

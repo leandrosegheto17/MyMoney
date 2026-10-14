@@ -2,8 +2,7 @@ import type { LinhaContas } from '@mymoney/contrato/respostas/contas';
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { AvisoErroTopo } from '../../componentes/base/AvisoErroTopo';
-import { Botao } from '../../componentes/base/Botao';
-import { DialogoConfirmacao } from '../../componentes/base/DialogoConfirmacao';
+import { AcoesEdicao } from '../../componentes/AcoesEdicao';
 import { AjusteSaldo } from '../../componentes/AjusteSaldo';
 import { CartaoSaldo } from '../../componentes/CartaoSaldo';
 import { FormularioConta } from '../../componentes/FormularioConta';
@@ -20,7 +19,6 @@ export function EdicaoConta({ conta }: { conta: LinhaContas }) {
   const acoes = useAcoesConta(conta.id);
   const [parametros] = useSearchParams();
   const [saldoReal, setSaldoReal] = useState(() => saldoRealDaUrl(parametros));
-  const [confirmando, setConfirmando] = useState(false);
   const previa = usePreviaAjuste(conta.id, saldoReal);
 
   return (
@@ -48,44 +46,14 @@ export function EdicaoConta({ conta }: { conta: LinhaContas }) {
         erroSaldoInicial={acoes.erroSaldoInicial}
         aoSalvar={acoes.salvar}
       >
-        {acoes.emUso ? (
-          <>
-            <Botao variante="principal" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar conta
-            </Botao>
-            <Botao variante="secundario" onClick={acoes.cancelarEmUso}>
-              Cancelar
-            </Botao>
-          </>
-        ) : (
-          <>
-            <Botao variante="principal" tipo="submit" salvando={acoes.salvando}>
-              Salvar
-            </Botao>
-            <Botao variante="secundario" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar
-            </Botao>
-            {conta.pode_excluir ? (
-              <Botao variante="perigo" icone="lixo" onClick={() => setConfirmando(true)}>
-                Excluir
-              </Botao>
-            ) : null}
-          </>
-        )}
+        <AcoesEdicao
+          acoes={acoes}
+          podeExcluir={conta.pode_excluir}
+          rotuloArquivarEmUso="Arquivar conta"
+          tituloExclusao="Excluir esta conta?"
+          textoExclusao="A conta será excluída de vez e não dá para desfazer."
+        />
       </FormularioConta>
-      <DialogoConfirmacao
-        aberto={confirmando}
-        titulo="Excluir esta conta?"
-        texto="A conta será excluída de vez e não dá para desfazer."
-        rotuloConfirmar="Excluir"
-        variante="destrutiva"
-        iconeConfirmar="lixo"
-        aoConfirmar={() => {
-          setConfirmando(false);
-          acoes.excluir();
-        }}
-        aoCancelar={() => setConfirmando(false)}
-      />
     </>
   );
 }

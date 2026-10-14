@@ -1,8 +1,6 @@
 import type { LinhaFormasPagamento } from '@mymoney/contrato/respostas/formas-pagamento';
-import { useState } from 'react';
+import { AcoesEdicao } from '../../componentes/AcoesEdicao';
 import { AvisoErroTopo } from '../../componentes/base/AvisoErroTopo';
-import { Botao } from '../../componentes/base/Botao';
-import { DialogoConfirmacao } from '../../componentes/base/DialogoConfirmacao';
 import { FormularioForma } from '../../componentes/FormularioForma';
 import { QuadroCartao } from '../../componentes/QuadroCartao';
 import { useContas } from '../../ganchos/useContas';
@@ -19,7 +17,6 @@ export function EdicaoForma({ forma }: { forma: LinhaFormasPagamento }) {
   const acoes = useAcoesForma(forma.id, forma.preferida);
   const contas = useContas();
   const contexto = useContexto();
-  const [confirmando, setConfirmando] = useState(false);
   const mesCorrente = contexto.data?.mes_corrente;
 
   return (
@@ -50,45 +47,15 @@ export function EdicaoForma({ forma }: { forma: LinhaFormasPagamento }) {
         contas={contas.data ?? []}
         aoSalvar={acoes.salvar}
       >
-        {acoes.emUso ? (
-          <>
-            <Botao variante="principal" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar forma
-            </Botao>
-            <Botao variante="secundario" onClick={acoes.cancelarEmUso}>
-              Cancelar
-            </Botao>
-          </>
-        ) : (
-          <>
-            <Botao variante="principal" tipo="submit" salvando={acoes.salvando}>
-              Salvar
-            </Botao>
-            <Botao variante="secundario" salvando={acoes.arquivando} rotuloOcupado="Arquivando…" onClick={acoes.arquivar}>
-              Arquivar
-            </Botao>
-            {forma.pode_excluir ? (
-              <Botao variante="perigo" icone="lixo" onClick={() => setConfirmando(true)}>
-                Excluir
-              </Botao>
-            ) : null}
-          </>
-        )}
+        <AcoesEdicao
+          acoes={acoes}
+          podeExcluir={forma.pode_excluir}
+          rotuloArquivarEmUso="Arquivar forma"
+          tituloExclusao="Excluir esta forma?"
+          textoExclusao="A forma será excluída de vez e não dá para desfazer."
+        />
       </FormularioForma>
       <PagamentoCartaoConectada forma={forma} />
-      <DialogoConfirmacao
-        aberto={confirmando}
-        titulo="Excluir esta forma?"
-        texto="A forma será excluída de vez e não dá para desfazer."
-        rotuloConfirmar="Excluir"
-        variante="destrutiva"
-        iconeConfirmar="lixo"
-        aoConfirmar={() => {
-          setConfirmando(false);
-          acoes.excluir();
-        }}
-        aoCancelar={() => setConfirmando(false)}
-      />
     </>
   );
 }
