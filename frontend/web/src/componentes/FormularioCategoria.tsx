@@ -100,41 +100,33 @@ export function FormularioCategoria({ inicial, tipoEscopoFixos, erroNome, aoSalv
         />
       ) : (
         <>
-          <div className={estilo.grupo}>
-            <span className={estilo.rotulo} aria-hidden="true">
-              Tipo
-            </span>
-            <Segmentado
-              legenda="Tipo"
-              nome="tipo"
-              opcoes={ORDEM_TIPO_LANCAMENTO.map((valor) => ({ valor, rotulo: ROTULO_TIPO_LANCAMENTO[valor].texto }))}
-              valor={tipo}
-              aoMudar={mudarTipo}
-            />
-          </div>
-          <div className={estilo.grupo}>
-            <span className={estilo.rotulo} aria-hidden="true">
-              Escopo
-            </span>
-            <Segmentado
-              legenda="Escopo"
-              nome="escopo"
-              opcoes={ORDEM_ESCOPO.map((valor) => ({
-                valor,
-                rotulo: ROTULO_POSSE[valor],
-                desabilitada: tipo === 'receita' && valor === 'conjunto',
-              }))}
-              valor={escopo}
-              aoMudar={(valor) => setEscopo(valor as Escopo)}
-            />
-            <p className={estilo.ajuda}>{AJUDA_CRIACAO}</p>
-          </div>
+          <Segmentado
+            legendaVisivel
+            legenda="Tipo"
+            nome="tipo"
+            opcoes={ORDEM_TIPO_LANCAMENTO.map((valor) => ({ valor, rotulo: ROTULO_TIPO_LANCAMENTO[valor].texto }))}
+            valor={tipo}
+            aoMudar={mudarTipo}
+          />
+          <Segmentado
+            legendaVisivel
+            legenda="Escopo"
+            nome="escopo"
+            opcoes={ORDEM_ESCOPO.map((valor) => ({
+              valor,
+              rotulo: ROTULO_POSSE[valor],
+              desabilitada: tipo === 'receita' && valor === 'conjunto',
+            }))}
+            valor={escopo}
+            aoMudar={(valor) => setEscopo(valor as Escopo)}
+            ajuda={AJUDA_CRIACAO}
+          />
         </>
       )}
       {tipo === 'despesa' ? (
         <Interruptor
           rotulo="Gasto variável"
-          ajuda={AJUDA_VARIAVEL}
+          ajuda={tipoEscopoFixos ? AJUDA_VARIAVEL : undefined}
           checked={variavel}
           onChange={(e) => setVariavel(e.target.checked)}
         />
