@@ -5,6 +5,10 @@ create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
 select plan(24);
 
+-- app.hoje() fixado: os pagamentos do teste ficam dentro da faixa aceita (de 2000-01-01 até hoje + 30 dias).
+create or replace function app.hoje(p_instante timestamptz default now()) returns date
+language sql stable set search_path = '' as $$ select date '2027-01-15' $$;
+
 select testes.preparar_lar();
 
 -- Cadastros de teste criados na transação (como postgres).
