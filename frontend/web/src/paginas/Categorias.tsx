@@ -38,7 +38,7 @@ export function Categorias() {
         {leitura.situacao === 'erro' ? null : (
           <Segmentado
             legenda="Tipo de categoria"
-            nome="tipo"
+            nome="tipo-categoria"
             opcoes={OPCOES}
             valor={tipo}
             aoMudar={(valor) => setParams({ tipo: valor }, { replace: true })}

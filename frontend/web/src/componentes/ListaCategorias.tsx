@@ -18,6 +18,7 @@ function ItemCategoria({ categoria }: { categoria: LinhaCategorias }) {
       subtitulo={categoria.arquivada ? 'Arquivada' : undefined}
       para={`/ajustes/categorias/${categoria.id}`}
       direita={categoria.variavel === true ? <SeloSituacao situacao="variavel" /> : undefined}
+      seta={false}
     />
   );
 }

@@ -109,6 +109,20 @@ describe('Categorias (T19): despesas', () => {
     expect(await screen.findByRole('radio', { name: 'Despesas' })).toBeChecked();
   });
 
+  it('o seletor continua marcado de verdade com outro grupo de rádios "tipo" no documento', async () => {
+    buscarSimulado.mockResolvedValue(categorias());
+    render(
+      <>
+        <input type="radio" name="tipo" value="despesa" aria-label="Outro" defaultChecked />
+        <input type="radio" name="tipo" value="receita" aria-label="Outro 2" />
+      </>,
+    );
+    montar();
+    const despesas = await screen.findByRole('radio', { name: 'Despesas' });
+    expect((despesas as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByRole('radio', { name: 'Outro' })).toBeChecked();
+  });
+
   it('parâmetro fora de despesa|receita cai em Despesas', async () => {
     buscarSimulado.mockResolvedValue(categorias());
     montar('/ajustes/categorias?tipo=xyz');

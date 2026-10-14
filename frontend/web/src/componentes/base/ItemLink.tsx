@@ -17,7 +17,7 @@ type Props = {
   direita?: ReactNode;
   /** Cor de ação destrutiva (via classe). */
   destrutivo?: boolean;
-  /** Mostra a seta também no item de ação (o link sempre a mostra). */
+  /** Mostra a seta também no item de ação; o link a mostra, salvo com `seta={false}`. */
   seta?: boolean;
 } & ({ para: string; aoClicar?: never } | { aoClicar: () => void; para?: never });
 
@@ -57,7 +57,7 @@ export function ItemLink({ icone, rotulo, subtitulo, contagem, valor, nota, dire
     direita !== undefined ? (
       direita
     ) : valor === undefined ? (
-      <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
+      seta === false && contagem === undefined ? null : <span className={subtitulo === undefined ? estilo.sub : `${estilo.sub} ${estilo.destaque}`}>
         {contagem}
         <Icone nome="dir" className={estilo.seta} />
       </span>

@@ -45,6 +45,10 @@ for (const tamanho of TAMANHOS) {
       await alvosGrandes(page);
       await semViolacoesGraves(page);
 
+      await expect(page.getByRole('radio', { name: 'Despesas' })).toBeChecked();
+      await expect(page.getByRole('radio', { name: 'Receitas' })).not.toBeChecked();
+      await expect(page.locator('main a svg')).toHaveCount(0);
+
       await page.getByRole('radio', { name: 'Despesas' }).focus();
       await page.keyboard.press('ArrowRight');
       await expect(page.getByRole('radio', { name: 'Receitas' })).toBeChecked();

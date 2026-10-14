@@ -47,4 +47,10 @@ describe('ItemLink', () => {
     expect(sub?.querySelector('use')?.getAttribute('href')).toBe('#i-dir');
     expect(link.querySelector('.valor')).toBeNull();
   });
+
+  it('seta={false} tira a seta do link', () => {
+    const link = renderLink({ seta: false });
+
+    expect(link.querySelector('svg')).toBeNull();
+  });
 });
