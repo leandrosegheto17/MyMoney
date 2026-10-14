@@ -40,4 +40,36 @@ describe('textoExclusao', () => {
     });
     expect(texto.startsWith('Moradia, R$ 1.950,00 em 3x.')).toBe(true);
   });
+
+  it('1 parcela, individual: sem "em Nx" e sem "as N parcelas"', () => {
+    expect(
+      textoExclusao({
+        descricao: 'Mercado',
+        categoria: 'Alimentação',
+        valorTotalCentavos: 12000,
+        numParcelas: 1,
+        escopo: 'individual',
+        tipo: 'despesa',
+      }),
+    ).toEqual({
+      titulo: 'Excluir esta compra?',
+      texto: 'Mercado, R$ 120,00. A exclusão não pode ser desfeita.',
+    });
+  });
+
+  it('receita: título próprio e alcance individual', () => {
+    expect(
+      textoExclusao({
+        descricao: 'Salário',
+        categoria: 'Renda',
+        valorTotalCentavos: 500000,
+        numParcelas: 1,
+        escopo: 'individual',
+        tipo: 'receita',
+      }),
+    ).toEqual({
+      titulo: 'Excluir esta receita?',
+      texto: 'Salário, R$ 5.000,00. A exclusão não pode ser desfeita.',
+    });
+  });
 });
