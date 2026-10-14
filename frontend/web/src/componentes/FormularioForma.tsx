@@ -116,6 +116,7 @@ export function FormularioForma({ inicial, tipoFixo, contas, aoSalvar, children 
       ) : (
         <Segmentado
           legenda="Tipo"
+          legendaVisivel
           nome="tipo"
           opcoes={ORDEM_TIPO_FORMA.map((valor) => ({ valor, rotulo: ROTULO_TIPO_FORMA[valor].texto }))}
           valor={tipo}
