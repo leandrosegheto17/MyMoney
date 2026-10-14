@@ -3,6 +3,7 @@
 //   PORTA=5292 pnpm exec playwright test --grep @integracao e2e/integracao/lancar-receita.spec.ts
 // A URL e a chave vêm de .env.local; a senha do seed, de TESTE_SENHA (padrão do backend/.env.example).
 import { expect, test, type Page } from '@playwright/test';
+import { excluirLancamentosLocais, registrarLancamentosCriados } from '../apoio/limpeza-local';
 
 const EMAIL = process.env.TESTE_EMAIL_A ?? 'leandro@exemplo.com';
 const SENHA = process.env.TESTE_SENHA ?? 'senha-local-123';
@@ -36,7 +37,13 @@ async function saldoDaConta(page: Page, nome: string) {
 test.describe('@integracao lançar receita', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
+  let criados: string[] = [];
+  test.afterEach(async () => {
+    await excluirLancamentosLocais(criados, EMAIL, SENHA);
+  });
+
   test('a receita de R$ 100,00 sobe o saldo da conta e as receitas do mês', async ({ page }) => {
+    criados = registrarLancamentosCriados(page);
     await entrar(page);
     await page.goto('/');
     const receitasAntes = await receitasDoMes(page);
