@@ -845,3 +845,9 @@ APROVADA; 0 críticos, 0 não críticos; limpeza só em localhost, só chave ano
 
 ## RTP-0149 — DevSecOps — 2026-10-14
 APROVADA; 0 críticos, 0 não críticos; trava recusa localhost.evil.com/userinfo@host (executado), sem senha padrão nem .env versionado.
+
+## RTP-0152 — DevSecOps — 2026-10-14
+APROVADA (DevSecOps), 0 críticos/0 não críticos; revisão de diff: Excluir só com pode_excluir e sempre via DialogoConfirmacao (portal), sem HTML cru/style inline; nada executado.
+
+## RTP-0153 — DevSecOps — 2026-10-14
+APROVADA (0 críticos, 0 não críticos); actionlint limpo e leitura confirmam token mínimo, ações por SHA, sem segredo/injeção, artefato só em falha sem dado sensível, PR de fork sem exposição.

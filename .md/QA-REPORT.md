@@ -917,3 +917,12 @@ APROVADA; 0 críticos, 0 não críticos; vitest 5/5, e2e recusa exemplo.invalid 
 
 ## RTP-0150 — QA — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico (espaço faltando após "instalar--android," na lista manual); 4 selos auto e contagem 23 conferidos; grupo no TASK.md (Lote-17) diverge da origem (lote 21).
+
+## RTP-0151 — QA — 2026-10-14
+APROVADA, 0 críticos/0 não críticos; grep de ID vazio, typecheck e eslint verdes, entrar.spec 6/6 com prints em pasta nova.
+
+## RTP-0152 — QA — 2026-10-14
+APROVADA, 0 críticos/0 não críticos; visual T16/T18/T20 0,00% divergente e saude.py sem blocos duplicados entre as Edicao*.
+
+## RTP-0153 — QA — 2026-10-14
+APROVADA (0 críticos, 0 não críticos); actionlint limpo, `--limite` repassado e job isolamento equivalente confirmados por leitura; rodada real do CI pendente de push em branch de teste.

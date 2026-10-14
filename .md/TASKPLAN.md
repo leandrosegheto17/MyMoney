@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 17:05
+Atualizado: 2026-10-14 17:10
 
-Resumo: Não executada 22 · Em execução 1 · Aprovada 320 · Bloqueada 3 · total 346
+Resumo: Não executada 19 · Em execução 1 · Aprovada 323 · Bloqueada 3 · total 346
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -331,9 +331,9 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 316 | RTP-0146 | executor | ✔ | Folha de valor do orçamento: erro registro_invalido some junto com a folha | Refatoração Lote-29 | TP-0142 | Aprovada |
 | 317 | RTP-0148 | executor | ✔ | E2E @integracao da receita deixa lançamentos no banco local | Refatoração Lote-23 | TP-0116 | Aprovada |
 | 318 | RTP-0149 | executor | ✔ | E2E @integracao da receita sem trava de host local | 23 | TP-0116 | Aprovada |
-| 319 | RTP-0151 | executor | ✔ | Tirar ID de tarefa (TP-nnnn) dos 8 specs e2e; o passo do CI reprova hoje | Refatoração Revisão 2026-10-14 | — | Não executada |
-| 320 | RTP-0152 | executor | ✔ | Extrair botões de edição e diálogo de exclusão repetidos em EdicaoConta/EdicaoForma/Edi... | Refatoração Revisão 2026-10-14 | — | Não executada |
-| 321 | RTP-0153 | executor | ✔ | Job de frontend no CI (build, Playwright com axe e comparação visual), exigido pelo G-18 | Refatoração Revisão 2026-10-14 | — | Não executada |
+| 319 | RTP-0151 | executor | ✔ | Tirar ID de tarefa (TP-nnnn) dos 8 specs e2e; o passo do CI reprova hoje | Refatoração Revisão 2026-10-14 | — | Aprovada |
+| 320 | RTP-0152 | executor | ✔ | Extrair botões de edição e diálogo de exclusão repetidos em EdicaoConta/EdicaoForma/Edi... | Refatoração Revisão 2026-10-14 | — | Aprovada |
+| 321 | RTP-0153 | executor | ✔ | Job de frontend no CI (build, Playwright com axe e comparação visual), exigido pelo G-18 | Refatoração Revisão 2026-10-14 | — | Aprovada |
 | 322 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 323 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
 | 324 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
