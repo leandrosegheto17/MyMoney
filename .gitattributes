@@ -1,0 +1,2 @@
+# Scripts de shell precisam de LF no worktree (bash/shellcheck rejeitam CRLF, SC1017), inclusive no Windows.
+*.sh text eol=lf
