@@ -13,14 +13,16 @@ const TAMANHOS = [
 const RESPOSTAS = join(process.cwd(), '..', '..', '.md', 'mockup', 'respostas');
 const ler = (arquivo: string) => readFileSync(join(RESPOSTAS, arquivo), 'utf8');
 
-async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], resumo: 'pendente' | 'indisponivel') {
+async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], resumo: 'pendente' | 'indisponivel' | 'sucesso') {
   await page.route('**/rest/v1/rpc/contexto', (rota) =>
     rota.fulfill({ status: 200, contentType: 'application/json', body: ler('contexto.json') }),
   );
   await page.route('**/rest/v1/rpc/resumo_mes*', (rota) =>
     resumo === 'pendente'
       ? new Promise(() => {})
-      : rota.fulfill({ status: 503, contentType: 'application/json', body: ler('erro-servico.json') }),
+      : resumo === 'sucesso'
+        ? rota.fulfill({ status: 200, contentType: 'application/json', body: ler('resumo-mes.json') })
+        : rota.fulfill({ status: 503, contentType: 'application/json', body: ler('erro-servico.json') }),
   );
   await page.setViewportSize({ width: tamanho.width, height: tamanho.height });
   await page.goto('/?mes=2026-10');
@@ -34,6 +36,15 @@ for (const tamanho of TAMANHOS) {
       await expect(page.getByText('Carregando o resumo de outubro…')).toBeAttached();
       await expect(page.getByRole('main')).toHaveAttribute('aria-busy', 'true');
       await expect(page.locator('#titulo-casa, #titulo-eu')).toHaveCount(0);
+      await semViolacoesGraves(page);
+    });
+
+    test('sucesso: cartão "Fixas a pagar" com "3 de 7" e sem violações graves', async ({ page }) => {
+      await abrir(page, tamanho, 'sucesso');
+
+      const fixas = page.getByRole('article', { name: /^Fixas a pagar/ });
+      await expect(fixas).toBeVisible();
+      await expect(fixas).toContainText('3 de 7');
       await semViolacoesGraves(page);
     });
 

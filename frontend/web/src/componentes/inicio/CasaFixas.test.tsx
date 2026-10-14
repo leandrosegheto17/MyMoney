@@ -84,6 +84,27 @@ describe('CasaFixas com pendentes', () => {
     expect(itens()).toHaveLength(3);
     expect(within(cartao()).queryByText('Luz')).not.toBeInTheDocument();
   });
+
+  it('título "N de total": 5 pendentes de 7 mostra "5 de 7" com 3 itens', () => {
+    const [a, b, c] = resumo.conjunto.fixas_pendentes;
+    const cinco = [
+      a,
+      b,
+      c,
+      { ...c, ocorrencia_id: 'x4', descricao: 'Luz' },
+      { ...c, ocorrencia_id: 'x5', descricao: 'Água' },
+    ];
+    montar({ ...resumo.conjunto, fixas_pendentes: cinco, fixas_total: 7 });
+
+    expect(within(cartao()).getByText('5 de 7')).toBeInTheDocument();
+    expect(itens()).toHaveLength(3);
+  });
+
+  it('título do resumo da API: "3 de 7"', () => {
+    montar();
+
+    expect(within(cartao()).getByText('3 de 7')).toBeInTheDocument();
+  });
 });
 
 describe('CasaFixas sem pendentes', () => {
