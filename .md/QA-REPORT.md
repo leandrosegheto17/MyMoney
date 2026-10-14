@@ -881,3 +881,27 @@ APROVADA; 0 críticos, 1 não crítico (RTP-0145: T03 `inicial` 7,21% celular/1,
 
 ## TP-0142 — QA — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico (RTP-0146: aviso registro_invalido some se o refetch remover a categoria); vitest 28/28, e2e 5/5, visual T09 folha 0,47%/0,55% com PNGs abertos.
+
+## RTP-0141 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; T22 4/4 OK (0.41-0.42%, alturas iguais), PNGs conferidos, só difere o anel de foco do X.
+
+## RTP-0142 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; nota do TP-0159 idêntica à UX-SPEC T21, grep da nota curta vazio.
+
+## RTP-0143 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; 31 testes passando, prettier ok, useMemo [] correto pois a folha desmonta ao fechar.
+
+## RTP-0144 — QA — 2026-10-14
+APROVADA; 0 achados críticos, 0 não críticos; e2e CSP com vercel.json real passou (0 violações em 4 rotas), build ok.
+
+## RTP-0145 — QA — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; T03 inicial celular 0,79% e PC 0,31% (≤1%, alturas iguais), vazio OK, resto do diff = anel de foco no Valor; 128 testes passando.
+
+## RTP-0146 — QA — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; vitest 11/11 e teste novo cobre refetch sem a categoria com aviso global e ?editar= removido.
+
+## TP-0108 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0147: envios--* fora do comparar-visual por pixel); vitest 141/141, e2e 5/5 com porta própria, PNGs conferidos idênticos ao mockup.
+
+## TP-0116 — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0148); vitest 441/441, Playwright 6/6 com PNGs idênticos ao mockup (0,00%/0,09%), T03 inicial 0,31%/0,79% e vazio OK, e2e @integracao reproduzido 2x.

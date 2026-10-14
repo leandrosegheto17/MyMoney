@@ -815,3 +815,24 @@ APROVADA; 0 críticos, 0 não críticos; diff lido (fila/idempotência, erros s�
 
 ## TP-0142 — DevSecOps — 2026-10-14
 APROVADA; 0 críticos, 0 não críticos; revisão do diff (lida, nada de segurança executado): só mês/categoria/valor enviados, abre só para id já na resposta, registro_invalido genérico (G-05), sem dependência nova.
+
+## RTP-0141 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff só de dados (telas.json, lista de telas), revisão por leitura, sem impacto de segurança.
+
+## RTP-0142 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; diff é só texto em TASK.md (lido, nada executado), sem impacto de segurança.
+
+## RTP-0144 — DevSecOps — 2026-10-14
+APROVADA; 0 achados críticos, 0 não críticos; CSP do vercel.json inalterada e sem unsafe-*, sem segredo, e2e CSP reexecutado (1 passando).
+
+## RTP-0145 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos/0 não críticos; diff só de apresentação/foco lido (seletor literal, sem entrada externa, sem dependência nova), nada executado.
+
+## RTP-0146 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; revisão de diff (lida, não executada): mensagem genérica G-05, sem consulta nova nem dado sensível.
+
+## TP-0108 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 0 não críticos; isolamento por dono em listar/reativar/descartar/enviar confirmado no diff, descarte só com confirmação, sem dado sensível novo em log/IndexedDB (revisão de diff; testes do QA).
+
+## TP-0116 — DevSecOps — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico (RTP-0149: e2e @integracao sem trava de host local); revisão do diff e grep executados, sem fila/IndexedDB nem credencial real versionada, gitleaks/semgrep não executados.
