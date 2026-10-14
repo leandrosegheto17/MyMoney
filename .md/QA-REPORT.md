@@ -845,3 +845,6 @@ APROVADA; 0 críticos/0 não críticos; T12 sucesso pc e celular 0,00% (limite 1
 
 ## TP-0141 — QA — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico (RTP-0140: EmConstrucao.tsx órfão); vitest da tarefa verde, e2e 11/11, visual T09 0,00% nos 4 estados x 2 tamanhos.
+
+## RTP-0137 — QA — 2026-10-14
+APROVADA — 5 telas (T08, T10, T19, T20, T21) registradas e OK no visual completo (≤ 0,91%, mesmas alturas); 0 críticos, 1 não crítico (alegação errada sobre T22 no plano; causa real coberta por RTP-0141); sem RTP nova.
