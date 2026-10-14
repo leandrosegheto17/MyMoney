@@ -1,4 +1,4 @@
-import { useId, type ReactNode } from 'react';
+import { useId, type ReactNode, type Ref } from 'react';
 import { Esqueleto, type VarianteEsqueleto } from './Esqueleto';
 import { LinhaVazia } from './LinhaVazia';
 import estilos from './CartaoResumo.module.css';
@@ -15,6 +15,8 @@ interface Props {
   acaoVazio?: ReactNode;
   /** Peças do esqueleto no estado `carregando`; o padrão é título, valor e duas linhas. */
   formaEsqueleto?: readonly VarianteEsqueleto[];
+  /** Permite levar o foco ao título (ganha `tabIndex=-1`). */
+  refTitulo?: Ref<HTMLHeadingElement>;
   children?: ReactNode;
 }
 
@@ -30,6 +32,7 @@ export function CartaoResumo({
   textoVazio,
   acaoVazio,
   formaEsqueleto = FORMA_PADRAO,
+  refTitulo,
   children,
 }: Props) {
   const idTitulo = useId();
@@ -52,7 +55,9 @@ export function CartaoResumo({
 
   return (
     <Raiz className={classes} aria-labelledby={idTitulo}>
-      <Titulo id={idTitulo}>{titulo}</Titulo>
+      <Titulo id={idTitulo} ref={refTitulo} tabIndex={refTitulo ? -1 : undefined}>
+        {titulo}
+      </Titulo>
       {estado === 'vazio' ? (
         <>
           <LinhaVazia>{textoVazio}</LinhaVazia>

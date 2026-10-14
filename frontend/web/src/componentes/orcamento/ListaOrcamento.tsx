@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import type { LinhaOrcamento as DadosLinha } from '@mymoney/contrato/respostas/comuns';
 import { paraEscopoApi, type EscopoUrl } from '../../formatacao/escopoUrl';
 import { formatarRealizadoDeOrcado } from '../../formatacao/moeda';
@@ -10,6 +11,7 @@ interface Props {
   mes: string;
   escopo: EscopoUrl;
   linhas: readonly DadosLinha[];
+  refTitulo?: Ref<HTMLHeadingElement>;
 }
 
 const rotuloDoLink = (l: DadosLinha) =>
@@ -17,9 +19,9 @@ const rotuloDoLink = (l: DadosLinha) =>
   `${l.percentual}%, ${ROTULO_SITUACAO_ORCAMENTO[l.situacao].texto.toLowerCase()}`;
 
 /** Categorias com orçamento na ordem da API; cada uma abre a edição do valor. */
-export function ListaOrcamento({ mes, escopo, linhas }: Props) {
+export function ListaOrcamento({ mes, escopo, linhas, refTitulo }: Props) {
   return (
-    <CartaoResumo secao estado="dado" titulo="Por categoria" textoVazio="">
+    <CartaoResumo secao estado="dado" titulo="Por categoria" textoVazio="" refTitulo={refTitulo}>
       {linhas.map((l, i) => (
         <LinhaOrcamento
           key={l.categoria_id}

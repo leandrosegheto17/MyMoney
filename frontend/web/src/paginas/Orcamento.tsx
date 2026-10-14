@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { CabecalhoMes } from '../componentes/CabecalhoMes';
 import { Segmentado } from '../componentes/base/Segmentado';
@@ -17,6 +17,7 @@ import { useMesDaUrl } from '../ganchos/useMesDaUrl';
 import { useOrcamentoMes } from '../ganchos/useOrcamentoMes';
 import { usePendentes } from '../ganchos/usePendentes';
 import { ROTULO_ESCOPO } from '../rotulos/escopo';
+import { ValorOrcamentoConectado } from './orcamento/ValorOrcamentoConectado';
 import estilos from './Orcamento.module.css';
 
 const OPCOES = [
@@ -36,6 +37,7 @@ export function Orcamento() {
   const anterior = consulta.data?.anterior;
   const { copiar, copiando } = useCopiarOrcamento(mes, escopoApi, anterior ? formatarNomeMes(anterior.mes) : '');
   const carregando = leitura.situacao === 'carregando';
+  const tituloCartao = useRef<HTMLHeadingElement>(null);
 
   function mudarEscopo(valor: string) {
     setDefinindoDoZero(false);
@@ -91,7 +93,7 @@ export function Orcamento() {
                 {dados.total ? (
                   <GradeOrcamento>
                     <CartaoTotalOrcamento escopo={escopo} total={dados.total} />
-                    <ListaOrcamento mes={mes} escopo={escopo} linhas={dados.linhas} />
+                    <ListaOrcamento mes={mes} escopo={escopo} linhas={dados.linhas} refTitulo={tituloCartao} />
                   </GradeOrcamento>
                 ) : null}
                 <SemOrcamento
@@ -105,7 +107,15 @@ export function Orcamento() {
             );
           }}
         </EstadosDeLeitura>
-        {/* Ponto de montagem da folha de valor, aberta por ?editar=<categoria_id>. */}
+        {consulta.data ? (
+          <ValorOrcamentoConectado
+            mes={mes}
+            escopo={escopo}
+            linhas={consulta.data.linhas}
+            semOrcamento={consulta.data.sem_orcamento}
+            tituloCartao={tituloCartao}
+          />
+        ) : null}
       </main>
     </>
   );
