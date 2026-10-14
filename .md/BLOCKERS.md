@@ -233,3 +233,12 @@
 - Impacto se não resolvido: Visual sucesso da T02 não fecha (9,91% pc / 17,54% celular); código da TP-0094 pronto e commitado
 - Sugestão: Alinhar o mockup inicio--sucesso.html (e UX-SPEC §T02) à faixa do app, ou omitir a faixa no sucesso
 - Status: Em aberto
+
+## Bloqueio 027 — 2026-10-14 (BK-0027)
+- Reportado por: Executor
+- Escalado para: coordenador
+- Artefato/trecho afetado: TP-0133
+- Descrição: TP-0133 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (ainda não executadas) e não depende delas: lacuna de dependência; decidir ordem ou extrair o apoio; PENDENTE do passo 3 (relógio no banco) também
+- Impacto se não resolvido: TP-0133 não executável; E2E do ciclo da despesa fixa parado
+- Sugestão: Adicionar TP-0110 à Dep da TP-0133 e reordenar o lote, ou extrair ambiente/entrarComo/marcador para tarefa própria
+- Status: Em aberto
