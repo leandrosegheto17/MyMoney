@@ -83,3 +83,8 @@ html.com-folha body {
   overflow: hidden;
   height: 100%;
 }
+/* A página atrás da folha não pode ser mais alta que a tela (senão estica body.scrollHeight e a captura). */
+html.com-folha #raiz {
+  max-height: 100%;
+  overflow: hidden;
+}

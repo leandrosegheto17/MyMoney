@@ -62,3 +62,10 @@ describe('global.css', () => {
     }
   });
 });
+
+describe('global.css com a folha aberta', () => {
+  it('limita a altura da página atrás dela (#raiz) à da tela', () => {
+    const css = readFileSync(new URL('global.css', ESTILO), 'utf8');
+    expect(css).toMatch(/html\.com-folha #raiz\s*\{[^}]*max-height: 100%[^}]*overflow: hidden/);
+  });
+});
