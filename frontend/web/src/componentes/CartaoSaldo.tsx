@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { ValorDestaque } from './base/ValorDestaque';
 import estiloCartao from './CartaoConta.module.css';
-import estilo from './CartaoSaldo.module.css';
+import estilo from './base/Formula.module.css';
 
 interface Props {
   saldoCentavos: number;

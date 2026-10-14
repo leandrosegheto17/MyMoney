@@ -1,7 +1,7 @@
 import { formatarMoeda } from '../../formatacao/moeda';
 import { CartaoResumo } from '../base/CartaoResumo';
 import { ValorDestaque } from '../base/ValorDestaque';
-import saldo from '../CartaoSaldo.module.css';
+import saldo from '../base/Formula.module.css';
 import type { PropsCasa } from './tipos';
 
 export function CasaResultado({ conjunto }: PropsCasa) {
