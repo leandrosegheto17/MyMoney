@@ -1,5 +1,24 @@
 # Revisão de arquitetura
 
+## Revisão 2026-10-15 (3) — pré-deploy (escopo: o que mudou desde a revisão (2), commit c840059)
+
+Números do saude.py: 3 arquivos acima do limite (as mesmas 3 migrations) · 5 blocos duplicados (43 linhas, iguais) · 0 IDs de tarefa no código · 1 pasta com acesso a dados (`backend/testes-api/src`, BK-0033) · 0 imports entre aplicações (`web` → `contrato`, o permitido); só mudou o total (1174 arquivos, 73713 linhas). Comparação visual não rodada: nenhum código de tela mudou desde a de 2026-10-14. Escopo lido: commit 3881e0c (docs de operação sem IDs), commit 1e0538b (`backend/supabase/migrations/20261015130000_almoco_conjunto_dados.sql` e `backend/supabase/tests/categorias/almoco_conjunto_dados.sql`), `checar-aditiva.sh`, `migrar.sh`, SDD §6, seeds e `inicializar_membro`. Grupo das RTP: "Refatoração Revisão 2026-10-15".
+
+| # | Achado | Item do checklist | Severidade | Onde | Destino |
+|---|---|---|---|---|---|
+| 1 | A migration de dados tem `drop table if exists` e `on commit drop`; `checar-aditiva.sh` reprova qualquer `drop` sem justificativa, então o job `migration` do CI fica vermelho e `migrar.sh` recusa aplicar | 14, 15 | Alta (bloqueia o deploy) | `backend/supabase/migrations/20261015130000_almoco_conjunto_dados.sql:14-15` | RTP-0181 |
+| 2 | SDD §6 "Troca de dados em produção" não tem linha para migration de dados que move lançamentos/orçamentos; a volta atrás é só a cópia do `migrar.sh` | 14 | Baixa | `.md/SDD.md` (subseção Troca de dados em produção) | RTP-0182 |
+
+Descartados:
+- Coerência com os FKs compostos: o `update` do lançamento muda `categoria_id` e `escopo` na mesma instrução (FK `(categoria_id, tipo, escopo)` satisfeito), a parcela acompanha por cascata (testado), o orçamento é reinserido como `conjunto` com `dono_id` nulo e `despesa_fixa` só aceita categoria conjunta, então nenhuma fixa aponta para a individual.
+- Aditividade em si: a migration só cria a conjunta, soma, move e arquiva; sem `rename` nem troca de tipo. O único problema é a palavra `drop` (achado 1). O `delete` do orçamento individual não é checado por G-12 e está coberto pela cópia pré-migração do `migrar.sh`.
+- Seeds e docs: `schemas/api/funcoes/inicializar_membro.sql` e `tests/categorias/inicializar_membro.sql` já têm Almoço conjunta; `seeds/04-categorias.sql` e `07-orcamento.sql` já dizem que Almoço virou conjunta; commit 3881e0c sem IDs de tarefa.
+- Teste da migration: 13 asserções cobrem criação, soma de orçamento, mover lançamento/parcela, categorias não tocadas, idempotência e lar sem Almoço; arquivo com 114 linhas, dentro do limite.
+- Demais descartes e BK-0033 das revisões anteriores: sem mudança.
+
+Sem achado nos itens: 1 a 13, 16, 17, 18. Item 11 lido nos arquivos do escopo (comentários da migration e do teste verdadeiros).
+
+
 ## Revisão 2026-10-15 (2) — sob demanda (escopo: o que mudou desde a primeira revisão de hoje, commit 1be0927)
 
 Números do saude.py: iguais aos da primeira revisão de hoje (3 migrations acima do limite, 5 blocos duplicados de 43 linhas, 0 IDs de tarefa no código, 1 pasta com acesso a dados em `testes-api`/BK-0033, 0 imports entre aplicações); só muda o total (1172 arquivos, 73555 linhas). Comparação visual não rodada: nenhum código de tela mudou. Escopo lido: `frontend/web/scripts/refProducao.mjs` (novo), `verificarHosts.mjs`, `frontend/web/test/apoio/refProducao.ts`, G-18 em `.md/GUARDRAILS.md`. Grupo reservado: "Refatoração Revisão 2026-10-15" (nenhuma RTP nova).
