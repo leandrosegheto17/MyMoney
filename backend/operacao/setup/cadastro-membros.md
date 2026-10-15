@@ -18,7 +18,7 @@ SQL: `backend/supabase/setup/criar-membros.sql` (fora de `migrations/` e `seeds/
      -f backend/supabase/setup/criar-membros.sql
    ```
 
-   Alternativa: colar o SQL no SQL Editor do painel, trocando `:'variavel'` pelos valores entre aspas simples (só na tela, sem salvar a query com dados reais). A saída esperada do `select` de conferência: `lares = 1`, `membros = 2`, `membros_com_usuario = 2`.
+   Alternativa: colar o SQL no SQL Editor do painel. Antes de rodar, **conferir o ref do projeto na URL do painel** (`https://supabase.com/dashboard/project/<ref>`): tem de ser o ref do topo deste arquivo; se for outro, não rodar (no painel essa conferência substitui a confirmação digitada). Trocando `:'variavel'` pelos valores entre aspas simples (só na tela, sem salvar a query com dados reais). A saída esperada do `select` de conferência: `lares = 1`, `membros = 2`, `membros_com_usuario = 2`.
 6. **[U] Login.** Cada um entra em `https://mymoney-ljs.vercel.app`, abre Ajustes > Categorias e vê as iniciais (5 conjuntas + 8 individuais, CA-04.2; criadas pelo app no 1º login via `api.inicializar_membro`). Um não vê as individuais do outro.
 7. **[U] Cadastro recusado** (não imprima a chave; defina `VITE_SUPABASE_ANON_KEY` no ambiente):
 
@@ -38,6 +38,7 @@ Não fazer: usar `service_role`; criar usuário por SQL em `auth.users`; deixar 
 |---|---|
 | Data | 2026-10-15 |
 | Ref confirmado (digitado) | Não aplicável (SQL rodado no SQL Editor do painel) |
+| Ref conferido no painel (URL do painel = ref do topo; só se o SQL rodou no SQL Editor) | Não registrado nesta execução (anterior à exigência) |
 | Pré-condição (migrations em dia) | 70 em dia; 1 pendente (`20261015120000`), a aplicar pelo `/deploy` |
 | `lares` / `membros` / `membros_com_usuario` | 1 / 2 / 2 |
 | Login do usuário 1 (categorias iniciais vistas) | Ok (5 conjuntas + 8 individuais) |
