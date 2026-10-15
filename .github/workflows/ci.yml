@@ -39,6 +39,9 @@ jobs:
 
       - name: Testes (Vitest dos pacotes que não precisam de banco)
         # @mymoney/testes-api exige o Supabase local: roda no job isolamento.
+        env:
+          VITE_SUPABASE_URL: https://testes.invalid
+          VITE_SUPABASE_ANON_KEY: chave-de-teste
         run: pnpm -r --if-present --filter '!@mymoney/testes-api' test
 
       - name: Teste do config.toml do Supabase
