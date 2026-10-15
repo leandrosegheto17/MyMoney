@@ -881,3 +881,24 @@ APROVADA; 0 críticos, 1 não crítico novo (baixa, anexável ao RTP-0159) mais 
 
 ## TP-0094 — DevSecOps — 2026-10-15
 APROVADA; 0 críticos, 0 não críticos; só `individual` e só formatação (G-07), sem `dados/`, `style`, `dangerouslySetInnerHTML` (grep 0), links por helpers, sem dependência nova; eslint não executável na worktree (coberto pelo QA).
+
+## TP-0110 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; trava de host local lida e executada (5/5 unitários, shell recusa host externo), G-15 sem service_role novo, sem dependência nova, G-16 e G-17/RT-04 verificados por leitura dos specs (specs não reexecutados aqui; QA 8/8).
+
+## RTP-0160 — DevSecOps — 2026-10-15
+APROVADA — grep no diff e em limpeza.md sem valores/tokens, sem .vercel nem .env.local com token no repo (G-15 ok); 0 achados.
+
+## TP-0143 — DevSecOps — 2026-10-15
+APROVADA - asserção de rede de B (CA-15.2/RN-16e) real por id e valor, trava de host local (G-06) preservada, sem segredo/service_role/dependência nova, G-17 intacta; 0 críticos, 0 não críticos (leitura do diff + greps; spec não reexecutado por este chapéu).
+
+## RTP-0159 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 2 não críticos (baixa: regra só no painel e main sem proteção de branch; baixa: status `success` para build cancelado); expressão sem segredos, exit 1/0 confirmado em shell e prova do branch conferida via statuses do commit 1705dbf.
+
+## RTP-0154 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; arquivo sem chave/senha (grep executado); G-02 (só `api`) apoiado na evidência do QA, sondas anon próprias NÃO EXECUTADAS por falta da chave.
+
+## TP-0111 — DevSecOps — 2026-10-15
+APROVADA — só specs e2e, sem dependência nem segredo, trava Supabase local ok, asserção de rede de B real (lacuna: coletor ligado após o login, RTP-0165); 0 críticos, 1 não crítico.
+
+## TP-0112 — DevSecOps — 2026-10-15
+APROVADA COM DÉBITO; 0 críticos, 0 altos, 0 médios, 4 baixos (1 RTP de doc: roteiro sem conferência substituta de ref na alternativa do SQL Editor; 3 de operação: passo 2/contagem de usuários no painel, migration pendente para o /deploy, desvio G-14 aceito); gitleaks e grep limpos, SQL atômico sem grant/service_role, signup 422 por relato do usuário.

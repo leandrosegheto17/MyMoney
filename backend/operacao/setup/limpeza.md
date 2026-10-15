@@ -37,9 +37,19 @@ Registrado em 2026-10-15. Sem valores de variáveis.
 - **Removido em 2026-10-14:** 164 deploys e todas as variáveis antigas (3 variáveis em 5 entradas); 0 domínios próprios. Outros projetos da conta não foram tocados.
 - **Configuração final:** Root Directory `frontend/web` com "Include files outside the root directory" ligado; framework Vite; install `pnpm install --frozen-lockfile`; build `pnpm --filter @mymoney/web build`; output `dist`; Node 24.x; Git ligado ao repositório, branch de produção `main`; Ignored Build Step para pular o que não for produção.
 - **Variáveis (só Production):** `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`. Nenhuma outra.
+- **Reconferência (RTP-0160, 2026-10-15):** `vercel env ls` no projeto `mymoney` listou exatamente 2 variáveis, ambas só em Production: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`. Nenhuma `service_role`/`sb_secret_`; só nomes e ambientes registrados (sem `env pull`).
 - **Domínio de produção:** `mymoney-ljs.vercel.app` (sem domínio próprio). É o mesmo do Site URL e do Redirect URL em `conferencia-painel.md`, então nada mudou lá.
 - **Primeiro deploy de produção:** 2026-10-15, pela integração Git (push na `main`, commit `91c8ad5`).
 - **`curl -sI https://mymoney-ljs.vercel.app/`:** `HTTP/1.1 200`; `Strict-Transport-Security: max-age=63072000; includeSubDomains`; `Content-Security-Policy` igual ao de `frontend/web/vercel.json` (`connect-src` só `'self'` e o host do Supabase de produção); `X-Content-Type-Options: nosniff`; `Referrer-Policy: no-referrer`; `Permissions-Policy` com câmera, microfone, geolocalização, pagamento, USB e Bluetooth desligados.
 - **Rota inventada** (`/qualquer/rota`): `200`, `text/html`, 1785 bytes, igual à raiz (rewrite para `index.html`).
 - **`http://`:** `308` para `https://mymoney-ljs.vercel.app/`.
 - **PWA:** `/manifest.webmanifest` `200` (`application/manifest+json`) e `/sw.js` `200` (`application/javascript`).
+
+## Ignored Build Step (expressão registrada e provada nos dois sentidos)
+
+- **Expressão em uso (painel, Settings > Git > Ignored Build Step, Behavior `Custom`, conferida em 2026-10-15):** `[ "$VERCEL_GIT_COMMIT_REF" != "main" ]`. Sai com 0 (pula o build) em qualquer branch que não seja a `main` e com 1 (faz o build) na `main`. `frontend/web/vercel.json` não define `ignoreCommand` (só `rewrites` e `headers`), então a expressão vive só no painel.
+- **Cancelamentos de 2026-10-15** (`7d9a0ca`, `3891687`, `fcbc910`, "Canceled by Ignored Build Step", antes do deploy de `91c8ad5`): a causa **não foi confirmada**. O passo passou a deixar a `main` construir sem mudança documentada.
+- **Confer�ncia nos dois sentidos:**
+  1. `main` faz build — **conferido em 2026-10-15** na lista de Deployments: `91c8ad5`, `ba345e4` e `3197490` (todos na `main`) estão `Ready` em Production; `a38fdd8`, `274fda3`, `7be8ce2`, `b114cc7` e `8be5c89` (também `main`) rodaram o build e terminaram `Checks Failed`, não `Canceled by Ignored Build Step`. O `Checks Failed` é outro mecanismo (verificações do deploy) e não foi investigado aqui.
+  2. Branch qualquer não faz build — **conferido em 2026-10-15**: branch `prova/rtp-0159-ignored-build` com commit próprio (`1705dbf`) enviado ao remoto; o status do commit na Vercel ficou `Canceled by Ignored Build Step`, sem deploy criado. Branch apagado do remoto e do local depois da prova.
+  3. Se a `main` cancelar ou o branch construir, a expressão regrediu: corrigir no painel antes de seguir.
