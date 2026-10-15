@@ -29,3 +29,17 @@ Com `supabase link` feito em `backend/supabase` e `PGHOST`, `PGUSER`, `PGPASSWOR
 - [x] Sem Edge Function
 
 Observação: a URL e as chaves de um projeto recriado vão para o gerenciador de senhas e o `.env` local, nunca para este arquivo. Os ref e a região registrados aqui são usados pelas tarefas de migrations e de deploy.
+
+# Limpeza e reconfiguração do projeto Vercel `mymoney`
+
+Registrado em 2026-10-15 (TP-0029). Sem valores de variáveis.
+
+- **Removido em 2026-10-14:** 164 deploys e todas as variáveis antigas (3 variáveis em 5 entradas); 0 domínios próprios. Outros projetos da conta não foram tocados.
+- **Configuração final:** Root Directory `frontend/web` com "Include files outside the root directory" ligado; framework Vite; install `pnpm install --frozen-lockfile`; build `pnpm --filter @mymoney/web build`; output `dist`; Node 24.x; Git ligado ao repositório, branch de produção `main`; Ignored Build Step para pular o que não for produção.
+- **Variáveis (só Production):** `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`. Nenhuma outra.
+- **Domínio de produção:** `mymoney-ljs.vercel.app` (sem domínio próprio). É o mesmo do Site URL e do Redirect URL em `conferencia-painel.md`, então nada mudou lá.
+- **Primeiro deploy de produção:** 2026-10-15, pela integração Git (push na `main`, commit `91c8ad5`).
+- **`curl -sI https://mymoney-ljs.vercel.app/`:** `HTTP/1.1 200`; `Strict-Transport-Security: max-age=63072000; includeSubDomains`; `Content-Security-Policy` igual ao de `frontend/web/vercel.json` (`connect-src` só `'self'` e o host do Supabase de produção); `X-Content-Type-Options: nosniff`; `Referrer-Policy: no-referrer`; `Permissions-Policy` com câmera, microfone, geolocalização, pagamento, USB e Bluetooth desligados.
+- **Rota inventada** (`/qualquer/rota`): `200`, `text/html`, 1785 bytes, igual à raiz (rewrite para `index.html`).
+- **`http://`:** `308` para `https://mymoney-ljs.vercel.app/`.
+- **PWA:** `/manifest.webmanifest` `200` (`application/manifest+json`) e `/sw.js` `200` (`application/javascript`).
