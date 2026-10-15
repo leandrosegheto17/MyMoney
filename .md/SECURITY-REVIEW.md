@@ -905,3 +905,6 @@ APROVADA COM DÉBITO; 0 críticos, 0 altos, 0 médios, 4 baixos (1 RTP de doc: r
 
 ## TP-0114 — DevSecOps — 2026-10-15
 OK — 0 achados; diff só em roteiro-m3.md, sem e-mail, valor, segredo, print ou dependência nova (buscas executadas); RNF-06 / G-15 atendido.
+
+## RTP-0163 — DevSecOps — 2026-10-15
+RTP-0163 aprovada na segurança — só texto de runbook, sem segredos nem mudança de comportamento.
