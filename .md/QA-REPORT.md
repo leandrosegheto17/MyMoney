@@ -956,3 +956,6 @@ APROVADA; 0 críticos e 2 não críticos (baixa); cabeçalhos efetivos = vercel.
 
 ## TP-0094 — QA — 2026-10-15
 APROVADA; 0 críticos, 0 não críticos; 11 testes Eu* ok, visual T02 sucesso 0.00% pc/celular com alturas iguais (demais estados 0.00%), axe sem serious/critical; 24 errors da suíte são de Orcamento.test (sem `.env.local` na worktree, RTP-0157b), não desta tarefa.
+
+## TP-0110 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (média: job `integracao` ausente no ci.yml, RTP-0161); 8 specs @integracao verdes no Supabase local (~33 s), unitário 5/5, reexecução sem reset ok (primeiro-uso exige o ensaio SQL).
