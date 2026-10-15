@@ -44,3 +44,12 @@ Registrado em 2026-10-15 (TP-0029). Sem valores de variáveis.
 - **Rota inventada** (`/qualquer/rota`): `200`, `text/html`, 1785 bytes, igual à raiz (rewrite para `index.html`).
 - **`http://`:** `308` para `https://mymoney-ljs.vercel.app/`.
 - **PWA:** `/manifest.webmanifest` `200` (`application/manifest+json`) e `/sw.js` `200` (`application/javascript`).
+
+## Ignored Build Step (expressão registrada e provada nos dois sentidos)
+
+- **Expressão em uso (painel, Settings > Git > Ignored Build Step, Behavior `Custom`, conferida em 2026-10-15):** `[ "$VERCEL_GIT_COMMIT_REF" != "main" ]`. Sai com 0 (pula o build) em qualquer branch que não seja a `main` e com 1 (faz o build) na `main`. `frontend/web/vercel.json` não define `ignoreCommand` (só `rewrites` e `headers`), então a expressão vive só no painel.
+- **Cancelamentos de 2026-10-15** (`7d9a0ca`, `3891687`, `fcbc910`, "Canceled by Ignored Build Step", antes do deploy de `91c8ad5`): a causa **não foi confirmada**. O passo passou a deixar a `main` construir sem mudança documentada.
+- **Confer�ncia nos dois sentidos:**
+  1. `main` faz build — **conferido em 2026-10-15** na lista de Deployments: `91c8ad5`, `ba345e4` e `3197490` (todos na `main`) estão `Ready` em Production; `a38fdd8`, `274fda3`, `7be8ce2`, `b114cc7` e `8be5c89` (também `main`) rodaram o build e terminaram `Checks Failed`, não `Canceled by Ignored Build Step`. O `Checks Failed` é outro mecanismo (verificações do deploy) e não foi investigado aqui.
+  2. Branch qualquer não faz build — **conferido em 2026-10-15**: branch `prova/rtp-0159-ignored-build` com commit próprio (`1705dbf`) enviado ao remoto; o status do commit na Vercel ficou `Canceled by Ignored Build Step`, sem deploy criado. Branch apagado do remoto e do local depois da prova.
+  3. Se a `main` cancelar ou o branch construir, a expressão regrediu: corrigir no painel antes de seguir.
