@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-15 18:25
+Atualizado: 2026-10-15 18:26
 
-Resumo: Não executada 9 · Em execução 2 · Em teste 1 · Aprovada 355 · Dividida 1 · Despriorizada 2 · total 370
+Resumo: Não executada 9 · Em execução 1 · Em teste 1 · Aprovada 356 · Dividida 1 · Despriorizada 2 · total 370
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -309,7 +309,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 294 | RTP-0106 | executor | ✔ | textoExclusao: testes dos casos 1 parcela, individual e receita | Refatoração Lote-20 | TP-0106 | Aprovada |
 | 295 | RTP-0112 | executor | ✔ | excluirLancamento: validar o id como uuid antes da RPC | Refatoração Lote-20 | TP-0106 | Aprovada |
 | 296 | RTP-0123 | executor | ✔ | Rodapé da fila: tipo ItemFila fora de dados/ e texto genérico do vazio filtrado testado | Refatoração Lote-20 | TP-0104 | Aprovada |
-| 297 | BK-0032 | coordenador | ✔ | Confirmar se enable_signup=true local em backend/supabase/config.toml é intencional (rever | — | — | Em execução |
+| 297 | BK-0032 | coordenador | ✔ | Confirmar se enable_signup=true local em backend/supabase/config.toml é intencional (rever | — | — | Aprovada |
 | 298 | RTP-0131 | executor | ✔ | Conferir enable_signup=true não commitado em backend/supabase/config.toml | Refatoração Lote-20 | BK-0032, RTP-0087 | Não executada |
 | 299 | RTP-0155 | executor | ✔ | config.toml: provedor de e-mail ligado, cadastro fechado por [auth], prova do 422 e gua... | Refatoração Lote-20 | BK-0032 | Aprovada |
 | 300 | RTP-0091 | executor | ✔ | BarraProgresso: ordem do texto secundário (meta: topo, barra, depois valores e faltam) | Refatoração Lote-18 | TP-0090 | Aprovada |

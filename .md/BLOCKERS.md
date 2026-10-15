@@ -286,7 +286,7 @@
 - Descrição: Confirmar se enable_signup=true local em backend/supabase/config.toml é intencional (reverter para false ou ligar a uma tarefa)
 - Impacto se não resolvido: —
 - Sugestão: git checkout backend/supabase/config.toml se não for intencional
-- Status: Resolvido (2026-10-14): Alternativa A aprovada: [auth] false + [auth.email] true; ADR-014; RTP-0155
+- Status: Resolvido (2026-10-15): Decisão do usuário (2026-10-14): alternativa A — [auth] false + [auth.email] true; ADR-014; RTP-0155 (aprovada)
 
 ## Bloqueio 033 — 2026-10-14 (BK-0033)
 - Reportado por: coordenador (/revisar)
