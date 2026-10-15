@@ -114,13 +114,20 @@ Detalhes em `testes-api/README.md`.
 
 ## CI do banco
 
-Dois jobs em `.github/workflows/ci.yml`, em push e PR, independentes do job `base`. Ambos usam a
+Três jobs em `.github/workflows/ci.yml`, em push e PR, independentes do job `base`. Todos usam a
 Supabase CLI do lockfile e sobem o Supabase local com `pnpm local:ci` (`supabase start` sem os
 serviços não usados, seguido de `db reset`); só as chaves locais descartáveis são usadas.
 
 - `banco`: `pnpm local:ci`, `supabase test db` (pgTAP) e `supabase db lint --level error`.
 - `isolamento`: `pnpm local:ci` e `pnpm --filter @mymoney/testes-api test`, com `SUPABASE_URL` e
   `TESTE_*` de `.env.example` e `SUPABASE_ANON_KEY` lida de `supabase status -o env`.
+
+- `integracao`: `pnpm local:ci`, carga de `ensaio/sem-cadastros-ana.sql`, `VITE_SUPABASE_URL` e
+  `VITE_SUPABASE_ANON_KEY` do Supabase local e `pnpm --filter @mymoney/web e2e:integracao`
+  (specs `@integracao`).
+
+Os checks exigidos para o deploy (D-07: Vercel Deployment Checks ou proteção da `main`) são
+`base`, `banco`, `isolamento` e `integracao`; a lista é configurada no GitHub/Vercel, não neste repositório.
 
 Localmente (Docker em execução):
 
