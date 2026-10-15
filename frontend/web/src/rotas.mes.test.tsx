@@ -27,6 +27,8 @@ vi.mock('./dados/sessao', () => ({
   salvarNovaSenha: vi.fn(),
 }));
 
+vi.mock('./ganchos/usePendentes', () => ({ usePendentes: () => ({ itens: [], total: 0, aguardando: 0, falhas: 0 }) }));
+
 vi.mock('./dados/consultas/contexto', () => ({
   buscarContexto: vi.fn(async () => lerResposta('contexto.json')),
 }));
