@@ -88,7 +88,10 @@ sql_sem_comentarios() {
 # Imprime o motivo (uma linha por achado) de cada instrução não aditiva do arquivo.
 achados_nao_aditivos() {
   local sql instrucao
-  [ -f "$1" ] && [ -r "$1" ] || { echo "arquivo ausente ou ilegível (symlink pendente?): $1" >&2; return 2; }
+  if ! [ -f "$1" ] || ! [ -r "$1" ]; then
+    echo "arquivo ausente ou ilegível (symlink pendente?): $1" >&2
+    return 2
+  fi
   sql="$(sql_sem_comentarios "$1")" || { echo "a varredura do perl falhou em $1" >&2; return 2; }
   if [ -s "$1" ] && [ -z "$sql" ]; then
     echo "a varredura do perl não produziu saída para $1" >&2

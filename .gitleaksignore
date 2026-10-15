@@ -35,3 +35,5 @@ d273d66533b4b7d749b93cef54f73e499f5f0671:.md/SECURITY-REVIEW.md:jwt:1315
 50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:195
 50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:197
 50b1fa6b458d0ca55d505c00f4f3121ff91040d6:.claude/skills/models/figma-implement-design/SKILL.md:generic-api-key:198
+# Citação de p256dh_key de fixture de teste (TP-0007), não é segredo.
+9a933245734eb80326f79eabff3a5edf15889fa9:.md/.taskplan/TP-0007.md:generic-api-key:87
