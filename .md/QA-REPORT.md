@@ -926,3 +926,6 @@ APROVADA, 0 críticos/0 não críticos; visual T16/T18/T20 0,00% divergente e sa
 
 ## RTP-0153 — QA — 2026-10-14
 APROVADA (0 críticos, 0 não críticos); actionlint limpo, `--limite` repassado e job isolamento equivalente confirmados por leitura; rodada real do CI pendente de push em branch de teste.
+
+## TP-0010 — QA — 2026-10-14
+APROVADA (0 críticos, 2 não críticos -> RTP-0154); 9 itens batem com o `config.toml` (divergência só nas URLs), curl em produção confirmam cadastro off e nada exposto; "só api" fica para depois do TP-0011 e `extra_search_path` descrito errado.
