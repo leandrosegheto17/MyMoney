@@ -49,6 +49,6 @@ Registrado em 2026-10-15 (TP-0029). Sem valores de variáveis.
 - **Expressão em uso (painel, Settings > Git > Ignored Build Step, Behavior `Custom`, conferida em 2026-10-15):** `[ "$VERCEL_GIT_COMMIT_REF" != "main" ]`. Sai com 0 (pula o build) em qualquer branch que não seja a `main` e com 1 (faz o build) na `main`. `frontend/web/vercel.json` não define `ignoreCommand` (só `rewrites` e `headers`), então a expressão vive só no painel.
 - **Cancelamentos de 2026-10-15** (`7d9a0ca`, `3891687`, `fcbc910`, "Canceled by Ignored Build Step", antes do deploy de `91c8ad5`): a causa **não foi confirmada**. O passo passou a deixar a `main` construir sem mudança documentada.
 - **Passo manual pendente (nos dois sentidos):**
-  1. `main` faz build: o último push na `main` deve aparecer como deploy de produção, não como "Canceled by Ignored Build Step".
+  1. `main` faz build — **conferido em 2026-10-15** na lista de Deployments: `91c8ad5`, `ba345e4` e `3197490` (todos na `main`) estão `Ready` em Production; `a38fdd8`, `274fda3`, `7be8ce2`, `b114cc7` e `8be5c89` (também `main`) rodaram o build e terminaram `Checks Failed`, não `Canceled by Ignored Build Step`. O `Checks Failed` é outro mecanismo (verificações do deploy) e não foi investigado aqui.
   2. Branch qualquer não faz build: criar um branch de teste com um commit próprio, dar push e conferir em Deployments que o build foi cancelado pelo Ignored Build Step; apagar o branch depois.
   3. Se a `main` cancelar ou o branch construir, a expressão regrediu: corrigir no painel antes de seguir.
