@@ -305,3 +305,12 @@
 - Impacto se não resolvido: Job base do CI vermelho; migrar.sh (TP-0011) exige base verde
 - Sugestão: Coordenador decide (a) erros/uuid, (b) tipos de fila/comandos, (c) ganchos x formatacao/rotulos; depois dividir a RTP em 3 partes (ver ## Bloqueio)
 - Status: Resolvido (2026-10-14): A + c1 aprovados: camada comum/ (ADR-015); RTP-0157 dividida em a/b/c
+
+## Bloqueio 035 — 2026-10-15 (BK-0035)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0159
+- Descrição: Conferir no painel da Vercel a expressão do Ignored Build Step e fazer a prova nos dois sentidos (main faz build; branch de teste não faz); registrar no limpeza.md
+- Impacto se não resolvido: RTP-0159 não fecha sem acesso ao painel
+- Sugestão: Copiar a expressão para a worktree executar-RTP-0159 e depois retomar com /executar --tarefa RTP-0159
+- Status: Resolvido (2026-10-15): Expressão informada pelo usuário e prova nos dois sentidos feita (main faz build; branch de teste cancelado pelo Ignored Build Step)

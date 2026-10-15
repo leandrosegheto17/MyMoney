@@ -959,3 +959,21 @@ APROVADA; 0 críticos, 0 não críticos; 11 testes Eu* ok, visual T02 sucesso 0.
 
 ## TP-0110 — QA — 2026-10-15
 APROVADA; 0 críticos, 1 não crítico (média: job `integracao` ausente no ci.yml, RTP-0161); 8 specs @integracao verdes no Supabase local (~33 s), unitário 5/5, reexecução sem reset ok (primeiro-uso exige o ensaio SQL).
+
+## RTP-0160 — QA — 2026-10-15
+APROVADA — reconferência independente confirma 2 variáveis só em Production, sem service_role/sb_secret_; limpeza.md sem valores; 0 achados.
+
+## TP-0143 — QA — 2026-10-15
+APROVADA - 8/8 @integracao verdes em 2 execuções sem reset, asserção de rede de B comprovada não vacuosa por contraprova; 0 críticos, 1 não crítico (RTP-0162, baixa); reset do banco e job de CI não exercitados (RTP-0161).
+
+## TP-0111 — QA — 2026-10-15
+APROVADA — 7/7 e2e verdes com e sem reset, contraprova do coletor falha como esperado, CA-08.3 e semViolacoesGraves ok; 0 críticos, 0 não críticos; CI do PR pendente.
+
+## RTP-0159 — QA — 2026-10-15
+APROVADA; 0 críticos, 2 não críticos (byte não UTF-8 no rótulo "Conferência"; "sem deploy criado" impreciso); expressão e causa não confirmada registradas, prova nos dois sentidos conferida via statuses do commit 1705dbf e branch ausente no remoto.
+
+## RTP-0154 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; curls em produção confirmam só `api` exposto, GraphQL sem dados, ping=1, disable_signup true; conferência coerente com config.toml e sem segredo.
+
+## TP-0112 — QA — 2026-10-15
+APROVADA; 0 críticos, 4 não críticos (1 RTP: preencher tabela de registro; 3 de operação); ensaio local reexecutado (1 lar/2 membros, `lar_unico`, FK, rollback sem tocar o seed), gitleaks limpo, produção por relato do usuário.
