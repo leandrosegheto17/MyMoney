@@ -17,7 +17,14 @@ pnpm --filter @mymoney/web dev        # servidor local (porta de PORTA, padrão 
 pnpm --filter @mymoney/web build      # tsc + vite build
 pnpm --filter @mymoney/web test       # Vitest + Testing Library
 pnpm --filter @mymoney/web typecheck
+pnpm --filter @mymoney/web e2e:integracao   # specs @integracao contra o Supabase local (abaixo)
 ```
+
+Os `@integracao` exigem `pnpm local:resetar` antes, `frontend/web/.env.local` com a URL e a chave locais e
+`TESTE_EMAIL_A`, `TESTE_EMAIL_B`, `TESTE_EMAIL_SEM_MEMBRO` e `TESTE_SENHA` no ambiente (valores em
+`backend/.env.example`). O spec de primeiro uso precisa de Ana sem cadastros:
+`bash backend/supabase/volume/carregar.sh ../ensaio/sem-cadastros-ana.sql` (só roda em host local). Host que não
+seja `localhost`/`127.0.0.1` derruba o spec antes de abrir o navegador.
 
 ## CI (`.github/workflows/ci.yml`)
 
@@ -31,7 +38,6 @@ Reproduzir (Docker em execução para `integracao`):
 
 ```sh
 pnpm --filter @mymoney/web build
-pnpm --filter @mymoney/web visual
 pnpm local:ci   # e, com o .env preenchido, em frontend/web:
 pnpm exec playwright test --grep @integracao
 ```

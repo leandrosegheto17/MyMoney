@@ -49,12 +49,13 @@ select ok(not (current_setting('teste.out')::jsonb ? 'anterior'), 'outubro: sem 
 select is(current_setting('teste.nov')::jsonb -> 'pode_copiar_anterior', '{"conjunto": true, "individual": true}'::jsonb, 'novembro: pode copiar nos dois escopos');
 select is(current_setting('teste.nov')::jsonb -> 'anterior', '{"mes": "2026-10-01", "orcado_centavos": 430000, "categorias": 5}'::jsonb, 'novembro: anterior de outubro');
 select is(current_setting('teste.nov')::jsonb -> 'sem_orcamento', $$[
+  {"categoria_id": "00000000-0000-4000-8000-000000000406", "nome": "Almoço/Alimentação fora"},
   {"categoria_id": "00000000-0000-4000-8000-000000000404", "nome": "Contas da casa"},
   {"categoria_id": "00000000-0000-4000-8000-000000000402", "nome": "Delivery/iFood do casal"},
   {"categoria_id": "00000000-0000-4000-8000-000000000401", "nome": "Mercado"},
   {"categoria_id": "00000000-0000-4000-8000-000000000403", "nome": "Moradia"},
   {"categoria_id": "00000000-0000-4000-8000-000000000405", "nome": "Outros da casa"}
-]$$::jsonb, 'novembro: as 5 conjuntas sem orçamento, por nome');
+]$$::jsonb, 'novembro: as 6 conjuntas sem orçamento, por nome');
 select ok(coalesce(current_setting('teste.nov')::jsonb -> 'total', 'null'::jsonb) = 'null'::jsonb, 'novembro: total nulo');
 select is(current_setting('teste.nov')::jsonb -> 'linhas', '[]'::jsonb, 'novembro: linhas vazias');
 
@@ -89,7 +90,7 @@ select is(((current_setting('teste.nov_ind_b')::jsonb -> 'pode_copiar_anterior')
   'B pode copiar a própria individual de outubro');
 
 insert into app.orcamento (lar_id, mes, categoria_id, escopo, dono_id, valor_centavos)
-values ((select id from app.lar), '2026-11-01', '00000000-0000-4000-8000-000000000411', 'individual', '00000000-0000-4000-8000-000000000101', 5000);
+values ((select id from app.lar), '2026-11-01', '00000000-0000-4000-8000-000000000412', 'individual', '00000000-0000-4000-8000-000000000101', 5000);
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a2","role":"authenticated"}', true);
 set local role authenticated;

@@ -1,6 +1,6 @@
 -- api.definir_orcamento(mes, categoria, valor): conjunto pelos 2, individual só pelo dono, nulo remove.
 -- A = Leandro (membro ...0101, usuário ...00a1); B = Ana (membro ...0102, usuário ...00a2); ...00a3 sem membro.
--- Categorias do seed 04: ...0401-0405 conjuntas, ...0411 individual de A, ...0421 receita de A.
+-- Categorias do seed 04: ...0401-0405 conjuntas, ...0412 individual de A, ...0421 receita de A.
 begin;
 create extension if not exists pgtap with schema extensions;
 \ir ../apoio/executar_como.psql
@@ -42,22 +42,22 @@ reset role;
 -- Individual: só o dono
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a1","role":"authenticated"}', true);
 set local role authenticated;
-select lives_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000411', 30000) $$, 'A define orçamento individual');
+select lives_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000412', 30000) $$, 'A define orçamento individual');
 reset role;
 
 select results_eq(
-  $$ select escopo, dono_id from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000411' and mes = '2026-12-01' $$,
+  $$ select escopo, dono_id from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000412' and mes = '2026-12-01' $$,
   $$ values ('individual'::text, '00000000-0000-4000-8000-000000000101'::uuid) $$,
   'escopo e dono vêm da categoria');
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a2","role":"authenticated"}', true);
 set local role authenticated;
-select throws_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000411', 1) $$, 'registro_invalido', 'B não define a individual de A');
-select throws_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000411', null) $$, 'registro_invalido', 'B não remove a individual de A');
+select throws_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000412', 1) $$, 'registro_invalido', 'B não define a individual de A');
+select throws_ok($$ select api.definir_orcamento('2026-12-01', '00000000-0000-4000-8000-000000000412', null) $$, 'registro_invalido', 'B não remove a individual de A');
 reset role;
 
 select results_eq(
-  $$ select count(*)::int, max(valor_centavos) from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000411' and mes = '2026-12-01' $$,
+  $$ select count(*)::int, max(valor_centavos) from app.orcamento where categoria_id = '00000000-0000-4000-8000-000000000412' and mes = '2026-12-01' $$,
   $$ values (1, 30000::bigint) $$,
   'individual de A intacta');
 
