@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 23:31
+Atualizado: 2026-10-15 09:40
 
-Resumo: Não executada 18 · Em execução 4 · Aprovada 331 · Bloqueada 1 · Dividida 1 · total 355
+Resumo: Não executada 17 · Em execução 5 · Aprovada 331 · Bloqueada 1 · Dividida 1 · total 355
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -25,7 +25,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 10 | TP-0009 | executor | ✔ | Limpeza do Supabase de produção com verificação de região [U] | Lote 2 | TP-0002 | Aprovada |
 | 11 | BK-0030 | coordenador | ✔ | Tarefa [U]: aplicar/confirmar no painel de produção Supabase os itens de Auth/API e inform | — | — | Aprovada |
 | 12 | TP-0010 | executor | ✔ | Configuração do Auth e da API em produção [U] | Lote 2 | BK-0030, TP-0009 | Aprovada |
-| 13 | TP-0011 | executor | ✔ | Primeira migration em produção (todas as migrations do repositório) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Não executada |
+| 13 | TP-0011 | executor | ✔ | Primeira migration em produção (todas as migrations do repositório) [U] | Lote 2 | TP-0004, TP-0005, TP-0008, TP-0010 | Em execução |
 | 14 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Não executada |
 | 15 | TP-0013 | executor | ✔ | Tabelas app.lar e app.membro, RLS e app.membro_atual()/app.lar_atual() [BD] | Lote 3 | TP-0003 | Aprovada |
 | 16 | TP-0014 | executor | ✔ | Seeds locais de acesso [BD] | Lote 3 | TP-0013 | Aprovada |
