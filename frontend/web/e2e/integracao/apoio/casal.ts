@@ -7,12 +7,19 @@ import { entrarComo, type Quem } from './sessao';
 export interface Sessoes {
   a: Page;
   b: Page;
+  /** Coletor de rede de B, ligado antes do login: cobre também a carga inicial pós-login. */
+  coletorB: ColetorRest;
   fechar: () => Promise<void>;
 }
 
-async function abrirSessao(browser: Browser, quem: Quem): Promise<{ contexto: BrowserContext; page: Page }> {
+async function abrirSessao(
+  browser: Browser,
+  quem: Quem,
+  antesDeEntrar?: (page: Page) => void,
+): Promise<{ contexto: BrowserContext; page: Page }> {
   const contexto = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await contexto.newPage();
+  antesDeEntrar?.(page);
   await entrarComo(page, quem);
   return { contexto, page };
 }
@@ -20,8 +27,11 @@ async function abrirSessao(browser: Browser, quem: Quem): Promise<{ contexto: Br
 /** Cookies e armazenamento separados: A e B entram ao mesmo tempo, cada um no seu contexto. */
 export async function abrirSessoes(browser: Browser): Promise<Sessoes> {
   const a = await abrirSessao(browser, 'A');
-  const b = await abrirSessao(browser, 'B');
-  return { a: a.page, b: b.page, fechar: async () => void (await Promise.all([a.contexto.close(), b.contexto.close()])) };
+  let coletorB!: ColetorRest;
+  const b = await abrirSessao(browser, 'B', (page) => {
+    coletorB = coletarRespostasRest(page);
+  });
+  return { a: a.page, b: b.page, coletorB, fechar: async () => void (await Promise.all([a.contexto.close(), b.contexto.close()])) };
 }
 
 /** Guarda o corpo de toda resposta de `/rest/v1/` da página: o que o servidor entregou, visível ou não. */
@@ -40,6 +50,8 @@ export function coletarRespostasRest(page: Page) {
     quantidade: () => corpos.length,
   };
 }
+
+export type ColetorRest = ReturnType<typeof coletarRespostasRest>;
 
 export interface Compra {
   /** Descrição lançada: acha a compra nas listas. */
