@@ -5,17 +5,11 @@ import { semViolacoesGraves } from '../apoio/acessibilidade';
 import { lancarPelaFolha } from './apoio/lancar';
 import { linhasComMarcador, meuIndividual } from './apoio/leitura';
 import { novoMarcador } from './apoio/marcador';
+import { mesAtual, mesDaPrimeiraParcela, somarMeses } from './apoio/meses';
 import { ambienteIntegracao, emailDe, entrarComo } from './apoio/sessao';
 
 test.describe.configure({ mode: 'serial' });
 test.use({ viewport: { width: 390, height: 844 } });
-
-const hoje = new Date();
-const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-const somarMeses = (mes: string, n: number) => {
-  const d = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5)) - 1 + n, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-};
 
 let criados: string[] = [];
 test.afterEach(async () => {
@@ -55,13 +49,8 @@ test('@integracao Crédito 3x: aviso da 1ª parcela e as parcelas nos meses cert
     parcelas: 3,
     descricao: marcador,
   });
-  const aviso = page.getByRole('status').getByText(/^Lançado em 3x · Lazer pessoal.*1ª parcela em \d{2}\/\d{2}$/);
-  await expect(aviso).toBeVisible();
-  const [, mesDaParcela] = /1ª parcela em \d{2}\/(\d{2})$/.exec((await aviso.textContent()) ?? '')!;
-
-  // O aviso traz só dia/mês: o ano é o corrente, ou o seguinte se o mês já passou.
-  const ano = Number(mesDaParcela) < hoje.getMonth() + 1 ? hoje.getFullYear() + 1 : hoje.getFullYear();
-  const primeiro = `${ano}-${mesDaParcela}`;
+  await expect(page.getByRole('status').getByText(/^Lançado em 3x · Lazer pessoal/)).toBeVisible();
+  const primeiro = await mesDaPrimeiraParcela(page);
   for (const [indice, mes] of [primeiro, somarMeses(primeiro, 1), somarMeses(primeiro, 2)].entries()) {
     const linhas = await linhasComMarcador(page, mes, marcador);
     await expect(linhas, mes).toHaveCount(1);

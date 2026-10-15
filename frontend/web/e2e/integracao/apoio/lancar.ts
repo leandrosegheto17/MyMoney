@@ -37,8 +37,10 @@ export async function lancarPelaFolha(page: Page, lancamento: LancamentoDeTeste)
     await folha.getByRole('radiogroup', { name: 'Parcelas' }).getByText(`${lancamento.parcelas}x`, { exact: true }).click();
   }
   if (lancamento.descricao) {
-    await folha.getByText(/^Mais detalhes/).click();
-    await folha.getByLabel('Descrição (opcional)').fill(lancamento.descricao);
+    // Os detalhes lembram o estado da folha anterior: só abre se ainda estiverem fechados.
+    const campo = folha.getByLabel('Descrição (opcional)');
+    if (!(await campo.isVisible())) await folha.getByText(/^Mais detalhes/).click();
+    await campo.fill(lancamento.descricao);
   }
   await folha.getByRole('button', { name: /^Lançar R\$/ }).click();
 }
