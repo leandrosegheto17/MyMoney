@@ -41,7 +41,60 @@ insert into app.orcamento (lar_id, mes, categoria_id, escopo, dono_id, valor_cen
   ('00000000-0000-4000-8000-000000000100', '2031-11-01', 'e0000000-0000-4000-8000-0000000000b1', 'individual', testes.membro_a(), 15000),
   ('00000000-0000-4000-8000-000000000100', '2031-10-01', 'e0000000-0000-4000-8000-0000000000b3', 'individual', testes.membro_a(), 9000);
 
-\ir ../../migrations/20261015130000_almoco_conjunto_dados.sql
+-- O pg_prove roda dentro do contêiner do Supabase, que não enxerga a pasta de migrations:
+-- o corpo da migration 20261015130000_almoco_conjunto_dados.sql é copiado aqui e os dois
+-- precisam ficar iguais.
+create function pg_temp.migrar_almoco() returns void
+language plpgsql as $migracao$
+begin
+  -- Um lar com Almoço individual e sem a conjunta ganha a conjunta.
+  insert into app.categoria (lar_id, tipo, escopo, dono_id, nome, variavel)
+  select distinct i.lar_id, 'despesa', 'conjunto', null::uuid, i.nome, true
+  from app.categoria i
+  where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+  on conflict on constraint categoria_unica do nothing;
+
+  -- Orçamento: os dois membros podem ter orçado o mesmo mês; na conjunta os valores se somam.
+  with almoco_de_para as (
+    select i.id as individual_id, c.id as conjunta_id
+    from app.categoria i
+    join app.categoria c
+      on c.lar_id = i.lar_id and c.tipo = 'despesa' and c.escopo = 'conjunto' and c.nome = i.nome
+    where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+  )
+  insert into app.orcamento (lar_id, mes, categoria_id, tipo, escopo, dono_id, valor_centavos)
+  select o.lar_id, o.mes, d.conjunta_id, 'despesa', 'conjunto', null::uuid, sum(o.valor_centavos)
+  from app.orcamento o
+  join almoco_de_para d on d.individual_id = o.categoria_id
+  group by o.lar_id, o.mes, d.conjunta_id
+  on conflict on constraint orcamento_categoria_mes_unico
+    do update set valor_centavos = app.orcamento.valor_centavos + excluded.valor_centavos;
+
+  delete from app.orcamento o
+  where o.categoria_id in (
+    select i.id from app.categoria i
+    where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+  );
+
+  -- Lançamento: o dono segue sendo quem pagou; as parcelas acompanham o escopo por cascata.
+  with almoco_de_para as (
+    select i.id as individual_id, c.id as conjunta_id
+    from app.categoria i
+    join app.categoria c
+      on c.lar_id = i.lar_id and c.tipo = 'despesa' and c.escopo = 'conjunto' and c.nome = i.nome
+    where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+  )
+  update app.lancamento l
+  set categoria_id = d.conjunta_id, escopo = 'conjunto'
+  from almoco_de_para d
+  where l.categoria_id = d.individual_id;
+
+  update app.categoria
+  set arquivada = true
+  where tipo = 'despesa' and escopo = 'individual' and nome = 'Almoço/Alimentação fora';
+end $migracao$;
+
+select pg_temp.migrar_almoco();
 
 select results_eq(
   $$select count(*)::int from app.categoria
@@ -95,7 +148,7 @@ select results_eq(
   $$values (9000::bigint)$$, 'orçamento de outra individual não muda');
 
 -- Rodar de novo não muda nada.
-\ir ../../migrations/20261015130000_almoco_conjunto_dados.sql
+select pg_temp.migrar_almoco();
 
 select results_eq(
   $$select count(*)::int from app.categoria where nome = 'Almoço/Alimentação fora'$$,
@@ -107,7 +160,7 @@ select results_eq(
 
 -- Lar novo (sem Almoço individual) fica como está.
 select testes.preparar_lar();
-\ir ../../migrations/20261015130000_almoco_conjunto_dados.sql
+select pg_temp.migrar_almoco();
 select is_empty($$select 1 from app.categoria$$, 'lar sem Almoço individual não ganha categoria');
 
 select * from finish();
