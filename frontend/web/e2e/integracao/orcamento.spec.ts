@@ -34,6 +34,10 @@ let coletorB: ColetorRede;
 let lancamentosDeA: string[];
 let categoriaIndividualDeA: string;
 
+// Termos exclusivos de A (id da categoria individual e o valor) que não podem aparecer em nenhuma resposta de B.
+const vazamentosDeA = () =>
+  coletorB.vazamentos([categoriaIndividualDeA, new RegExp(`(?<!\\d)${VALOR_INDIVIDUAL_A}(?!\\d)`)]);
+
 test.beforeAll(async ({ browser }, info) => {
   const opcoes = { viewport: { width: 390, height: 844 }, baseURL: info.project.use.baseURL };
   paginaA = await (await browser.newContext(opcoes)).newPage();
@@ -90,7 +94,7 @@ test('@integracao B não vê nem recebe o orçamento individual de A', async () 
   await expect(paginaB.getByRole('dialog')).toHaveCount(0);
   await expect(paginaB).not.toHaveURL(/editar=/);
 
-  expect(await coletorB.vazamentos([categoriaIndividualDeA, new RegExp(`(?<!\\d)${VALOR_INDIVIDUAL_A}(?!\\d)`)])).toEqual([]);
+  expect(await vazamentosDeA()).toEqual([]);
 });
 
 test('@integracao o lançamento muda o realizado e a situação', async () => {
@@ -148,7 +152,7 @@ test('@integracao copiar do mês anterior no primeiro mês sem orçamento', asyn
     await expect(paginaB.getByRole('status').getByText(/^Orçamento copiado de /)).toBeVisible();
   }
   await expect(paginaB.locator(`a[href*="${categoriaIndividualDeA}"]`)).toHaveCount(0);
-  expect(await coletorB.vazamentos([categoriaIndividualDeA, new RegExp(`(?<!\\d)${VALOR_INDIVIDUAL_A}(?!\\d)`)])).toEqual([]);
+  expect(await vazamentosDeA()).toEqual([]);
 });
 
 for (const quem of ['A', 'B'] as const) {
@@ -183,5 +187,5 @@ test('@integracao o resumo de B não cita o orçamento individual de A', async (
   const meu = paginaB.getByRole('article', { name: /^Meu orçamento/ });
   await expect(meu.or(paginaB.getByText('Sem orçamento no mês.'))).toBeVisible();
   await expect(paginaB.getByRole('main')).not.toContainText(moeda(VALOR_INDIVIDUAL_A));
-  expect(await coletorB.vazamentos([categoriaIndividualDeA, new RegExp(`(?<!\\d)${VALOR_INDIVIDUAL_A}(?!\\d)`)])).toEqual([]);
+  expect(await vazamentosDeA()).toEqual([]);
 });
