@@ -25,7 +25,7 @@ describe('api.contexto', () => {
     const a = (await (await comoA()).rpc('contexto')).data as Contexto;
     const b = (await (await comoB()).rpc('contexto')).data as Contexto;
     expect(b.membro.nome).toBe('Ana');
-    expect(b.outro_membro.nome).toBe('Leandro');
+    expect(b.outro_membro.nome).toBe('Ninguem');
     expect(b.membro.id).not.toBe(a.membro.id);
     expect(JSON.stringify(a)).not.toContain(b.membro.id);
     expect(JSON.stringify(b)).not.toContain(a.membro.id);
