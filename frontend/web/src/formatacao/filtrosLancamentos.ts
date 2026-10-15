@@ -1,5 +1,12 @@
-import type { FiltrosDaLista } from '../ganchos/useLancamentosMes';
 import { paraEscopoApi } from './escopoUrl';
+
+/** Filtros da lista no vocabulário da consulta (`individual`/`conjunto`). */
+export type FiltrosDaLista = {
+  escopo?: 'individual' | 'conjunto';
+  categoriaId?: string;
+  formaId?: string;
+  variavel?: true;
+};
 
 /** Filtros da lista como vivem na URL (`?escopo=casa&categoria=…&forma=…&variavel=1`). */
 export type FiltrosUrl = {

@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import { lerResposta } from '../../../test/apoio/fetchSimulado';
 import { mapaRotas } from '../../mapaRotas';
-import { buscarDadosLancamento } from '../../dados/consultas/dadosLancamento';
 
 const { sessao } = vi.hoisted(() => {
   const ouvintes = new Set<() => void>();
@@ -29,6 +28,10 @@ const { sessao } = vi.hoisted(() => {
     },
   };
 });
+
+const { buscarDadosLancamento } = vi.hoisted(() => ({
+  buscarDadosLancamento: vi.fn(),
+}));
 
 vi.mock('../../ganchos/useSessao', () => ({
   useSessao: () => {
@@ -59,7 +62,7 @@ vi.mock('../../dados/consultas/resumoMes', async () => {
 });
 
 vi.mock('../../dados/consultas/dadosLancamento', () => ({
-  buscarDadosLancamento: vi.fn(),
+  buscarDadosLancamento,
   lerDadosDoAparelho: vi.fn(async () => undefined),
 }));
 

@@ -1,22 +1,18 @@
 import type { Escopo } from '@mymoney/contrato/enums';
-import { useAviso } from '../componentes/base/useAviso';
-import { mensagemErro } from '../rotulos/mensagensErro';
+import type { ErroDados } from '../dados/erros';
 import { useComandosOrcamento } from './useComandosOrcamento';
 
-/** Copia o orçamento do mês anterior e avisa o resultado; em erro nada muda na tela. */
-export function useCopiarOrcamento(mes: string, escopo: Escopo, nomeMesOrigem: string) {
-  const { mostrar } = useAviso();
+interface Desfecho {
+  onSuccess: () => void;
+  onError: (erro: ErroDados) => void;
+}
+
+/** Copia o orçamento do mês anterior; quem chama decide o aviso do resultado. Em erro nada muda na tela. */
+export function useCopiarOrcamento(mes: string, escopo: Escopo) {
   const { copiarOrcamento } = useComandosOrcamento();
 
-  function copiar() {
-    copiarOrcamento.mutate(
-      { mes, escopo },
-      {
-        onSuccess: () => mostrar('sucesso', `Orçamento copiado de ${nomeMesOrigem}`),
-        onError: (erro) =>
-          mostrar('erro', erro.tipo === 'rede' ? 'Sem conexão. O orçamento não foi copiado.' : mensagemErro(erro)),
-      },
-    );
+  function copiar(desfecho: Desfecho) {
+    copiarOrcamento.mutate({ mes, escopo }, desfecho);
   }
 
   return { copiar, copiando: copiarOrcamento.isPending };

@@ -5,12 +5,15 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../dados/consultas/metas', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('../dados/consultas/metas')>()),
+const { buscarMetas } = vi.hoisted(() => ({
   buscarMetas: vi.fn(),
 }));
 
-import { buscarMetas } from '../dados/consultas/metas';
+vi.mock('../dados/consultas/metas', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../dados/consultas/metas')>()),
+  buscarMetas,
+}));
+
 import { Metas } from './Metas';
 
 type LinhaMeta = Record<string, unknown> & { escopo: string };

@@ -7,22 +7,29 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { dadosLancamento } = vi.hoisted(() => ({ dadosLancamento: { atual: undefined as unknown } }));
 
+const { movimentarMeta, buscarLocaisGuardados, buscarMeta, buscarMovimentosMeta } = vi.hoisted(() => ({
+  movimentarMeta: vi.fn(),
+  buscarLocaisGuardados: vi.fn(),
+  buscarMeta: vi.fn(),
+  buscarMovimentosMeta: vi.fn(),
+}));
+
 vi.mock('../../dados/consultas/metas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../dados/consultas/metas')>()),
-  buscarMeta: vi.fn(),
+  buscarMeta,
   buscarMetas: vi.fn(),
 }));
 vi.mock('../../dados/consultas/movimentosMeta', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../dados/consultas/movimentosMeta')>()),
-  buscarMovimentosMeta: vi.fn(),
+  buscarMovimentosMeta,
 }));
 vi.mock('../../dados/consultas/locaisGuardados', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../dados/consultas/locaisGuardados')>()),
-  buscarLocaisGuardados: vi.fn(),
+  buscarLocaisGuardados,
 }));
 vi.mock('../../dados/comandos/metas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../dados/comandos/metas')>()),
-  movimentarMeta: vi.fn(),
+  movimentarMeta,
 }));
 vi.mock('../../ganchos/useDadosLancamento', () => ({
   useDadosLancamento: () => ({
@@ -37,10 +44,6 @@ vi.mock('../../ganchos/useDadosLancamento', () => ({
 }));
 
 import { RegiaoAvisos } from '../../componentes/base/RegiaoAvisos';
-import { movimentarMeta } from '../../dados/comandos/metas';
-import { buscarLocaisGuardados } from '../../dados/consultas/locaisGuardados';
-import { buscarMeta } from '../../dados/consultas/metas';
-import { buscarMovimentosMeta } from '../../dados/consultas/movimentosMeta';
 import { Meta } from '../Meta';
 
 const ID_VIAGEM = '00000000-0000-4000-8000-000000000902';

@@ -94,12 +94,11 @@ describe('sem a variável', () => {
 });
 
 describe('relógio do modo', () => {
-  it('com o modo ligado, hojeEmSaoPaulo devolve 2026-10-09', async () => {
+  it('com o modo ligado, a data de hoje é 2026-10-09', async () => {
     vi.stubEnv('VITE_MODO_COMPARACAO', 'sem-sessao');
     vi.resetModules();
     await import('./modoComparacao');
-    const { hojeEmSaoPaulo } = await import('../formatacao/data');
-    expect(hojeEmSaoPaulo()).toBe('2026-10-09');
+    expect(new Date().toISOString().slice(0, 10)).toBe('2026-10-09');
     expect(new Date(2020, 0, 1).getFullYear()).toBe(2020);
   });
 
@@ -107,8 +106,7 @@ describe('relógio do modo', () => {
     vi.stubEnv('VITE_MODO_COMPARACAO', '');
     vi.resetModules();
     await import('./modoComparacao');
-    const { hojeEmSaoPaulo } = await import('../formatacao/data');
-    expect(hojeEmSaoPaulo()).toBe(hojeEmSaoPaulo(new DateOriginal()));
+    expect(new Date().toISOString().slice(0, 10)).toBe(new DateOriginal().toISOString().slice(0, 10));
     expect(globalThis.Date).toBe(DateOriginal);
   });
 });
