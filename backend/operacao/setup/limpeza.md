@@ -51,5 +51,11 @@ Registrado em 2026-10-15. Sem valores de variáveis.
 - **Cancelamentos de 2026-10-15** (`7d9a0ca`, `3891687`, `fcbc910`, "Canceled by Ignored Build Step", antes do deploy de `91c8ad5`): a causa **não foi confirmada**. O passo passou a deixar a `main` construir sem mudança documentada.
 - **Conferência nos dois sentidos:**
   1. `main` faz build — **conferido em 2026-10-15** na lista de Deployments: `91c8ad5`, `ba345e4` e `3197490` (todos na `main`) estão `Ready` em Production; `a38fdd8`, `274fda3`, `7be8ce2`, `b114cc7` e `8be5c89` (também `main`) rodaram o build e terminaram `Checks Failed`, não `Canceled by Ignored Build Step`. O `Checks Failed` é outro mecanismo (verificações do deploy) e não foi investigado aqui.
-  2. Branch qualquer não faz build — **conferido em 2026-10-15**: branch `prova/rtp-0159-ignored-build` com commit próprio (`1705dbf`) enviado ao remoto; o status do commit na Vercel ficou `Canceled by Ignored Build Step`, deploy cancelado antes do build. Branch apagado do remoto e do local depois da prova.
+  2. Branch qualquer não faz build — **conferido em 2026-10-15**: branch `prova/rtp-0159-ignored-build` com commit próprio (`1705dbf`) enviado ao remoto; o status do commit na Vercel ficou `Canceled by Ignored Build Step`, deploy cancelado antes do build. Branch apagado do remoto e do local depois da prova. **Nota:** a Vercel reporta esse build cancelado ao GitHub com state `success` (não `failure`/`error`); um gate de CI que leia o status do deploy como "verde" aceitaria um build que não rodou. Qualquer gate deve olhar o resultado do CI do repositório, não o status do deploy da Vercel.
   3. Se a `main` cancelar ou o branch construir, a expressão regrediu: corrigir no painel antes de seguir.
+
+### Production Branch e proteção da `main`
+
+- **Production Branch (Vercel):** `main`, conforme a configuração final registrada em 2026-10-14. Não foi reaberto o painel nesta edição; reconferir em Settings > Git se o painel mudar.
+- **Proteção da `main` (GitHub):** hoje não há proteção (a API de proteção de branch devolveu 404). **Decisão do usuário: pendente.** Não implementado sem ela.
+- **Versionar `ignoreCommand` em `frontend/web/vercel.json`:** hoje a regra vive só no painel (risco: mudança no painel não passa por revisão). **Decisão do usuário: pendente.** Se for decidido versionar, abrir tarefa própria.
