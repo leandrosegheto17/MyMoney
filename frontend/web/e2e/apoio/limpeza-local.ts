@@ -1,7 +1,7 @@
 // Limpeza dos e2e @integracao: apaga, pela API do Supabase local e com a sessão do próprio
 // usuário de teste, os lançamentos que o teste criou. Recusa qualquer host que não seja local
 // e usa só a chave anon (a mesma do app); nenhuma chave de serviço.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { Page } from '@playwright/test';
 
@@ -16,11 +16,12 @@ export function ehHostLocal(url: string | undefined): boolean {
   }
 }
 
-/** Variáveis de `.env.local`, sobrepostas pelas do processo. */
+/** Variáveis de `.env.local` (se existir), sobrepostas pelas do processo. */
 export function lerEnvLocal(): Record<string, string | undefined> {
   const arquivo = join(process.cwd(), '.env.local');
+  const conteudo = existsSync(arquivo) ? readFileSync(arquivo, 'utf8') : '';
   const linhas = Object.fromEntries(
-    readFileSync(arquivo, 'utf8')
+    conteudo
       .split(/\r?\n/)
       .map((linha) => linha.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*?)\s*$/))
       .filter((m): m is RegExpMatchArray => m !== null)
@@ -33,7 +34,7 @@ function lerAmbiente(): { url: string; chave: string } {
   const env = lerEnvLocal();
   const url = env.VITE_SUPABASE_URL;
   const chave = env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !chave) throw new Error('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY ausentes em .env.local');
+  if (!url || !chave) throw new Error('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY ausentes (.env.local ou ambiente do processo)');
   return { url, chave };
 }
 
