@@ -372,6 +372,7 @@ falsos ao lado dos reais e testaria violações de privacidade sobre dados verda
 | [011](adr/011-ambiente-unico-de-producao-e-supabase-local-para-testes.md) | Só produção. Supabase local (CLI/Docker) como ferramenta de teste, não staging. Sem `docker-compose.yml` (desvio aprovado). Cuidados mínimos de migração | Aceito |
 | [012](adr/012-funcoes-auxiliares-de-rls-security-definer-na-lista-fechada.md) | `app.membro_atual()` e `app.lar_atual()` como `SECURITY DEFINER` mínimas e não expostas, na lista fechada (evita a recursão de RLS em `membro`). Complementa o ADR-003 §3 | Aceito |
 | [013](adr/013-sair-de-todos-revoga-no-servidor-antes-de-remover-a-sessao-local.md) | "Sair de todos os aparelhos" revoga no servidor antes de remover a sessão local; sem rede, falha e mantém a sessão. Complementa o ADR-008 §3 | Aceito |
+| [014](adr/014-cadastro-fechado-por-auth-enable-signup-e-provedor-de-email-ligado.md) | Cadastro fechado por `[auth] enable_signup=false`; `[auth.email] enable_signup=true` só mantém o login por e-mail ligado. Prova: signup local da anon devolve 422. Complementa o ADR-008 §1 | Aceito |
 
 ## 5. Modelo de Dados de Alto Nível
 
@@ -473,8 +474,9 @@ erDiagram
 
 ### Autenticação
 - **Usuário final:** Supabase Auth com e-mail e senha (mínimo de 12 caracteres). O cadastro público fica
-  desligado (CA-01.2). Os 2 usuários são criados à mão (ADR-008). Um usuário sem linha em `app.membro` não
-  acessa nada.
+  desligado (CA-01.2) por `[auth] enable_signup = false` (`disable_signup`; signup da anon devolve 422); `[auth.email]
+  enable_signup = true` só mantém o provedor de e-mail, ou seja o login, ligado (ADR-014). Os 2 usuários são criados à
+  mão (ADR-008). Um usuário sem linha em `app.membro` não acessa nada.
 - **Sessão:**
   - JWT de 1 h com refresh token rotativo, persistido no PWA (CA-01.3);
   - "Sair" encerra a sessão do aparelho (`scope: local`, CA-01.4);
