@@ -5,7 +5,7 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 22:12
+Atualizado: 2026-10-14 22:14
 
 Resumo: Não executada 22 · Em execução 3 · Aprovada 327 · Bloqueada 1 · Dividida 1 · total 354
 
@@ -264,7 +264,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 249 | RTP-0156 | executor | ✔ | CI: e2e do PWA roda o vite build com VITE_MODO_COMPARACAO definida | Refatoração Lote-2 | — | Aprovada |
 | 250 | BK-0034 | coordenador | ✔ | SDD §2 sem destino para dados/erros, dados/uuid e tipos de dados/ usados por paginas/compo | — | — | Em execução |
 | 251 | RTP-0157 | executor | ✔ | Lint: violações das regras de fronteira do web (SDD §2) deixam o job base vermelho | Refatoração Lote-2 | BK-0034 | Dividida |
-| 252 | RTP-0157a | executor | ✔ | Lint de fronteira do web: camada comum/ e ganchos/ → formatacao/ na matriz e no teste (... | Refatoração Lote-2 | BK-0034 | Não executada |
+| 252 | RTP-0157a | executor | ✔ | Lint de fronteira do web: camada comum/ e ganchos/ → formatacao/ na matriz e no teste (... | Refatoração Lote-2 | — | Não executada |
 | 253 | RTP-0157b | executor | ✔ | Lint de fronteira: correções genuínas de código (sem comum/) | Refatoração Lote-2 | — | Não executada |
 | 254 | RTP-0157c | executor | ✔ | Lint de fronteira: criar comum/ com reexports em dados/ e trocar os imports | Refatoração Lote-2 | RTP-0157a | Não executada |
 | 255 | RTP-0060 | executor | ✔ | checar-aditiva.sh: '--' dentro de literal esconde drop/rename na mesma linha | Refatoração Lote-21 | TP-0109 | Aprovada |
