@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 22:35
+Atualizado: 2026-10-14 22:40
 
-Resumo: Não executada 21 · Em execução 3 · Aprovada 329 · Bloqueada 1 · Dividida 1 · total 355
+Resumo: Não executada 20 · Em execução 3 · Executada (aguarda teste) 1 · Aprovada 329 · Bloqueada 1 · Dividida 1 · total 355
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -266,7 +266,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 251 | RTP-0157 | executor | ✔ | Lint: violações das regras de fronteira do web (SDD §2) deixam o job base vermelho | Refatoração Lote-2 | BK-0034 | Dividida |
 | 252 | RTP-0157a | executor | ✔ | Lint de fronteira do web: camada comum/ e ganchos/ → formatacao/ na matriz e no teste (... | Refatoração Lote-2 | — | Aprovada |
 | 253 | RTP-0157b | executor | ✔ | Lint de fronteira: correções genuínas de código (sem comum/) | Refatoração Lote-2 | — | Aprovada |
-| 254 | RTP-0157c | executor | ✔ | Lint de fronteira: criar comum/ com reexports em dados/ e trocar os imports | Refatoração Lote-2 | RTP-0157a | Não executada |
+| 254 | RTP-0157c | executor | ✔ | Lint de fronteira: criar comum/ com reexports em dados/ e trocar os imports | Refatoração Lote-2 | RTP-0157a | Executada (aguarda teste) |
 | 255 | RTP-0158 | executor | ✔ | Testes de rotas: mock de usePendentes sem itens e IndexedDB ausente quebram 10 testes e... | Refatoração Lote-2 | — | Não executada |
 | 256 | RTP-0060 | executor | ✔ | checar-aditiva.sh: '--' dentro de literal esconde drop/rename na mesma linha | Refatoração Lote-21 | TP-0109 | Aprovada |
 | 257 | RTP-0061 | executor | ✔ | shellcheck: SC1091 em volume/carregar.sh (host-local.sh não resolvido com -x) | Refatoração Lote-21 | TP-0109 | Aprovada |
