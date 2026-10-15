@@ -5,11 +5,11 @@ import { semViolacoesGraves } from '../apoio/acessibilidade';
 import { excluirLancamentosLocais, registrarLancamentosCriados } from '../apoio/limpeza-local';
 import {
   abrirSessoes,
-  coletarRespostasRest,
   IDS_FORMAS_E_CONTAS_DE_A,
   lancarCompra,
   MENSAGEM_NAO_EXISTE,
   NOMES_FORMAS_E_CONTAS_DE_A,
+  type ColetorRest,
   type Compra,
   type Sessoes,
 } from './apoio/casal';
@@ -23,7 +23,7 @@ test.describe.configure({ mode: 'serial' });
 const VALOR_INDIVIDUAL = 98765;
 const marcadorInd = novoMarcador('e2e-ind');
 let sessoes: Sessoes;
-let coletor: ReturnType<typeof coletarRespostasRest>;
+let coletor: ColetorRest;
 let criados: string[] = [];
 let individual: Compra;
 let conjunta: Compra;
@@ -34,7 +34,7 @@ const meses = () => [...new Set(conjuntas().flatMap((c) => c.meses))];
 
 test.beforeAll(async ({ browser }) => {
   sessoes = await abrirSessoes(browser);
-  coletor = coletarRespostasRest(sessoes.b);
+  coletor = sessoes.coletorB;
   criados = registrarLancamentosCriados(sessoes.a);
 });
 
