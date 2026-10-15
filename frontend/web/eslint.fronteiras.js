@@ -4,18 +4,19 @@ import path from 'node:path';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import importX from 'eslint-plugin-import-x';
 
-const CAMADAS = ['componentes', 'dados', 'formatacao', 'ganchos', 'paginas', 'configuracao', 'pwa', 'rotulos'];
+const CAMADAS = ['componentes', 'dados', 'formatacao', 'ganchos', 'paginas', 'configuracao', 'pwa', 'rotulos', 'comum'];
 
 // Quem cada camada NÃO pode importar (o complemento do "pode importar" do SDD).
 const PODE_IMPORTAR = {
-  paginas: ['componentes', 'ganchos', 'formatacao', 'rotulos'],
-  componentes: ['formatacao', 'rotulos'],
-  ganchos: ['dados'],
-  dados: ['configuracao'],
-  formatacao: [],
-  rotulos: [],
+  paginas: ['componentes', 'ganchos', 'formatacao', 'rotulos', 'comum'],
+  componentes: ['formatacao', 'rotulos', 'comum'],
+  ganchos: ['dados', 'formatacao', 'comum'],
+  dados: ['configuracao', 'comum'],
+  formatacao: ['comum'],
+  rotulos: ['comum'],
   pwa: [],
   configuracao: [],
+  comum: [],
 };
 
 const PACOTES_CONTRATO = ['@mymoney/*', '!@mymoney/contrato', '!@mymoney/contrato/**'];
