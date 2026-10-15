@@ -144,8 +144,9 @@ test('@integracao B vê "Paga por Leandro", sem Desfazer e sem forma, conta nem 
   const porMarcador = corpos.flatMap((c) => objetosComValor(c, new Set([marcador])));
   expect(porMarcador.length, 'B recebeu a ocorrência').toBeGreaterThan(0);
   // A data pode vir em outra estrutura (ex.: pagamento ligado por id): vale todo objeto que cita o
-  // marcador ou o id da ocorrência, não só o que tem a `descricao`.
-  const referencias = new Set([marcador, ...porMarcador.flatMap((o) => (typeof o.id === 'string' ? [o.id] : []))]);
+  // marcador, o id da ocorrência ou o id do modelo, não só o que tem a `descricao`.
+  const idsCitados = porMarcador.flatMap((o) => [o.id, o.despesa_fixa_id]).filter((v): v is string => typeof v === 'string');
+  const referencias = new Set([marcador, ...idsCitados]);
   const daOcorrencia = corpos.flatMap((c) => objetosComValor(c, referencias)).map((o) => JSON.stringify(o));
   for (const item of daOcorrencia) {
     if (dataDoPagamento !== vencimento) expect(item).not.toContain(dataDoPagamento);
