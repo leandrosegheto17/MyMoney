@@ -947,3 +947,6 @@ APROVADA — comum/ puro com reexports em dados/, componentes/paginas sem import
 
 ## RTP-0158 — QA — 2026-10-14
 Mock de usePendentes adicionado em rotas.mes.test; suíte web 1896/1896 e typecheck verdes, sem rejeições; sem achados.
+
+## TP-0011 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (baixa: nota D-11 diz cópia "vazio" e `## 4` diz que contém dados); 70 migrations aplicadas, anon só executa api.ping (grep + curl registrados), sem drop/truncate/grant a public, nota D-11 correta e sem segredo.

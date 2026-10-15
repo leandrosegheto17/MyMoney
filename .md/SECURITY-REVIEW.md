@@ -872,3 +872,6 @@ APROVADA — comum/ puro (só tipos e ehUuid), tradução de erro/supabase-js/id
 
 ## RTP-0158 — DevSecOps — 2026-10-14
 Diff só de teste (+2 linhas, 0 removidas), sem mudança de produção nem dependência; sem achados.
+
+## TP-0011 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (baixa: nota D-11 chama a cópia de "vazio" mas ela tem dados; apagar ~/mymoney-copias); grep executado: anon só api.ping, sem grant a public, sem drop/truncate, sem JWT/senha/conexão versionados, .temp ignorado e cópias fora do repo.

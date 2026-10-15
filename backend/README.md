@@ -220,6 +220,14 @@ psql "$DATABASE_URL" -f ~/mymoney-copias/<data>-dados.sql
 `DATABASE_URL` é a string de conexão do painel do Supabase. As cópias têm dados reais: apague-as
 depois de confirmar a migração.
 
+### Primeira migration em produção (exceção D-11)
+
+Em 2026-10-15 o `migrar.sh` aplicou as 70 migrations de uma vez no projeto `yrmvvronuxsaciratiwm`
+(`sa-east-1`, vazio): `db push` aplica todas as pendentes, então não havia como subir só as primeiras.
+É a única migration fora do `/deploy` e anterior ao job `isolamento` exigido. A cópia pontual (schema e dados
+de antes da migration, com o projeto ainda vazio) ficou em `~/mymoney-copias` (local, não versionado) e
+deve ser apagada.
+
 ### Ensaio contra o Supabase local
 
 1. `pnpm local:subir` e `pnpm local:resetar` (banco local limpo).
