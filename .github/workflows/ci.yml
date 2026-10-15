@@ -161,6 +161,48 @@ jobs:
       - name: Suíte de isolamento da API
         run: pnpm --filter @mymoney/testes-api test
 
+  integracao:
+    name: integracao
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Carregar o ensaio sem cadastros da Ana
+        run: bash backend/supabase/volume/carregar.sh ../ensaio/sem-cadastros-ana.sql
+
+      - name: Variáveis (só URL e chave anon locais)
+        uses: ./.github/actions/ambiente-supabase-local
+
+      - name: Navegador do Playwright (Chromium)
+        working-directory: frontend/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: e2e @integracao contra o Supabase local
+        run: |
+          export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          pnpm --filter @mymoney/web e2e:integracao
+
+      - name: Relatório dos testes
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-integracao
+          path: |
+            frontend/web/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
   frontend:
     name: frontend
     runs-on: ubuntu-latest
@@ -193,7 +235,7 @@ jobs:
       # Os specs fingem o Supabase (rotas interceptadas) e dependem do modo do Vite:
       # entrar, redefinir-senha e pwa (faz vite build, que recusa o modo de comparação) exigem o
       # app SEM modo de comparação; os demais, sessão falsa.
-      # Os @integracao precisam de .env.local e de usuário semeado e ficam de fora.
+      # Os @integracao precisam do Supabase semeado e rodam no job integracao.
       - name: e2e e axe sem sessão
         working-directory: frontend/web
         env:
