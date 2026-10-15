@@ -56,21 +56,22 @@ beforeEach(() => {
 });
 
 describe('Categorias (T19): despesas', () => {
-  it('mostra "Da casa" e "Minhas", nessa ordem, com 5 itens cada', async () => {
+  it('mostra "Da casa" e "Minhas", nessa ordem, com 6 e 4 itens', async () => {
     buscarSimulado.mockResolvedValue(categorias());
     montar();
 
     await screen.findByRole('link', { name: /Mercado/ });
     const titulos = screen.getAllByRole('heading', { level: 2 }).map((t) => t.textContent?.trim());
     expect(titulos).toEqual(['Da casa · os dois veem', 'Minhas · só você vê']);
-    expect(within(grupo(/Da casa/)).getAllByRole('link')).toHaveLength(5);
-    expect(within(grupo(/Minhas/)).getAllByRole('link')).toHaveLength(5);
+    expect(within(grupo(/Da casa/)).getAllByRole('link')).toHaveLength(6);
+    expect(within(grupo(/Minhas/)).getAllByRole('link')).toHaveLength(4);
     expect(nomesDosItens(grupo(/Da casa/))).toEqual([
       'Mercado',
       'Delivery/iFood do casal',
       'Moradia',
       'Contas da casa',
       'Outros da casa',
+      'Almoço/Alimentação fora',
     ]);
   });
 

@@ -4,7 +4,7 @@
   { "id": "00000000-0000-4000-8000-000000000403", "nome": "Moradia", "tipo": "despesa", "escopo": "conjunto", "variavel": false, "arquivada": false, "pode_excluir": false },
   { "id": "00000000-0000-4000-8000-000000000404", "nome": "Contas da casa", "tipo": "despesa", "escopo": "conjunto", "variavel": false, "arquivada": false, "pode_excluir": false },
   { "id": "00000000-0000-4000-8000-000000000405", "nome": "Outros da casa", "tipo": "despesa", "escopo": "conjunto", "variavel": false, "arquivada": false, "pode_excluir": false },
-  { "id": "00000000-0000-4000-8000-000000000411", "nome": "Almoço/Alimentação fora", "tipo": "despesa", "escopo": "individual", "variavel": true, "arquivada": false, "pode_excluir": false },
+  { "id": "00000000-0000-4000-8000-000000000406", "nome": "Almoço/Alimentação fora", "tipo": "despesa", "escopo": "conjunto", "variavel": true, "arquivada": false, "pode_excluir": true },
   { "id": "00000000-0000-4000-8000-000000000412", "nome": "Delivery pessoal", "tipo": "despesa", "escopo": "individual", "variavel": true, "arquivada": false, "pode_excluir": false },
   { "id": "00000000-0000-4000-8000-000000000413", "nome": "Transporte", "tipo": "despesa", "escopo": "individual", "variavel": true, "arquivada": false, "pode_excluir": false },
   { "id": "00000000-0000-4000-8000-000000000414", "nome": "Lazer pessoal", "tipo": "despesa", "escopo": "individual", "variavel": true, "arquivada": false, "pode_excluir": false },

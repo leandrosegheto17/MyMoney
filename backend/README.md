@@ -138,6 +138,10 @@ pnpm exec supabase db lint --workdir backend --level error
 pnpm --filter @mymoney/testes-api test   # com o .env preenchido
 ```
 
+Os cinco jobs `base`, `banco`, `isolamento`, `frontend` e `integracao` são os checks exigidos antes
+do deploy (`operacao/setup/gate-deploy.md`). O job `integracao` sobe o mesmo Supabase local e roda os
+e2e `@integracao` do web; reprodução em `frontend/README.md`.
+
 ## Funções de escrita (salvar idempotente pelo id do cliente)
 
 O cliente gera o `uuid` do registro e chama `api.salvar_*(p_id, …)`; o reenvio com o mesmo id e os

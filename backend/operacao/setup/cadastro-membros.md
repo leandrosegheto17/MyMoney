@@ -30,7 +30,7 @@ SQL: `backend/supabase/setup/criar-membros.sql` (fora de `migrations/` e `seeds/
 
    Esperado: 4xx com `signup_disabled`; o painel continua com 2 usuários.
 
-Não fazer: usar `service_role`; criar usuário por SQL em `auth.users`; deixar valores reais no `.sql` ou neste arquivo; mexer no `config.toml`.
+Não fazer: usar a chave de serviço; criar usuário por SQL em `auth.users`; deixar valores reais no `.sql` ou neste arquivo; mexer no `config.toml`.
 
 ## Registro (preencher depois dos passos; sem e-mail, senha, `user_id` nem nome real)
 

@@ -6,7 +6,7 @@ interface OrcamentoMes {
   linhas: { categoria_id: string; orcado_centavos: number }[];
 }
 
-const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000411';
+const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000412';
 const MES = '2026-11-01';
 
 const orcamentoMes = async (quem: typeof comoA, escopo: 'conjunto' | 'individual') => {

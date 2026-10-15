@@ -4,7 +4,7 @@ import { mesmaForma } from '../src/mesma-forma';
 import { comoA, comoAnon, comoB, comoSemMembro } from '../src/sessoes';
 
 const MERCADO = '00000000-0000-4000-8000-000000000401';
-const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000411';
+const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000412';
 const SALARIO = '00000000-0000-4000-8000-000000000421';
 
 interface LinhaCategoria {
@@ -17,7 +17,7 @@ interface LinhaCategoria {
 const idsDoSeed = new Set((categorias as LinhaCategoria[]).map((c) => c.id));
 
 describe('api.categorias', () => {
-  it('A lê as 5 conjuntas e as 8 individuais, no formato de categorias.json', async () => {
+  it('A lê as 6 conjuntas e as 7 individuais, no formato de categorias.json', async () => {
     const { data, error } = await (await comoA()).from('categorias').select();
     expect(error).toBeNull();
     // Outros arquivos de caso criam categorias: só as do seed (ids do exemplo) entram na conferência.
