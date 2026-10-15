@@ -42,6 +42,10 @@ function hostPermitido() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === '--host') {
+    console.log(hostPermitido());
+    process.exit(0);
+  }
   const pasta = process.argv[2] ?? 'dist';
   const permitido = hostPermitido();
   const intrusos = hostsEncontrados(pasta).filter((h) => h !== permitido && !EXCECOES.has(h));

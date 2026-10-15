@@ -186,8 +186,12 @@ jobs:
           export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           pnpm --filter @mymoney/web build
 
-      - name: Hosts externos no build
-        run: pnpm --filter @mymoney/web verificar-hosts
+      - name: Hosts externos no build de produção
+        working-directory: frontend/web
+        run: |
+          host=$(node scripts/verificarHosts.mjs --host)
+          VITE_SUPABASE_URL="https://$host" VITE_SUPABASE_ANON_KEY=chave-de-verificacao pnpm exec vite build --outDir dist-producao
+          node scripts/verificarHosts.mjs dist-producao
 
       - name: Navegador do Playwright (Chromium)
         working-directory: frontend/web
