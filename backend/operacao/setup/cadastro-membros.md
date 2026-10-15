@@ -36,14 +36,14 @@ Não fazer: usar `service_role`; criar usuário por SQL em `auth.users`; deixar 
 
 | Item | Resultado |
 |---|---|
-| Data | |
-| Ref confirmado (digitado) | |
-| Pré-condição (migrations em dia) | |
-| `lares` / `membros` / `membros_com_usuario` | |
-| Login do usuário 1 (categorias iniciais vistas) | |
-| Login do usuário 2 (categorias iniciais vistas) | |
-| Individuais isoladas entre os dois | |
-| Signup por API (código e `error_code`) | |
-| Usuários no painel após o teste | |
+| Data | 2026-10-15 |
+| Ref confirmado (digitado) | Não aplicável (SQL rodado no SQL Editor do painel) |
+| Pré-condição (migrations em dia) | 70 em dia; 1 pendente (`20261015120000`), a aplicar pelo `/deploy` |
+| `lares` / `membros` / `membros_com_usuario` | 1 / 2 / 2 |
+| Login do usuário 1 (categorias iniciais vistas) | Ok (5 conjuntas + 8 individuais) |
+| Login do usuário 2 (categorias iniciais vistas) | Ok (5 conjuntas + 8 individuais) |
+| Individuais isoladas entre os dois | Sim |
+| Signup por API (código e `error_code`) | 422, `signup_disabled` |
+| Usuários no painel após o teste | Não informado |
 
-Enquanto a tabela estiver vazia, o cadastro **não foi feito**.
+Cadastro feito em 2026-10-15. A linha "Não informado" fica para o QA conferir.
