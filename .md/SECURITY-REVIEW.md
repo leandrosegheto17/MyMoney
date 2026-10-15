@@ -908,3 +908,15 @@ OK — 0 achados; diff só em roteiro-m3.md, sem e-mail, valor, segredo, print o
 
 ## RTP-0163 — DevSecOps — 2026-10-15
 RTP-0163 aprovada na segurança — só texto de runbook, sem segredos nem mudança de comportamento.
+
+## RTP-0166 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos/0 não críticos; G-14 com conferência do ref no painel, gitleaks limpo e grep sem e-mail/uuid/senha/nome real (só placeholder teste@exemplo.com).
+
+## RTP-0121 — DevSecOps — 2026-10-15
+Aprovada em segurança — só e2e; sem segredo real (`.invalid`/chave de comparação), respostas sintéticas, sem dependência nova; revisão de leitura, nada executado; 0 críticos, 0 não críticos.
+
+## RTP-0162 — DevSecOps — 2026-10-15
+APROVADA — revisao do diff: sem segredo, mesmos termos de vazamento avaliados na chamada, asserção de rede de B nao enfraquecida (contraprova do QA); 0 criticos, 0 nao criticos.
+
+## TP-0030 — DevSecOps — 2026-10-15
+APROVADA COM RESSALVAS; 0 críticos, 2 não críticos (evidência/risco residual do gate só por Deployment Checks sem proteção da main; exceções G-20 por host e não por origem); executado: greps de credenciais/secrets/SHA limpos em .github, gitleaks 3197490..HEAD sem vazamentos.
