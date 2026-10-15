@@ -70,8 +70,8 @@ enable_manual_linking = false
 minimum_password_length = 12
 
 [auth.email]
-# espelha o painel: Authentication > Sign In / Providers > Email > cadastro por e-mail desligado
-enable_signup = false
+# espelha o painel: provedor de e-mail ligado; o cadastro fica fechado por `[auth] enable_signup = false` (ADR-014)
+enable_signup = true
 enable_confirmations = false
 double_confirm_changes = true
 secure_password_change = false

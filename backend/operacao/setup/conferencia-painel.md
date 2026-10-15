@@ -7,7 +7,7 @@ Valores esperados vêm de `backend/supabase/config.toml` (TP-0002). Os itens for
 | Item | Valor no painel | Valor no `config.toml` | Igual? | Data |
 |---|---|---|---|---|
 | Cadastro de novos usuários (`auth.enable_signup`) | desligado | `false` | sim | 2026-10-14 |
-| Cadastro por e-mail (`auth.email.enable_signup`) | desligado | `false` | sim | 2026-10-14 |
+| Provedor de e-mail (`auth.email.enable_signup`) | ligado (o cadastro segue fechado pela linha acima, ADR-014) | `true` | sim | 2026-10-14 |
 | Senha mínima (`auth.minimum_password_length`) | 12 | `12` | sim | 2026-10-14 |
 | JWT expiry (`auth.jwt_expiry`) | 3600 s | `3600` | sim | 2026-10-14 |
 | Rotação de refresh token (`auth.enable_refresh_token_rotation`) | ligada | `true` | sim | 2026-10-14 |

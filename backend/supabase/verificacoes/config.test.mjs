@@ -51,7 +51,7 @@ const normalizar = (valor) => valor.replace(/\s+/g, '').replace(/'/g, '"');
 
 const REGRAS = [
   { chave: 'auth.enable_signup', valida: (v) => v === 'false', esperado: 'false' },
-  { chave: 'auth.email.enable_signup', valida: (v) => v === 'false', esperado: 'false' },
+  { chave: 'auth.email.enable_signup', valida: (v) => v === 'true', esperado: 'true' },
   { chave: 'auth.minimum_password_length', valida: (v) => Number(v) >= 12, esperado: '>= 12' },
   { chave: 'api.schemas', valida: (v) => normalizar(v) === '["api"]', esperado: '["api"]' },
   { chave: 'auth.jwt_expiry', valida: (v) => v === '3600', esperado: '3600' },
@@ -122,7 +122,7 @@ test('o config.toml versionado cumpre todos os itens', () => {
 
 const valoresErrados = [
   ['auth.enable_signup', 'true'],
-  ['auth.email.enable_signup', 'true'],
+  ['auth.email.enable_signup', 'false'],
   ['auth.minimum_password_length', '11'],
   ['auth.minimum_password_length', '6'],
   ['api.schemas', '["api", "public"]'],
