@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-15 17:19
+Atualizado: 2026-10-15 18:09
 
-Resumo: Não executada 13 · Em execução 4 · Aprovada 344 · Dividida 1 · Despriorizada 2 · total 364
+Resumo: Não executada 4 · Em execução 5 · Executada (aguarda teste) 1 · Em teste 6 · Testada (aguarda segurança) 2 · Aprovada 344 · Dividida 1 · Despriorizada 2 · total 365
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -43,7 +43,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 28 | TP-0027 | executor | ✔ | PWA: manifest, ícones e service worker | Lote 5 | TP-0021 | Aprovada |
 | 29 | TP-0028 | executor | ✔ | vercel.json: rotas e cabeçalhos de segurança | Lote 5 | TP-0009, TP-0021 | Aprovada |
 | 30 | TP-0029 | executor | ✔ | Limpeza e reconfiguração do projeto Vercel mymoney [U] | Lote 5 | TP-0010, TP-0027, TP-0028 | Aprovada |
-| 31 | TP-0030 | executor | ✔ | CI do frontend e isolamento como condição de deploy [U] | Lote 5 | TP-0018, TP-0026, TP-0029 | Em execução |
+| 31 | TP-0030 | executor | ✔ | CI do frontend e isolamento como condição de deploy [U] | Lote 5 | TP-0018, TP-0026, TP-0029 | Em teste |
 | 32 | TP-0031 | executor | ✔ | Página de ensaio do teclado (descartável) | Lote 6 | TP-0027, TP-0029 | Aprovada |
 | 33 | SPK-0001 | coordenador | — | Spike: teclado numérico no "+" no iPhone 17 e no Moto Edge 60 | Lote 6 | TP-0031 | Aprovada |
 | 34 | TP-0032 | executor | ✔ | BarraNavegacao e TrilhoNavegacao | Lote 7 | TP-0023 | Aprovada |
@@ -131,7 +131,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 116 | TP-0110 | executor | ✔ | E2E de integração: entrar, primeiro uso, lançar e fila [BD] | Lote 21 | TP-0045, TP-0069, TP-0084, TP-0094, TP-0095, TP-0103, TP-0108 | Aprovada |
 | 117 | TP-0111 | executor | ✔ | E2E de integração: privacidade e edição com 2 membros [BD] | Lote 21 | TP-0105, TP-0106, TP-0110 | Aprovada |
 | 118 | TP-0112 | executor | ✔ | Cadastro dos 2 usuários em produção [U] | Lote 22 | TP-0029, TP-0110 | Aprovada |
-| 119 | TP-0114 | executor | ✔ | Roteiro de fricção e desempenho nos aparelhos reais [U] | Lote 22 | TP-0107, TP-0112 | Não executada |
+| 119 | TP-0114 | executor | ✔ | Roteiro de fricção e desempenho nos aparelhos reais [U] | Lote 22 | TP-0107, TP-0112 | Testada (aguarda segurança) |
 | 120 | TP-0115 | executor | ✔ | api.lancar_receita [BD] | Lote 23 | TP-0051 | Aprovada |
 | 121 | TP-0116 | executor | ✔ | T03e Modo Receita | Lote 23 | TP-0076, TP-0084, TP-0115 | Aprovada |
 | 122 | TP-0117 | executor | ✔ | api.alterar_data_parcela [BD] | Lote 24 | TP-0051 | Aprovada |
@@ -151,7 +151,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 136 | TP-0131 | executor | ✔ | T07 Modelo de despesa fixa | Lote 27 | TP-0034, TP-0035, TP-0037, TP-0047, TP-0129 | Aprovada |
 | 137 | TP-0132 | executor | ✔ | T08 Marcar fixa como paga | Lote 27 | TP-0035, TP-0036, TP-0080, TP-0130 | Aprovada |
 | 138 | BK-0027 | coordenador | ✔ | TP-0133 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (ainda não executadas) | — | — | Aprovada |
-| 139 | TP-0133 | executor | ✔ | E2E de integração: ciclo da despesa fixa [BD] | Lote 27 | BK-0027, TP-0110, TP-0111, TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | Não executada |
+| 139 | TP-0133 | executor | ✔ | E2E de integração: ciclo da despesa fixa [BD] | Lote 27 | BK-0027, TP-0110, TP-0111, TP-0127, TP-0128, TP-0130, TP-0131, TP-0132 | Em execução |
 | 140 | TP-0134 | executor | ✔ | Tabela app.orcamento [BD] | Lote 28 | TP-0050 | Aprovada |
 | 141 | TP-0135 | executor | ✔ | Regra app.orcado_realizado e situação [BD] | Lote 28 | TP-0051, TP-0134 | Aprovada |
 | 142 | TP-0136 | executor | ✔ | api.orcamento_mes(mes, escopo) [BD] | Lote 28 | TP-0135 | Aprovada |
@@ -176,7 +176,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 161 | TP-0155 | executor | ✔ | T12 Nova ou editar meta | Lote 32 | TP-0034, TP-0035, TP-0047, TP-0070, TP-0152 | Aprovada |
 | 162 | TP-0156 | executor | ✔ | T13 Aporte ou retirada | Lote 32 | TP-0034, TP-0035, TP-0036, TP-0043, TP-0070, TP-0154 | Aprovada |
 | 163 | BK-0028 | coordenador | ✔ | TP-0157 usa a infra de E2E @integracao criada pela TP-0110/TP-0111 (não executadas) e não | — | — | Aprovada |
-| 164 | TP-0157 | executor | ✔ | E2E de integração: metas [BD] | Lote 32 | BK-0028, TP-0110, TP-0111, TP-0151, TP-0153, TP-0154, TP-0155, TP-0156 | Não executada |
+| 164 | TP-0157 | executor | ✔ | E2E de integração: metas [BD] | Lote 32 | BK-0028, TP-0110, TP-0111, TP-0151, TP-0153, TP-0154, TP-0155, TP-0156 | Em teste |
 | 165 | TP-0158 | executor | ✔ | api.registrar_pagamento_cartao [BD] | Lote 33 | TP-0048, TP-0049, TP-0064 | Aprovada |
 | 166 | TP-0159 | executor | ✔ | T21 Registrar pagamento do cartão | Lote 33 | TP-0035, TP-0036, TP-0073, TP-0158 | Aprovada |
 | 167 | RTP-0001 | executor | ✔ | Prettier passa a checar os testes (remover exclusão em .prettierignore) | Refatoração Lote-1 | TP-0001 | Aprovada |
@@ -277,15 +277,15 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 262 | RTP-0124 | executor | ✔ | Mockup: página instalar--android-passos (passos manuais do Android sem prompt) | Refatoração Lote-21 | TP-0107 | Aprovada |
 | 263 | RTP-0125 | executor | ✔ | Testes da T22: checar variante e alvo mínimo pelas classes reais dos módulos CSS | Refatoração Lote-21 | TP-0107 | Aprovada |
 | 264 | RTP-0135 | executor | ✔ | e2e da T22: medir altura >= 44 px dos botões da faixa de instalar | Refatoração Lote-21 | RTP-0125 | Aprovada |
-| 265 | RTP-0161 | executor | ✔ | Criar o job integracao no ci.yml (supabase start, local:ci, ensaio SQL, e2e:integracao) | Refatoração Lote-21 | TP-0110 | Não executada |
-| 266 | RTP-0165 | executor | ✔ | e2e de privacidade: coletor de rede de B anexado só depois do login (respostas iniciais... | Refatoração Lote-21 | TP-0111 | Não executada |
+| 265 | RTP-0161 | executor | ✔ | Criar o job integracao no ci.yml (supabase start, local:ci, ensaio SQL, e2e:integracao) | Refatoração Lote-21 | TP-0110 | Em execução |
+| 266 | RTP-0165 | executor | ✔ | e2e de privacidade: coletor de rede de B anexado só depois do login (respostas iniciais... | Refatoração Lote-21 | TP-0111 | Em teste |
 | 267 | RTP-0066 | executor | ✔ | pedirRedefinicao: não engolir erro de limite de taxa | Lote 5 | TP-0025 | Aprovada |
 | 268 | RTP-0083 | executor | ✔ | Trava do modo de comparação cobre qualquer modo de build | Refatoração Lote-5 | TP-0026 | Aprovada |
 | 269 | RTP-0144 | executor | ✔ | Conferir a CSP do vercel.json no navegador e arrumar espaço em package.json | Refatoração Lote-5 | TP-0028 | Aprovada |
 | 270 | BK-0035 | coordenador | ✔ | Conferir no painel da Vercel a expressão do Ignored Build Step e fazer a prova nos dois se | — | — | Aprovada |
 | 271 | RTP-0159 | executor | ✔ | limpeza.md: registrar o Ignored Build Step da Vercel e a causa dos cancelamentos na main | Refatoração Lote-5 | BK-0035, TP-0029 | Aprovada |
 | 272 | RTP-0160 | executor | ✔ | Reconferir as variáveis da Vercel com vercel env ls e registrar | Refatoração Lote-5 | TP-0029 | Aprovada |
-| 273 | RTP-0163 | executor | ✔ | limpeza.md: corrigir byte inválido em 'Conferência' e a frase 'sem deploy criado' (RTP-... | Refatoração Lote-5 | RTP-0159 | Não executada |
+| 273 | RTP-0163 | executor | ✔ | limpeza.md: corrigir byte inválido em 'Conferência' e a frase 'sem deploy criado' (RTP-... | Refatoração Lote-5 | RTP-0159 | Executada (aguarda teste) |
 | 274 | RTP-0164 | executor | ✔ | Ignored Build Step só no painel: registrar Production Branch, avaliar proteção da main... | Refatoração Lote-5 | RTP-0163 | Não executada |
 | 275 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Aprovada |
 | 276 | RTP-0116 | executor | ✔ | Página por trás da folha aberta não pode esticar a captura (altura de T03 celular) | Refatoração Lote-16 | TP-0081 | Aprovada |
@@ -315,7 +315,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 300 | RTP-0118 | executor | ✔ | CasaOrcamento: mês do vazio vindo de mes (não fixo) e import sem uso | Refatoração Lote-18 | TP-0092 | Aprovada |
 | 301 | RTP-0119 | executor | ✔ | Testes de CasaFixas: título 'N de total' e axe da T02 | Refatoração Lote-18 | TP-0092 | Aprovada |
 | 302 | RTP-0120 | executor | ✔ | EuPorCategoria: vazio por lista, texto do vazio testado e axe do bloco Eu | Refatoração Lote-18 | TP-0093 | Aprovada |
-| 303 | RTP-0121 | executor | ✔ | T02 vazio: fechar o visual do celular e registrar o axe após TP-0094 | Lote 18 | TP-0094 | Não executada |
+| 303 | RTP-0121 | executor | ✔ | T02 vazio: fechar o visual do celular e registrar o axe após TP-0094 | Lote 18 | TP-0094 | Em teste |
 | 304 | RTP-0122 | executor | ✔ | Passo 'Instale o app' dos Primeiros passos: destino definitivo (T22) | Lote 18 | TP-0095 | Aprovada |
 | 305 | RTP-0095 | executor | ✔ | T06: espaço do 'Previsto a pagar' no título do cartão difere do mockup em 3 px e pequen... | Lote 27 | TP-0130 | Aprovada |
 | 306 | BK-0025 | coordenador | ✔ | Decidir se a ordem erro/ajuda do componente base Campo (todas as telas) e a ajuda do valor | — | — | Aprovada |
@@ -341,39 +341,40 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 326 | RTP-0111 | executor | ✔ | Limitar o tamanho do nome da conta (cliente e servidor) | Refatoração Lote-14 | TP-0071 | Aprovada |
 | 327 | RTP-0114 | executor | ✔ | T18: legenda visível do tipo no formulário de nova forma | Refatoração Lote-14 | TP-0073 | Aprovada |
 | 328 | RTP-0115 | executor | ✔ | T20 Categoria: Segmentado e Interruptor fiéis ao mockup categoria--erro | Refatoração Lote-14 | TP-0075 | Aprovada |
-| 329 | RTP-0107 | executor | ✔ | E2E @integracao do ajuste de data da parcela (T05 → T04 e T02) | Refatoração Lote-24 | TP-0110 | Não executada |
+| 329 | RTP-0107 | executor | ✔ | E2E @integracao do ajuste de data da parcela (T05 → T04 e T02) | Refatoração Lote-24 | TP-0110 | Em teste |
 | 330 | RTP-0108 | executor | ✔ | Alterar data da parcela: não salvar datas parciais digitadas no campo de fallback | Refatoração Lote-24 | TP-0118 | Aprovada |
 | 331 | RTP-0140 | executor | ✔ | Remover paginas/EmConstrucao.tsx órfão | Refatoração Lote-29 | TP-0141 | Aprovada |
 | 332 | RTP-0146 | executor | ✔ | Folha de valor do orçamento: erro registro_invalido some junto com a folha | Refatoração Lote-29 | TP-0142 | Aprovada |
-| 333 | RTP-0162 | executor | ✔ | orcamento.spec: extrair a asserção de vazamento repetida 3 vezes | Refatoração Lote-29 | TP-0143 | Não executada |
+| 333 | RTP-0162 | executor | ✔ | orcamento.spec: extrair a asserção de vazamento repetida 3 vezes | Refatoração Lote-29 | TP-0143 | Em teste |
 | 334 | RTP-0148 | executor | ✔ | E2E @integracao da receita deixa lançamentos no banco local | Refatoração Lote-23 | TP-0116 | Aprovada |
 | 335 | RTP-0149 | executor | ✔ | E2E @integracao da receita sem trava de host local | 23 | TP-0116 | Aprovada |
 | 336 | RTP-0151 | executor | ✔ | Tirar ID de tarefa (TP-nnnn) dos 8 specs e2e; o passo do CI reprova hoje | Refatoração Revisão 2026-10-14 | — | Aprovada |
 | 337 | RTP-0152 | executor | ✔ | Extrair botões de edição e diálogo de exclusão repetidos em EdicaoConta/EdicaoForma/Edi... | Refatoração Revisão 2026-10-14 | — | Aprovada |
 | 338 | RTP-0153 | executor | ✔ | Job de frontend no CI (build, Playwright com axe e comparação visual), exigido pelo G-18 | Refatoração Revisão 2026-10-14 | — | Aprovada |
-| 339 | RTP-0166 | executor | ✔ | cadastro-membros.md: exigir conferência do ref no painel quando o SQL for rodado pelo S... | Refatoração Lote-22 | TP-0112 | Não executada |
-| 340 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
-| 341 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
-| 342 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
-| 343 | BK-0007 | coordenador | ✔ | TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, | — | — | Aprovada |
-| 344 | BK-0008 | coordenador | ✔ | TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem | — | — | Aprovada |
-| 345 | BK-0009 | coordenador | ✔ | TP-0155 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
-| 346 | BK-0010 | coordenador | ✔ | TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
-| 347 | BK-0011 | coordenador | ✔ | TP-0073 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
-| 348 | BK-0012 | coordenador | ✔ | TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
-| 349 | BK-0013 | coordenador | ✔ | TP-0131 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
-| 350 | BK-0014 | coordenador | ✔ | TP-0081 move folgaTeclado.ts e remove a página EnsaioTeclado, criados pelo TP-0031 (Penden | — | — | Aprovada |
-| 351 | BK-0015 | coordenador | ✔ | TP-0089 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK- | — | — | Aprovada |
-| 352 | BK-0016 | coordenador | ✔ | TP-0105 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
-| 353 | BK-0017 | coordenador | ✔ | TP-0101 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK- | — | — | Aprovada |
-| 354 | BK-0018 | coordenador | ✔ | TP-0154 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
-| 355 | BK-0019 | coordenador | ✔ | TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
-| 356 | BK-0020 | coordenador | ✔ | TP-0130 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
-| 357 | BK-0021 | coordenador | ✔ | TP-0090 usa LinkMais.tsx (TP-0045), que ainda não existe e não está na Dep; mesma causa do | — | — | Aprovada |
-| 358 | BK-0022 | coordenador | ✔ | TP-0141 usa Segmentado.tsx (TP-0081), ResumoOrcamento.tsx (TP-0090), formatacao/links.ts + | — | — | Aprovada |
-| 359 | BK-0023 | coordenador | ✔ | TP-0153 usa MetaCompacta.tsx e formatarMesCurto (TP-0090), BlocoInicio.tsx e formatacao/li | — | — | Aprovada |
-| 360 | BK-0024 | coordenador | ✔ | 'Sair de todos' sem rede contraria o aceite e o RNF-06: supabase-js 2.117.3 (_signOut) rem | — | — | Aprovada |
-| 361 | BK-0029 | coordenador | ✔ | Acrescentar a tela T22 (faixa/folha de instalar) em .md/mockup/telas.json para que o compa | — | — | Em execução |
-| 362 | BK-0033 | coordenador | ✔ | Decidir se testes-api mantém tipos do schema escritos à mão (tipos-api.ts) e pg com SQL di | — | — | Não executada |
-| 363 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Despriorizada |
-| 364 | TP-0113 | executor | ✔ | Verificação do keep-alive antes do uso diário [U] | Lote 22 | TP-0012 | Despriorizada |
+| 339 | RTP-0166 | executor | ✔ | cadastro-membros.md: exigir conferência do ref no painel quando o SQL for rodado pelo S... | Refatoração Lote-22 | TP-0112 | Testada (aguarda segurança) |
+| 340 | RTP-0167 | executor | ✔ | Registrar medianas e fechar lacunas do roteiro-m3 (TP-0114) | Refatoração Lote-22 | TP-0114 | Não executada |
+| 341 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
+| 342 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
+| 343 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |
+| 344 | BK-0007 | coordenador | ✔ | TP-0070 usa CabecalhoPagina, ItemLink e Lista.module.css que o TP-0047 (T14 Ajustes) cria, | — | — | Aprovada |
+| 345 | BK-0008 | coordenador | ✔ | TP-0071 usa CabecalhoPagina (TP-0047) e AvisoErroTopo.tsx (TP-0045), que ainda não existem | — | — | Aprovada |
+| 346 | BK-0009 | coordenador | ✔ | TP-0155 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
+| 347 | BK-0010 | coordenador | ✔ | TP-0075 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
+| 348 | BK-0011 | coordenador | ✔ | TP-0073 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
+| 349 | BK-0012 | coordenador | ✔ | TP-0072 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
+| 350 | BK-0013 | coordenador | ✔ | TP-0131 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
+| 351 | BK-0014 | coordenador | ✔ | TP-0081 move folgaTeclado.ts e remove a página EnsaioTeclado, criados pelo TP-0031 (Penden | — | — | Aprovada |
+| 352 | BK-0015 | coordenador | ✔ | TP-0089 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK- | — | — | Aprovada |
+| 353 | BK-0016 | coordenador | ✔ | TP-0105 usa CabecalhoPagina (TP-0047) e AvisoErroTopo (TP-0045), que ainda não existe e nã | — | — | Aprovada |
+| 354 | BK-0017 | coordenador | ✔ | TP-0101 usa ItemLink (TP-0047), que ainda não existe e não está na Dep; mesma causa do BK- | — | — | Aprovada |
+| 355 | BK-0018 | coordenador | ✔ | TP-0154 usa CabecalhoPagina (TP-0047), que ainda não existe e não está na Dep; mesma causa | — | — | Aprovada |
+| 356 | BK-0019 | coordenador | ✔ | TP-0074 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
+| 357 | BK-0020 | coordenador | ✔ | TP-0130 usa CabecalhoPagina e ItemLink (TP-0047), que ainda não existe e não está na Dep; | — | — | Aprovada |
+| 358 | BK-0021 | coordenador | ✔ | TP-0090 usa LinkMais.tsx (TP-0045), que ainda não existe e não está na Dep; mesma causa do | — | — | Aprovada |
+| 359 | BK-0022 | coordenador | ✔ | TP-0141 usa Segmentado.tsx (TP-0081), ResumoOrcamento.tsx (TP-0090), formatacao/links.ts + | — | — | Aprovada |
+| 360 | BK-0023 | coordenador | ✔ | TP-0153 usa MetaCompacta.tsx e formatarMesCurto (TP-0090), BlocoInicio.tsx e formatacao/li | — | — | Aprovada |
+| 361 | BK-0024 | coordenador | ✔ | 'Sair de todos' sem rede contraria o aceite e o RNF-06: supabase-js 2.117.3 (_signOut) rem | — | — | Aprovada |
+| 362 | BK-0029 | coordenador | ✔ | Acrescentar a tela T22 (faixa/folha de instalar) em .md/mockup/telas.json para que o compa | — | — | Em execução |
+| 363 | BK-0033 | coordenador | ✔ | Decidir se testes-api mantém tipos do schema escritos à mão (tipos-api.ts) e pg com SQL di | — | — | Não executada |
+| 364 | TP-0012 | executor | ✔ | Deploy do Worker na Cloudflare [U] | Lote 2 | TP-0006, TP-0011 | Despriorizada |
+| 365 | TP-0113 | executor | ✔ | Verificação do keep-alive antes do uso diário [U] | Lote 22 | TP-0012 | Despriorizada |

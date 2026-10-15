@@ -980,3 +980,9 @@ APROVADA; 0 críticos, 4 não críticos (1 RTP: preencher tabela de registro; 3 
 
 ## RTP-0163 — QA — 2026-10-15
 RTP-0163 devolvida — limpeza.md ainda tem um byte Latin-1 ("serviço", offset 2803); decode UTF-8 do arquivo falha.
+
+## TP-0114 — QA — 2026-10-15
+APROVADA COM RESSALVA — 0 críticos, 2 não críticos (RTP-0167): medianas RNF-01/03/05 não registradas, apenas atestadas pelo usuário; diff só no .md e sem dado pessoal.
+
+## RTP-0166 — QA — 2026-10-15
+APROVADA; 0 críticos/0 não críticos; passo 5 e tabela Registro coerentes, gitleaks limpo, .sql intocado, sem dado real.
