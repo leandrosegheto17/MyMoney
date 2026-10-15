@@ -5,6 +5,8 @@ const GRAVES = new Set(['serious', 'critical']);
 
 /** Roda o axe na página e falha se houver violação *serious* ou *critical* (G-19). */
 export async function semViolacoesGraves(page: Page, opcoes: { incluir?: string } = {}): Promise<void> {
+  // A folha entra com fade; o axe medido no meio dele mistura a cor do texto com o fundo.
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished.catch(() => undefined))));
   let construtor = new AxeBuilder({ page });
   if (opcoes.incluir) construtor = construtor.include(opcoes.incluir);
   const { violations } = await construtor.analyze();
