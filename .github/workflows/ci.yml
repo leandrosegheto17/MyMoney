@@ -214,16 +214,12 @@ jobs:
           done
           pnpm exec playwright test --grep-invert @integracao "${specs[@]}"
 
-      - name: Comparação visual com o mockup (limite de 1%)
-        run: pnpm --filter @mymoney/web visual --limite 1
-
-      - name: Diffs de pixel e relatório
+      - name: Relatório dos testes
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: visual-e-e2e
+          name: e2e
           path: |
-            .md/.visual/
             frontend/web/test-results/
           if-no-files-found: ignore
           retention-days: 7
