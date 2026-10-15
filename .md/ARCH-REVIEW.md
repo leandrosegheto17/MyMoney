@@ -6,8 +6,8 @@ Números do saude.py: 3 arquivos acima do limite (as mesmas 3 migrations) · 5 b
 
 | # | Achado | Item do checklist | Severidade | Onde | Destino |
 |---|---|---|---|---|---|
-| 1 | A migration de dados tem `drop table if exists` e `on commit drop`; `checar-aditiva.sh` reprova qualquer `drop` sem justificativa, então o job `migration` do CI fica vermelho e `migrar.sh` recusa aplicar | 14, 15 | Alta (bloqueia o deploy) | `backend/supabase/migrations/20261015130000_almoco_conjunto_dados.sql:14-15` | RTP-0181 |
-| 2 | SDD §6 "Troca de dados em produção" não tem linha para migration de dados que move lançamentos/orçamentos; a volta atrás é só a cópia do `migrar.sh` | 14 | Baixa | `.md/SDD.md` (subseção Troca de dados em produção) | RTP-0182 |
+| 1 | A migration de dados tem `drop table if exists` e `on commit drop`; `checar-aditiva.sh` reprova qualquer `drop` sem justificativa, então o job `migration` do CI fica vermelho e `migrar.sh` recusa aplicar | 14, 15 | Alta (bloqueia o deploy) | `backend/supabase/migrations/20261015130000_almoco_conjunto_dados.sql:14-15` | descartada pelo usu�rio em 2026-10-15 |
+| 2 | SDD §6 "Troca de dados em produção" não tem linha para migration de dados que move lançamentos/orçamentos; a volta atrás é só a cópia do `migrar.sh` | 14 | Baixa | `.md/SDD.md` (subseção Troca de dados em produção) | descartada pelo usu�rio em 2026-10-15 |
 
 Descartados:
 - Coerência com os FKs compostos: o `update` do lançamento muda `categoria_id` e `escopo` na mesma instrução (FK `(categoria_id, tipo, escopo)` satisfeito), a parcela acompanha por cascata (testado), o orçamento é reinserido como `conjunto` com `dono_id` nulo e `despesa_fixa` só aceita categoria conjunta, então nenhuma fixa aponta para a individual.
