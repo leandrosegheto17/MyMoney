@@ -6,7 +6,7 @@ import { mesmaForma } from '../src/mesma-forma';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
 const MERCADO_CONJUNTA = '00000000-0000-4000-8000-000000000401';
-const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000411';
+const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000412';
 
 describe('api.salvar_categoria', () => {
   it('A cria uma despesa individual e a lê pela view categorias', async () => {

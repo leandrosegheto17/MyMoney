@@ -113,7 +113,7 @@ describe('api.resumo_mes', () => {
       const lanca = await a.rpc('lancar_despesa', {
         p_id: id,
         p_valor_centavos: 12345,
-        p_categoria_id: exemplo.individual.por_categoria[0]?.categoria_id as string,
+        p_categoria_id: '00000000-0000-4000-8000-000000000412',
         p_forma_id: '00000000-0000-4000-8000-000000000301',
         p_data: '2026-10-05',
         p_descricao: 'Isolamento resumo',

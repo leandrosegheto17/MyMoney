@@ -3,7 +3,7 @@ import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoAnon, comoB } from '../src/sessoes';
 
 const CONJUNTA = '00000000-0000-4000-8000-000000000401';
-const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000411';
+const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000412';
 const INEXISTENTE = '00000000-0000-4000-8000-0000000009ff';
 
 describe('api.definir_orcamento', () => {

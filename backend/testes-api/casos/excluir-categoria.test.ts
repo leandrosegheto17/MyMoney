@@ -4,7 +4,7 @@ import { esperarRegistroInvalido } from '../src/esperar';
 import { comoA, comoB } from '../src/sessoes';
 
 const MORADIA_EM_USO = '00000000-0000-4000-8000-000000000403';
-const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000411';
+const INDIVIDUAL_DE_A = '00000000-0000-4000-8000-000000000412';
 
 describe('api.excluir_categoria', () => {
   it('A cria uma categoria, a exclui e ela some da view categorias', async () => {
