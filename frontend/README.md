@@ -65,7 +65,7 @@ restritiva. Se o projeto Supabase for recriado, troque o ref em `connect-src` e 
 governança de exceções.
 
 `pnpm --filter @mymoney/web verificar-hosts [pasta]` (depois do build) falha se o `dist/` tiver literal `http(s)://`
-de host que não seja o Supabase de produção.
+de host que não seja o Supabase de produção. Exceção: lista fechada em `EXCECOES` (`scripts/verificarHosts.mjs`) de literais que o código nunca busca (namespace SVG e links de documentação de bibliotecas), cada uma com o motivo.
 
 ## Regras de fronteira (lint)
 

@@ -7,6 +7,17 @@ const EXTENSOES = new Set(['.js', '.css', '.html', '.webmanifest']);
 const LITERAL = /https?:\/\/([a-z0-9.-]+)/gi;
 const LIMPEZA = new URL('../../../backend/operacao/setup/limpeza.md', import.meta.url);
 
+// Lista fechada (G-20, aprovada pelo stakeholder em 2026-10-15): literais que o código nunca busca.
+// Acrescentar item segue a governança de exceções do GUARDRAILS.
+export const EXCECOES = new Map([
+  ['www.w3.org', 'namespace XML (SVG), não é requisição'],
+  ['react.dev', 'link de mensagem de erro do React'],
+  ['reactrouter.com', 'link de documentação do React Router'],
+  ['github.com', 'link de documentação em bibliotecas'],
+  ['bit.ly', 'link de documentação em bibliotecas'],
+  ['localhost', 'base de parse de URL em bibliotecas'],
+]);
+
 function arquivos(pasta) {
   return readdirSync(pasta, { withFileTypes: true }).flatMap((e) => {
     const caminho = join(pasta, e.name);
@@ -33,7 +44,7 @@ function hostPermitido() {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const pasta = process.argv[2] ?? 'dist';
   const permitido = hostPermitido();
-  const intrusos = hostsEncontrados(pasta).filter((h) => h !== permitido);
+  const intrusos = hostsEncontrados(pasta).filter((h) => h !== permitido && !EXCECOES.has(h));
   if (intrusos.length > 0) {
     console.error(`Hosts fora de ${permitido} em ${pasta}:\n${intrusos.map((h) => `  ${h}`).join('\n')}`);
     process.exit(1);
