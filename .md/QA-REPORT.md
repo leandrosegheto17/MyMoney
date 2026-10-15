@@ -977,3 +977,6 @@ APROVADA; 0 críticos, 0 não críticos; curls em produção confirmam só `api`
 
 ## TP-0112 — QA — 2026-10-15
 APROVADA; 0 críticos, 4 não críticos (1 RTP: preencher tabela de registro; 3 de operação); ensaio local reexecutado (1 lar/2 membros, `lar_unico`, FK, rollback sem tocar o seed), gitleaks limpo, produção por relato do usuário.
+
+## RTP-0163 — QA — 2026-10-15
+RTP-0163 devolvida — limpeza.md ainda tem um byte Latin-1 ("serviço", offset 2803); decode UTF-8 do arquivo falha.
