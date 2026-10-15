@@ -11,15 +11,14 @@ from app.categoria i
 where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
 on conflict on constraint categoria_unica do nothing;
 
-drop table if exists pg_temp.almoco_de_para;
-create temporary table almoco_de_para on commit drop as
-select i.id as individual_id, c.id as conjunta_id
-from app.categoria i
-join app.categoria c
-  on c.lar_id = i.lar_id and c.tipo = 'despesa' and c.escopo = 'conjunto' and c.nome = i.nome
-where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora';
-
 -- Orçamento: os dois membros podem ter orçado o mesmo mês; na conjunta os valores se somam.
+with almoco_de_para as (
+  select i.id as individual_id, c.id as conjunta_id
+  from app.categoria i
+  join app.categoria c
+    on c.lar_id = i.lar_id and c.tipo = 'despesa' and c.escopo = 'conjunto' and c.nome = i.nome
+  where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+)
 insert into app.orcamento (lar_id, mes, categoria_id, tipo, escopo, dono_id, valor_centavos)
 select o.lar_id, o.mes, d.conjunta_id, 'despesa', 'conjunto', null::uuid, sum(o.valor_centavos)
 from app.orcamento o
@@ -29,16 +28,24 @@ on conflict on constraint orcamento_categoria_mes_unico
   do update set valor_centavos = app.orcamento.valor_centavos + excluded.valor_centavos;
 
 delete from app.orcamento o
-using almoco_de_para d
-where o.categoria_id = d.individual_id;
+where o.categoria_id in (
+  select i.id from app.categoria i
+  where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+);
 
 -- Lançamento: o dono segue sendo quem pagou; as parcelas acompanham o escopo por cascata.
+with almoco_de_para as (
+  select i.id as individual_id, c.id as conjunta_id
+  from app.categoria i
+  join app.categoria c
+    on c.lar_id = i.lar_id and c.tipo = 'despesa' and c.escopo = 'conjunto' and c.nome = i.nome
+  where i.tipo = 'despesa' and i.escopo = 'individual' and i.nome = 'Almoço/Alimentação fora'
+)
 update app.lancamento l
 set categoria_id = d.conjunta_id, escopo = 'conjunto'
 from almoco_de_para d
 where l.categoria_id = d.individual_id;
 
-update app.categoria c
+update app.categoria
 set arquivada = true
-from almoco_de_para d
-where c.id = d.individual_id;
+where tipo = 'despesa' and escopo = 'individual' and nome = 'Almoço/Alimentação fora';
