@@ -43,3 +43,13 @@ Registrado em 2026-10-15 (TP-0029). Sem valores de variáveis.
 - **Rota inventada** (`/qualquer/rota`): `200`, `text/html`, 1785 bytes, igual à raiz (rewrite para `index.html`).
 - **`http://`:** `308` para `https://mymoney-ljs.vercel.app/`.
 - **PWA:** `/manifest.webmanifest` `200` (`application/manifest+json`) e `/sw.js` `200` (`application/javascript`).
+
+## Ignored Build Step (conferência pendente)
+
+- **Verificável no repositório:** `frontend/web/vercel.json` não define `ignoreCommand` (só `rewrites` e `headers`); nenhum outro `vercel.json` existe. A expressão, portanto, vive só no painel (Settings > Git > Ignored Build Step) e **não foi confirmada** aqui: não há acesso ao painel nesta execução.
+- **Cancelamentos de 2026-10-15** (`7d9a0ca`, `3891687`, `fcbc910`, "Canceled by Ignored Build Step", antes do deploy de `91c8ad5`): a causa **não foi confirmada**. O passo passou a deixar a `main` construir sem mudança documentada.
+- **Passo manual pendente (nos dois sentidos):**
+  1. Copiar do painel a expressão em uso (sem variáveis, chaves ou tokens) e registrá-la acima.
+  2. `main` faz build: o último push na `main` deve aparecer como deploy de produção, não como "Canceled by Ignored Build Step".
+  3. Branch qualquer não faz build: criar um branch de teste com um commit próprio, dar push e conferir em Deployments que o build foi cancelado pelo Ignored Build Step; apagar o branch depois.
+  4. Se a `main` cancelar ou o branch construir, a expressão regrediu: corrigir no painel antes de seguir.
