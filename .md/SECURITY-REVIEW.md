@@ -851,3 +851,6 @@ APROVADA (DevSecOps), 0 críticos/0 não críticos; revisão de diff: Excluir s�
 
 ## RTP-0153 — DevSecOps — 2026-10-14
 APROVADA (0 críticos, 0 não críticos); actionlint limpo e leitura confirmam token mínimo, ações por SHA, sem segredo/injeção, artefato só em falha sem dado sensível, PR de fork sem exposição.
+
+## TP-0010 — DevSecOps — 2026-10-14
+APROVADA (0 críticos, 0 novos; RTP-0154 cobre o restante); diff sem chave/senha, cadastro e OTP-create recusados (422) por curl, nada exposto na Data API; senha 12, JWT, rotação, redirect e pg_graphql só confirmados pelo usuário; na RTP-0154 remover `public` do extra_search_path do painel.
