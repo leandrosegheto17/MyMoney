@@ -854,3 +854,6 @@ APROVADA (0 críticos, 0 não críticos); actionlint limpo e leitura confirmam t
 
 ## TP-0010 — DevSecOps — 2026-10-14
 APROVADA (0 críticos, 0 novos; RTP-0154 cobre o restante); diff sem chave/senha, cadastro e OTP-create recusados (422) por curl, nada exposto na Data API; senha 12, JWT, rotação, redirect e pg_graphql só confirmados pelo usuário; na RTP-0154 remover `public` do extra_search_path do painel.
+
+## RTP-0155 — DevSecOps — 2026-10-14
+APROVADA, 0 críticos e 0 não críticos; 422 signup_disabled reexecutado no Supabase local, test:config 26/26, nenhum config push nem JWT/anon de produção no repo, anon local mascarada no CI.
