@@ -90,7 +90,7 @@ Volume de dados no momento da medição: _(pouco / informar)_. Desempenho com 2 
 
 ## 8. Conclusão
 
-**Medições não realizadas — ausência aceita formalmente pelo usuário em 2026-10-15** (BK-0037 / RTP-0167). As seções 1 e 4 a 7 ficam em branco: não há medianas de RNF-01, ícone→pronto, Início, modo de instalação nem versões dos aparelhos. RNF-01, RNF-03 e RNF-05 seguem **sem prova de aparelho real**; o aceite vale para a versão de teste e a medição deve ser feita antes da versão de distribuição.
+**Medições não realizadas — ausência aceita formalmente pelo usuário em 2026-10-15**. As seções 1 e 4 a 7 ficam em branco: não há medianas de RNF-01, ícone→pronto, Início, modo de instalação nem versões dos aparelhos. RNF-01, RNF-03 e RNF-05 seguem **sem prova de aparelho real**; o aceite vale para a versão de teste e a medição deve ser feita antes da versão de distribuição.
 
 _(Desvio — mediana > 10 s, mais de 3 toques, > 3 s ou > 2 s em qualquer aparelho — não se corrige nesta tarefa: registrar aparelho e números e abrir `BK` ao Coordenador, ressalva 1 do Gate 1.)_
 
