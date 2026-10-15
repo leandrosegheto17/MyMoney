@@ -58,6 +58,13 @@ describe('verificar-hosts (CLI)', () => {
     expect(rodarCli(pasta).status).toBe(0);
   });
 
+  it('hosts da lista de exceções (namespace e links de biblioteca): sai 0', () => {
+    const pasta = montarDist({
+      'assets/app.js': `const a = "https://${hostSupabaseProducao()}"; const b = "http://www.w3.org/2000/svg"; const c = "https://react.dev/errors/"; const d = "http://localhost";`,
+    });
+    expect(rodarCli(pasta).status).toBe(0);
+  });
+
   it('com https://exemplo.com: sai 1 e aponta o host', () => {
     const pasta = montarDist({
       'assets/app.js': `const a = "https://${hostSupabaseProducao()}"; const b = "https://exemplo.com/x";`,

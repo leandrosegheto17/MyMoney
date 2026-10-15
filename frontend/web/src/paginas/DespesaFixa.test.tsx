@@ -170,6 +170,7 @@ describe('DespesaFixa: edição', () => {
       'Moradia',
       'Contas da casa',
       'Outros da casa',
+      'Almoço/Alimentação fora',
     ]);
   });
 

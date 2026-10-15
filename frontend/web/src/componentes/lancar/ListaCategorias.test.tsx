@@ -57,11 +57,11 @@ describe('ListaCategorias ("Outras…")', () => {
     expect(['text', 'search']).toContain(busca.type);
   });
 
-  it('agrupa todas as categorias em "Casa" (5) e "Minhas" (5)', async () => {
+  it('agrupa todas as categorias em "Casa" (6) e "Minhas" (4)', async () => {
     await abrir();
 
-    expect(itens(grupoDaLista('Casa'))).toHaveLength(5);
-    expect(itens(grupoDaLista('Minhas'))).toHaveLength(5);
+    expect(itens(grupoDaLista('Casa'))).toHaveLength(6);
+    expect(itens(grupoDaLista('Minhas'))).toHaveLength(4);
     expect(within(grupoDaLista('Casa')).getByText('Outros da casa')).toBeInTheDocument();
     expect(within(grupoDaLista('Minhas')).getByText(/^Outros$/)).toBeInTheDocument();
   });

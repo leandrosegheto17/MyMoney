@@ -186,6 +186,13 @@ jobs:
           export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           pnpm --filter @mymoney/web build
 
+      - name: Hosts externos no build de produção
+        working-directory: frontend/web
+        run: |
+          host=$(node scripts/verificarHosts.mjs --host)
+          VITE_SUPABASE_URL="https://$host" VITE_SUPABASE_ANON_KEY=chave-de-verificacao pnpm exec vite build --outDir dist-producao
+          node scripts/verificarHosts.mjs dist-producao
+
       - name: Navegador do Playwright (Chromium)
         working-directory: frontend/web
         run: pnpm exec playwright install --with-deps chromium
@@ -223,6 +230,42 @@ jobs:
             frontend/web/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  integracao:
+    name: integracao
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Variáveis (só URL e chave anon locais)
+        uses: ./.github/actions/ambiente-supabase-local
+
+      - name: Navegador do Playwright (Chromium)
+        working-directory: frontend/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Ana sem cadastros (primeiro uso)
+        run: bash backend/supabase/volume/carregar.sh ../ensaio/sem-cadastros-ana.sql
+
+      - name: e2e de integração
+        working-directory: frontend/web
+        run: |
+          {
+            echo "VITE_SUPABASE_URL=$SUPABASE_URL"
+            echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+          } > .env.local
+          pnpm e2e:integracao
 
   migration:
     name: migration

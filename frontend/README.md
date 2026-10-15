@@ -26,6 +26,24 @@ Os `@integracao` exigem `pnpm local:resetar` antes, `frontend/web/.env.local` co
 `bash backend/supabase/volume/carregar.sh ../ensaio/sem-cadastros-ana.sql` (só roda em host local). Host que não
 seja `localhost`/`127.0.0.1` derruba o spec antes de abrir o navegador.
 
+## CI (`.github/workflows/ci.yml`)
+
+- `base`: lint, typecheck e Vitest de todos os pacotes (os testes de componente rodam aqui).
+- `frontend`: build do web, e2e e axe sem `@integracao` (Playwright, Chromium),
+  sem comparação visual (o `visual` é manual, fora do CI e do deploy).
+- `integracao`: sobe o Supabase local (`pnpm local:ci`) e roda `pnpm e2e:integracao` (um spec por vez; antes carrega a Ana sem cadastros)
+  com a URL e a chave anon locais; nunca credencial de produção.
+
+Reproduzir (Docker em execução para `integracao`):
+
+```sh
+pnpm --filter @mymoney/web build
+pnpm local:ci   # e, com o .env preenchido, em frontend/web:
+pnpm e2e:integracao
+```
+
+Os jobs são exigidos antes do deploy: `backend/operacao/setup/gate-deploy.md`.
+
 ## Variáveis
 
 | Variável                 | Uso                                                          |
@@ -52,7 +70,7 @@ restritiva. Se o projeto Supabase for recriado, troque o ref em `connect-src` e 
 governança de exceções.
 
 `pnpm --filter @mymoney/web verificar-hosts [pasta]` (depois do build) falha se o `dist/` tiver literal `http(s)://`
-de host que não seja o Supabase de produção.
+de host que não seja o Supabase de produção. Exceção: lista fechada em `EXCECOES` (`scripts/verificarHosts.mjs`) de literais que o código nunca busca (namespace SVG e links de documentação de bibliotecas), cada uma com o motivo.
 
 ## Regras de fronteira (lint)
 
