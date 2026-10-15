@@ -941,3 +941,6 @@ APROVADA; matriz de fronteira == ADR-015 §5, fixtures ativam as regras, lint 42
 
 ## RTP-0157b — QA — 2026-10-14
 APROVADA; 0 críticos, 1 não crítico pré-existente (RTP-0158: mock de usePendentes sem `itens` quebra 10 testes em rotas*.test, anterior à 0157b); lint 61->35 só com restos da 0157c, typecheck ok, suíte 1887/1896 (as 9 falhas pré-existentes).
+
+## RTP-0157c — QA — 2026-10-14
+APROVADA — comum/ puro com reexports em dados/, componentes/paginas sem importar dados/, lint/typecheck/build verdes, web 1887 ok com só as 9 falhas conhecidas da RTP-0158; 0 críticos, 0 não críticos.
