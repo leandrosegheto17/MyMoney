@@ -259,7 +259,7 @@
 - Descrição: Acrescentar a tela T22 (faixa/folha de instalar) em .md/mockup/telas.json para que o comparador visual a gere; depois registrar T22 em frontend/web/e2e/telas-implementadas.json (pendência da RTP-0137)
 - Impacto se não resolvido: T22 fica sem comparação visual automática
 - Sugestão: —
-- Status: Em aberto
+- Status: Resolvido (2026-10-15): T22 (android-passos e ios) no comparador, 0,00% nas 4 comparações; RTP-0141 aprovada e T22 registrada em telas-implementadas.json
 
 ## Bloqueio 030 — 2026-10-14 (BK-0030)
 - Reportado por: Executor
