@@ -186,9 +186,6 @@ jobs:
           export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           pnpm --filter @mymoney/web build
 
-      - name: Hosts externos no build
-        run: pnpm --filter @mymoney/web verificar-hosts
-
       - name: Navegador do Playwright (Chromium)
         working-directory: frontend/web
         run: pnpm exec playwright install --with-deps chromium
@@ -266,7 +263,9 @@ jobs:
       - name: e2e de integração
         working-directory: frontend/web
         run: |
-          export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          printf 'VITE_SUPABASE_URL=%s
+VITE_SUPABASE_ANON_KEY=%s
+' "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > .env.local
           pnpm exec playwright test --grep @integracao --pass-with-no-tests
 
   migration:

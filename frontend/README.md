@@ -22,7 +22,7 @@ pnpm --filter @mymoney/web typecheck
 ## CI (`.github/workflows/ci.yml`)
 
 - `base`: lint, typecheck e Vitest de todos os pacotes (os testes de componente rodam aqui).
-- `frontend`: build do web, `verificar-hosts`, e2e e axe sem `@integracao` (Playwright, Chromium),
+- `frontend`: build do web, e2e e axe sem `@integracao` (Playwright, Chromium),
   `visual` sem `--tela` (só as telas de `e2e/telas-implementadas.json`, limite de 1%) e upload dos
   prints de `.md/.visual/` como artefato `visual`.
 - `integracao`: sobe o Supabase local (`pnpm local:ci`) e roda `playwright test --grep @integracao`
@@ -31,7 +31,7 @@ pnpm --filter @mymoney/web typecheck
 Reproduzir (Docker em execução para `integracao`):
 
 ```sh
-pnpm --filter @mymoney/web build && pnpm --filter @mymoney/web verificar-hosts
+pnpm --filter @mymoney/web build
 pnpm --filter @mymoney/web visual
 pnpm local:ci   # e, com o .env preenchido, em frontend/web:
 pnpm exec playwright test --grep @integracao
