@@ -1,5 +1,24 @@
 # Revisão de arquitetura
 
+## Revisão 2026-10-15 — sob demanda (escopo: o que mudou desde 2026-10-14 + saude.py)
+
+Números do saude.py: 3 arquivos acima do limite (as mesmas 3 migrations) · 5 blocos duplicados (43 linhas, iguais) · 0 IDs de tarefa no código · 1 pasta com acesso a dados (`backend/testes-api/src`, BK-0033) · 0 imports entre aplicações (`web` → `contrato/src` 39→40 arquivos, o permitido). Comparação visual não rodada de novo: nenhum código de tela mudou desde a de 2026-10-14. Escopo lido: `backend/operacao/setup/{gate-deploy,limpeza,roteiro-m3}.md`, `backend/README.md`, `frontend/web/e2e/integracao/{ciclo-fixa.spec.ts,metas.spec.ts,apoio/fixas.ts}`, `frontend/web/scripts/verificarHosts.mjs` (+test), `ci.yml`, G-18/G-20. Grupo das RTP: "Refatoração Revisão 2026-10-15".
+
+| # | Achado | Item do checklist | Severidade | Onde | Destino |
+|---|---|---|---|---|---|
+| 1 | A mesma regex que extrai o ref de produção de `limpeza.md` está em dois arquivos | 4 | Baixa | `frontend/web/scripts/verificarHosts.mjs:51-55`, `frontend/web/test/apoio/refProducao.ts:5-11` | RTP-0179 |
+| 2 | G-18 ainda diz que `visual` roda "no job de frontend do CI"; o log de 2026-10-15 e o `ci.yml` já o tiraram | 11, 15 | Baixa | `.md/GUARDRAILS.md` (linha G-18) | RTP-0180 |
+
+Descartados:
+- 3 migrations acima de 300 linhas, 3 blocos entre `Contas`/`FormasPagamento`/`Categorias`/`Formulario*`, `banco.ts` gerado, `dados/comandos/*` → `./rpc`, `modoComparacao.ts` (2 `as unknown as`), 3 comentários "espelham" e acesso a dados em `testes-api`: sem mudança, mesmos descartes e BK-0033 das revisões anteriores.
+- Constantes de id de semente (`ID_NUBANK`, `ID_FORMA`) em `metas.spec.ts`/`ciclo-fixa.spec.ts` além da lista de `apoio/casal.ts`: valores de uma linha, nomeados no ponto de uso; não é lógica, e os specs de sessão falsa (`conta.spec.ts`, `forma.spec.ts`) são autocontidos de propósito.
+- `T02`/`T06`/`T07`/`T08`/`T18` nos comentários de `apoio/fixas.ts` e specs, `T04`/`T07`/`T22` no `roteiro-m3.md`: são IDs de tela do UX-SPEC, não de tarefa; a seção 3 do saude.py está zerada.
+- `gate-deploy.md` listar 5 checks sem `migration`: o `migration` é exigido por `migrar.sh` (`JOBS_EXIGIDOS=(base migration)`), outro gate; a frase "entra quando exigido" é imprecisa mas não contradiz o código.
+- `verificarHosts.mjs` lê o ref de `limpeza.md` por regex sobre tabela em prosa: frágil, mas é decisão registrada (fonte única) e coberta por teste; a duplicação em si virou o achado 1.
+- `limpeza.md`/`roteiro-m3.md`/`gate-deploy.md` (registros de operação com decisões do usuário e ressalvas explícitas, sem número inventado): conteúdo coerente entre si e com `backend/README.md` (cinco jobs, `migrar.sh`, seed de volume existente).
+
+Sem achado nos itens: 1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13, 14 (troca de dados em produção: `migrar.sh` e a subseção do SDD não mudaram), 16, 17, 18. Item 11 lido nos arquivos do escopo (comentários de `verificarHosts.mjs`, `fixas.ts` e specs verdadeiros).
+
 ## Revisão 2026-10-14 (2) — sob demanda (projeto inteiro, segunda do dia)
 
 Números do saude.py: 3 arquivos acima do limite (as mesmas 3 migrations) · 5 blocos duplicados (43 linhas; eram 11 e 100) · 0 IDs de tarefa no código (eram 8) · 1 pasta com acesso a dados (`backend/testes-api/src`, já no BK-0033) · 0 imports entre aplicações. Escopo desta passada: o que mudou desde a revisão anterior (specs e2e sem ID, `AcoesEdicao.tsx`, job `frontend` e action composta no CI). Tokens iguais e comparação visual completa da revisão anterior (58 OK) mantidas; `AcoesEdicao` com 0,00% de divergência (QA da RTP-0152). Grupo reservado para RTP: "Refatoração Revisão 2026-10-14" (nenhuma aberta).
