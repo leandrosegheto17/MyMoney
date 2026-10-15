@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-15 19:03
+Atualizado: 2026-10-15 19:06
 
-Resumo: Não executada 2 · Aprovada 378 · Dividida 1 · total 381
+Resumo: Aprovada 380 · Dividida 1 · total 381
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -369,8 +369,8 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 354 | RTP-0166 | executor | ✔ | cadastro-membros.md: exigir conferência do ref no painel quando o SQL for rodado pelo S... | Refatoração Lote-22 | TP-0112 | Aprovada |
 | 355 | BK-0037 | coordenador | ✔ | Faltam medianas dos 2 aparelhos (RNF-01, ícone→pronto, Início, modo de instalação, versões | — | — | Aprovada |
 | 356 | RTP-0167 | executor | ✔ | Registrar medianas e fechar lacunas do roteiro-m3 (TP-0114) | Refatoração Lote-22 | BK-0037, TP-0114 | Aprovada |
-| 357 | RTP-0179 | executor | ✔ | Ler o ref de produção de limpeza.md em um só lugar (hoje a mesma regex em verificarHost... | Refatoração Revisão 2026-10-15 | — | Não executada |
-| 358 | RTP-0180 | executor | ✔ | GUARDRAILS G-18: corrigir 'Como verificar' que ainda manda rodar visual no CI (já remov... | Refatoração Revisão 2026-10-15 | — | Não executada |
+| 357 | RTP-0179 | executor | ✔ | Ler o ref de produção de limpeza.md em um só lugar (hoje a mesma regex em verificarHost... | Refatoração Revisão 2026-10-15 | — | Aprovada |
+| 358 | RTP-0180 | executor | ✔ | GUARDRAILS G-18: corrigir 'Como verificar' que ainda manda rodar visual no CI (já remov... | Refatoração Revisão 2026-10-15 | — | Aprovada |
 | 359 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 360 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |
 | 361 | BK-0006 | coordenador | ✔ | Faltam app.orcamentos_escopo (TP-0135) e api.orcamento_mes (TP-0136), origem da cópia; dep | — | — | Aprovada |

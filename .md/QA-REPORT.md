@@ -998,3 +998,69 @@ APROVADA COM RESSALVAS; 0 críticos, 2 não críticos (IDs de tarefa em roteiro-
 
 ## RTP-0162 — QA — 2026-10-15
 APROVADA — 8/8 specs verdes e contraprova ("Mercado" em vazamentosDeA) derruba o teste 3; diff conforme as convencoes; 0 criticos, 0 nao criticos.
+
+## RTP-0121 — QA — 2026-10-15
+Aprovada — visual T02 `vazio` pc/celular 0,00% e mesma altura; e2e `inicio.spec.ts` 8 passando com axe no `vazio`; 0 críticos, 0 não críticos.
+
+## RTP-0107 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; spec verde em execuções seguidas após reset, falhas intermitentes só por concorrência de porta 5173/BD com outras sessões; desvio Mercado = Variáveis da casa coerente com a T02.
+
+## TP-0157 — QA — 2026-10-15
+APROVADA, 0 críticos / 0 não críticos; 5/5 verde em 2 rodadas sem reset, aceite (saldo cai exato, B sem conta, retirada recusada com guardado inalterado, selo Atingida, individual invisível a B) conferido, contraprova do coletor falha como esperado; reset do banco e CI não verificados.
+
+## RTP-0161 — QA — 2026-10-15
+APROVADA - crítico da R1 (ENOENT em .env.local ausente) corrigido e provado por execução com/sem arquivo/env; varredura dos e2e sem outra dependência local; 0 críticos, 1 não crítico (baixa, README com lista de checks divergente, RTP-0172); job no CI real, quebra proposital e checks exigidos no GitHub/Vercel não provados.
+
+## RTP-0165 — QA — 2026-10-15
+APROVADA — privacidade+edicao-conjunta 7/7, tsc/eslint limpos, contraprova com marcador injetado em B faz o teste 5 falhar; 0 criticos, 0 nao criticos.
+
+## TP-0133 — QA — 2026-10-15
+APROVADA — 4/4 `@integracao` verdes em 3 rodadas, ciclo modelo→pago no Crédito→B sem forma/Desfazer→A desfaz e R-UX-12 conferidos; 0 críticos, 1 não crítico (RTP-0173: varrer acessibilidade na T08 aberta).
+
+## RTP-0131 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; `git diff` do config.toml vazio e `[auth] enable_signup = false` versionado (linha 66).
+
+## RTP-0164 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (RTP-0175: reconferir Production Branch no painel e fechar decisões pendentes); texto da nota success e subseção Production Branch conferidos no diff.
+
+## RTP-0168 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; guarda de ID de tarefa do job base rodado local sem achados (rc=1), diff só em roteiro-m3.md; CI remoto não rodado.
+
+## RTP-0170 — QA — 2026-10-15
+APROVADA; 0 críticos/0 não críticos; vitest 7/7 e CLI no dist só reporta 127.0.0.1 preexistente; desvio (host+caminho, não arquivo) aceito.
+
+## RTP-0171 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; tsc ok, regex conferida contra o seed (sem falso positivo com "Caixinha Nubank"), @integracao e contraprova não executados por falta de Supabase local (sem impacto no aceite).
+
+## RTP-0172 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (linha em branco dupla, RTP-0176); grep confirma lista dos cinco checks única e idêntica ao gate-deploy.md.
+
+## RTP-0173 — QA — 2026-10-15
+APROVADA — 0 críticos, 0 não críticos; ciclo-fixa 4/4 verde com Supabase local, varredura a11y roda com a folha T08 aberta.
+
+## RTP-0167 — QA — 2026-10-15
+APROVADA — aceite formal da ausência das medianas (usuário, 2026-10-15) registrado na seção 8 do roteiro-m3; diff só .md, RNF-06/G-15 ok; 0 críticos, 0 não críticos; RNF-01/03/05 sem prova de aparelho até a distribuição.
+
+## RTP-0169 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (RTP-0177, baixa: retenção por check vermelho em produção não exercitada, ressalva mantida de forma honesta); evidência: prints dos 5 checks Required verdes em deploy de produção e decisão sobre a main registrados em gate-deploy.md.
+
+## RTP-0174 — QA — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (RTP-0178: data via despesa_fixa_id do modelo não coberta); 4/4 e2e verdes e contraprova de injeção (conta, data no objeto, data por id) falha como esperado.
+
+## RTP-0176 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; awk sem linha em branco dupla na seção CI do banco, diff de 1 linha removida.
+
+## RTP-0175 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; limpeza.md registra Production Branch `main` (2026-10-15) e as duas decisões "não por ora" com gatilho, conforme BK-0038.
+
+## RTP-0178 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; ciclo-fixa.spec.ts 4/4 passando (PORTA=5417), diff atende ao critério.
+
+## RTP-0177 — QA — 2026-10-15
+APROVADA, 0 críticos/0 não críticos; gate-deploy.md linha 26 traz aceite formal datado (b), prints e G-04 conferidos, sem ressalva ambígua restante.
+
+## RTP-0179 — QA — 2026-10-15
+APROVADA, 0 críticos e 0 não críticos; regex em um só arquivo, 7 testes e typecheck verdes, `--host` inalterado, pacote sem script lint.
+
+## RTP-0180 — QA — 2026-10-15
+APROVADA, 0 achados; G-18 sem `visual` como passo de CI, ci.yml sem `visual`, estilo.test.ts 7/7, linha no Log presente.

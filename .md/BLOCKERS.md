@@ -314,3 +314,30 @@
 - Impacto se não resolvido: RTP-0159 não fecha sem acesso ao painel
 - Sugestão: Copiar a expressão para a worktree executar-RTP-0159 e depois retomar com /executar --tarefa RTP-0159
 - Status: Resolvido (2026-10-15): Expressão informada pelo usuário e prova nos dois sentidos feita (main faz build; branch de teste cancelado pelo Ignored Build Step)
+
+## Bloqueio 036 — 2026-10-15 (BK-0036)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0169
+- Descrição: Exige painel da Vercel num deploy de produção (print dos 5 checks e retenção) e decisão do usuário sobre proteção da main
+- Impacto se não resolvido: —
+- Sugestão: Trazer o print e a decisão; o Executor atualiza gate-deploy.md
+- Status: Resolvido (2026-10-15): Opção A: main sem proteção mantida; 5 checks verdes em deploy de produção registrados em gate-deploy.md
+
+## Bloqueio 037 — 2026-10-15 (BK-0037)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0167
+- Descrição: Faltam medianas dos 2 aparelhos (RNF-01, ícone→pronto, Início, modo de instalação, versões) ou aceite formal da ausência
+- Impacto se não resolvido: —
+- Sugestão: —
+- Status: Resolvido (2026-10-15): Aceite formal da ausência das medianas registrado em roteiro-m3.md; medir antes da distribuição
+
+## Bloqueio 038 — 2026-10-15 (BK-0038)
+- Reportado por: Executor
+- Escalado para: usuário
+- Artefato/trecho afetado: RTP-0175
+- Descrição: Ler Production Branch em Settings > Git da Vercel, registrar em limpeza.md e decidir proteção da main e ignoreCommand versionado
+- Impacto se não resolvido: —
+- Sugestão: Trazer o valor lido e as duas decisões; o Executor atualiza limpeza.md
+- Status: Resolvido (2026-10-15): Production Branch main lido pelo usuário; proteção da main e ignoreCommand: não por ora

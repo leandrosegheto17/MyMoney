@@ -920,3 +920,63 @@ APROVADA — revisao do diff: sem segredo, mesmos termos de vazamento avaliados 
 
 ## TP-0030 — DevSecOps — 2026-10-15
 APROVADA COM RESSALVAS; 0 críticos, 2 não críticos (evidência/risco residual do gate só por Deployment Checks sem proteção da main; exceções G-20 por host e não por origem); executado: greps de credenciais/secrets/SHA limpos em .github, gitleaks 3197490..HEAD sem vazamentos.
+
+## RTP-0107 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; só host local travado, sem service_role/SQL/segredo no spec, `.env.local` com TESTE_* ignorado e não versionado, asserção de Ana (RN-04) contra o servidor real; sem dependência nova.
+
+## TP-0157 — DevSecOps — 2026-10-15
+APROVADA, 0 críticos / 1 não crítico (RTP-0171); sem segredo/service_role/dependência nova, trava de host local em uso, asserções de rede de B (RN-08, meta individual) e efeito da retirada recusada conferidos por leitura, evidência executada do QA.
+
+## RTP-0161 — DevSecOps — 2026-10-15
+APROVADA - G-06 ok (só chaves locais/anon mascarada, sem service_role/secrets), permissions contents:read, actions por SHA, pull_request sem _target, artefato sem trace/screenshot, limpeza-local mantém recusa de host não local e só anon, sem dependência nova; 0 achados.
+
+## RTP-0165 — DevSecOps — 2026-10-15
+APROVADA em segurança — revisão de diff sem credencial nova, sem dependência nova, e2e só Supabase local, coletor só em memória; 0 críticos, 0 não críticos.
+
+## TP-0133 — DevSecOps — 2026-10-15
+APROVADA em segurança, 0 críticos, 1 não crítico (RTP-0174: rede de B sem checar contas de A e data fora do objeto da ocorrência); B sem forma/Desfazer, trava de host local efetiva, sem segredo, sem dependência nova.
+
+## RTP-0131 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; `[auth] enable_signup=false` versionado (linha 66), diff vazio, `[auth.email] true` justificado por ADR-014; painel do Supabase não conferido.
+
+## RTP-0164 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico (main sem proteção, decisão pendente, coberto por RTP-0175); doc sem segredos (grep executado) e 404 da proteção confirmado via gh api.
+
+## RTP-0168 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; diff só texto em roteiro-m3.md, sem segredo/dado pessoal adicionado (grep rc=1), guarda de ID rc=1.
+
+## RTP-0170 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos/0 não críticos; vitest 7/7 e sondas de bypass (userinfo, subdomínio, sufixo de caminho) rejeitadas; G-20 mais estrita, sem exceção nova.
+
+## RTP-0171 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; diff lido sem segredos, nomes de A sem metacaracteres de regex e isolamento A/B mais estrito; @integracao e contraprova não executados (sem Supabase local).
+
+## RTP-0172 — DevSecOps — 2026-10-15
+APROVADA; 0 achados de segurança; só doc, sem segredo/credencial no diff, link do gate-deploy.md válido.
+
+## RTP-0167 — DevSecOps — 2026-10-15
+OK — diff só .md (seção 8 do roteiro-m3); greps de e-mail/print/valor/segredo sem ocorrência nova (RNF-06/G-15 ok); 0 críticos, 0 não críticos, nenhuma RTP.
+
+## RTP-0169 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos novos (retenção com check vermelho segue na RTP-0177); evidência: 2 PNGs abertos sem segredo/e-mail/ID/dado pessoal, G-04 intacto, decisão sobre a main registrada com limite e gatilho (lido, nada executado).
+
+## RTP-0174 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos novos (RTP-0178 já cobre a limitação); diff lido sem segredo/PII, isolamento ampliado e guarda anti-vácuo presente; execução própria não obtida (ambiente), apoiada na evidência do QA.
+
+## RTP-0175 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; limpeza.md sem segredo/ID sensível (grep executado) e "não por ora" não enfraquece G-04 (gate segue por Deployment Checks); painel não verificado, é relato do usuário.
+
+## RTP-0176 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; diff de 1 linha em branco removida em README, grep de segredos sem ocorrências.
+
+## RTP-0178 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; diff lido (só teste e2e, sem segredo/dependência/código de produção), nada executado por este chapéu.
+
+## RTP-0177 — DevSecOps — 2026-10-15
+APROVADA, 0 críticos/0 não críticos; G-04 preservado no texto, sem segredo exposto (revisão de diff, nada executado).
+
+## RTP-0179 — DevSecOps — 2026-10-15
+APROVADA, 0 críticos e 0 não críticos; lista G-20 inalterada, sem segredo, leitura só do caminho fixo de limpeza.md, 7 testes verdes.
+
+## RTP-0180 — DevSecOps — 2026-10-15
+APROVADA, 0 achados; só G-18 alterada (visual manual), nenhuma regra de segurança enfraquecida, log registra, sem segredo no diff (grep executado), gitleaks do CI intacto.
