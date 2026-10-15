@@ -989,3 +989,9 @@ APROVADA; 0 críticos/0 não críticos; passo 5 e tabela Registro coerentes, git
 
 ## RTP-0163 — QA — 2026-10-15
 RTP-0163 aprovada na rodada 2 — limpeza.md decodifica como UTF-8 inteiro e o texto do deploy cancelado está correto.
+
+## RTP-0165 — QA — 2026-10-15
+BLOQUEIO de ambiente (node_modules de frontend/web esvaziado, sem playwright/tsc); diff revisado sem achados, mas testes e contraprova NAO executados; 0 criticos, 0 nao criticos.
+
+## TP-0030 — QA — 2026-10-15
+APROVADA COM RESSALVAS; 0 críticos, 2 não críticos (IDs de tarefa em roteiro-m3.md quebram o guarda do `base` na main atual; retenção do gate em produção não exercitada); evidência: 6 jobs verdes no PR #21 e na main (2275894), actionlint ok, verificarHosts 5/5.
