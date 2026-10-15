@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "e2e:integracao": "playwright test --project=integracao --workers=1",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "verificar-hosts": "node scripts/verificarHosts.mjs dist",
