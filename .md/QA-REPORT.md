@@ -935,3 +935,9 @@ APROVADA, 0 críticos e 0 não críticos; test:config 26/26, guarda anti config 
 
 ## RTP-0156 — QA — 2026-10-14
 APROVADA — pwa.spec.ts roda sem VITE_MODO_COMPARACAO (2 passed local), 42 demais specs seguem em sessão falsa, trava do vite.config.ts intacta, 0 achados; prova final é o job frontend do CI.
+
+## RTP-0157a — QA — 2026-10-14
+APROVADA; matriz de fronteira == ADR-015 §5, fixtures ativam as regras, lint 42/42 e typecheck verdes (executados), 0 achados.
+
+## RTP-0157b — QA — 2026-10-14
+APROVADA; 0 críticos, 1 não crítico pré-existente (RTP-0158: mock de usePendentes sem `itens` quebra 10 testes em rotas*.test, anterior à 0157b); lint 61->35 só com restos da 0157c, typecheck ok, suíte 1887/1896 (as 9 falhas pré-existentes).
