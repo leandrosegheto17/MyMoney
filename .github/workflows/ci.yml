@@ -187,14 +187,15 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       # Os specs fingem o Supabase (rotas interceptadas) e dependem do modo do Vite:
-      # entrar e redefinir-senha exigem o app SEM modo de comparação; os demais, sessão falsa.
+      # entrar, redefinir-senha e pwa (faz vite build, que recusa o modo de comparação) exigem o
+      # app SEM modo de comparação; os demais, sessão falsa.
       # Os @integracao precisam de .env.local e de usuário semeado e ficam de fora.
       - name: e2e e axe sem sessão
         working-directory: frontend/web
         env:
           VITE_SUPABASE_URL: https://comparacao.invalid
           VITE_SUPABASE_ANON_KEY: chave-de-comparacao
-        run: pnpm exec playwright test e2e/entrar.spec.ts e2e/redefinir-senha.spec.ts
+        run: pnpm exec playwright test e2e/entrar.spec.ts e2e/redefinir-senha.spec.ts e2e/pwa.spec.ts
 
       - name: e2e e axe com sessão falsa
         working-directory: frontend/web
@@ -205,7 +206,7 @@ jobs:
         run: |
           specs=()
           for f in e2e/*.spec.ts; do
-            case "$f" in e2e/entrar.spec.ts | e2e/redefinir-senha.spec.ts) ;; *) specs+=("$f") ;; esac
+            case "$f" in e2e/entrar.spec.ts | e2e/redefinir-senha.spec.ts | e2e/pwa.spec.ts) ;; *) specs+=("$f") ;; esac
           done
           pnpm exec playwright test --grep-invert @integracao "${specs[@]}"
 
