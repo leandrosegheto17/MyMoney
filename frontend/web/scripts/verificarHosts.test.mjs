@@ -65,6 +65,26 @@ describe('verificar-hosts (CLI)', () => {
     expect(rodarCli(pasta).status).toBe(0);
   });
 
+  it('host da lista de exceções com caminho de biblioteca em chunk de vendor: sai 0', () => {
+    const pasta = montarDist({
+      'assets/vendor.js': 'const a = "https://github.com/supabase/supabase-js"; const b = "https://bit.ly/wb-precache";',
+    });
+    expect(rodarCli(pasta).status).toBe(0);
+  });
+
+  it('host da lista de exceções com outro caminho (literal do app): sai 1 e cita o host', () => {
+    const pasta = montarDist({
+      'assets/vendor.js': 'const a = "https://react.dev/errors/";',
+      'assets/Tela-abc.js': 'const link = "https://github.com/alguem/repo"; const c = "https://bit.ly/abc";',
+    });
+    const r = rodarCli(pasta);
+    expect(r.status).toBe(1);
+    const saida = `${r.stdout}${r.stderr}`;
+    expect(saida).toContain('github.com');
+    expect(saida).toContain('bit.ly');
+    expect(saida).not.toContain('react.dev');
+  });
+
   it('com https://exemplo.com: sai 1 e aponta o host', () => {
     const pasta = montarDist({
       'assets/app.js': `const a = "https://${hostSupabaseProducao()}"; const b = "https://exemplo.com/x";`,
