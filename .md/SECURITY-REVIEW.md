@@ -866,3 +866,6 @@ APROVADA; 0 achados; zonas/no-restricted-imports de dados/ intactos, matriz == A
 
 ## RTP-0157b — DevSecOps — 2026-10-14
 APROVADA em segurança; 0 críticos, 0 não críticos novos; refatoração sem mudança de comportamento, mensagens de erro sem vazamento, sem eslint-disable/skip/segredo, lint só com os 35 `no-restricted-paths` da RTP-0157c.
+
+## RTP-0157c — DevSecOps — 2026-10-14
+APROVADA — comum/ puro (só tipos e ehUuid), tradução de erro/supabase-js/idb-keyval só em dados/, componentes/paginas sem importar dados/, nenhuma regra desligada, lint exit 0 e test/lint 42/42 executados; 0 críticos, 0 não críticos.
