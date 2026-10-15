@@ -1,5 +1,19 @@
 # Revisão de arquitetura
 
+## Revisão 2026-10-15 (2) — sob demanda (escopo: o que mudou desde a primeira revisão de hoje, commit 1be0927)
+
+Números do saude.py: iguais aos da primeira revisão de hoje (3 migrations acima do limite, 5 blocos duplicados de 43 linhas, 0 IDs de tarefa no código, 1 pasta com acesso a dados em `testes-api`/BK-0033, 0 imports entre aplicações); só muda o total (1172 arquivos, 73555 linhas). Comparação visual não rodada: nenhum código de tela mudou. Escopo lido: `frontend/web/scripts/refProducao.mjs` (novo), `verificarHosts.mjs`, `frontend/web/test/apoio/refProducao.ts`, G-18 em `.md/GUARDRAILS.md`. Grupo reservado: "Refatoração Revisão 2026-10-15" (nenhuma RTP nova).
+
+Confirmado fechado: achado 1 (RTP-0179: a regex do ref de produção existe só em `refProducao.mjs`; `verificarHosts.mjs`, `verificarHosts.test.mjs` e `cabecalhos.test.ts` importam dali, e `test/apoio/refProducao.ts` só reexporta) e achado 2 (RTP-0180: G-18 diz "manual, fora do CI e do `/deploy`", com o hash de `tokens.css`/`fontes/` como checagem automática; log de 2026-10-15 coerente).
+
+Nenhum achado novo. Fronteira: o módulo de teste importa de `scripts/` dentro do mesmo pacote `web`, sem cruzar aplicações. Duplicação: nenhuma. Comentários e IDs de tarefa: nenhum ID nos arquivos novos, comentários verdadeiros. Tamanho: arquivos de 15 e 63 linhas.
+
+Descartados:
+- G-19 ainda cita "job de frontend do CI": correto, o job `frontend` continua rodando o axe; só o `visual` saiu.
+- Demais descartes e BK-0033 da primeira revisão de hoje: sem mudança.
+
+Sem achado nos itens: 1 a 18.
+
 ## Revisão 2026-10-15 — sob demanda (escopo: o que mudou desde 2026-10-14 + saude.py)
 
 Números do saude.py: 3 arquivos acima do limite (as mesmas 3 migrations) · 5 blocos duplicados (43 linhas, iguais) · 0 IDs de tarefa no código · 1 pasta com acesso a dados (`backend/testes-api/src`, BK-0033) · 0 imports entre aplicações (`web` → `contrato/src` 39→40 arquivos, o permitido). Comparação visual não rodada de novo: nenhum código de tela mudou desde a de 2026-10-14. Escopo lido: `backend/operacao/setup/{gate-deploy,limpeza,roteiro-m3}.md`, `backend/README.md`, `frontend/web/e2e/integracao/{ciclo-fixa.spec.ts,metas.spec.ts,apoio/fixas.ts}`, `frontend/web/scripts/verificarHosts.mjs` (+test), `ci.yml`, G-18/G-20. Grupo das RTP: "Refatoração Revisão 2026-10-15".
