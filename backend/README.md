@@ -114,7 +114,7 @@ Detalhes em `testes-api/README.md`.
 
 ## CI do banco
 
-Três jobs em `.github/workflows/ci.yml`, em push e PR, independentes do job `base`. Todos usam a
+Os jobs `banco`, `isolamento` e `integracao` em `.github/workflows/ci.yml`, em push e PR, independentes do job `base`. Todos usam a
 Supabase CLI do lockfile e sobem o Supabase local com `pnpm local:ci` (`supabase start` sem os
 serviços não usados, seguido de `db reset`); só as chaves locais descartáveis são usadas.
 
@@ -126,8 +126,6 @@ serviços não usados, seguido de `db reset`); só as chaves locais descartávei
   `VITE_SUPABASE_ANON_KEY` do Supabase local e `pnpm --filter @mymoney/web e2e:integracao`
   (specs `@integracao`).
 
-Os checks exigidos para o deploy (D-07: Vercel Deployment Checks ou proteção da `main`) são
-`base`, `banco`, `isolamento` e `integracao`; a lista é configurada no GitHub/Vercel, não neste repositório.
 
 Localmente (Docker em execução):
 
@@ -139,7 +137,8 @@ pnpm --filter @mymoney/testes-api test   # com o .env preenchido
 ```
 
 Os cinco jobs `base`, `banco`, `isolamento`, `frontend` e `integracao` são os checks exigidos antes
-do deploy (`operacao/setup/gate-deploy.md`). O job `integracao` sobe o mesmo Supabase local e roda os
+do deploy (D-07: Vercel Deployment Checks ou proteção da `main`; lista em `operacao/setup/gate-deploy.md`,
+configurada no GitHub/Vercel, não neste repositório). O job `integracao` sobe o mesmo Supabase local e roda os
 e2e `@integracao` do web; reprodução em `frontend/README.md`.
 
 ## Funções de escrita (salvar idempotente pelo id do cliente)
