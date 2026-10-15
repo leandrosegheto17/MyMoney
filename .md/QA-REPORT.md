@@ -929,3 +929,6 @@ APROVADA (0 críticos, 0 não críticos); actionlint limpo, `--limite` repassado
 
 ## TP-0010 — QA — 2026-10-14
 APROVADA (0 críticos, 2 não críticos -> RTP-0154); 9 itens batem com o `config.toml` (divergência só nas URLs), curl em produção confirmam cadastro off e nada exposto; "só api" fica para depois do TP-0011 e `extra_search_path` descrito errado.
+
+## RTP-0155 — QA — 2026-10-14
+APROVADA, 0 críticos e 0 não críticos; test:config 26/26, guarda anti config push com fixture, 422 signup_disabled e login executados no Supabase local; job isolamento fica para o CI.

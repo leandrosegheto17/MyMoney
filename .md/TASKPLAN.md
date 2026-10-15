@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-14 21:57
+Atualizado: 2026-10-14 21:59
 
-Resumo: Não executada 19 · Em execução 2 · Executada (aguarda teste) 1 · Aprovada 325 · Bloqueada 1 · total 348
+Resumo: Não executada 19 · Em execução 2 · Testada (aguarda segurança) 1 · Aprovada 325 · Bloqueada 1 · total 348
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -295,7 +295,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 280 | RTP-0123 | executor | ✔ | Rodapé da fila: tipo ItemFila fora de dados/ e texto genérico do vazio filtrado testado | Refatoração Lote-20 | TP-0104 | Aprovada |
 | 281 | BK-0032 | coordenador | ✔ | Confirmar se enable_signup=true local em backend/supabase/config.toml é intencional (rever | — | — | Em execução |
 | 282 | RTP-0131 | executor | ✔ | Conferir enable_signup=true não commitado em backend/supabase/config.toml | Refatoração Lote-20 | BK-0032, RTP-0087 | Não executada |
-| 283 | RTP-0155 | executor | ✔ | config.toml: provedor de e-mail ligado, cadastro fechado por [auth], prova do 422 e gua... | Refatoração Lote-20 | BK-0032 | Executada (aguarda teste) |
+| 283 | RTP-0155 | executor | ✔ | config.toml: provedor de e-mail ligado, cadastro fechado por [auth], prova do 422 e gua... | Refatoração Lote-20 | BK-0032 | Testada (aguarda segurança) |
 | 284 | RTP-0091 | executor | ✔ | BarraProgresso: ordem do texto secundário (meta: topo, barra, depois valores e faltam) | Refatoração Lote-18 | TP-0090 | Aprovada |
 | 285 | RTP-0092 | executor | ✔ | LinkMais com ícone dir como no mockup (Ver orçamento / Nova meta) | Refatoração Lote-18 | TP-0090 | Aprovada |
 | 286 | RTP-0101 | executor | ✔ | BarraProgresso: remover margem de 4px entre a barra e os valores da meta (mockup tem 0) | Refatoração Lote-18 | RTP-0091 | Aprovada |
