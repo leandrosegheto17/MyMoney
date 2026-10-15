@@ -14,11 +14,14 @@ interface LinhaCategoria {
   pode_excluir: boolean;
 }
 
+const idsDoSeed = new Set((categorias as LinhaCategoria[]).map((c) => c.id));
+
 describe('api.categorias', () => {
   it('A lê as 5 conjuntas e as 8 individuais, no formato de categorias.json', async () => {
     const { data, error } = await (await comoA()).from('categorias').select();
     expect(error).toBeNull();
-    const linhas = data as unknown as LinhaCategoria[];
+    // Outros arquivos de caso criam categorias: só as do seed (ids do exemplo) entram na conferência.
+    const linhas = (data as unknown as LinhaCategoria[]).filter((l) => idsDoSeed.has(l.id));
     expect(linhas).toHaveLength(13);
     mesmaForma(linhas, categorias);
     const despesa = linhas.find((l) => l.id === MERCADO);
@@ -31,11 +34,9 @@ describe('api.categorias', () => {
     const { data, error } = await (await comoA()).from('categorias').select('id, pode_excluir');
     expect(error).toBeNull();
     const obtido = Object.fromEntries(
-      (data as unknown as LinhaCategoria[]).map((l) => [l.id, l.pode_excluir]),
+      (data as unknown as LinhaCategoria[]).filter((l) => idsDoSeed.has(l.id)).map((l) => [l.id, l.pode_excluir]),
     );
-    const esperado = Object.fromEntries(
-      (categorias as LinhaCategoria[]).map((l) => [l.id, l.pode_excluir]),
-    );
+    const esperado = Object.fromEntries((categorias as LinhaCategoria[]).map((l) => [l.id, l.pode_excluir]));
     expect(obtido).toEqual(esperado);
   });
 

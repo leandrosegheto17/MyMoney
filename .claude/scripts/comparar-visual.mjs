@@ -156,6 +156,10 @@ async function capturar(navegador, viewport, url, opcoes) {
   await prepararPagina(pagina, opcoes.ocultar);
   // Estado carregando: o app só mostra o esqueleto depois do atraso de 300 ms e do carregamento da rota.
   await pagina.waitForTimeout(opcoes.pendente ? 1500 : 300);
+  // O mockup é um print estático, sem estado de foco; o app foca o primeiro controle ao abrir a folha.
+  await pagina.evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  });
   let png;
   if (opcoes.recorte) {
     // Folha: captura só o elemento; a página de fundo (real no app, vazia no mockup) fica de fora.

@@ -26,8 +26,10 @@ describe('api.lancamentos_mes', () => {
       p_variavel: true,
     });
     expect(error).toBeNull();
-    mesmaForma(data, exemplo);
     const resposta = data as LancamentosMes;
+    // Outros arquivos de caso deixam lançamentos no banco: o formato é conferido nos itens do seed.
+    const idsDoExemplo = new Set(exemplo.itens.map((i) => i.lancamento_id));
+    mesmaForma({ ...resposta, itens: resposta.itens.filter((i) => idsDoExemplo.has(i.lancamento_id)) }, exemplo);
     expect(resposta.quantidade).toBe(resposta.itens.length);
     expect(resposta.itens.length).toBeGreaterThan(0);
   });
