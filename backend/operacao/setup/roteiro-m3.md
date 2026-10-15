@@ -3,7 +3,7 @@
 Registro da M3 do PRD: RNF-01, RNF-03 e RNF-05. Quem mede é o casal, nos dois aparelhos, com o mesmo roteiro.
 **Este arquivo não leva valor, categoria, descrição, e-mail nem print** (RNF-06 / G-15).
 
-Status: **PENDENTE DE MEDIÇÃO**. Nenhum número abaixo foi medido ainda.
+Status: **testado pelo usuário nos dois aparelhos durante um dia inteiro (15/10/2026) e dado como concluído por ele**. As tabelas abaixo ficaram sem números: não houve cronometragem registrada, só a declaração do usuário de que os limites foram atendidos. Nenhum valor foi inventado.
 
 ## 1. Aparelhos e rede
 
