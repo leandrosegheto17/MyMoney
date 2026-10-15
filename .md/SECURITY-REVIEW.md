@@ -860,3 +860,9 @@ APROVADA, 0 críticos e 0 não críticos; 422 signup_disabled reexecutado no Sup
 
 ## RTP-0156 — DevSecOps — 2026-10-14
 APROVADA — só 2 linhas no ci.yml; sem segredo real (só `comparacao.invalid`), sem permissão/`secrets.*`/`pull_request_target` novos, passo sem sessão sem VITE_MODO_COMPARACAO, trava do vite.config.ts intacta; 0 achados.
+
+## RTP-0157a — DevSecOps — 2026-10-14
+APROVADA; 0 achados; zonas/no-restricted-imports de dados/ intactos, matriz == ADR-015 §5, sem eslint-disable nem segredo (grep), lint 42/42 executado.
+
+## RTP-0157b — DevSecOps — 2026-10-14
+APROVADA em segurança; 0 críticos, 0 não críticos novos; refatoração sem mudança de comportamento, mensagens de erro sem vazamento, sem eslint-disable/skip/segredo, lint só com os 35 `no-restricted-paths` da RTP-0157c.
