@@ -857,3 +857,6 @@ APROVADA (0 críticos, 0 novos; RTP-0154 cobre o restante); diff sem chave/senha
 
 ## RTP-0155 — DevSecOps — 2026-10-14
 APROVADA, 0 críticos e 0 não críticos; 422 signup_disabled reexecutado no Supabase local, test:config 26/26, nenhum config push nem JWT/anon de produção no repo, anon local mascarada no CI.
+
+## RTP-0156 — DevSecOps — 2026-10-14
+APROVADA — só 2 linhas no ci.yml; sem segredo real (só `comparacao.invalid`), sem permissão/`secrets.*`/`pull_request_target` novos, passo sem sessão sem VITE_MODO_COMPARACAO, trava do vite.config.ts intacta; 0 achados.

@@ -932,3 +932,6 @@ APROVADA (0 críticos, 2 não críticos -> RTP-0154); 9 itens batem com o `confi
 
 ## RTP-0155 — QA — 2026-10-14
 APROVADA, 0 críticos e 0 não críticos; test:config 26/26, guarda anti config push com fixture, 422 signup_disabled e login executados no Supabase local; job isolamento fica para o CI.
+
+## RTP-0156 — QA — 2026-10-14
+APROVADA — pwa.spec.ts roda sem VITE_MODO_COMPARACAO (2 passed local), 42 demais specs seguem em sessão falsa, trava do vite.config.ts intacta, 0 achados; prova final é o job frontend do CI.

@@ -296,3 +296,12 @@
 - Impacto se não resolvido: Baixa: SDD e código divergem; duas fontes de tipo; nada quebra
 - Sugestão: Manter e atualizar o SDD (a API não tem exclusão de meta/fixa; trava de host local já existe); registrar em ADR curto
 - Status: Em aberto
+
+## Bloqueio 034 — 2026-10-14 (BK-0034)
+- Reportado por: Executor
+- Escalado para: Coordenador (decisão de arquitetura, com o usuário)
+- Artefato/trecho afetado: RTP-0157
+- Descrição: SDD §2 sem destino para dados/erros, dados/uuid e tipos de dados/ usados por paginas/componentes/rotulos, e ganchos/ precisa de formatacao/ (61 erros de lint); decidir onde moram ou ampliar a regra
+- Impacto se não resolvido: Job base do CI vermelho; migrar.sh (TP-0011) exige base verde
+- Sugestão: Coordenador decide (a) erros/uuid, (b) tipos de fila/comandos, (c) ganchos x formatacao/rotulos; depois dividir a RTP em 3 partes (ver ## Bloqueio)
+- Status: Em aberto
