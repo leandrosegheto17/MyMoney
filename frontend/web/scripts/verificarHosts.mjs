@@ -2,10 +2,10 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { hostSupabaseProducao as hostPermitido } from './refProducao.mjs';
 
 const EXTENSOES = new Set(['.js', '.css', '.html', '.webmanifest']);
 const LITERAL = /https?:\/\/([a-z0-9.-]+)([^\s`'"\)<>]*)/gi;
-const LIMPEZA = new URL('../../../backend/operacao/setup/limpeza.md', import.meta.url);
 
 // Lista fechada (G-20): literais que o código nunca busca. Cada host só vale com o caminho que a
 // biblioteca usa; o mesmo host com outro caminho (literal escrito no app) continua sendo intruso.
@@ -45,13 +45,6 @@ export function hostsIntrusos(pasta, permitido) {
     }
   }
   return [...intrusos];
-}
-
-/** Host do Supabase de produção, pelo ref registrado na limpeza (fonte única, não depende do ambiente). */
-function hostPermitido() {
-  const ref = readFileSync(LIMPEZA, 'utf8').match(/\bref\b[^\n]*?`?\b([a-z]{20})\b`?/i)?.[1];
-  if (!ref) throw new Error('ref de produção não encontrado em limpeza.md');
-  return `${ref}.supabase.co`;
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
