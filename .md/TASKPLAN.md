@@ -5,9 +5,9 @@ que troca o estado da linha a cada etapa. O Status oficial continua no `TASK.md`
 arquivo do bloqueio); o detalhe de cada tarefa está em `.md/.taskplan/<ID>.md`. A ordem respeita as
 dependências. Agente: `executor` (TP/RTP) ou `coordenador` (BK/SPK, com o usuário).
 
-Atualizado: 2026-10-15 18:09
+Atualizado: 2026-10-15 18:10
 
-Resumo: Não executada 4 · Em execução 5 · Executada (aguarda teste) 1 · Em teste 6 · Testada (aguarda segurança) 2 · Aprovada 344 · Dividida 1 · Despriorizada 2 · total 365
+Resumo: Não executada 4 · Em execução 5 · Em teste 6 · Testada (aguarda segurança) 1 · Em validação de segurança 1 · Aprovada 345 · Dividida 1 · Despriorizada 2 · total 365
 
 Estados: Não executada → Em execução → Executada (aguarda teste) → Em teste → Testada (aguarda segurança) → Em validação de segurança → Aprovada (e, à parte, Bloqueada, Dividida e Despriorizada — esta fica sempre no fim da lista e é ignorada por /executar, /testar e /validar). `Aprovada` = QA ✔ e Sec ✔ (tarefas antigas só `Concluída` aparecem como Aprovada).
 
@@ -131,7 +131,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 116 | TP-0110 | executor | ✔ | E2E de integração: entrar, primeiro uso, lançar e fila [BD] | Lote 21 | TP-0045, TP-0069, TP-0084, TP-0094, TP-0095, TP-0103, TP-0108 | Aprovada |
 | 117 | TP-0111 | executor | ✔ | E2E de integração: privacidade e edição com 2 membros [BD] | Lote 21 | TP-0105, TP-0106, TP-0110 | Aprovada |
 | 118 | TP-0112 | executor | ✔ | Cadastro dos 2 usuários em produção [U] | Lote 22 | TP-0029, TP-0110 | Aprovada |
-| 119 | TP-0114 | executor | ✔ | Roteiro de fricção e desempenho nos aparelhos reais [U] | Lote 22 | TP-0107, TP-0112 | Testada (aguarda segurança) |
+| 119 | TP-0114 | executor | ✔ | Roteiro de fricção e desempenho nos aparelhos reais [U] | Lote 22 | TP-0107, TP-0112 | Aprovada |
 | 120 | TP-0115 | executor | ✔ | api.lancar_receita [BD] | Lote 23 | TP-0051 | Aprovada |
 | 121 | TP-0116 | executor | ✔ | T03e Modo Receita | Lote 23 | TP-0076, TP-0084, TP-0115 | Aprovada |
 | 122 | TP-0117 | executor | ✔ | api.alterar_data_parcela [BD] | Lote 24 | TP-0051 | Aprovada |
@@ -285,7 +285,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 270 | BK-0035 | coordenador | ✔ | Conferir no painel da Vercel a expressão do Ignored Build Step e fazer a prova nos dois se | — | — | Aprovada |
 | 271 | RTP-0159 | executor | ✔ | limpeza.md: registrar o Ignored Build Step da Vercel e a causa dos cancelamentos na main | Refatoração Lote-5 | BK-0035, TP-0029 | Aprovada |
 | 272 | RTP-0160 | executor | ✔ | Reconferir as variáveis da Vercel com vercel env ls e registrar | Refatoração Lote-5 | TP-0029 | Aprovada |
-| 273 | RTP-0163 | executor | ✔ | limpeza.md: corrigir byte inválido em 'Conferência' e a frase 'sem deploy criado' (RTP-... | Refatoração Lote-5 | RTP-0159 | Executada (aguarda teste) |
+| 273 | RTP-0163 | executor | ✔ | limpeza.md: corrigir byte inválido em 'Conferência' e a frase 'sem deploy criado' (RTP-... | Refatoração Lote-5 | RTP-0159 | Testada (aguarda segurança) |
 | 274 | RTP-0164 | executor | ✔ | Ignored Build Step só no painel: registrar Production Branch, avaliar proteção da main... | Refatoração Lote-5 | RTP-0163 | Não executada |
 | 275 | RTP-0081 | executor | ✔ | vitrine botao-forma: botão 'Depois' sem estilo reprova o axe (color-contrast) no spec | Refatoração Lote-16 | TP-0080 | Aprovada |
 | 276 | RTP-0116 | executor | ✔ | Página por trás da folha aberta não pode esticar a captura (altura de T03 celular) | Refatoração Lote-16 | TP-0081 | Aprovada |
@@ -351,7 +351,7 @@ Estados: Não executada → Em execução → Executada (aguarda teste) → Em t
 | 336 | RTP-0151 | executor | ✔ | Tirar ID de tarefa (TP-nnnn) dos 8 specs e2e; o passo do CI reprova hoje | Refatoração Revisão 2026-10-14 | — | Aprovada |
 | 337 | RTP-0152 | executor | ✔ | Extrair botões de edição e diálogo de exclusão repetidos em EdicaoConta/EdicaoForma/Edi... | Refatoração Revisão 2026-10-14 | — | Aprovada |
 | 338 | RTP-0153 | executor | ✔ | Job de frontend no CI (build, Playwright com axe e comparação visual), exigido pelo G-18 | Refatoração Revisão 2026-10-14 | — | Aprovada |
-| 339 | RTP-0166 | executor | ✔ | cadastro-membros.md: exigir conferência do ref no painel quando o SQL for rodado pelo S... | Refatoração Lote-22 | TP-0112 | Testada (aguarda segurança) |
+| 339 | RTP-0166 | executor | ✔ | cadastro-membros.md: exigir conferência do ref no painel quando o SQL for rodado pelo S... | Refatoração Lote-22 | TP-0112 | Em validação de segurança |
 | 340 | RTP-0167 | executor | ✔ | Registrar medianas e fechar lacunas do roteiro-m3 (TP-0114) | Refatoração Lote-22 | TP-0114 | Não executada |
 | 341 | BK-0004 | coordenador | ✔ | Código pronto, mas BotaoForma.test.tsx depende de src/rotulos/tipoForma.ts (TP-0038, inexi | — | — | Aprovada |
 | 342 | BK-0005 | coordenador | ✔ | Decidir pode_excluir em api.categorias: o JSON do mockup traz o campo, mas o plano fixa 6 | — | — | Aprovada |

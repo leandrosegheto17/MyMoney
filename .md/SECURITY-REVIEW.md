@@ -902,3 +902,6 @@ APROVADA — só specs e2e, sem dependência nem segredo, trava Supabase local o
 
 ## TP-0112 — DevSecOps — 2026-10-15
 APROVADA COM DÉBITO; 0 críticos, 0 altos, 0 médios, 4 baixos (1 RTP de doc: roteiro sem conferência substituta de ref na alternativa do SQL Editor; 3 de operação: passo 2/contagem de usuários no painel, migration pendente para o /deploy, desvio G-14 aceito); gitleaks e grep limpos, SQL atômico sem grant/service_role, signup 422 por relato do usuário.
+
+## TP-0114 — DevSecOps — 2026-10-15
+OK — 0 achados; diff só em roteiro-m3.md, sem e-mail, valor, segredo, print ou dependência nova (buscas executadas); RNF-06 / G-15 atendido.
