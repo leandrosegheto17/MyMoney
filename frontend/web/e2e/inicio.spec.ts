@@ -13,15 +13,28 @@ const TAMANHOS = [
 const RESPOSTAS = join(process.cwd(), '..', '..', '.md', 'mockup', 'respostas');
 const ler = (arquivo: string) => readFileSync(join(RESPOSTAS, arquivo), 'utf8');
 
-async function abrir(page: Page, tamanho: (typeof TAMANHOS)[number], resumo: 'pendente' | 'indisponivel' | 'sucesso') {
+async function abrir(
+  page: Page,
+  tamanho: (typeof TAMANHOS)[number],
+  resumo: 'pendente' | 'indisponivel' | 'sucesso' | 'vazio',
+) {
   await page.route('**/rest/v1/rpc/contexto', (rota) =>
     rota.fulfill({ status: 200, contentType: 'application/json', body: ler('contexto.json') }),
   );
+  if (resumo === 'vazio') {
+    await page.route('**/rest/v1/rpc/dados_lancamento*', (rota) =>
+      rota.fulfill({ status: 200, contentType: 'application/json', body: ler('dados-lancamento-sem-formas.json') }),
+    );
+  }
   await page.route('**/rest/v1/rpc/resumo_mes*', (rota) =>
     resumo === 'pendente'
       ? new Promise(() => {})
-      : resumo === 'sucesso'
-        ? rota.fulfill({ status: 200, contentType: 'application/json', body: ler('resumo-mes.json') })
+      : resumo === 'sucesso' || resumo === 'vazio'
+        ? rota.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: ler(resumo === 'vazio' ? 'resumo-mes-vazio.json' : 'resumo-mes.json'),
+          })
         : rota.fulfill({ status: 503, contentType: 'application/json', body: ler('erro-servico.json') }),
   );
   await page.setViewportSize({ width: tamanho.width, height: tamanho.height });
@@ -45,6 +58,15 @@ for (const tamanho of TAMANHOS) {
       const fixas = page.getByRole('article', { name: /^Fixas a pagar/ });
       await expect(fixas).toBeVisible();
       await expect(fixas).toContainText('3 de 7');
+      await semViolacoesGraves(page);
+    });
+
+    test('vazio: "Primeiros passos" e blocos Casa e Eu sem dados, sem violações graves', async ({ page }) => {
+      await abrir(page, tamanho, 'vazio');
+
+      await expect(page.getByText('Primeiros passos')).toBeVisible();
+      await expect(page.getByText('Nenhuma despesa fixa cadastrada.')).toBeVisible();
+      await expect(page.getByText('Nenhuma conta cadastrada.')).toBeVisible();
       await semViolacoesGraves(page);
     });
 
