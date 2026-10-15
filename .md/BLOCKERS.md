@@ -268,7 +268,7 @@
 - Descrição: Tarefa [U]: aplicar/confirmar no painel de produção Supabase os itens de Auth/API e informar o domínio *.vercel.app; rodar interativo
 - Impacto se não resolvido: Segura TP-0010 e dependentes
 - Sugestão: /executar --tarefa TP-0010 em sessão interativa; revisar config.toml (enable_signup=true local divergente)
-- Status: Em aberto
+- Status: Resolvido (2026-10-14): resolvido
 
 ## Bloqueio 031 — 2026-10-14 (BK-0031)
 - Reportado por: Executor
