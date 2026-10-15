@@ -3,7 +3,7 @@
 // um vencimento anterior a hoje no mês corrente e o "pendente" do mesmo modelo no mês seguinte.
 import { expect, test } from '@playwright/test';
 import { semViolacoesGraves } from '../apoio/acessibilidade';
-import { abrirSessoes, type Sessoes } from './apoio/casal';
+import { abrirSessoes, IDS_FORMAS_E_CONTAS_DE_A, NOMES_FORMAS_E_CONTAS_DE_A, type Sessoes } from './apoio/casal';
 import { coletarRespostas, type ColetorRede } from './apoio/coletorRede';
 import {
   criarModeloFixa,
@@ -45,13 +45,19 @@ let sessoes: Sessoes;
 let coletorB: ColetorRede;
 let modeloCriado = false;
 
-/** JSON (como texto) de cada objeto da resposta cuja `descricao` é a dada. */
-function objetosComDescricao(no: unknown, descricao: string): string[] {
-  if (Array.isArray(no)) return no.flatMap((n) => objetosComDescricao(n, descricao));
+/** Objetos da resposta que têm algum campo (qualquer chave) igual a um dos valores dados. */
+function objetosComValor(no: unknown, valores: ReadonlySet<string>): Record<string, unknown>[] {
+  if (Array.isArray(no)) return no.flatMap((n) => objetosComValor(n, valores));
   if (no === null || typeof no !== 'object') return [];
   const objeto = no as Record<string, unknown>;
-  const proprio = objeto.descricao === descricao ? [JSON.stringify(objeto)] : [];
-  return [...proprio, ...Object.values(objeto).flatMap((v) => objetosComDescricao(v, descricao))];
+  const filhos = Object.values(objeto);
+  const proprio = filhos.some((v) => typeof v === 'string' && valores.has(v)) ? [objeto] : [];
+  return [...proprio, ...filhos.flatMap((v) => objetosComValor(v, valores))];
+}
+
+/** Corpos JSON das respostas (ignora as vazias). */
+function corposJson(respostas: { corpo: string }[]): unknown[] {
+  return respostas.filter(({ corpo }) => corpo.trim() !== '').map(({ corpo }) => JSON.parse(corpo) as unknown);
 }
 
 const antes = { casa: 0, casaSeguinte: 0, aPagar: 0, cartao: { nesteMes: 0, proximosMeses: 0 } };
@@ -132,15 +138,16 @@ test('@integracao B vê "Paga por Leandro", sem Desfazer e sem forma, conta nem 
   await totalDoCasal(b, mes);
   // Forma e id valem para qualquer resposta de B. A data do pagamento aparece em outros campos legítimos
   // (ex.: "hoje" do contexto), então só vale dentro do que B recebeu sobre esta ocorrência.
-  expect(await coletorB.vazamentos([FORMA, ID_FORMA])).toEqual([]);
+  expect(await coletorB.vazamentos([...NOMES_FORMAS_E_CONTAS_DE_A, ...IDS_FORMAS_E_CONTAS_DE_A])).toEqual([]);
   const respostas = await coletorB.respostas();
-  const daOcorrencia = respostas
-    .filter(({ corpo }) => corpo.includes(marcador))
-    .flatMap(({ corpo }) => objetosComDescricao(JSON.parse(corpo) as unknown, marcador));
-  expect(daOcorrencia.length, 'B recebeu a ocorrência').toBeGreaterThan(0);
+  const corpos = corposJson(respostas);
+  const porMarcador = corpos.flatMap((c) => objetosComValor(c, new Set([marcador])));
+  expect(porMarcador.length, 'B recebeu a ocorrência').toBeGreaterThan(0);
+  // A data pode vir em outra estrutura (ex.: pagamento ligado por id): vale todo objeto que cita o
+  // marcador ou o id da ocorrência, não só o que tem a `descricao`.
+  const referencias = new Set([marcador, ...porMarcador.flatMap((o) => (typeof o.id === 'string' ? [o.id] : []))]);
+  const daOcorrencia = corpos.flatMap((c) => objetosComValor(c, referencias)).map((o) => JSON.stringify(o));
   for (const item of daOcorrencia) {
-    expect(item).not.toContain(FORMA);
-    expect(item).not.toContain(ID_FORMA);
     if (dataDoPagamento !== vencimento) expect(item).not.toContain(dataDoPagamento);
   }
 });
