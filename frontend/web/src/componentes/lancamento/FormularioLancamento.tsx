@@ -1,7 +1,7 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import type { Lancamento } from '@mymoney/contrato/respostas/lancamento';
 import type { FormEvent, ReactNode } from 'react';
-import type { CamposLancamento } from '../../dados/comandos/lancamentos';
+import type { CamposLancamento } from '../../comum/lancamentos';
 import { ROTULO_ESCOPO } from '../../rotulos/escopo';
 import { ROTULO_TIPO_FORMA } from '../../rotulos/tipoForma';
 import { AvisoErroTopo } from '../base/AvisoErroTopo';

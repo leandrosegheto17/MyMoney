@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import type { TipoLancamento } from '@mymoney/contrato/enums';
 import type { DadosCategoria } from '../../componentes/FormularioCategoria';
 import { useAviso } from '../../componentes/base/useAviso';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 import { ehEmUso } from '../../ganchos/useComandoCadastro';
 import { useComandosCategoria } from '../../ganchos/useCategorias';
 import { mensagemErro } from '../../rotulos/mensagensErro';

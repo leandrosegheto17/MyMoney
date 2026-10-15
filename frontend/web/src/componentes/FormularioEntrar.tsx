@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from 'react';
-import type { ErroDados } from '../dados/erros';
+import type { ErroDados } from '../comum/erros';
 import { AvisoErroTopo } from './base/AvisoErroTopo';
 import { Botao } from './base/Botao';
 import { CampoSenha } from './base/CampoSenha';

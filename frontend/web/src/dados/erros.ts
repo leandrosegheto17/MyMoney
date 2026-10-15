@@ -1,12 +1,8 @@
 import { isAuthError } from '@supabase/supabase-js';
 import { CODIGOS_ERRO, type CodigoErro } from '@mymoney/contrato/erros';
+import type { ErroDados } from '../comum/erros';
 
-export type ErroDados =
-  | { tipo: 'rede' }
-  | { tipo: 'indisponivel' }
-  | { tipo: 'autenticacao' }
-  | { tipo: 'regra'; codigo: CodigoErro }
-  | { tipo: 'desconhecido' };
+export type { ErroDados } from '../comum/erros';
 
 const CODIGOS_AUTH: Record<string, CodigoErro> = {
   invalid_credentials: 'credenciais_invalidas',

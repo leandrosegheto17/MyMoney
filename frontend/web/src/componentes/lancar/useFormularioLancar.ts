@@ -3,7 +3,7 @@ import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamen
 import { hojeEmSaoPaulo } from '../../formatacao/data';
 import { contaInicial } from './contaInicial';
 import { formaInicial } from './formaInicial';
-import type { TipoLancamento } from './tiposEnvio';
+import type { TipoLancamento } from '../../comum/envio';
 
 export interface EstadoLancar {
   valorCentavos: number;

@@ -2,7 +2,7 @@ import { useEffect, type PointerEvent } from 'react';
 import { Botao } from '../base/Botao';
 import { observarFolga } from '../base/folgaTeclado';
 import { rotuloBotaoLancar } from './rotuloBotaoLancar';
-import type { TipoLancamento } from './tiposEnvio';
+import type { TipoLancamento } from '../../comum/envio';
 
 interface Props {
   centavos: number;

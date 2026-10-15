@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 import { ehEmUso } from '../../ganchos/useComandoCadastro';
 import { useComandosConta } from '../../ganchos/useContas';
 import { mensagemErro } from '../../rotulos/mensagensErro';

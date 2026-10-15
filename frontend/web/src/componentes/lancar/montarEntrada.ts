@@ -1,5 +1,5 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
-import type { EntradaFolha } from './tiposEnvio';
+import type { EntradaFolha } from '../../comum/envio';
 import type { EstadoFormulario } from './useFormularioLancar';
 
 /** Junta o que a tela escolheu com os nomes de exibição; `undefined` se a categoria, forma ou conta não existe mais. */

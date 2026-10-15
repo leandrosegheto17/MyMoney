@@ -3,7 +3,7 @@ import type { LinhaMetas } from '@mymoney/contrato/respostas/metas';
 import { useEffect, useState } from 'react';
 import { useAviso } from '../../componentes/base/useAviso';
 import { FolhaMovimentarMeta, type DadosMovimento } from '../../componentes/metas/FolhaMovimentarMeta';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 import { hojeEmSaoPaulo } from '../../formatacao/data';
 import { formatarMoeda } from '../../formatacao/moeda';
 import { useComandosMetas } from '../../ganchos/useComandosMetas';

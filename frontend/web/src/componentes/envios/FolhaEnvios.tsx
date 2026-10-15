@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ItemFila } from '../../dados/fila/tipos';
+import type { ItemFila } from '../../comum/fila';
 import { formatarMoeda } from '../../formatacao/moeda';
 import { Botao } from '../base/Botao';
 import { DialogoConfirmacao } from '../base/DialogoConfirmacao';

@@ -2,7 +2,7 @@ import type { LinhaFormasPagamento } from '@mymoney/contrato/respostas/formas-pa
 import { useEffect, useState } from 'react';
 import { useAviso } from '../../componentes/base/useAviso';
 import { FolhaPagamentoCartao, type DadosPagamento } from '../../componentes/formas/FolhaPagamentoCartao';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 import { hojeEmSaoPaulo } from '../../formatacao/data';
 import { useContas } from '../../ganchos/useContas';
 import { useComandosForma } from '../../ganchos/useFormasPagamento';

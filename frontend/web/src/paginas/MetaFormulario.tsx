@@ -6,7 +6,7 @@ import { EsqueletoLista } from '../componentes/base/EsqueletoLista';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { FormularioMeta } from '../componentes/metas/FormularioMeta';
 import { MetaNaoExiste } from '../componentes/metas/MetaNaoExiste';
-import { ehUuid } from '../dados/uuid';
+import { ehUuid } from '../comum/uuid';
 import { linkMeta } from '../formatacao/links';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { useMeta } from '../ganchos/useMetas';

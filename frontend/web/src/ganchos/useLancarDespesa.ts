@@ -1,28 +1,12 @@
 import { useCallback, useRef } from 'react';
-import type { CodigoErro } from '@mymoney/contrato/erros';
 import type { LancarDespesa } from '@mymoney/contrato/respostas/lancar-despesa';
 import { fila } from '../dados/fila/fila';
-import type { ExibicaoItem } from '../dados/fila/tipos';
+import type { EntradaLancar, ResultadoLancar } from '../comum/envio';
 
 /** Depois disso o envio segue em segundo plano e a tela diz que o lançamento está guardado. */
 const ESPERA_MAXIMA_MS = 3000;
 
-export interface EntradaLancar {
-  valorCentavos: number;
-  categoriaId: string;
-  formaId: string;
-  parcelas: number;
-  data: string;
-  descricao: string;
-  exibicao: ExibicaoItem;
-}
-
-export type ResultadoLancar =
-  | { tipo: 'sucesso'; resposta: LancarDespesa }
-  | { tipo: 'guardado' }
-  | { tipo: 'regra'; codigo: CodigoErro }
-  /** Não coube na fila (sem sessão ou fila cheia): nada foi gravado. */
-  | { tipo: 'erro' };
+export type { EntradaLancar, ResultadoLancar };
 
 /** Itens que uma chamada de `lancar` está esperando; quem avisa o resultado é ela, não o aviso de envio em segundo plano. */
 const aguardandoResposta = new Set<string>();

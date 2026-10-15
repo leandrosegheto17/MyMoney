@@ -1,6 +1,6 @@
 import type { Lancamento } from '@mymoney/contrato/respostas/lancamento';
 import { useState } from 'react';
-import type { CamposLancamento } from '../../dados/comandos/lancamentos';
+import type { CamposLancamento } from '../../comum/lancamentos';
 
 /** Valores em edição do formulário; só o estado local, sem dados nem regra de permissão. */
 export function useFormularioLancamento(lancamento: Lancamento) {

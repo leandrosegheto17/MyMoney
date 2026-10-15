@@ -1,4 +1,4 @@
-import type { ItemFila } from '../../dados/fila/tipos';
+import type { ItemFila } from '../../comum/fila';
 import type { EstadoLancar } from '../lancar/useFormularioLancar';
 
 /** Valores da folha de lançamento que reproduzem o item guardado, para o membro corrigi-lo. */

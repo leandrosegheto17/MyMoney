@@ -3,7 +3,7 @@ import type { MovimentosMeta } from '@mymoney/contrato/respostas/movimentos-meta
 import { useLeituraComCache } from '../../ganchos/useLeituraComCache';
 import { useMeta } from '../../ganchos/useMetas';
 import { useMovimentosMeta } from '../../ganchos/useMovimentosMeta';
-import { ehUuid } from '../../dados/uuid';
+import { ehUuid } from '../../comum/uuid';
 import type { LeituraComCache } from '../../tipos/leitura';
 
 export interface DetalheMeta {

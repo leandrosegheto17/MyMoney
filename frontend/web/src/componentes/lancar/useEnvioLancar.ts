@@ -5,7 +5,7 @@ import { ROTULO_ERRO, TEXTO_ERRO_GENERICO } from '../../rotulos/erros';
 import { TEXTO_RECEITA_SEM_CONEXAO } from '../../rotulos/textosConexao';
 import { focarPrimeiroErro } from '../base/focarPrimeiroErro';
 import { montarEntrada } from './montarEntrada';
-import type { EntradaFolha, ResultadoFolha } from './tiposEnvio';
+import type { EntradaFolha, ResultadoFolha } from '../../comum/envio';
 import type { EstadoFormulario } from './useFormularioLancar';
 
 interface Entradas {

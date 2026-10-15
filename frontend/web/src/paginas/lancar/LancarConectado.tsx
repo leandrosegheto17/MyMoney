@@ -6,7 +6,7 @@ import { useConectado } from '../../ganchos/useConectado';
 import { useDadosLancamento } from '../../ganchos/useDadosLancamento';
 import { useLancarDespesa } from '../../ganchos/useLancarDespesa';
 import { useLancarReceita } from '../../ganchos/useLancarReceita';
-import type { EntradaFolha, ResultadoFolha } from '../../componentes/lancar/tiposEnvio';
+import type { EntradaFolha, ResultadoFolha } from '../../comum/envio';
 
 interface Props {
   aberta: boolean;

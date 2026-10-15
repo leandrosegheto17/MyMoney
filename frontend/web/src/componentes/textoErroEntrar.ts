@@ -1,4 +1,4 @@
-import type { ErroDados } from '../dados/erros';
+import type { ErroDados } from '../comum/erros';
 import { TEXTO_SEM_CONEXAO, TEXTO_SERVIDOR_INDISPONIVEL } from '../rotulos/textosConexao';
 
 /** Texto do alerta de entrada; credenciais erradas não dizem se o e-mail existe. */

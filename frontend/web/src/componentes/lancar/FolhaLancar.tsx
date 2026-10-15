@@ -14,7 +14,7 @@ import { MaisDetalhes } from './MaisDetalhes';
 import { SecaoCategoria } from './SecaoCategoria';
 import { SecaoForma } from './SecaoForma';
 import { SecaoParcelas } from './SecaoParcelas';
-import type { EntradaFolha, ResultadoFolha, TipoLancamento } from './tiposEnvio';
+import type { EntradaFolha, ResultadoFolha, TipoLancamento } from '../../comum/envio';
 import { useEnvioLancar } from './useEnvioLancar';
 import { useFormularioLancar, type EstadoLancar } from './useFormularioLancar';
 import estilo from './FolhaLancar.module.css';

@@ -1,7 +1,7 @@
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import { BotaoLink } from '../base/BotaoLink';
 import { EstadoVazio } from '../base/EstadoVazio';
-import type { TipoLancamento } from './tiposEnvio';
+import type { TipoLancamento } from '../../comum/envio';
 
 interface Props {
   dados: DadosLancamento;

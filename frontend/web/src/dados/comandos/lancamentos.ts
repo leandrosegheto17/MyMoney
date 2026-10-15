@@ -1,15 +1,9 @@
 import type { ErroDados } from '../erros';
 import { ehUuid } from '../uuid';
+import type { CamposLancamento } from '../../comum/lancamentos';
 import { chamarRpc, type ArgsRpc } from './rpc';
 
-export type CamposLancamento = {
-  valorTotalCentavos?: number;
-  categoriaId?: string;
-  descricao?: string;
-  data?: string;
-  formaId?: string;
-  numParcelas?: number;
-};
+export type { CamposLancamento };
 
 /** Só os campos recebidos vão na requisição; quem pode alterar o quê é decisão do servidor. */
 export async function editarLancamento({

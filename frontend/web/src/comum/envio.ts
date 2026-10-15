@@ -1,6 +1,24 @@
 import type { CodigoErro } from '@mymoney/contrato/erros';
-import type { EntradaLancar, ResultadoLancar } from '../../ganchos/useLancarDespesa';
+import type { LancarDespesa } from '@mymoney/contrato/respostas/lancar-despesa';
+import type { ExibicaoItem } from './fila';
 import type { LancarReceita } from '@mymoney/contrato/respostas/lancar-receita';
+
+export interface EntradaLancar {
+  valorCentavos: number;
+  categoriaId: string;
+  formaId: string;
+  parcelas: number;
+  data: string;
+  descricao: string;
+  exibicao: ExibicaoItem;
+}
+
+export type ResultadoLancar =
+  | { tipo: 'sucesso'; resposta: LancarDespesa }
+  | { tipo: 'guardado' }
+  | { tipo: 'regra'; codigo: CodigoErro }
+  /** Não coube na fila (sem sessão ou fila cheia): nada foi gravado. */
+  | { tipo: 'erro' };
 
 export type TipoLancamento = 'despesa' | 'receita';
 

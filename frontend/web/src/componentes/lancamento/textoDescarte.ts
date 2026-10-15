@@ -1,5 +1,5 @@
 import type { Lancamento } from '@mymoney/contrato/respostas/lancamento';
-import type { CamposLancamento } from '../../dados/comandos/lancamentos';
+import type { CamposLancamento } from '../../comum/lancamentos';
 import { formatarDataCurta } from '../../formatacao/data';
 
 const lista = new Intl.ListFormat('pt-BR', { style: 'long', type: 'conjunction' });

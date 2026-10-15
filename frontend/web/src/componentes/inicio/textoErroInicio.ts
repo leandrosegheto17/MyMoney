@@ -1,5 +1,5 @@
 import { formatarNomeMes } from '../../formatacao/mes';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 
 /** Título e texto do erro sem dado em cache; fora da indisponibilidade valem os padrões do estado de erro. */
 export function textoErroInicio(erro: ErroDados | null, mes: string): { titulo?: string; texto?: string } {

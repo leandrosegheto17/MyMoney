@@ -3,7 +3,7 @@ import { formatarDataCurta } from '../../formatacao/data';
 import { formatarTituloLancamento } from '../../formatacao/lancamento';
 import { formatarMoeda } from '../../formatacao/moeda';
 import { ROTULO_ERRO, TEXTO_ERRO_GENERICO } from '../../rotulos/erros';
-import type { ItemFila } from '../../dados/fila/tipos';
+import type { ItemFila } from '../../comum/fila';
 
 /** Falhas em que a folha de envios orienta o próximo passo além do que o rótulo de erro diz. */
 const DETALHE_FALHA: Partial<Record<string, string>> = {

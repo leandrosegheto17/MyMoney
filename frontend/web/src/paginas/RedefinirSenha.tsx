@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import { FormularioNovaSenha } from '../componentes/FormularioNovaSenha';
 import { useAviso } from '../componentes/base/useAviso';
-import type { ErroDados } from '../dados/erros';
+import type { ErroDados } from '../comum/erros';
 import { useRecuperacaoSenha } from '../ganchos/useRecuperacaoSenha';
 import { useSalvarNovaSenha } from '../ganchos/useSalvarNovaSenha';
 import { TEXTO_SEM_CONEXAO, TEXTO_SERVIDOR_INDISPONIVEL } from '../rotulos/textosConexao';

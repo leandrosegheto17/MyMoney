@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useAviso } from '../../componentes/base/useAviso';
-import type { CamposLancamento } from '../../dados/comandos/lancamentos';
-import type { ErroDados } from '../../dados/erros';
+import type { CamposLancamento } from '../../comum/lancamentos';
+import type { ErroDados } from '../../comum/erros';
 import { ehConfirmarDescarte, useComandosLancamento } from '../../ganchos/useComandosLancamento';
 import { mensagemErro } from '../../rotulos/mensagensErro';
 

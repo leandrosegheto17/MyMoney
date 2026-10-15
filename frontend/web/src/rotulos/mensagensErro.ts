@@ -1,5 +1,5 @@
 import type { CodigoErro } from '@mymoney/contrato/erros';
-import type { ErroDados } from '../dados/erros';
+import type { ErroDados } from '../comum/erros';
 
 const GENERICA = 'Algo deu errado. Tente de novo';
 

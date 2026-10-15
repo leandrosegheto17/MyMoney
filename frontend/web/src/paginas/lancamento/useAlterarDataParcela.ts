@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAviso } from '../../componentes/base/useAviso';
-import type { ErroDados } from '../../dados/erros';
+import type { ErroDados } from '../../comum/erros';
 import { useComandosLancamento } from '../../ganchos/useComandosLancamento';
 import { mensagemErro } from '../../rotulos/mensagensErro';
 

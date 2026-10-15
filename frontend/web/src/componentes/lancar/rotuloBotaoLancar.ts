@@ -1,5 +1,5 @@
 import { formatarMoeda } from '../../formatacao/moeda';
-import type { TipoLancamento } from './tiposEnvio';
+import type { TipoLancamento } from '../../comum/envio';
 
 /** Texto do botão de envio: o valor e as parcelas já aparecem nele, antes de lançar. */
 export function rotuloBotaoLancar(centavos: number, parcelas: number, tipo: TipoLancamento = 'despesa'): string {

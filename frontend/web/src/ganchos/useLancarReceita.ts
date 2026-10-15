@@ -1,9 +1,9 @@
 import { useCallback, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { LancarReceita } from '@mymoney/contrato/respostas/lancar-receita';
-import type { ResultadoReceita } from '../componentes/lancar/tiposEnvio';
+import type { ResultadoReceita } from '../comum/envio';
 import { lancarReceita } from '../dados/comandos/lancarReceita';
-import type { ErroDados } from '../dados/erros';
+import type { ErroDados } from '../comum/erros';
 import { CHAVES, TOTAIS_DO_MES } from './chavesConsulta';
 
 export interface CamposReceita {

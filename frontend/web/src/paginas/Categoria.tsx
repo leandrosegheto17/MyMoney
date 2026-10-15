@@ -4,7 +4,7 @@ import { CabecalhoPagina } from '../componentes/base/CabecalhoPagina';
 import { EsqueletoLista } from '../componentes/base/EsqueletoLista';
 import { EstadoVazio } from '../componentes/base/EstadoVazio';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
-import { ehUuid } from '../dados/uuid';
+import { ehUuid } from '../comum/uuid';
 import { useCategoria } from '../ganchos/useCategorias';
 import { useLeituraComCache } from '../ganchos/useLeituraComCache';
 import { EdicaoCategoria } from './categoria/EdicaoCategoria';
