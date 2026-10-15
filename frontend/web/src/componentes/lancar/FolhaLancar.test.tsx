@@ -135,10 +135,9 @@ describe('FolhaLancar: arquivos-filho', () => {
     expect(ultimasProps(SecaoParcelas)).toHaveProperty('tipoForma');
     expect(ultimasProps(MaisDetalhes)).toMatchObject({
       data: '2026-10-09',
-      descricao: '',
       aoMudarData: expect.any(Function),
-      aoMudarDescricao: expect.any(Function),
     });
+    expect(document.getElementById('descricao')).toHaveValue('');
   });
 
   it('sem dados, só o valor aparece', () => {

@@ -2,13 +2,12 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MaisDetalhes } from './MaisDetalhes';
 
-function montar(data: string, descricao = '') {
+function montar(data: string) {
   const aoMudarData = vi.fn();
-  const aoMudarDescricao = vi.fn();
   const resultado = render(
-    <MaisDetalhes data={data} descricao={descricao} aoMudarData={aoMudarData} aoMudarDescricao={aoMudarDescricao} />,
+    <MaisDetalhes data={data} aoMudarData={aoMudarData} />,
   );
-  return { aoMudarData, aoMudarDescricao, ...resultado };
+  return { aoMudarData, ...resultado };
 }
 
 beforeEach(() => {
@@ -57,15 +56,5 @@ describe('MaisDetalhes', () => {
     fireEvent.change(screen.getByLabelText('Data'), { target: { value: '2026-10-05' } });
 
     expect(aoMudarData).toHaveBeenCalledWith('2026-10-05');
-  });
-
-  it('"Descrição (opcional)" chama aoMudarDescricao', () => {
-    const { aoMudarDescricao } = montar('2026-10-09');
-
-    const descricao = screen.getByLabelText('Descrição (opcional)');
-    expect(descricao).toHaveAttribute('id', 'descricao');
-    fireEvent.change(descricao, { target: { value: 'Feira' } });
-
-    expect(aoMudarDescricao).toHaveBeenCalledWith('Feira');
   });
 });

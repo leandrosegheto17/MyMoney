@@ -3,6 +3,7 @@ import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamen
 import { TEXTO_NOTA_RECEITA } from '../../rotulos/textosConexao';
 import { AvisoErroTopo } from '../base/AvisoErroTopo';
 import { BotaoForma } from '../base/BotaoForma';
+import { CampoTexto } from '../base/CampoTexto';
 import { CampoValor } from '../base/CampoValor';
 import { Faixa } from '../base/Faixa';
 import { Folha } from '../base/Folha';
@@ -61,12 +62,16 @@ export function FolhaLancar({ aberta, aoFechar, refValor, dados, aoLancar, offli
     (receita ? semContas : dados.formas.length === 0 || dados.categorias_despesa.length === 0);
 
   const detalhes = (
-    <MaisDetalhes
-      data={estado.data}
-      descricao={estado.descricao}
-      aoMudarData={(d) => mudar('data', d)}
-      aoMudarDescricao={(d) => mudar('descricao', d)}
-    />
+    <>
+      <CampoTexto
+        id="descricao"
+        rotulo="Descrição (opcional)"
+        autoComplete="off"
+        value={estado.descricao}
+        onChange={(e) => mudar('descricao', e.target.value)}
+      />
+      <MaisDetalhes data={estado.data} aoMudarData={(d) => mudar('data', d)} />
+    </>
   );
 
   return (
