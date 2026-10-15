@@ -277,7 +277,7 @@
 - Descrição: Visual T02 'sucesso' não fecha (9,91% PC / 17,54% celular): mockup sem a faixa '1 lançamento aguardando envio' que o app mostra; decidir se o mockup ganha a faixa ou o app a omite na Início com dados (G-18)
 - Impacto se não resolvido: —
 - Sugestão: Coordenador ajusta mockup inicio--sucesso ou UX-SPEC/TP-0089
-- Status: Em aberto
+- Status: Resolvido (2026-10-15): Duplicata do BK-0026: estado sucesso do mockup T02 já tem a faixa de fila; reexecutar visual T02
 
 ## Bloqueio 032 — 2026-10-14 (BK-0032)
 - Reportado por: Executor
