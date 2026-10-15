@@ -295,7 +295,7 @@
 - Descrição: Decidir se testes-api mantém tipos do schema escritos à mão (tipos-api.ts) e pg com SQL direto em app.* para limpeza, registrando no SDD §2 por ADR, ou passa a usar @mymoney/contrato/banco e limpeza só pela API
 - Impacto se não resolvido: Baixa: SDD e código divergem; duas fontes de tipo; nada quebra
 - Sugestão: Manter e atualizar o SDD (a API não tem exclusão de meta/fixa; trava de host local já existe); registrar em ADR curto
-- Status: Em aberto
+- Status: Resolvido (2026-10-15): Manter tipos-api.ts e limpeza direta no banco local; ADR-016 e SDD §2
 
 ## Bloqueio 034 — 2026-10-14 (BK-0034)
 - Reportado por: Executor

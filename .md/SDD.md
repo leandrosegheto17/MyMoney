@@ -250,7 +250,7 @@ objeção do stakeholder** (rodada 2).
 |---|---|---|---|
 | `@mymoney/contrato` | `backend/contrato` | — (gerado) | `@mymoney/web`, `@mymoney/testes-api` |
 | `@mymoney/web` | `frontend/web` | `@mymoney/contrato`, `@supabase/supabase-js`, React | — |
-| `@mymoney/testes-api` | `backend/testes-api` | `@mymoney/contrato`, `@supabase/supabase-js` | — (só testes) |
+| `@mymoney/testes-api` | `backend/testes-api` | `@supabase/supabase-js`, `pg` (dev; só limpeza do seed em host local). Tipos do schema `api` próprios em `tipos-api.ts`, sem importar `@mymoney/contrato` (ADR-016) | — (só testes) |
 | `@mymoney/keepalive` | `backend/operacao/keepalive` | nenhum pacote interno | — |
 | Banco (não é pacote JS) | `backend/supabase` | — | Fonte de `@mymoney/contrato` |
 
@@ -378,6 +378,7 @@ falsos ao lado dos reais e testaria violações de privacidade sobre dados verda
 | [013](adr/013-sair-de-todos-revoga-no-servidor-antes-de-remover-a-sessao-local.md) | "Sair de todos os aparelhos" revoga no servidor antes de remover a sessão local; sem rede, falha e mantém a sessão. Complementa o ADR-008 §3 | Aceito |
 | [014](adr/014-cadastro-fechado-por-auth-enable-signup-e-provedor-de-email-ligado.md) | Cadastro fechado por `[auth] enable_signup=false`; `[auth.email] enable_signup=true` só mantém o login por e-mail ligado. Prova: signup local da anon devolve 422. Complementa o ADR-008 §1 | Aceito |
 | [015](adr/015-camada-comum-para-tipos-e-funcoes-puras-do-web.md) | Camada `comum/` no web (só tipos e funções puras, importável por todas, importa só o contrato); `ganchos/` pode importar `formatacao/` e `comum/`. Complementa o SDD §2 | Aceito |
+| [016](adr/016-testes-api-mantem-tipos-proprios-e-limpeza-direta-no-banco-local.md) | `@mymoney/testes-api` mantém tipos próprios do schema `api` e limpa o seed direto no banco, só em host local. Complementa o SDD §2 | Aceito |
 
 ## 5. Modelo de Dados de Alto Nível
 
