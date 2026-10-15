@@ -23,8 +23,7 @@ pnpm --filter @mymoney/web typecheck
 
 - `base`: lint, typecheck e Vitest de todos os pacotes (os testes de componente rodam aqui).
 - `frontend`: build do web, e2e e axe sem `@integracao` (Playwright, Chromium),
-  `visual` sem `--tela` (só as telas de `e2e/telas-implementadas.json`, limite de 1%) e upload dos
-  prints de `.md/.visual/` como artefato `visual`.
+  sem comparação visual (o `visual` é manual, fora do CI e do deploy).
 - `integracao`: sobe o Supabase local (`pnpm local:ci`) e roda `playwright test --grep @integracao`
   com a URL e a chave anon locais; nunca credencial de produção.
 

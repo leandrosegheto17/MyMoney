@@ -11,7 +11,7 @@ workflow.
 | `base` | lint, typecheck, Vitest, scripts de operação, gitleaks e guardas de repositório |
 | `banco` | pgTAP, lint do banco e contrato de tipos em dia |
 | `isolamento` | suíte de isolamento da API (um contexto nunca vê dados de outro) |
-| `frontend` | build, hosts externos, e2e, axe e comparação visual com o mockup |
+| `frontend` | build, hosts externos, e2e e axe |
 | `integracao` | e2e `@integracao` contra o Supabase local |
 
 O job `migration` entra nesta lista quando for exigido pelo gate de migrations.
