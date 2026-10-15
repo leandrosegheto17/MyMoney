@@ -31,7 +31,7 @@ seja `localhost`/`127.0.0.1` derruba o spec antes de abrir o navegador.
 - `base`: lint, typecheck e Vitest de todos os pacotes (os testes de componente rodam aqui).
 - `frontend`: build do web, e2e e axe sem `@integracao` (Playwright, Chromium),
   sem comparação visual (o `visual` é manual, fora do CI e do deploy).
-- `integracao`: sobe o Supabase local (`pnpm local:ci`) e roda `playwright test --grep @integracao`
+- `integracao`: sobe o Supabase local (`pnpm local:ci`) e roda `pnpm e2e:integracao` (um spec por vez; antes carrega a Ana sem cadastros)
   com a URL e a chave anon locais; nunca credencial de produção.
 
 Reproduzir (Docker em execução para `integracao`):
@@ -39,7 +39,7 @@ Reproduzir (Docker em execução para `integracao`):
 ```sh
 pnpm --filter @mymoney/web build
 pnpm local:ci   # e, com o .env preenchido, em frontend/web:
-pnpm exec playwright test --grep @integracao
+pnpm e2e:integracao
 ```
 
 Os jobs são exigidos antes do deploy: `backend/operacao/setup/gate-deploy.md`.

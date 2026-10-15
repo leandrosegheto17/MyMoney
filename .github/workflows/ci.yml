@@ -255,6 +255,9 @@ jobs:
         working-directory: frontend/web
         run: pnpm exec playwright install --with-deps chromium
 
+      - name: Ana sem cadastros (primeiro uso)
+        run: bash backend/supabase/volume/carregar.sh ../ensaio/sem-cadastros-ana.sql
+
       - name: e2e de integração
         working-directory: frontend/web
         run: |
@@ -262,7 +265,7 @@ jobs:
             echo "VITE_SUPABASE_URL=$SUPABASE_URL"
             echo "VITE_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
           } > .env.local
-          pnpm exec playwright test --grep @integracao --pass-with-no-tests
+          pnpm e2e:integracao
 
   migration:
     name: migration
