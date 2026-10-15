@@ -1,5 +1,6 @@
 // Leituras e ações das despesas fixas (T06, T07, T08), do Início (T02) e do cartão (T18) reais.
 import { expect, type Locator, type Page } from '@playwright/test';
+import { semViolacoesGraves } from '../../apoio/acessibilidade';
 import { emCentavos } from './leitura';
 
 /** Hoje em America/Sao_Paulo, como o app o enxerga, independente do fuso da máquina. */
@@ -84,6 +85,7 @@ export async function pagarOcorrencia(page: Page, mes: string, marcador: string,
   await folha.getByRole('button', { name: /^Forma de pagamento/ }).click();
   await page.getByRole('radio', { name: new RegExp(forma) }).locator('xpath=ancestor::label').click();
   await folha.getByLabel('Data do pagamento').fill(data);
+  await semViolacoesGraves(page);
   await folha.getByRole('button', { name: 'Confirmar pagamento' }).click();
   await expect(page.getByRole('status').getByText('Marcada como paga')).toBeVisible({ timeout: 15_000 });
 }
