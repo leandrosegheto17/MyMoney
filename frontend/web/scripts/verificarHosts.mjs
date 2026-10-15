@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { hostSupabaseProducao as hostPermitido } from './refProducao.mjs';
 
 const EXTENSOES = new Set(['.js', '.css', '.html', '.webmanifest']);
-const LITERAL = /https?:\/\/([a-z0-9.-]+)([^\s`'"\)<>]*)/gi;
+const LITERAL = /https?:\/\/([a-z0-9.-]+)([^\s`'")<>]*)/gi;
 
 // Lista fechada (G-20): literais que o código nunca busca. Cada host só vale com o caminho que a
 // biblioteca usa; o mesmo host com outro caminho (literal escrito no app) continua sendo intruso.
