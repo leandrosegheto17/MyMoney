@@ -4,18 +4,21 @@ import { render, screen, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const { buscarMeta, buscarMovimentosMeta } = vi.hoisted(() => ({
+  buscarMeta: vi.fn(),
+  buscarMovimentosMeta: vi.fn(),
+}));
+
 vi.mock('../dados/consultas/metas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../dados/consultas/metas')>()),
-  buscarMeta: vi.fn(),
+  buscarMeta,
   buscarMetas: vi.fn(),
 }));
 vi.mock('../dados/consultas/movimentosMeta', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../dados/consultas/movimentosMeta')>()),
-  buscarMovimentosMeta: vi.fn(),
+  buscarMovimentosMeta,
 }));
 
-import { buscarMeta } from '../dados/consultas/metas';
-import { buscarMovimentosMeta } from '../dados/consultas/movimentosMeta';
 import { Meta } from './Meta';
 
 type Linha = Record<string, unknown>;

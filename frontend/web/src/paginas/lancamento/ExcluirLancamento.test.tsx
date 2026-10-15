@@ -3,12 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAviso } from '../base/useAviso';
+import { useAviso } from '../../componentes/base/useAviso';
 import { useComandosLancamento } from '../../ganchos/useComandosLancamento';
 import { useContexto } from '../../ganchos/useContexto';
 import { useDadosLancamento } from '../../ganchos/useDadosLancamento';
 import { useLancamento } from '../../ganchos/useLancamento';
-import { Lancamento } from '../../paginas/Lancamento';
+import { Lancamento } from '../Lancamento';
 
 // O botão Excluir é encaixado pela página: o teste roda pela página com o comando simulado.
 vi.mock('../../ganchos/useLancamento', () => ({ useLancamento: vi.fn() }));
@@ -18,7 +18,7 @@ vi.mock('../../ganchos/useComandosLancamento', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../ganchos/useComandosLancamento')>()),
   useComandosLancamento: vi.fn(),
 }));
-vi.mock('../base/useAviso', () => ({ useAviso: vi.fn() }));
+vi.mock('../../componentes/base/useAviso', () => ({ useAviso: vi.fn() }));
 
 const RESPOSTAS = new URL('../../../../../.md/mockup/respostas/', import.meta.url);
 const resposta = (nome: string): unknown => JSON.parse(readFileSync(new URL(nome, RESPOSTAS), 'utf8'));

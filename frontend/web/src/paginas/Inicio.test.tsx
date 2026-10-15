@@ -6,8 +6,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DadosLancamento } from '@mymoney/contrato/respostas/dados-lancamento';
 import type { ResumoMes } from '@mymoney/contrato/respostas/resumo-mes';
 import { lerResposta } from '../../test/apoio/fetchSimulado';
-import { buscarResumoMes } from '../dados/consultas/resumoMes';
-import { buscarDadosLancamento } from '../dados/consultas/dadosLancamento';
 import { usePendentes } from '../ganchos/usePendentes';
 import { CasaTotal } from '../componentes/inicio/CasaTotal';
 import { CasaQuemPagou } from '../componentes/inicio/CasaQuemPagou';
@@ -25,13 +23,18 @@ import { EuCartoes } from '../componentes/inicio/EuCartoes';
 import { EuMetas } from '../componentes/inicio/EuMetas';
 import { Inicio } from './Inicio';
 
-vi.mock('../dados/consultas/resumoMes', () => ({ buscarResumoMes: vi.fn() }));
+const { buscarResumoMes, buscarDadosLancamento } = vi.hoisted(() => ({
+  buscarResumoMes: vi.fn(),
+  buscarDadosLancamento: vi.fn(),
+}));
+
+vi.mock('../dados/consultas/resumoMes', () => ({ buscarResumoMes }));
 vi.mock('../dados/consultas/contexto', async () => {
   const { lerResposta: ler } = await import('../../test/apoio/fetchSimulado');
   return { buscarContexto: vi.fn(async () => ler('contexto.json')) };
 });
 vi.mock('../dados/consultas/dadosLancamento', () => ({
-  buscarDadosLancamento: vi.fn(),
+  buscarDadosLancamento,
   lerDadosDoAparelho: vi.fn(async () => undefined),
 }));
 vi.mock('../ganchos/usePendentes', () => ({ usePendentes: vi.fn() }));

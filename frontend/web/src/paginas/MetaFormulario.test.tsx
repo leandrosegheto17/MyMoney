@@ -5,19 +5,22 @@ import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+const { salvarMeta, buscarMeta } = vi.hoisted(() => ({
+  salvarMeta: vi.fn(),
+  buscarMeta: vi.fn(),
+}));
+
 vi.mock('../dados/consultas/metas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../dados/consultas/metas')>()),
-  buscarMeta: vi.fn(),
+  buscarMeta,
   buscarMetas: vi.fn(),
 }));
 vi.mock('../dados/comandos/metas', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../dados/comandos/metas')>()),
-  salvarMeta: vi.fn(),
+  salvarMeta,
 }));
 
 import { RegiaoAvisos } from '../componentes/base/RegiaoAvisos';
-import { salvarMeta } from '../dados/comandos/metas';
-import { buscarMeta } from '../dados/consultas/metas';
 import { MetaFormulario } from './MetaFormulario';
 
 const ID_VIAGEM = '00000000-0000-4000-8000-000000000902';

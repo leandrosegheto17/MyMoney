@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { CabecalhoMes } from '../componentes/CabecalhoMes';
 import { Segmentado } from '../componentes/base/Segmentado';
+import { useAviso } from '../componentes/base/useAviso';
 import { EstadosDeLeitura } from '../componentes/EstadosDeLeitura';
 import { CartaoTotalOrcamento } from '../componentes/orcamento/CartaoTotalOrcamento';
 import { EsqueletoOrcamento } from '../componentes/orcamento/EsqueletoOrcamento';
@@ -17,6 +18,7 @@ import { useMesDaUrl } from '../ganchos/useMesDaUrl';
 import { useOrcamentoMes } from '../ganchos/useOrcamentoMes';
 import { usePendentes } from '../ganchos/usePendentes';
 import { ROTULO_ESCOPO } from '../rotulos/escopo';
+import { mensagemErro } from '../rotulos/mensagensErro';
 import { ValorOrcamentoConectado } from './orcamento/ValorOrcamentoConectado';
 import estilos from './Orcamento.module.css';
 
@@ -35,7 +37,9 @@ export function Orcamento() {
   const { total: pendentes } = usePendentes();
   const [definindoDoZero, setDefinindoDoZero] = useState(false);
   const anterior = consulta.data?.anterior;
-  const { copiar, copiando } = useCopiarOrcamento(mes, escopoApi, anterior ? formatarNomeMes(anterior.mes) : '');
+  const { mostrar } = useAviso();
+  const { copiar, copiando } = useCopiarOrcamento(mes, escopoApi);
+  const nomeMesOrigem = anterior ? formatarNomeMes(anterior.mes) : '';
   const carregando = leitura.situacao === 'carregando';
   const tituloCartao = useRef<HTMLHeadingElement>(null);
 
@@ -83,7 +87,16 @@ export function Orcamento() {
                       : undefined
                   }
                   copiando={copiando}
-                  aoCopiar={copiar}
+                  aoCopiar={() =>
+                    copiar({
+                      onSuccess: () => mostrar('sucesso', `Orçamento copiado de ${nomeMesOrigem}`),
+                      onError: (erro) =>
+                        mostrar(
+                          'erro',
+                          erro.tipo === 'rede' ? 'Sem conexão. O orçamento não foi copiado.' : mensagemErro(erro),
+                        ),
+                    })
+                  }
                   aoDefinir={() => setDefinindoDoZero(true)}
                 />
               );
