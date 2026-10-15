@@ -29,7 +29,8 @@ describe('api.formas_pagamento', () => {
     expect(error).toBeNull();
     const linhas = data as unknown as LinhaForma[];
     expect(linhas.map((l) => l.id)).toEqual(expect.arrayContaining([PIX, DEBITO, XP]));
-    mesmaForma(linhas, formas);
+    // A view não tem ordem garantida: compara o formato do Pix (primeiro item do exemplo), não a primeira linha lida.
+    mesmaForma([linhas.find((l) => l.id === PIX)], formas);
     const xp = linhas.find((l) => l.id === XP);
     expect(Number.isInteger(xp?.gasto_mes_centavos)).toBe(true);
     expect(Number.isInteger(xp?.comprometido_futuro_centavos)).toBe(true);

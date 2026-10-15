@@ -28,7 +28,7 @@ describe('api.salvar_despesa_fixa', () => {
     expect(criada.data).toBe(id);
     const lida = await a.from('despesas_fixas').select('*').eq('id', id).single();
     expect(lida.error).toBeNull();
-    mesmaForma(lida.data, exemplo);
+    mesmaForma([lida.data], exemplo);
   });
 
   it('B edita o modelo criado por A', async () => {

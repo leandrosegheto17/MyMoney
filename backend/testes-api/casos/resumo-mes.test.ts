@@ -54,8 +54,10 @@ describe('api.resumo_mes', () => {
     const { data, error } = await (await comoA()).rpc('resumo_mes', { p_mes: mes });
     expect(error).toBeNull();
     const resumo = data as { conjunto: Bloco; individual: Bloco };
-    compararMetas(resumo.conjunto.metas, exemplo.conjunto.metas as ItemMeta[]);
-    compararMetas(resumo.individual.metas, exemplo.individual.metas as ItemMeta[]);
+    // Os exemplos de metas dos dois blocos servem para os dois: o individual do exemplo não traz uma meta com prazo.
+    const exemplosMetas = [...exemplo.conjunto.metas, ...exemplo.individual.metas] as ItemMeta[];
+    compararMetas(resumo.conjunto.metas, exemplosMetas);
+    compararMetas(resumo.individual.metas, exemplosMetas);
     const semMetas = {
       ...resumo,
       conjunto: { ...resumo.conjunto, metas: [] },
