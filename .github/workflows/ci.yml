@@ -37,8 +37,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Testes (Vitest de todos os pacotes)
-        run: pnpm test
+      - name: Testes (Vitest dos pacotes que não precisam de banco)
+        # @mymoney/testes-api exige o Supabase local: roda no job isolamento.
+        run: pnpm -r --if-present --filter '!@mymoney/testes-api' test
 
       - name: Teste do config.toml do Supabase
         run: pnpm run --if-present test:config

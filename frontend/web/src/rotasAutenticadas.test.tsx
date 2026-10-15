@@ -9,7 +9,7 @@ import { useContexto } from './ganchos/useContexto';
 vi.mock('./ganchos/useSessao', () => ({ useSessao: vi.fn() }));
 vi.mock('./ganchos/useContexto', () => ({ useContexto: vi.fn() }));
 vi.mock('./ganchos/useInicializarMembro', () => ({ useInicializarMembro: vi.fn() }));
-vi.mock('./ganchos/usePendentes', () => ({ usePendentes: () => ({ total: 0, aguardando: 0, falhas: 0 }) }));
+vi.mock('./ganchos/usePendentes', () => ({ usePendentes: () => ({ itens: [], total: 0, aguardando: 0, falhas: 0 }) }));
 vi.mock('./dados/consultas/resumoMes', () => ({ buscarResumoMes: () => new Promise(() => {}) }));
 
 const sessaoFalsa = { user: { id: 'u1' }, access_token: 'token-falso' };

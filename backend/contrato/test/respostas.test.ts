@@ -52,7 +52,7 @@ const TABELA: Caso[] = [
   r('meta-detalhe.json', 'metas', 'LinhaMetas[]'),
 ];
 
-const ERRO = 'erro-registro-invalido.json';
+const ERROS = ['erro-registro-invalido.json', 'erro-categoria-arquivada.json'];
 
 // Respostas do Auth e do gateway: fora do schema `api`, sem tipo no contrato.
 const EXCLUIDOS: Record<string, string> = {
@@ -118,13 +118,15 @@ let resultado: Map<string, string[]>;
 beforeAll(() => {
   const fontes = new Map<string, string>();
   for (const caso of TABELA) fontes.set(nomeVirtual(caso.json), fonteDoCaso(caso));
-  fontes.set(
-    nomeVirtual(ERRO),
-    [
-      `import type { CodigoErro } from '../../src/erros';`,
-      `export const valor = (${lerJson(ERRO)}) satisfies { message: CodigoErro } & Record<string, unknown>;`,
-    ].join('\n'),
-  );
+  for (const erro of ERROS) {
+    fontes.set(
+      nomeVirtual(erro),
+      [
+        `import type { CodigoErro } from '../../src/erros';`,
+        `export const valor = (${lerJson(erro)}) satisfies { message: CodigoErro } & Record<string, unknown>;`,
+      ].join('\n'),
+    );
+  }
   fontes.set(
     nomeVirtual(CATEGORIAS_ESCOPO_INVALIDO),
     fonteDoCaso(
@@ -159,8 +161,8 @@ describe('respostas do mockup satisfazem os tipos do contrato', () => {
     expect(resultado.get(nomeVirtual(json))).toEqual([]);
   });
 
-  it(`${ERRO} tem message do tipo CodigoErro`, () => {
-    expect(resultado.get(nomeVirtual(ERRO))).toEqual([]);
+  it.each(ERROS)('%s tem message do tipo CodigoErro', (erro) => {
+    expect(resultado.get(nomeVirtual(erro))).toEqual([]);
   });
 });
 
@@ -187,7 +189,7 @@ describe('o teste detecta forma errada', () => {
 
 describe('tabela JSON → tipo', () => {
   it('todo arquivo de .md/mockup/respostas tem linha na tabela ou exclusão com motivo', () => {
-    const cobertos = new Set([...TABELA.map((c) => c.json), ERRO, ...Object.keys(EXCLUIDOS)]);
+    const cobertos = new Set([...TABELA.map((c) => c.json), ...ERROS, ...Object.keys(EXCLUIDOS)]);
     const arquivos = readdirSync(RESPOSTAS).filter((f) => f.endsWith('.json'));
     expect(arquivos.filter((f) => !cobertos.has(f))).toEqual([]);
   });
