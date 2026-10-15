@@ -986,3 +986,6 @@ APROVADA COM RESSALVA — 0 críticos, 2 não críticos (RTP-0167): medianas RNF
 
 ## RTP-0166 — QA — 2026-10-15
 APROVADA; 0 críticos/0 não críticos; passo 5 e tabela Registro coerentes, gitleaks limpo, .sql intocado, sem dado real.
+
+## RTP-0163 — QA — 2026-10-15
+RTP-0163 aprovada na rodada 2 — limpeza.md decodifica como UTF-8 inteiro e o texto do deploy cancelado está correto.
