@@ -1,4 +1,4 @@
-# Roteiro de fricção e desempenho nos aparelhos reais (TP-0114)
+# Roteiro de fricção e desempenho nos aparelhos reais
 
 Registro da M3 do PRD: RNF-01, RNF-03 e RNF-05. Quem mede é o casal, nos dois aparelhos, com o mesmo roteiro.
 **Este arquivo não leva valor, categoria, descrição, e-mail nem print** (RNF-06 / G-15).
@@ -21,7 +21,7 @@ App: `https://mymoney-ljs.vercel.app/` (produção, ver `limpeza.md`).
 
 1. Instalar pela T22: iPhone, Safari, "Adicionar à Tela de Início"; Moto, Chrome, prompt nativo de instalação.
 2. Abrir pelo ícone e confirmar `standalone` (sem barra do navegador) — RNF-05.
-3. Entrar com o usuário do TP-0112, definir a forma preferida, e deixar a categoria do teste entre as primeiras da grade.
+3. Entrar com o usuário de teste criado no preparo do ambiente, definir a forma preferida, e deixar a categoria do teste entre as primeiras da grade.
 4. Decidir com o casal, antes de começar, se os lançamentos são gastos reais (preferível) ou fictícios excluídos depois pela T07 e conferidos na T04 dos dois membros.
 
 ## 3. Método
@@ -33,7 +33,7 @@ App: `https://mymoney-ljs.vercel.app/` (produção, ver `limpeza.md`).
 
 ## 4. RNF-01 — 10 lançamentos (app já aberto na T02, caminho feliz do F1: "+" → valor → categoria → "Lançar")
 
-Limite: mediana ≤ 10 s e exatamente 3 toques além do valor. Se trocar forma ou parcelar, refazer o lançamento. Se o teclado numérico não abrir de primeira, conta como toque a mais (SPK-0001) e é desvio.
+Limite: mediana ≤ 10 s e exatamente 3 toques além do valor. Se trocar forma ou parcelar, refazer o lançamento. Se o teclado numérico não abrir de primeira, conta como toque a mais e é desvio.
 
 | # | iPhone: tempo (s) | iPhone: toques | iPhone: teclado numérico abriu | Moto: tempo (s) | Moto: toques | Moto: teclado numérico abriu |
 |---|---|---|---|---|---|---|
@@ -79,7 +79,7 @@ Do toque no ícone até a T02 com o resumo carregado (sem esqueleto). Limite: me
 | **Mediana** | | |
 | **Resultado (≤ 2 s)** | | |
 
-Volume de dados no momento da medição: _(pouco / informar)_. Desempenho com 2 anos de dados já foi medido no local pelo TP-0088 (resultado no `backend/README.md`); não refazer aqui.
+Volume de dados no momento da medição: _(pouco / informar)_. Desempenho com 2 anos de dados já foi medido no local pela medição local de desempenho (resultado no `backend/README.md`); não refazer aqui.
 
 ## 7. RNF-05 — instalação
 
