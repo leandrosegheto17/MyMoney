@@ -32,7 +32,7 @@ Observação: a URL e as chaves de um projeto recriado vão para o gerenciador d
 
 # Limpeza e reconfiguração do projeto Vercel `mymoney`
 
-Registrado em 2026-10-15 (TP-0029). Sem valores de variáveis.
+Registrado em 2026-10-15. Sem valores de variáveis.
 
 - **Removido em 2026-10-14:** 164 deploys e todas as variáveis antigas (3 variáveis em 5 entradas); 0 domínios próprios. Outros projetos da conta não foram tocados.
 - **Configuração final:** Root Directory `frontend/web` com "Include files outside the root directory" ligado; framework Vite; install `pnpm install --frozen-lockfile`; build `pnpm --filter @mymoney/web build`; output `dist`; Node 24.x; Git ligado ao repositório, branch de produção `main`; Ignored Build Step para pular o que não for produção.

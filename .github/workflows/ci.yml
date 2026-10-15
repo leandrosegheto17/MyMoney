@@ -186,6 +186,9 @@ jobs:
           export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
           pnpm --filter @mymoney/web build
 
+      - name: Hosts externos no build
+        run: pnpm --filter @mymoney/web verificar-hosts
+
       - name: Navegador do Playwright (Chromium)
         working-directory: frontend/web
         run: pnpm exec playwright install --with-deps chromium
@@ -214,6 +217,18 @@ jobs:
           done
           pnpm exec playwright test --grep-invert @integracao "${specs[@]}"
 
+      - name: Comparação visual com o mockup
+        run: pnpm --filter @mymoney/web visual
+
+      - name: Prints da comparação visual
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: visual
+          path: .md/.visual/**
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Relatório dos testes
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -223,6 +238,36 @@ jobs:
             frontend/web/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  integracao:
+    name: integracao
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash -euo pipefail {0}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Preparar pnpm e dependências
+        uses: ./.github/actions/preparar-pnpm
+
+      - name: Subir Supabase local e recriar o banco
+        run: pnpm local:ci
+
+      - name: Variáveis (só URL e chave anon locais)
+        uses: ./.github/actions/ambiente-supabase-local
+
+      - name: Navegador do Playwright (Chromium)
+        working-directory: frontend/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: e2e de integração
+        working-directory: frontend/web
+        run: |
+          export VITE_SUPABASE_URL="$SUPABASE_URL" VITE_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          pnpm exec playwright test --grep @integracao --pass-with-no-tests
 
   migration:
     name: migration
