@@ -944,3 +944,6 @@ APROVADA; 0 críticos, 1 não crítico pré-existente (RTP-0158: mock de usePend
 
 ## RTP-0157c — QA — 2026-10-14
 APROVADA — comum/ puro com reexports em dados/, componentes/paginas sem importar dados/, lint/typecheck/build verdes, web 1887 ok com só as 9 falhas conhecidas da RTP-0158; 0 críticos, 0 não críticos.
+
+## RTP-0158 — QA — 2026-10-14
+Mock de usePendentes adicionado em rotas.mes.test; suíte web 1896/1896 e typecheck verdes, sem rejeições; sem achados.

@@ -869,3 +869,6 @@ APROVADA em segurança; 0 críticos, 0 não críticos novos; refatoração sem m
 
 ## RTP-0157c — DevSecOps — 2026-10-14
 APROVADA — comum/ puro (só tipos e ehUuid), tradução de erro/supabase-js/idb-keyval só em dados/, componentes/paginas sem importar dados/, nenhuma regra desligada, lint exit 0 e test/lint 42/42 executados; 0 críticos, 0 não críticos.
+
+## RTP-0158 — DevSecOps — 2026-10-14
+Diff só de teste (+2 linhas, 0 removidas), sem mudança de produção nem dependência; sem achados.
