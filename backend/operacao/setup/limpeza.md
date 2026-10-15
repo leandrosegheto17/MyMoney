@@ -56,6 +56,6 @@ Registrado em 2026-10-15. Sem valores de variáveis.
 
 ### Production Branch e proteção da `main`
 
-- **Production Branch (Vercel):** `main`, conforme a configuração final registrada em 2026-10-14. Não foi reaberto o painel nesta edição; reconferir em Settings > Git se o painel mudar.
-- **Proteção da `main` (GitHub):** hoje não há proteção (a API de proteção de branch devolveu 404). **Decisão do usuário: pendente.** Não implementado sem ela.
-- **Versionar `ignoreCommand` em `frontend/web/vercel.json`:** hoje a regra vive só no painel (risco: mudança no painel não passa por revisão). **Decisão do usuário: pendente.** Se for decidido versionar, abrir tarefa própria.
+- **Production Branch (Vercel):** `main`, **lido pelo usuário no painel (Settings > Git > Production Branch) em 2026-10-15**; confere com a configuração final de 2026-10-14.
+- **Proteção da `main` (GitHub):** hoje não há proteção (a API de proteção de branch devolveu 404). **Decisão do usuário em 2026-10-15: não proteger por ora.** Reavaliar se entrar mais gente no repositório ou se um deploy ruim chegar à produção.
+- **Versionar `ignoreCommand` em `frontend/web/vercel.json`:** a regra segue só no painel (risco: mudança no painel não passa por revisão). **Decisão do usuário em 2026-10-15: não versionar por ora.** Reavaliar junto com a proteção da `main`.
