@@ -126,7 +126,6 @@ serviços não usados, seguido de `db reset`); só as chaves locais descartávei
   `VITE_SUPABASE_ANON_KEY` do Supabase local e `pnpm --filter @mymoney/web e2e:integracao`
   (specs `@integracao`).
 
-
 Localmente (Docker em execução):
 
 ```sh
