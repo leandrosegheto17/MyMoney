@@ -3,7 +3,7 @@
 // ganha o selo; a meta individual de A e os locais dela não chegam a B (CA-17.4, SDD §7 item 6, G-05).
 import { expect, test, type Page } from '@playwright/test';
 import { semViolacoesGraves } from '../apoio/acessibilidade';
-import { abrirSessoes, IDS_FORMAS_E_CONTAS_DE_A, type Sessoes } from './apoio/casal';
+import { abrirSessoes, IDS_FORMAS_E_CONTAS_DE_A, NOMES_FORMAS_E_CONTAS_DE_A, type Sessoes } from './apoio/casal';
 import { coletarRespostas, type ColetorRede } from './apoio/coletorRede';
 import { emCentavos } from './apoio/leitura';
 import { novoMarcador } from './apoio/marcador';
@@ -117,7 +117,9 @@ test('@integracao B vê a meta da casa e o aporte de A, sem a conta (RN-08)', as
   await expect(b.getByText('Nubank')).toHaveCount(0);
   await semViolacoesGraves(b);
 
-  const vazamentos = await coletorB.vazamentos([/"conta"\s*:\s*\{/, 'movimento_conta', ID_NUBANK]);
+  // "Caixinha Nubank" é local de guardado da casa e pode chegar a B: só o nome inteiro da conta (entre aspas) conta.
+  const nomesDeA = NOMES_FORMAS_E_CONTAS_DE_A.map((nome) => new RegExp(`"${nome}"`));
+  const vazamentos = await coletorB.vazamentos([/"conta"\s*:\s*\{/, 'movimento_conta', ID_NUBANK, ...nomesDeA]);
   expect(vazamentos).toEqual([]);
 });
 
