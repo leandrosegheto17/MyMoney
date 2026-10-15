@@ -995,3 +995,6 @@ BLOQUEIO de ambiente (node_modules de frontend/web esvaziado, sem playwright/tsc
 
 ## TP-0030 — QA — 2026-10-15
 APROVADA COM RESSALVAS; 0 críticos, 2 não críticos (IDs de tarefa em roteiro-m3.md quebram o guarda do `base` na main atual; retenção do gate em produção não exercitada); evidência: 6 jobs verdes no PR #21 e na main (2275894), actionlint ok, verificarHosts 5/5.
+
+## RTP-0162 — QA — 2026-10-15
+APROVADA — 8/8 specs verdes e contraprova ("Mercado" em vazamentosDeA) derruba o teste 3; diff conforme as convencoes; 0 criticos, 0 nao criticos.
