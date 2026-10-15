@@ -264,15 +264,19 @@ objeção do stakeholder** (rodada 2).
 
 | Camada | Pasta | Pode importar |
 |---|---|---|
-| Rotas e páginas finas | `paginas/` | `componentes/`, `ganchos/`, `formatacao/`, `rotulos/` |
-| Componentes de tela | `componentes/` | `componentes/base/`, `formatacao/`, `rotulos/` (**nunca** `dados/`) |
-| Ganchos de dados (TanStack Query) | `ganchos/` | `dados/` |
-| **Acesso a dados** (único módulo que importa `supabase-js` e IndexedDB) | `dados/` (`cliente.ts` interno, `consultas/`, `comandos/`, `fila/`, `sessao.ts`) | `@mymoney/contrato`, `configuracao/` |
-| Formatação pt-BR (moeda, data, mês) | `formatacao/` | — |
-| Rótulos de enum do contrato (tipo de forma, escopo, situação) | `rotulos/` | `@mymoney/contrato` |
+| Rotas e páginas finas | `paginas/` | `componentes/`, `ganchos/`, `formatacao/`, `rotulos/`, `comum/` |
+| Componentes de tela | `componentes/` | `componentes/base/`, `formatacao/`, `rotulos/`, `comum/` (**nunca** `dados/`) |
+| Ganchos de dados (TanStack Query) e de estado de URL | `ganchos/` | `dados/`, `formatacao/`, `comum/` (**nunca** `rotulos/` nem `componentes/`) |
+| **Acesso a dados** (único módulo que importa `supabase-js` e IndexedDB) | `dados/` (`cliente.ts` interno, `consultas/`, `comandos/`, `fila/`, `sessao.ts`) | `@mymoney/contrato`, `configuracao/`, `comum/` |
+| Formatação pt-BR (moeda, data, mês) | `formatacao/` | `comum/` |
+| Rótulos de enum do contrato (tipo de forma, escopo, situação) e mensagens de erro | `rotulos/` | `@mymoney/contrato`, `comum/` |
+| **Comum**: tipos e funções puras compartilhados (`ErroDados`, `ehUuid`, tipos de fila e de lançamento). Sem React, sem I/O, sem estado (ADR-015) | `comum/` | `@mymoney/contrato` |
 | PWA (registro do SW, instrução de instalação) | `pwa/` | — |
 | Configuração (URL e chave `anon` via `import.meta.env`) | `configuracao/` | — |
 
+- **`comum/` (ADR-015).** Todas as camadas importam `comum/`; ela não importa nenhuma. Só entra nela tipo ou
+  função pura. `ErroDados` (tipo) mora aqui; `traduzirErro`/`extrair`, que usam `supabase-js`, ficam em
+  `dados/erros.ts`, que reexporta o tipo. Idem `ehUuid` e os tipos de fila e de lançamento.
 - **Acesso a dados num só lugar.** `dados/` é o único módulo que fala com o Supabase e com o IndexedDB. Ele
   **não exporta** o cliente `supabase`: exporta funções (`buscarResumoMes`, `lancarDespesa`, `fila.esvaziar`…).
   No banco, `backend/supabase/schemas/` é o único lugar com SQL. Nenhum SQL fica em string no frontend.
@@ -300,7 +304,7 @@ objeção do stakeholder** (rodada 2).
 │       ├── deploy/          # migrar.sh (dry-run, confirmação, cópia pontual pré-migração fora do repositório)
 │       └── setup/           # roteiro de criação dos 2 usuários e do lar, limpeza dos ambientes antigos (com verificação de região)
 └── frontend/
-    └── web/                 # @mymoney/web: src/{paginas,componentes,ganchos,dados,formatacao,rotulos,pwa,configuracao}, public/ (ícones, manifest), testes e2e/
+    └── web/                 # @mymoney/web: src/{paginas,componentes,ganchos,dados,formatacao,rotulos,comum,pwa,configuracao}, public/ (ícones, manifest), testes e2e/
 ```
 
 ## 3. Stack Tecnológica e Justificativa
@@ -373,6 +377,7 @@ falsos ao lado dos reais e testaria violações de privacidade sobre dados verda
 | [012](adr/012-funcoes-auxiliares-de-rls-security-definer-na-lista-fechada.md) | `app.membro_atual()` e `app.lar_atual()` como `SECURITY DEFINER` mínimas e não expostas, na lista fechada (evita a recursão de RLS em `membro`). Complementa o ADR-003 §3 | Aceito |
 | [013](adr/013-sair-de-todos-revoga-no-servidor-antes-de-remover-a-sessao-local.md) | "Sair de todos os aparelhos" revoga no servidor antes de remover a sessão local; sem rede, falha e mantém a sessão. Complementa o ADR-008 §3 | Aceito |
 | [014](adr/014-cadastro-fechado-por-auth-enable-signup-e-provedor-de-email-ligado.md) | Cadastro fechado por `[auth] enable_signup=false`; `[auth.email] enable_signup=true` só mantém o login por e-mail ligado. Prova: signup local da anon devolve 422. Complementa o ADR-008 §1 | Aceito |
+| [015](adr/015-camada-comum-para-tipos-e-funcoes-puras-do-web.md) | Camada `comum/` no web (só tipos e funções puras, importável por todas, importa só o contrato); `ganchos/` pode importar `formatacao/` e `comum/`. Complementa o SDD §2 | Aceito |
 
 ## 5. Modelo de Dados de Alto Nível
 

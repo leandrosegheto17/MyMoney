@@ -304,4 +304,4 @@
 - Descrição: SDD §2 sem destino para dados/erros, dados/uuid e tipos de dados/ usados por paginas/componentes/rotulos, e ganchos/ precisa de formatacao/ (61 erros de lint); decidir onde moram ou ampliar a regra
 - Impacto se não resolvido: Job base do CI vermelho; migrar.sh (TP-0011) exige base verde
 - Sugestão: Coordenador decide (a) erros/uuid, (b) tipos de fila/comandos, (c) ganchos x formatacao/rotulos; depois dividir a RTP em 3 partes (ver ## Bloqueio)
-- Status: Em aberto
+- Status: Resolvido (2026-10-14): A + c1 aprovados: camada comum/ (ADR-015); RTP-0157 dividida em a/b/c
