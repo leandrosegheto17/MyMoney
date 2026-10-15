@@ -75,8 +75,8 @@ select ok(coalesce(current_setting('teste.vazio_a')::jsonb -> 'conjunto' -> 'orc
 select ok(coalesce(current_setting('teste.vazio_a')::jsonb -> 'individual' -> 'orcamento', 'null'::jsonb) = 'null'::jsonb, 'mês sem orçamento: individual.orcamento nulo');
 
 -- Inferência: orçamento individual de A não muda o bloco individual de B
-insert into app.orcamento (lar_id, mes, categoria_id, escopo, dono_id, valor_centavos)
-values ((select id from app.lar), '2026-10-01', '00000000-0000-4000-8000-000000000415', 'individual', '00000000-0000-4000-8000-000000000101', 5000);
+update app.orcamento set valor_centavos = 5000
+where mes = '2026-10-01' and categoria_id = '00000000-0000-4000-8000-000000000415';
 
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000000a2","role":"authenticated"}', true);
 set local role authenticated;

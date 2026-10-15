@@ -950,3 +950,9 @@ Mock de usePendentes adicionado em rotas.mes.test; suíte web 1896/1896 e typech
 
 ## TP-0011 — QA — 2026-10-15
 APROVADA; 0 críticos, 1 não crítico (baixa: nota D-11 diz cópia "vazio" e `## 4` diz que contém dados); 70 migrations aplicadas, anon só executa api.ping (grep + curl registrados), sem drop/truncate/grant a public, nota D-11 correta e sem segredo.
+
+## TP-0029 — QA — 2026-10-15
+APROVADA; 0 críticos e 2 não críticos (baixa); cabeçalhos efetivos = vercel.json, rewrite/308/manifest/sw OK, bundle sem chave secreta, branch sem deploy comprovado por gh api; pendência do usuário: console sem violação de CSP no navegador.
+
+## TP-0094 — QA — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; 11 testes Eu* ok, visual T02 sucesso 0.00% pc/celular com alturas iguais (demais estados 0.00%), axe sem serious/critical; 24 errors da suíte são de Orcamento.test (sem `.env.local` na worktree, RTP-0157b), não desta tarefa.

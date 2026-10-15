@@ -23,17 +23,16 @@ select testes.como_postgres();
 select results_eq(
   $$select nome, variavel from app.categoria
     where escopo = 'conjunto' and tipo = 'despesa' and dono_id is null order by nome$$,
-  $$values ('Contas da casa'::text, false), ('Delivery/iFood do casal', true), ('Mercado', true),
-           ('Moradia', false), ('Outros da casa', false)$$,
-  'as 5 despesas conjuntas da lista inicial');
+  $$values ('Almoço/Alimentação fora'::text, true), ('Contas da casa', false), ('Delivery/iFood do casal', true),
+           ('Mercado', true), ('Moradia', false), ('Outros da casa', false)$$,
+  'as 6 despesas conjuntas da lista inicial (Almoço/Alimentação fora é conjunta)');
 select results_eq(
   $$select tipo, nome, variavel from app.categoria
     where escopo = 'individual' and dono_id = testes.membro_a() order by tipo, nome$$,
-  $$values ('despesa'::text, 'Almoço/Alimentação fora'::text, true::boolean),
-           ('despesa', 'Delivery pessoal', true), ('despesa', 'Lazer pessoal', true),
+  $$values ('despesa'::text, 'Delivery pessoal'::text, true::boolean), ('despesa', 'Lazer pessoal', true),
            ('despesa', 'Outros', false), ('despesa', 'Transporte', true),
            ('receita', 'Extra', null), ('receita', 'Outros', null), ('receita', 'Salário', null)$$,
-  'as 8 individuais de A (5 despesas e 3 receitas)');
+  'as 7 individuais de A (4 despesas e 3 receitas)');
 select results_eq(
   $$select count(*)::int from app.categoria where arquivada$$,
   $$values (0)$$, 'nenhuma nasce arquivada');
@@ -55,18 +54,18 @@ select is_empty(
   'B não vê as individuais de A');
 select results_eq(
   $$select count(*)::int from app.categoria$$,
-  $$values (13)$$, 'B vê as 5 conjuntas e as 8 individuais dele');
+  $$values (13)$$, 'B vê as 6 conjuntas e as 7 individuais dele');
 select testes.como_postgres();
 
 select results_eq(
   $$select count(*)::int from app.categoria where escopo = 'conjunto'$$,
-  $$values (5)$$, 'as conjuntas continuam 5');
+  $$values (6)$$, 'as conjuntas continuam 6');
 select results_eq(
   $$select count(*)::int from app.categoria where dono_id = testes.membro_b()$$,
-  $$values (8)$$, 'B ganha 8 individuais');
+  $$values (7)$$, 'B ganha 7 individuais');
 select results_eq(
   $$select count(*)::int from app.categoria where dono_id = testes.membro_a()$$,
-  $$values (8)$$, 'A continua com 8 individuais');
+  $$values (7)$$, 'A continua com 7 individuais');
 
 -- Usuário sem membro
 select testes.como_sem_membro();
@@ -76,7 +75,7 @@ select testes.como_postgres();
 
 select results_eq(
   $$select count(*)::int from app.categoria$$,
-  $$values (21)$$, 'usuário sem membro não cria nada');
+  $$values (20)$$, 'usuário sem membro não cria nada');
 
 select * from finish();
 rollback;

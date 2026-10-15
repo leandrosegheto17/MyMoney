@@ -61,7 +61,7 @@ select pg_temp.lancar('e8600000-0000-4000-8000-000000000304', testes.membro_a(),
 select pg_temp.lancar('e8600000-0000-4000-8000-000000000305', testes.membro_a(), 'despesa', 'individual',
   '00000000-0000-4000-8000-000000000415', array[1000]::bigint[], array['2027-03-06']::date[]);
 select pg_temp.lancar('e8600000-0000-4000-8000-000000000306', testes.membro_a(), 'despesa', 'individual',
-  '00000000-0000-4000-8000-000000000411', array[6000]::bigint[], array['2027-03-07']::date[]);
+  '00000000-0000-4000-8000-000000000412', array[6000]::bigint[], array['2027-03-07']::date[]);
 select pg_temp.lancar('e8600000-0000-4000-8000-000000000307', testes.membro_a(), 'receita', 'individual',
   '00000000-0000-4000-8000-000000000421', array[750000]::bigint[], array['2027-03-01']::date[]);
 
@@ -96,7 +96,7 @@ select is((app.totais_individuais('2027-03-01')->>'total_variaveis_centavos')::b
   'variáveis = conjuntas variáveis pagas por A + individuais variáveis de A');
 select is(app.totais_individuais('2027-03-01')->'por_categoria',
   jsonb_build_array(
-    pg_temp.categoria('00000000-0000-4000-8000-000000000411', 6000),
+    pg_temp.categoria('00000000-0000-4000-8000-000000000412', 6000),
     pg_temp.categoria('00000000-0000-4000-8000-000000000413', 4000),
     pg_temp.categoria('00000000-0000-4000-8000-000000000415', 1000)),
   'por_categoria: só individuais de A, por total');

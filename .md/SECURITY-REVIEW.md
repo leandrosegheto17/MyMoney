@@ -875,3 +875,9 @@ Diff só de teste (+2 linhas, 0 removidas), sem mudança de produção nem depen
 
 ## TP-0011 — DevSecOps — 2026-10-15
 APROVADA; 0 críticos, 1 não crítico (baixa: nota D-11 chama a cópia de "vazio" mas ela tem dados; apagar ~/mymoney-copias); grep executado: anon só api.ping, sem grant a public, sem drop/truncate, sem JWT/senha/conexão versionados, .temp ignorado e cópias fora do repo.
+
+## TP-0029 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 1 não crítico novo (baixa, anexável ao RTP-0159) mais RTP-0159/0160 já abertos; cabeçalhos efetivos e bundle (só anon, sem service_role/sb_secret_ como valor) confirmados por curl, branch sem deploy confirmado por gh api, .github sem token Vercel; lista de variáveis do painel e console CSP seguem só por relato.
+
+## TP-0094 — DevSecOps — 2026-10-15
+APROVADA; 0 críticos, 0 não críticos; só `individual` e só formatação (G-07), sem `dados/`, `style`, `dangerouslySetInnerHTML` (grep 0), links por helpers, sem dependência nova; eslint não executável na worktree (coberto pelo QA).
